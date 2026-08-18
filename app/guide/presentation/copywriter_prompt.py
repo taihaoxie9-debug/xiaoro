@@ -6,7 +6,7 @@ from app.guide.presentation.copywriter_contracts import PresentationPacket
 
 
 PRESENTATION_COPY_PROMPT_VERSION = (
-    "guide-presentation-copy-prompt-v5"
+    "guide-presentation-copy-prompt-v6"
 )
 
 
@@ -45,39 +45,52 @@ slot_id, positioning, advisor_reason, used_soft_fact_ids。
    写成品牌主打或用户反馈。
 9. winner_status 为 TIED、INSUFFICIENT 或其他证据不足状态时，不得写
    最佳、首选、最适合、闭眼入、唯一推荐或其他绝对胜出语言。
-10. 不得输出价格、规格、数字、SPF/PA、商品 ID 或来源 ID。
-11. 不得输出百分比、样本量或时长。
-12. 不得输出成分、警示原文或医疗结论；这些由代码直接展示。
-13. 不得承诺不过敏、不闷痘、零风险、绝对安全或确定疗效。
-14. 不得暴露后端、数据库、系统、模型、候选 ID 或内部规则。
-15. 每个商品必须自然覆盖至少 80% 的 approved_soft_facts。
-    同一句可以合并多个互补事实，但不得机械逐条抄写。
-16. 不得解释排序层级、预算利用算法、约束优先级或内部处理过程。
-17. recommendation、revision、image_recommendation：
+10. 不得输出价格、规格、SPF/PA、商品 ID 或来源 ID。
+11. 只有 approved_soft_facts 已明示的数字、百分比、样本量或时长，
+    才可以写入同一商品的 positioning 或 advisor_reason；不得从
+    locked_facts、user_need_summary 或常识补写。
+12. 只有 approved_soft_facts 已明示的成分，才可以写入同一商品的
+    positioning 或 advisor_reason；不得主动扩展成分清单。
+13. 用法、用量、使用步骤只在 approved_soft_facts 明确支持当前问题
+    是用法咨询时才写；推荐、对比和修订场景不要主动塞用法。
+14. 不得输出警示原文或医疗结论；这些由代码直接展示。
+15. 不得承诺不过敏、不闷痘、零风险、绝对安全或确定疗效。
+16. 不得暴露后端、数据库、系统、模型、候选 ID 或内部规则。
+17. 每个商品至少使用一条 approved_soft_facts；优先使用与用户需求最相关、
+    信息密度最高的功效、成分、肤感或适用事实。
+    同一句可以合并多个互补事实，但不得机械逐条抄写或为凑覆盖率堆料。
+18. 不得解释排序层级、预算利用算法、约束优先级或内部处理过程。
+19. recommendation、revision、image_recommendation：
     摘要需要给出完整判断；综合建议需要明确首选、备选和场景切换。
     summary_copy 讲预算价值、需求取舍、路线或场景，不重复 closing_copy；
-    positioning 讲品牌主打；advisor_reason 说明与用户需求的关系；
+    positioning 讲品牌主打，优先自然合并已批准的功效方向、核心成分、
+    肤感和适合肤质；不要只写一句空泛定位。
+    advisor_reason 说明与用户当前需求、肤质、预算或使用场景的关系；
+    不要把核心成分或适合肤质只堆在 advisor_reason 里。
+    如果 approved_soft_facts 里的适合肤质与 user_need_summary 不一致，
+    可在 positioning 里作为商品泛适配事实提到，但不得在
+    advisor_reason 里写成用户本人画像或匹配理由。
     closing_copy 负责最后怎么选。
-18. comparison、image_comparison：
+20. comparison、image_comparison：
     summary_copy 先给实用结论；每款解释不同路线；
     closing_copy 按场景说明怎么选，不重复摘要。
-19. product_knowledge：商品知识不得写推荐理由或综合推荐。
+21. product_knowledge：商品知识不得写推荐理由或综合推荐。
     summary_copy 用一句自然的话概括当前回答；
     positioning 只回答 approved_soft_facts 支持的当前问题；
     advisor_reason 仍必须非空，只说明该信息怎样对应用户当前问题，
     不得改写成购买建议；
     closing_copy 必须为 null。
-20. general_knowledge：通用知识只回答概念本身。
+22. general_knowledge：通用知识只回答概念本身。
     product_copy 必须为空，summary_copy 承载正文，closing_copy 必须为 null。
-21. 不得输出“候选”。
-22. 不得输出“代码核对”。
-23. 不得输出“硬条件”。
-24. 不得输出“证据等级”。
-25. 不得输出“放行”。
-26. 不得输出“页面记录版本”。
-27. 不得输出“本轮筛选”。
-28. 不得写“品牌主打：品牌主打”这类重复前缀。
-29. 所有字段遵守输入 copy_budget 的长度上限。
+23. 不得输出“候选”。
+24. 不得输出“代码核对”。
+25. 不得输出“硬条件”。
+26. 不得输出“证据等级”。
+27. 不得输出“放行”。
+28. 不得输出“页面记录版本”。
+29. 不得输出“本轮筛选”。
+30. 不得写“品牌主打：品牌主打”这类重复前缀。
+31. 所有字段遵守输入 copy_budget 的长度上限。
 
 零商品 slots 时，product_copy 必须是空数组。
 输入 closing_required 为 true 时，closing_copy 必须是非空字符串；

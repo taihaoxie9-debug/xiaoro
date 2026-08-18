@@ -163,6 +163,15 @@ def test_consultation_observation_uses_rose_label_without_left_rule() -> None:
     assert "color: var(--primary-deep);" in html
 
 
+def test_product_title_and_advisor_label_use_rose_accent() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+
+    assert ".guide-presentation-product h3 {" in html
+    assert ".guide-product-advisor-reason strong {" in html
+    assert ".guide-presentation-product h3 {\n            color: var(--primary-deep);" in html
+    assert ".guide-product-advisor-reason strong {\n            color: var(--primary-deep);" in html
+
+
 def test_session_id_source_uses_only_browser_cryptography() -> None:
     html = CHAT_HTML.read_text(encoding="utf-8")
     function_source = _session_id_function_source(html)

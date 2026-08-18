@@ -43,11 +43,44 @@ class ProductCardFacts(_StrictContract):
     brand: str | None
     category: str | None
     price: Decimal | None
+    efficacy: tuple[str, ...] | None = None
+    efficacy_state: Literal[
+        "known",
+        "unknown",
+        "conflict",
+        "not_applicable",
+    ] = "unknown"
+    suitable_skin: tuple[str, ...] | None = None
+    suitable_skin_state: Literal[
+        "known",
+        "unknown",
+        "conflict",
+        "not_applicable",
+    ] = "unknown"
+    ingredients_present: tuple[str, ...] | None = None
+    ingredients_present_state: Literal[
+        "known",
+        "unknown",
+        "conflict",
+        "not_applicable",
+    ] = "unknown"
     image_url: str | None = None
     detail_url: str | None = None
     platform: str | None = None
     image_source_sha256: str | None = None
     fact_warnings: list[str]
+
+    @field_validator(
+        "efficacy",
+        "suitable_skin",
+        "ingredients_present",
+        mode="before",
+    )
+    @classmethod
+    def freeze_direct_display_values(cls, value: object) -> object:
+        if isinstance(value, list):
+            return tuple(value)
+        return value
 
     @model_validator(mode="after")
     def validate_category_fields(self) -> Self:
@@ -70,6 +103,41 @@ class ProductCardFacts(_StrictContract):
             raise ValueError(
                 "category fields must be sorted and unique"
             )
+        for value, state, field_name in (
+            (
+                self.efficacy,
+                self.efficacy_state,
+                "efficacy",
+            ),
+            (
+                self.suitable_skin,
+                self.suitable_skin_state,
+                "suitable_skin",
+            ),
+            (
+                self.ingredients_present,
+                self.ingredients_present_state,
+                "ingredients_present",
+            ),
+        ):
+            if state == "known":
+                if value is None:
+                    raise ValueError(
+                        f"{field_name} requires value when known"
+                    )
+                if not value or any(
+                    type(item) is not str
+                    or not item
+                    or item != item.strip()
+                    for item in value
+                ):
+                    raise ValueError(
+                        f"{field_name} values must be nonempty strings"
+                    )
+            elif value is not None:
+                raise ValueError(
+                    f"{field_name} forbids value unless known"
+                )
         return self
 
 

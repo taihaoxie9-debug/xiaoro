@@ -22,6 +22,7 @@ _ALLOWED_FIELDS = frozenset({
     "usage_context",
     "usage_scenario",
     "efficacy",
+    "ingredients_present",
     "suitable_skin",
     "skin_concern",
     "target_audience",
@@ -63,19 +64,20 @@ _FIELD_PRIORITY = {
     "friction_resistance": 5,
     "suitable_skin": 6,
     "efficacy": 7,
-    "skin_concern": 8,
-    "coverage": 9,
-    "color_family": 10,
-    "color_payoff": 11,
-    "shade": 12,
-    "makeup_style": 13,
-    "fragrance_description": 14,
-    "fragrance_family": 15,
-    "cleansing_power": 16,
-    "rinse_behavior": 17,
-    "cleansing_requirement": 18,
-    "double_cleanse": 19,
-    "surfactant_type": 20,
+    "ingredients_present": 8,
+    "skin_concern": 9,
+    "coverage": 10,
+    "color_family": 11,
+    "color_payoff": 12,
+    "shade": 13,
+    "makeup_style": 14,
+    "fragrance_description": 15,
+    "fragrance_family": 16,
+    "cleansing_power": 17,
+    "rinse_behavior": 18,
+    "cleansing_requirement": 19,
+    "double_cleanse": 20,
+    "surfactant_type": 21,
 }
 
 _ATTRIBUTION_PRIORITY = {
@@ -106,7 +108,11 @@ def build_narrative_atoms(
     for fact in facts:
         if (
             fact.field_key not in _ALLOWED_FIELDS
-            or not is_safe_soft_fact_text(fact.plain_meaning)
+            or not is_safe_soft_fact_text(
+                fact.plain_meaning,
+                attribution=fact.attribution,
+                field_key=fact.field_key,
+            )
         ):
             continue
         field = _FIELD_GROUP.get(fact.field_key, fact.field_key)

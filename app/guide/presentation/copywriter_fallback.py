@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from itertools import combinations
-import math
 
 from app.guide.presentation.copywriter_contracts import (
     ApprovedSoftFact,
@@ -137,9 +136,13 @@ def _fallback_product_copy(packet: PresentationPacket, slot) -> ProductCopy:
     safe_facts = tuple(
         fact
         for fact in slot.approved_soft_facts
-        if is_safe_soft_fact_text(fact.plain_meaning)
+        if is_safe_soft_fact_text(
+            fact.plain_meaning,
+            attribution=fact.attribution,
+            field_key=fact.field_key,
+        )
     )
-    required = math.ceil(len(slot.approved_soft_facts) * 0.8)
+    required = min(2, len(slot.approved_soft_facts))
     if len(safe_facts) < required:
         raise ValueError(
             "approved soft facts cannot satisfy fallback coverage"

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from enum import Enum
-import math
 import re
 
 from app.guide.presentation.copywriter_contracts import (
@@ -44,9 +43,18 @@ _CHINESE_QUANTITY = re.compile(
 )
 _PROTECTION_VALUE = re.compile(r"\bspf\s*\d*|\bpa\s*\++", re.IGNORECASE)
 _INGREDIENT = re.compile(
-    r"烟酰胺|视黄醇|水杨酸|果酸|神经酰胺|玻尿酸|透明质酸|"
+    r"烟酰胺|视黄醇|水杨酸|果酸|神经酰胺|玻色因|玻尿酸|透明质酸|"
     r"二氧化钛|氧化锌|酒精|乙醇|香精|防腐剂"
 )
+_HARD_FACT_TOKEN = re.compile(
+    r"[0-9０-９]+(?:\s*(?:[%％]|元|天|周|个月|月|年|小时|分钟|秒|"
+    r"人|位|名|例|成|款|种|ml|mL|ML|毫升|滴))?"
+)
+_HARD_FACT_RANGE = re.compile(
+    r"[0-9０-９]+\s*(?:-|－|—|~|～|到|至)\s*"
+    r"[0-9０-９]+\s*(?:元|块)?"
+)
+_BARE_DIGIT = re.compile(r"[0-9０-９]+")
 _PRODUCT_INTRODUCTION = re.compile(
     r"(?:换成|改买|购买|入手|选择|推荐|看看)"
     r"[^，。！？\n]{1,24}"
@@ -94,6 +102,10 @@ _INTERNAL_PUBLIC_LANGUAGE = re.compile(
     r"品牌主打\s*[：:]\s*品牌主打"
 )
 _AUTHORIZED_WINNER_STATUSES = frozenset({"SELECTED", "WINNER"})
+_APPROVED_HARD_FACT_FIELDS = frozenset({
+    "efficacy",
+    "ingredients_present",
+})
 _PRODUCT_NAME_PLACEHOLDERS = frozenset({
     "无",
     "未知",
@@ -129,9 +141,7 @@ def validate_copywriter_draft(
         }
         if not set(item.used_soft_fact_ids).issubset(allowed_ids):
             _reject(CopywriterValidationErrorCode.FACT_ID_MISMATCH)
-        required_count = math.ceil(
-            len(slot.approved_soft_facts) * 0.8
-        )
+        required_count = 1 if slot.approved_soft_facts else 0
         if len(item.used_soft_fact_ids) < required_count:
             _reject(CopywriterValidationErrorCode.FACT_COVERAGE)
         _validate_attribution(slot, item)
@@ -177,30 +187,71 @@ def validate_copywriter_draft(
         locked_atoms.extend(
             caution.text for caution in slot.required_cautions
         )
-    for text in _copy_fields(draft):
+    shared_validation_args = {
+        "slot_names": slot_names,
+        "locked_atoms": tuple(locked_atoms),
+        "allowed_category_profiles": allowed_category_profiles,
+        "winner_authorized": (
+            packet.winner_status in _AUTHORIZED_WINNER_STATUSES
+        ),
+        "forbid_product_introduction": bool(packet.slots),
+    }
+    _validate_text(
+        draft.summary_copy,
+        authorized_hard_fact_text=_summary_authorized_hard_fact_text(
+            packet
+        ),
+        **shared_validation_args,
+    )
+    for item in draft.product_copy:
+        slot = slot_by_id[item.slot_id]
+        authorized_hard_fact_text = _authorized_hard_fact_text(
+            slot.approved_soft_facts
+        )
+        for text in (item.positioning, item.advisor_reason):
+            _validate_text(
+                text,
+                authorized_hard_fact_text=authorized_hard_fact_text,
+                **shared_validation_args,
+            )
+    if draft.closing_copy is not None:
         _validate_text(
-            text,
-            slot_names=slot_names,
-            locked_atoms=tuple(locked_atoms),
-            allowed_category_profiles=allowed_category_profiles,
-            winner_authorized=(
-                packet.winner_status in _AUTHORIZED_WINNER_STATUSES
+            draft.closing_copy,
+            authorized_hard_fact_text=_summary_authorized_hard_fact_text(
+                packet
             ),
-            forbid_product_introduction=bool(packet.slots),
+            **shared_validation_args,
         )
     return draft
 
 
-def is_safe_soft_fact_text(text: str) -> bool:
+def is_safe_soft_fact_text(
+    text: str,
+    *,
+    attribution: str | None = None,
+    field_key: str | None = None,
+) -> bool:
     if not isinstance(text, str) or not text.strip():
+        return False
+    authorized_hard_fact_text = (
+        text
+        if field_key in _APPROVED_HARD_FACT_FIELDS
+        else ""
+    )
+    if _has_unauthorized_hard_fact(
+        text,
+        authorized_text=authorized_hard_fact_text,
+    ):
+        return False
+    if _has_unauthorized_ingredient(
+        text,
+        authorized_text=authorized_hard_fact_text,
+    ):
         return False
     return not any(
         pattern.search(text)
         for pattern in (
-            _DIGIT,
-            _CHINESE_QUANTITY,
             _PROTECTION_VALUE,
-            _INGREDIENT,
             _PRODUCT_INTRODUCTION,
             _WINNER_LANGUAGE,
             _SAFETY_GUARANTEE,
@@ -242,15 +293,6 @@ def _validate_lengths(
             _reject(CopywriterValidationErrorCode.LENGTH)
 
 
-def _copy_fields(draft: CopywriterDraft) -> tuple[str, ...]:
-    fields = [draft.summary_copy]
-    for item in draft.product_copy:
-        fields.extend((item.positioning, item.advisor_reason))
-    if draft.closing_copy is not None:
-        fields.append(draft.closing_copy)
-    return tuple(fields)
-
-
 def _validate_text(
     text: str,
     *,
@@ -259,12 +301,16 @@ def _validate_text(
     allowed_category_profiles: frozenset[str],
     winner_authorized: bool,
     forbid_product_introduction: bool,
+    authorized_hard_fact_text: str,
 ) -> None:
     if _INTERNAL_PUBLIC_LANGUAGE.search(text):
         _reject(CopywriterValidationErrorCode.INTERNAL_LANGUAGE)
     if _MARKUP.search(text):
         _reject(CopywriterValidationErrorCode.MARKUP)
-    if _DIGIT.search(text) or _CHINESE_QUANTITY.search(text):
+    if _has_unauthorized_hard_fact(
+        text,
+        authorized_text=authorized_hard_fact_text,
+    ):
         _reject(CopywriterValidationErrorCode.HARD_FACT)
     if _PROTECTION_VALUE.search(text):
         _reject(CopywriterValidationErrorCode.HARD_FACT)
@@ -274,7 +320,10 @@ def _validate_text(
         for atom in locked_atoms
     ):
         _reject(CopywriterValidationErrorCode.HARD_FACT)
-    if _INGREDIENT.search(text):
+    if _has_unauthorized_ingredient(
+        text,
+        authorized_text=authorized_hard_fact_text,
+    ):
         _reject(CopywriterValidationErrorCode.INGREDIENT)
     if any(name in text for name in slot_names):
         _reject(CopywriterValidationErrorCode.PRODUCT_NAME)
@@ -328,6 +377,123 @@ def _has_mismatched_category_assertion(
         if any(re.search(pattern, text) for pattern in assertions):
             return True
     return False
+
+
+def _summary_authorized_hard_fact_text(packet: PresentationPacket) -> str:
+    count = len(packet.slots)
+    structural_count = (
+        f"{count}款"
+        if count > 0
+        else ""
+    )
+    return " ".join(
+        value
+        for value in (
+            packet.user_need_summary,
+            structural_count,
+        )
+        if value
+    )
+
+
+def _authorized_hard_fact_text(facts: tuple[object, ...]) -> str:
+    return " ".join(
+        fact.plain_meaning
+        for fact in facts
+        if getattr(fact, "field_key", None) in _APPROVED_HARD_FACT_FIELDS
+    )
+
+
+def _has_unauthorized_hard_fact(
+    text: str,
+    *,
+    authorized_text: str,
+) -> bool:
+    if _PROTECTION_VALUE.search(text):
+        return True
+    authorized_spans: list[tuple[int, int]] = []
+    for match in _HARD_FACT_RANGE.finditer(text):
+        token = match.group(0).strip()
+        if not _is_authorized_numeric_range(
+            token,
+            authorized_text=authorized_text,
+        ):
+            return True
+        authorized_spans.append(match.span())
+    for pattern in (_HARD_FACT_TOKEN, _CHINESE_QUANTITY):
+        for match in pattern.finditer(text):
+            if _span_is_within(match.span(), authorized_spans):
+                continue
+            token = match.group(0).strip()
+            if _BARE_DIGIT.fullmatch(token):
+                return True
+            if token and not _is_authorized_fragment(
+                token,
+                authorized_text=authorized_text,
+            ):
+                return True
+    return False
+
+
+def _has_unauthorized_ingredient(
+    text: str,
+    *,
+    authorized_text: str,
+) -> bool:
+    return any(
+        not _is_authorized_fragment(
+            match.group(0),
+            authorized_text=authorized_text,
+        )
+        for match in _INGREDIENT.finditer(text)
+    )
+
+
+def _is_authorized_fragment(
+    fragment: str,
+    *,
+    authorized_text: str,
+) -> bool:
+    if not authorized_text:
+        return False
+    return _compact(fragment) in _compact(authorized_text)
+
+
+def _is_authorized_numeric_range(
+    fragment: str,
+    *,
+    authorized_text: str,
+) -> bool:
+    if not authorized_text:
+        return False
+    values = re.findall(r"[0-9０-９]+", _compact(fragment))
+    if len(values) != 2:
+        return False
+    pattern = (
+        re.escape(values[0])
+        + r"(?:-|－|—|~|～|到|至)?"
+        + re.escape(values[1])
+        + r"(?:元|块)?"
+    )
+    return re.search(pattern, _compact(authorized_text)) is not None
+
+
+def _span_is_within(
+    span: tuple[int, int],
+    containers: list[tuple[int, int]],
+) -> bool:
+    start, end = span
+    return any(
+        container_start <= start and end <= container_end
+        for container_start, container_end in containers
+    )
+
+
+def _compact(value: str) -> str:
+    return _SPACELESS.sub("", value).casefold()
+
+
+_SPACELESS = re.compile(r"\s+")
 
 
 def _reject(code: CopywriterValidationErrorCode) -> None:

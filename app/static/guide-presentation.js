@@ -1309,7 +1309,9 @@
                 mode: options.mode || 'recommend',
                 stages,
                 current: 0,
-                summary: ''
+                summary: '',
+                autoAdvanceMs: Number(options.autoAdvanceMs || 0),
+                autoAdvanceTimer: null
             };
             if (
                 options.beforeNode
@@ -1320,18 +1322,54 @@
                 container.appendChild(element);
             }
             renderThinking(controller);
+            scheduleThinkingAutoAdvance(controller);
             return controller;
+        }
+
+        function clearThinkingAutoAdvance(controller) {
+            if (!controller?.autoAdvanceTimer) return;
+            if (typeof clearTimeout === 'function') {
+                clearTimeout(controller.autoAdvanceTimer);
+            }
+            controller.autoAdvanceTimer = null;
+        }
+
+        function scheduleThinkingAutoAdvance(controller) {
+            if (
+                !controller?.element
+                || !controller.stages?.length
+                || !Number.isFinite(controller.autoAdvanceMs)
+                || controller.autoAdvanceMs <= 0
+                || controller.current >= controller.stages.length - 1
+                || typeof setTimeout !== 'function'
+            ) {
+                return;
+            }
+            clearThinkingAutoAdvance(controller);
+            controller.autoAdvanceTimer = setTimeout(() => {
+                controller.autoAdvanceTimer = null;
+                if (!controller.element?.isConnected) return;
+                controller.current = Math.min(
+                    controller.current + 1,
+                    controller.stages.length - 1
+                );
+                controller.summary = '';
+                renderThinking(controller);
+                scheduleThinkingAutoAdvance(controller);
+            }, controller.autoAdvanceMs);
         }
 
         function setThinkingMode(controller, mode) {
             if (!controller?.element) return controller;
             const stages = thinkingStagesForMode(mode);
             if (!stages.length) return controller;
+            clearThinkingAutoAdvance(controller);
             controller.mode = mode;
             controller.stages = stages;
             controller.current = 0;
             controller.summary = '';
             renderThinking(controller);
+            scheduleThinkingAutoAdvance(controller);
             return controller;
         }
 
@@ -1355,6 +1393,9 @@
             );
             controller.summary = String(summary || '');
             renderThinking(controller);
+            if (controller.current >= controller.stages.length - 1) {
+                clearThinkingAutoAdvance(controller);
+            }
             return controller;
         }
 
@@ -1363,6 +1404,7 @@
             options = {}
         ) {
             if (!controller?.element) return;
+            clearThinkingAutoAdvance(controller);
             const element = controller.element;
             element.dataset.firstCharacter = (
                 options.firstCharacter === true ? 'true' : 'false'

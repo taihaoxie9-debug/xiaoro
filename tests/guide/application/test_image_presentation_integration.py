@@ -121,7 +121,7 @@ def test_confirmed_identity_shows_only_confirmed_product() -> None:
     presentation = _event(events, "presentation_contract").data
     products = _event(events, "products").data.cards
 
-    assert presentation.mode == "product_knowledge"
+    assert presentation.mode == "image_identity"
     assert presentation.card_display.mode == "single"
     assert [card.product_id for card in products] == [53]
     assert presentation.card_display.visible_product_ids == (53,)

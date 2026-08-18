@@ -8,7 +8,7 @@
     <script>
         window.feather = window.feather || { replace() {} };
     </script>
-    <script src="/static/guide-presentation.js?v=48274ce9d428"></script>
+    <script src="/static/guide-presentation.js?v=0fed7b41ccc0"></script>
     <style>
         :root {
             --primary: #B88F9D;
@@ -1502,6 +1502,15 @@
             font-size: 14px;
             line-height: 1.45;
             color: var(--text-primary);
+        }
+
+        .guide-presentation-product h3 {
+            color: var(--primary-deep);
+            font-weight: 700;
+        }
+
+        .guide-product-advisor-reason strong {
+            color: var(--primary-deep);
         }
 
         .guide-presentation-observation {
@@ -6050,7 +6059,8 @@
                             typingDiv,
                             {
                                 mode: 'recommend',
-                                beforeNode: pendingBubble
+                                beforeNode: pendingBubble,
+                                autoAdvanceMs: 1000
                             }
                         );
                 }
@@ -7711,13 +7721,53 @@
         function buildDetailedProductReason(p, index) {
             const bits = [];
             const rawReason = (p.rerank_reason || '').trim();
-            if (rawReason && rawReason !== '保持原排序') bits.push(rawReason.replace(/^价格约¥?\d+[.\d]*，/g, '').trim());
-
-            const price = Number(p.price);
-            if (Number.isFinite(price) && price > 0) {
-                bits.push(`参考价约 ${formatCurrency(price)}`);
+            const cleanedReason = rawReason
+                .replace(/^价格约¥?\d+[.\d]*，/g, '')
+                .trim();
+            if (
+                cleanedReason
+                && cleanedReason !== '保持原排序'
+                && !/(参考价|实时价|预算|价格|符合预算)/.test(cleanedReason)
+            ) {
+                bits.push(cleanedReason);
             }
 
+            const matched = Array.isArray(p.matched_efficacies)
+                ? p.matched_efficacies.filter(Boolean).slice(0, 3)
+                : [];
+            if (matched.length) {
+                bits.push(`已审核${matched.join('、')}功效方向`);
+            }
+            const knownFacts = Array.isArray(p.category_facts)
+                ? p.category_facts.filter(fact => (
+                    fact
+                    && fact.state === 'known'
+                    && fact.value != null
+                ))
+                : [];
+            const factValue = fieldKey => {
+                const fact = knownFacts.find(item => (
+                    item.field_key === fieldKey
+                ));
+                if (!fact) return '';
+                return formatCategoryFactValue(fact);
+            };
+            const efficacy = factValue('efficacy');
+            if (efficacy && !matched.length) {
+                bits.push(`功效方向：${efficacy}`);
+            }
+            const ingredients = factValue('ingredients_present');
+            if (ingredients) {
+                bits.push(`核心成分：${ingredients}`);
+            }
+            const skin = factValue('suitable_skin');
+            if (skin) {
+                bits.push(`适合肤质：${skin}`);
+            }
+            const texture = factValue('texture');
+            if (texture) {
+                bits.push(`肤感：${texture}`);
+            }
             const desc = (p.description || '').replace(/\s+/g, ' ').trim();
             if (desc && bits.length < 2) {
                 const sentence = desc
@@ -7727,15 +7777,10 @@
                 if (sentence) bits.push(sentence);
             }
 
-            const linkInfo = getProductLinkInfo(p);
-            if (linkInfo.hasLink && bits.length < 3) {
-                bits.push(linkInfo.isReal ? `${linkInfo.platform}详情可查实时价` : `${linkInfo.platform}入口可核对`);
-            }
-
             const fallbacks = [
-                '更贴近你刚才说的肤质和使用场景。',
-                '和第一款路线不同，可以结合价格和肤感取舍。',
-                '现有信息不多，先结合实际肤感判断。'
+                '可结合品牌主打、核心成分和肤感继续比较。',
+                '和第一款路线不同，可以结合功效与肤感取舍。',
+                '现有信息不多，先结合品牌主打和实际肤感判断。'
             ];
             if (!bits.length) bits.push(
                 fallbacks[index] || '更贴近你刚才说的需求。'
@@ -7752,7 +7797,7 @@
             const label = String(product?.suitable_skin || '');
             if (label === '已确认适配') return '明确适配';
             if (label === '肤质数据缺失') return '适配待确认';
-            return '未限定肤质';
+            return '';
         }
 
         function displayImageObservation(observation) {
@@ -8318,7 +8363,7 @@
                                     <div class="recommendation-price">${formatProductPrice(p)}</div>
                                     ${priceMeta ? `<div class="recommendation-price-meta">${priceMeta}</div>` : ''}
                                 </div>
-                                <span class="recommendation-score">${escapeHtml(evidenceLabel)}</span>
+                                ${evidenceLabel ? `<span class="recommendation-score">${escapeHtml(evidenceLabel)}</span>` : ''}
                             </div>
                             <div class="recommendation-reason"><strong>推荐理由：</strong>${escapeHtml(reason)}</div>
                             ${linkInfo.hasLink ? `<a class="recommendation-link" href="${escapeHtml(linkInfo.url)}" data-detail-url="${escapeHtml(linkInfo.url)}" target="_blank" rel="noopener">${escapeHtml(linkLabel)}</a>` : ''}

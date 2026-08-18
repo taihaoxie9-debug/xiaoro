@@ -362,7 +362,11 @@ def test_consumer_soft_fact_keeps_plain_language_attribution() -> None:
         pitfalls=(),
     )
 
-    fact = packet.slots[0].approved_soft_facts[0]
+    fact = next(
+        item
+        for item in packet.slots[0].approved_soft_facts
+        if item.attribution == "consumer_report"
+    )
     assert fact.attribution == "consumer_report"
     assert fact.plain_meaning.startswith("限定样本的用户反馈：")
 
@@ -431,8 +435,110 @@ def test_packet_uses_safe_normalized_claim_instead_of_raw_marketing() -> None:
         fact.plain_meaning
         for fact in packet.slots[0].approved_soft_facts
     ]
-    assert meanings == ["品牌主打：改善凹陷观感"]
-    assert "玻尿酸" not in packet.model_dump_json()
+    assert "品牌主打：12周充盈凹陷，堪比玻尿酸填充" in meanings
+    assert "改善凹陷观感" not in packet.model_dump_json()
+
+
+def test_locked_facts_label_suitable_skin_as_skin_type() -> None:
+    card = _card(
+        52,
+        name="测试精华",
+        price="299",
+        category_facts=(
+            DisplayCategoryFact(
+                field_key="ingredients_present",
+                label="成分",
+                value=("玻色因", "透明质酸"),
+                state="known",
+            ),
+            DisplayCategoryFact(
+                field_key="suitable_skin",
+                label="适用人群",
+                value="多种肤质适用",
+                state="known",
+            ),
+        ),
+    )
+
+    packet = build_presentation_packet(
+        mode="recommendation",
+        user_need_summary="想看抗初老精华",
+        winner_status="INSUFFICIENT_FOR_WINNER",
+        card_display=recommendation_card_display((card,)),
+        cards=(card,),
+        selection_slots=(),
+        concept_slots=(),
+        merchant_claims=(),
+        pitfalls=(),
+    )
+
+    assert [
+        (fact.label, fact.display_value)
+        for fact in packet.slots[0].locked_facts
+    ] == [
+        ("参考价", "¥299"),
+        ("适合肤质", "多种肤质适用"),
+        ("核心成分", "玻色因、透明质酸"),
+    ]
+
+
+def test_direct_display_facts_also_feed_positioning_soft_facts() -> None:
+    card = _card(
+        35,
+        name="修丽可聚糖多重丰盈精华液",
+        price="1050",
+        specification="30ml",
+        category_facts=(
+            DisplayCategoryFact(
+                field_key="efficacy",
+                label="功效",
+                value=("抗皱", "淡化细纹", "紧致", "保湿"),
+                state="known",
+            ),
+            DisplayCategoryFact(
+                field_key="ingredients_present",
+                label="确认含有成分",
+                value=("玻色因", "透明质酸"),
+                state="known",
+            ),
+            DisplayCategoryFact(
+                field_key="suitable_skin",
+                label="适用肤质",
+                value=("多种肤质适用",),
+                state="known",
+            ),
+        ),
+    )
+    claim = MerchantClaimEvidenceData(
+        claim_id="b" * 64,
+        product_id=35,
+        field_key="efficacy",
+        normalized_value=None,
+        display_claim="12周充盈凹陷，堪比玻尿酸填充",
+        claim_scope="ordinary",
+        allowed_use="soft_rank_and_display",
+        source_locator="urn:merchant:35:claim",
+    )
+
+    packet = build_presentation_packet(
+        mode="recommendation",
+        user_need_summary="想看抗初老精华",
+        winner_status="INSUFFICIENT_FOR_WINNER",
+        card_display=recommendation_card_display((card,)),
+        cards=(card,),
+        selection_slots=(),
+        concept_slots=(),
+        merchant_claims=(claim,),
+        pitfalls=(),
+    )
+
+    meanings = [
+        fact.plain_meaning
+        for fact in packet.slots[0].approved_soft_facts
+    ]
+    assert any("抗皱、淡化细纹、紧致、保湿" in item for item in meanings)
+    assert any("玻色因、透明质酸" in item for item in meanings)
+    assert any("12周充盈凹陷" in item for item in meanings)
 
 
 def test_locked_facts_combine_reference_price_and_exact_spec() -> None:

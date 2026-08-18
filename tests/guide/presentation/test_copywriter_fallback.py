@@ -287,7 +287,56 @@ def test_fallback_preserves_merchant_and_consumer_attribution() -> None:
     assert validate_copywriter_draft(packet, draft) == draft
 
 
-def test_fallback_covers_at_least_eighty_percent_of_soft_facts() -> None:
+def test_fallback_keeps_approved_merchant_numbers_and_ingredients() -> None:
+    base = _packet("recommendation")
+    slot = base.slots[0].model_copy(
+        update={
+            "approved_soft_facts": (
+                ApprovedSoftFact(
+                    fact_id="merchant-efficacy",
+                    product_id=55,
+                    field_key="efficacy",
+                    plain_meaning="品牌主打：12周充盈凹陷",
+                    attribution="merchant_claim",
+                    source_refs=("source:merchant:efficacy",),
+                ),
+                ApprovedSoftFact(
+                    fact_id="merchant-ingredient",
+                    product_id=55,
+                    field_key="ingredients_present",
+                    plain_meaning="品牌主打：12%玻色因溶液、透明质酸",
+                    attribution="merchant_claim",
+                    source_refs=("source:merchant:ingredient",),
+                ),
+            )
+        }
+    )
+    packet = base.model_copy(
+        update={
+            "slots": (slot,),
+            "copy_budget": CopyLengthBudget(
+                summary_max_chars=180,
+                positioning_max_chars=200,
+                advisor_reason_max_chars=120,
+                closing_max_chars=180,
+            ),
+        }
+    )
+
+    draft = fallback_copy(packet)
+    product_text = " ".join(
+        (
+            draft.product_copy[0].positioning,
+            draft.product_copy[0].advisor_reason,
+        )
+    )
+
+    assert "12周充盈凹陷" in product_text
+    assert "12%玻色因溶液" in product_text
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_fallback_uses_substantive_subset_without_forcing_full_coverage() -> None:
     base = _packet("recommendation")
     facts = tuple(
         ApprovedSoftFact(
@@ -315,11 +364,11 @@ def test_fallback_covers_at_least_eighty_percent_of_soft_facts() -> None:
 
     draft = fallback_copy(packet)
 
-    assert len(draft.product_copy[0].used_soft_fact_ids) >= 4
+    assert 1 <= len(draft.product_copy[0].used_soft_fact_ids) <= 2
     assert validate_copywriter_draft(packet, draft) == draft
 
 
-def test_fallback_compacts_long_merged_atoms_without_losing_coverage() -> None:
+def test_fallback_compacts_long_merged_atoms_without_forcing_coverage() -> None:
     base = _packet("recommendation")
     facts = tuple(
         ApprovedSoftFact(
@@ -353,5 +402,5 @@ def test_fallback_compacts_long_merged_atoms_without_losing_coverage() -> None:
 
     draft = fallback_copy(packet)
 
-    assert len(draft.product_copy[0].used_soft_fact_ids) == 7
+    assert 1 <= len(draft.product_copy[0].used_soft_fact_ids) <= 2
     assert validate_copywriter_draft(packet, draft) == draft
