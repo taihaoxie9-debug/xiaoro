@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, model_validator
@@ -129,6 +130,16 @@ def compile_presentation(
             telemetry=_telemetry_from_call(call),
         )
     except CopywriterValidationError as failure:
+        if _demo_relaxes_copywriter_validation():
+            try:
+                return _compile_contract(
+                    inputs,
+                    draft=call.draft,
+                    copy_source="model",
+                    telemetry=_telemetry_from_call(call),
+                )
+            except _DraftCompilationError:
+                pass
         return _compile_fallback(
             inputs,
             reason=f"validation:{failure.code.value}",
@@ -150,6 +161,13 @@ def _deterministic_reason(
     if inputs.copywriter_policy != "eligible":
         return inputs.copywriter_policy
     return None
+
+
+def _demo_relaxes_copywriter_validation() -> bool:
+    return os.environ.get(
+        "GUIDE_DEMO_RELAX_COPYWRITER_VALIDATION",
+        "",
+    ).strip().casefold() in {"1", "true", "yes", "on"}
 
 
 def _compile_fallback(

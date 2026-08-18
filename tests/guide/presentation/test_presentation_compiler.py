@@ -345,6 +345,41 @@ def test_invalid_model_copy_falls_back_without_second_request() -> None:
     )
 
 
+def test_demo_relaxed_validation_uses_model_copy_without_retry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    packet = _packet("recommendation")
+    invalid = _result(packet).model_copy(
+        update={
+            "draft": _draft(packet).model_copy(
+                update={
+                    "summary_copy": "这就是最适合你的唯一首选。"
+                }
+            )
+        }
+    )
+    copywriter = RecordingCopywriter([invalid])
+    monkeypatch.setenv(
+        "GUIDE_DEMO_RELAX_COPYWRITER_VALIDATION",
+        "true",
+    )
+
+    result = compile_presentation(
+        PresentationCompileInputs(
+            packet=packet,
+            card_display=_card_display(packet),
+        ),
+        copywriter=copywriter,
+    )
+
+    assert len(copywriter.calls) == 1
+    assert result.copy_source == "model"
+    assert result.telemetry.fallback_reason is None
+    assert result.sections[0].copy_text == (
+        "这就是最适合你的唯一首选。"
+    )
+
+
 def test_provider_failure_falls_back_without_retry() -> None:
     packet = _packet("recommendation")
     copywriter = RecordingCopywriter(
