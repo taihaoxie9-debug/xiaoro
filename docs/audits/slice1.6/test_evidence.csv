@@ -1,0 +1,10 @@
+gate,command,result,evidence
+guide_full,"PYTHONPATH=. UV_OFFLINE=1 uv run --with-requirements requirements-guide-runtime-test.txt python -m pytest -c pytest-guide.ini -q",PASS,"458 passed in 6.41s"
+runtime,"PYTHONPATH=. UV_OFFLINE=1 uv run --with-requirements requirements-guide-runtime-test.txt python -m pytest -c pytest-guide.ini tests/guide/runtime -q",PASS,"32 passed in 2.90s"
+boundary_guide,"python3 app/guide/check_boundaries.py app/guide",PASS,"0 violations"
+boundary_runtime,"python3 app/guide/check_boundaries.py app/guide_runtime",PASS,"0 violations"
+ranking_sha,"shasum -a 256 app/guide/decision/deterministic_ranking.py",PASS,"4737c18964f2be3502f036a87dd50e06965a214a87aa967c586d08e7c741f59f"
+backend_gate,"cd /tmp && PYTHONPATH=/Users/bytedance/Desktop/xiaoro-fresh UV_OFFLINE=1 uv run --with-requirements /Users/bytedance/Desktop/xiaoro-fresh/requirements-guide-runtime-test.txt python /Users/bytedance/Desktop/xiaoro-fresh/tools/guide_gates/slice1_backend.py --output /tmp/slice16_backend_gate.csv",PASS,"8/8 cases; /tmp/slice16_backend_gate.csv"
+browser_smoke,"python3 tools/guide_gates/runtime_browser_smoke.py --url http://127.0.0.1:8765/chat --screenshot /tmp/xiaoro-slice16-final-browser.png",PASS,"exit 0; /tmp/xiaoro-slice16-final-browser.png"
+browser_adversarial,"python3 tools/guide_gates/runtime_browser_adversarial.py --url http://127.0.0.1:8765/chat",PASS,"exit 0; error visibility, session switch, late chunk, current-session reactivation, real stage"
+code_review,"bits-code-guard full-file review of Slice 1.6 production range plus Task 11 full-file review",PASS,"all confirmed P0-P2 fixed; /tmp/xiaoro-fresh_slice16_final_review/report.md; /tmp/xiaoro-fresh_slice16_task11_review/report.md"

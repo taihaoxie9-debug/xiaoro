@@ -1,0 +1,62 @@
+- [x] Day 1 五个确认 P1 均有 RED-first 回归并修复
+- [x] 后端 `CardDisplayContract` 严格约束 mode、visible IDs、数量和顺序
+- [x] 前端不再根据回答文案猜商品、过滤候选或补足三张卡
+- [x] 单品/适配严格 1 卡，推荐严格 1–3 卡，比较严格 2–4 卡
+- [x] 知识、轻问诊信息收集、澄清和错误严格 0 卡
+- [x] 正式流式和非流式路由各只计算一次 ChatOwner
+- [x] Guide 已拥有能力发生内部错误时不回退旧 V2
+- [x] 文本 Guide 并发冷启动只发布一个 orchestrator
+- [x] 图片安全校验和 SQLite Bundle 创建不阻塞事件循环
+- [x] 图文品类冲突返回 clarify，不产生 decision/winner/products
+- [x] 非流式图片响应顶层合同与 SSE 一致
+- [x] 历史快照恢复后收藏交互仍有效且不触发商品跳转
+- [x] 轻问诊通过可观察现象收集信息
+- [x] 轻问诊暂定结论包含依据、不确定项、置信等级和就医边界
+- [x] 未确认轻问诊结论不进入长期画像
+- [x] 长期画像事实包含 owner、来源、确认时间和 CAS version
+- [x] 本轮明确输入优先于会话确认和长期画像
+- [x] 临时预算、短期症状和模型推断不污染长期画像
+- [x] 两图比较支持稳定 ordinal 和第一张/第二张指代
+- [x] 两图任一身份未确认时停止比较
+- [x] 两图比较输出 winner、tie 或 insufficient evidence
+- [x] 单图适配只使用确认身份和授权的会话/画像上下文
+- [x] OCR 使用真实批准 adapter，unavailable 时 fail-closed
+- [x] raw OCR 不覆盖 Canonical、不提供隐藏排序 bonus
+- [x] OCR 与 Canonical 冲突时阻止假确认
+- [x] 三图比较精确展示 3 卡，四图比较精确展示 4 卡
+- [x] 场景约束进入确定性决策，缺失事实保持 unknown
+- [x] 评论总结要求可审计 source IDs，缺来源不生成
+- [x] 避坑保留 severity 和 evidence refs
+- [x] 反馈事件具备 owner、时间、会话/画像引用和幂等键
+- [x] 反馈重放幂等且不直接修改商品事实或排序
+- [x] SSE 只展示真实执行的阶段和 typed events
+- [x] 会话切换、删除和重激活不会串消息、版本或图片引用
+- [x] 文本纵向链通过真实 HTTP、SSE 和浏览器
+- [x] 单/双/四图纵向链通过真实模型、索引、HTTP 和浏览器
+- [x] 轻问诊→确认→画像补空→后续推荐纵向链通过
+- [x] clean runtime 在锁定环境启动并通过文本/图片/多轮门禁
+- [x] Guide 全量测试无失败
+- [x] runtime 全量测试无失败
+- [x] `app/guide` boundary 为 0 violations
+- [x] `app/guide_runtime` boundary 为 0 violations
+- [x] compileall 和 `git diff --check` 通过
+- [x] 正常浏览器门禁全部通过
+- [x] 对抗浏览器门禁全部通过
+- [x] 独立 full-file review 无未解决 P0–P2
+- [x] `app/services/**` 无本轮越界修改
+- [x] `app/database/**` 无本轮越界修改
+- [x] `data/canonical/**` 无未经批准修改
+- [x] 排序内核 SHA 保持 `4737c18964f2be3502f036a87dd50e06965a214a87aa967c586d08e7c741f59f`
+- [x] 未 push、未部署、未切换生产流量
+- [x] 完整二期十项能力均有真实可机械复验证据
+- [x] tasks/checklist 全部勾选前未标记总体 COMPLETE
+- [x] 最终共享工作区干净
+- [x] 每个 capability loop 只有一次真实 full-file audit invocation
+- [x] 相同 audit profile 与 blob manifest 复用已有 PASS
+- [x] finding 修复没有触发同循环第二次 full-file audit
+- [x] 审计器不可用未导致重复重试或等待用户在线
+- [x] 等价 stable patch ID/blob manifest 未产生重复集成提交
+- [x] 最终收口只有一个 FINAL-PHASE2-AUDIT
+- [x] 每个新 checkpoint 均记录 Agent token cache 字段或明确 UNAVAILABLE
+- [x] Token 成本只使用真实 usage、明确模型和带日期价格快照
+- [x] 每个批准评论 `source_id` 均由平台 item ID、原始 HTML SHA-256 和页面内评论序号确定性生成，且 loader 拒绝仅使用 feed ID 的资产

@@ -1,0 +1,83 @@
+{
+  "schema_version": "guide-fixed-qualification-stop-v2",
+  "status": "stopped_on_zero_tolerance_failure",
+  "run_id": "backend-fixed-20x5-real-v2",
+  "provider": "deepseek_official",
+  "model": "deepseek-v4-pro",
+  "prompt_version": "guide-turn-meaning-prompt-v13",
+  "expected_trajectory_count": 20,
+  "expected_turn_count": 100,
+  "attempted_trajectory_count": 1,
+  "attempted_turn_count": 5,
+  "provider_call_count": 5,
+  "copywriter_call_count": 0,
+  "retry_count": 0,
+  "passed_turn_count": 4,
+  "prompt_tokens": 12963,
+  "completion_tokens": 1499,
+  "total_tokens": 14462,
+  "provider_reported_cost_cny": null,
+  "zero_tolerance_counters": {
+    "wrong_product_or_image_binding_count": 0,
+    "unauthorized_state_transition_count": 1,
+    "hard_condition_override_count": 0,
+    "unsafe_downgrade_count": 0,
+    "cross_session_or_subject_leak_count": 0
+  },
+  "stop_turn": {
+    "trajectory_id": "consult-correction",
+    "turn_id": "consult-correction-t5",
+    "message": "先按修护和保湿优先，预算二百",
+    "earliest_failure_layer": "model_translation",
+    "semantic_context": {
+      "active_dialogue": "consultation",
+      "awaiting_reply": true,
+      "active_topic": null,
+      "conversation_version": 4
+    },
+    "model_output": {
+      "operation_hint": "recommendation",
+      "topic_hint": null,
+      "continuity_hint": "continue",
+      "budget_maximum": "200",
+      "preferred_concepts": [
+        "efficacy.repair",
+        "efficacy.moisturizing"
+      ]
+    },
+    "frozen_expectation": {
+      "topic_hint": "serum",
+      "continuity_hint": [
+        "new_task",
+        "unknown"
+      ],
+      "processor": "recommendation",
+      "task_mode": "recommend",
+      "card_ids": [
+        38,
+        91
+      ]
+    },
+    "actual_code_outcome": {
+      "processor": "recommendation",
+      "continuity": "continue",
+      "task_mode": "clarify",
+      "clarification_code": "topic",
+      "public_message": "请明确要找的商品品类。",
+      "active_processor_after_commit": "consultation"
+    }
+  },
+  "cumulative_calls_in_task_10": {
+    "targeted_semantic_calls": 10,
+    "fixed_qualification_calls": 5,
+    "total_semantic_calls": 15
+  },
+  "hashes": {
+    "capture_sha256": "42e3675b4d5a306560e48a1d3959b522c38e16e5e85419f1beb4357a26b4cd40",
+    "fixed_fixture_sha256": "887454658678784f405cdcff91a3a3064b32d603936354b4f2c2e6f2bbe7fd85",
+    "prompt_sha256": "54fe9b37e4621d920aaf6cfc0195acfabe3123a07904d5abc1ed70439f128e37",
+    "runner_sha256": "53a339ae940f15c44b191b78b1fdb1bd66d930532ad934492a7eb580c1b67d46",
+    "router_sha256": "f6396c48386e2f028345914cf1bdbc47c27dbcfb7933ac34a456d726061a1cca"
+  },
+  "further_provider_calls_after_stop": 0
+}

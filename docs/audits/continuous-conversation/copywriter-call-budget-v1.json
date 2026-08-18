@@ -1,0 +1,21 @@
+{
+  "schema_version": "guide-copywriter-call-budget-v1",
+  "run_control_sha256": "84feeeecdfe4295bde5b8beb3569d0f8ad8f9c0b6dc0ba350e08b187935e1fad",
+  "original_copywriter_call_cap": 35,
+  "completed_paid_calls": 20,
+  "completed_run_id": "copywriter-20-v1",
+  "completed_results_sha256": "60db811313090f80008376f443574f181028ac637fb7a65c4ffbe617ac8d416d",
+  "completed_run_passed": false,
+  "truthful_zero_api_passed_count": 13,
+  "truthful_zero_api_replay_sha256": "39238ccc2bcbed75d96ce74fba6857208748207f08963de5d7edabcac70362d2",
+  "required_fresh_gate_calls": 20,
+  "required_browser_copywriter_calls": 15,
+  "remaining_calls_under_original_cap": 15,
+  "unreserved_calls_under_original_cap": 0,
+  "minimum_revised_copywriter_call_cap": 55,
+  "estimated_cost_stop_cny": "18.00",
+  "provider_reported_cost_available": false,
+  "provider_retry_count": 0,
+  "format_repair_attempts": 0,
+  "authorization_status": "required_before_more_copywriter_calls"
+}

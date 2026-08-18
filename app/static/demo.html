@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>小 Ro 演示体验版</title>
+  <style>
+    :root {
+      --ink: #242124;
+      --muted: #6f6269;
+      --line: #ead7df;
+      --rose: #c94f7c;
+      --rose-soft: #fff1f6;
+      --paper: #fffafc;
+      --panel: #ffffff;
+      --ok: #246b52;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "PingFang SC", "Hiragino Sans GB", sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+    }
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 32px 18px 48px;
+    }
+    .top {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 22px;
+      margin-bottom: 24px;
+    }
+    .eyebrow {
+      color: var(--rose);
+      font-weight: 700;
+      letter-spacing: 0;
+      margin: 0 0 8px;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 5vw, 48px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+    .lead {
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.7;
+      margin: 14px 0 0;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    a.button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 8px;
+      border: 1px solid var(--rose);
+      color: #fff;
+      background: var(--rose);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    a.button.secondary {
+      color: var(--rose);
+      background: transparent;
+    }
+    .notice {
+      background: var(--rose-soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 16px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin: 22px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 220px;
+    }
+    .card h2 {
+      margin: 0 0 10px;
+      color: var(--rose);
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+    ol {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--ink);
+      line-height: 1.65;
+    }
+    li + li { margin-top: 6px; }
+    .status {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin: 24px 0;
+    }
+    .pill {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .pill strong {
+      display: block;
+      color: var(--ok);
+      font-size: 20px;
+      line-height: 1.2;
+    }
+    .pill span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    footer {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="top">
+      <p class="eyebrow">小 Ro 导购 · 演示体验版</p>
+      <h1>给小伙伴体验的稳定链路入口</h1>
+      <p class="lead">
+        这个页面只提供演示脚本和正式聊天入口，不写死回答，不替代最终验收。
+        体验时建议按下面脚本提问，避免把尚未收口的高压随机混合链路当作正式内测。
+      </p>
+      <div class="actions">
+        <a class="button" href="/chat">打开正式聊天</a>
+        <a class="button secondary" href="/health">查看运行状态</a>
+      </div>
+    </section>
+
+    <div class="notice">
+      使用口径：这是演示体验版，不计入最终验收。最终验收仍以正式 /chat 的真实语义、
+      真实润写、真实 SSE、同一会话连续状态和浏览器 3x5 结果为准。
+    </div>
+
+    <section class="status" aria-label="当前可演示状态">
+      <div class="pill"><strong>12/20</strong><span>固定 5 轮轨迹已完整通过</span></div>
+      <div class="pill"><strong>60/61</strong><span>已捕获真实语义轮次通过</span></div>
+      <div class="pill"><strong>0</strong><span>已通过部分的错商品/跨会话污染</span></div>
+    </section>
+
+    <section class="grid" aria-label="推荐体验脚本">
+      <article class="card">
+        <h2>问诊到推荐</h2>
+        <ol>
+          <li>我好像是油皮，但冬天洗脸后也紧</li>
+          <li>额头和鼻子出油明显，两颊通常正常</li>
+          <li>刚才说错了，两颊其实经常起皮</li>
+          <li>没有刺痛，也没有持续泛红</li>
+          <li>先按修护和保湿优先，预算二百</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>问诊中插入商品</h2>
+        <ol>
+          <li>不知道肤质，只知道下午会油，空调房又干</li>
+          <li>油主要在鼻子，脸颊干但不红</li>
+          <li>先插一句，B5精华这种状态能用吗</li>
+          <li>商品先放下，回到肤质判断，我偶尔还会闷痘</li>
+          <li>按目前观察给我选轻薄修护精华</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>商品知识与比较</h2>
+        <ol>
+          <li>B5精华平时放在哪一步，用量怎么把握</li>
+          <li>烟酰胺为什么能帮助修护屏障</li>
+          <li>回到B5那瓶，它页面里的品牌主打有哪些</li>
+          <li>再把B5精华和CE精华放一起看差异</li>
+          <li>只继续CE精华，告诉我规格和注意事项</li>
+        </ol>
+      </article>
+
+      <article class="card">
+        <h2>防晒知识到推荐</h2>
+        <ol>
+          <li>为什么阴天也有人建议涂防晒</li>
+          <li>按通勤清爽这个方向给我两支两百内的防晒</li>
+          <li>第二支包装上能确认什么规格</li>
+          <li>防晒补涂主要受哪些场景影响</li>
+          <li>回到第二支，它在户外场景的资料够不够</li>
+        </ol>
+      </article>
+    </section>
+
+    <footer>
+      建议范围：文本推荐、问诊、商品追问、通用知识与少量比较。暂不建议自由测试图片上传、
+      第三人场景和随机高压混合链路。
+    </footer>
+  </main>
+</body>
+</html>

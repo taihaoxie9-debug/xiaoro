@@ -1,0 +1,13 @@
+{
+  "schema_version": "guide-continuous-fixture-manifest-v1",
+  "pool_file": "continuous_trajectory_pool_v1.jsonl",
+  "selected_file": "continuous_20x5_v1.jsonl",
+  "selection_seed": 2026081701,
+  "pool_count": 30,
+  "selected_count": 20,
+  "selected_turn_count": 100,
+  "pool_sha256": "19ea973ee067474a70a419b53eb2083362340afc4ac5e977131a996d8c524aa6",
+  "selected_sha256": "b89d30a7e8a7016cb4f3b589df6ac8e9c54653746646dd767636d00d0d366ac9",
+  "selected_ids_sha256": "a5e90ea10a7ff445c35220093f934e780d68a2ed01030e9f806cbdfc92ae4ac8",
+  "selected_messages_sha256": "3922cf63e1bd9bf90a6de4a1b84394804f9a89abe0b4f366d5bedab073cd2d60"
+}
