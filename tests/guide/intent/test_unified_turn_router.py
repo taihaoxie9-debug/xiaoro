@@ -895,7 +895,37 @@ def test_single_image_unbound_second_object_still_clarifies() -> None:
     assert decision.clarification_code is ClarificationCode.REFERENCE
 
 
-def test_multiple_current_images_route_to_standard_comparison() -> None:
+def test_multiple_current_images_do_not_override_recommendation() -> None:
+    images = (
+        ConfirmedImageProductRef(
+            image_ordinal=1,
+            product_id=53,
+        ),
+        ConfirmedImageProductRef(
+            image_ordinal=2,
+            product_id=55,
+        ),
+    )
+
+    decision = route_unified_turn(
+        meaning=_meaning("recommendation", continuity="new_task"),
+        understanding=_understanding(
+            UnderstandingGoal.RECOMMENDATION,
+            topic=TopicCode.SUNSCREEN,
+        ),
+        snapshot=None,
+        current_image_products=images,
+    )
+
+    assert decision.processor == "recommendation"
+    assert decision.focus_source == "confirmed_image"
+    assert [item.product_id for item in decision.product_bindings] == [
+        53,
+        55,
+    ]
+
+
+def test_multiple_current_images_need_explicit_comparison_operation() -> None:
     images = (
         ConfirmedImageProductRef(
             image_ordinal=1,
@@ -912,6 +942,34 @@ def test_multiple_current_images_route_to_standard_comparison() -> None:
         understanding=_understanding(
             UnderstandingGoal.CLARIFICATION,
             topic=None,
+        ),
+        snapshot=None,
+        current_image_products=images,
+    )
+
+    assert decision.processor == "clarification"
+    assert decision.focus_source == "none"
+    assert decision.product_bindings == ()
+
+
+def test_multiple_current_images_route_to_standard_comparison_when_explicit(
+) -> None:
+    images = (
+        ConfirmedImageProductRef(
+            image_ordinal=1,
+            product_id=53,
+        ),
+        ConfirmedImageProductRef(
+            image_ordinal=2,
+            product_id=55,
+        ),
+    )
+
+    decision = route_unified_turn(
+        meaning=_meaning("comparison", continuity="continue"),
+        understanding=_understanding(
+            UnderstandingGoal.COMPARISON,
+            topic=TopicCode.SUNSCREEN,
         ),
         snapshot=None,
         current_image_products=images,

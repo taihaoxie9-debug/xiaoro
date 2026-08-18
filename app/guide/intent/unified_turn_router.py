@@ -441,8 +441,6 @@ def _select_processor(
         return "recommendation"
     if operation == "comparison":
         return "comparison"
-    if has_current_images and len(bindings) >= 2:
-        return "comparison"
     if operation == "recommendation":
         return "recommendation"
     if operation == "image_similarity":

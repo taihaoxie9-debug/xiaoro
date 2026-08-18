@@ -473,14 +473,7 @@ def test_local_runtime_product_interruption_returns_to_consultation(
                 "subject_scope_hint": "self",
                 "reference_mentions": [],
                 "product_mentions": [],
-                "budget_candidates": [
-                    {
-                        "raw_text": "三百以内",
-                        "relation": "maximum",
-                        "minimum": None,
-                        "maximum": "300",
-                    }
-                ],
+                "budget_candidates": [],
                 "observation_candidates": [],
                 "preference_candidates": [],
                 "relative_candidates": [],
