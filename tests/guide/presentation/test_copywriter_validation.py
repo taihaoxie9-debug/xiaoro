@@ -260,6 +260,79 @@ def test_validator_allows_approved_alphanumeric_ingredient_name() -> None:
     assert validate_copywriter_draft(packet, draft) == draft
 
 
+def test_single_product_summary_allows_its_approved_ingredient_fact() -> None:
+    packet = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-ingredient",
+                attribution="verified_fact",
+                field_key="ingredients_present",
+                plain_meaning="核心成分：维生素原B5（泛醇）",
+            ),
+        )
+    )
+    draft = _draft(
+        summary="这款精华的核心成分是维生素原B5（泛醇），先看修护路线。",
+        positioning="配方方向包含维生素原B5（泛醇）。",
+        reason="适合想看保湿修护路线的人比较。",
+        used_fact_ids=("soft-ingredient",),
+    )
+
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_multi_product_summary_cannot_borrow_one_product_ingredient_fact() -> None:
+    base = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-ingredient",
+                attribution="verified_fact",
+                field_key="ingredients_present",
+                plain_meaning="核心成分：维生素原B5（泛醇）",
+            ),
+        )
+    )
+    second_slot = base.slots[0].model_copy(
+        update={
+            "slot_id": "p2",
+            "product_id": 56,
+            "approved_soft_facts": tuple(
+                fact.model_copy(update={"product_id": 56})
+                for fact in base.slots[0].approved_soft_facts
+            ),
+            "locked_facts": (),
+            "required_cautions": (),
+        },
+        deep=True,
+    )
+    packet = base.model_copy(
+        update={
+            "slots": (base.slots[0], second_slot),
+            "section_order": (
+                PresentationSectionSpec(kind="summary"),
+                PresentationSectionSpec(kind="product", slot_id="p1"),
+                PresentationSectionSpec(kind="product", slot_id="p2"),
+                PresentationSectionSpec(kind="closing"),
+                PresentationSectionSpec(kind="full_cards"),
+                PresentationSectionSpec(kind="pitfalls"),
+            ),
+        },
+        deep=True,
+    )
+    first = _draft().product_copy[0].model_copy(
+        update={"used_soft_fact_ids": ("soft-ingredient",)}
+    )
+    draft = _draft(
+        summary="两款里有一款的核心成分是维生素原B5（泛醇），先看路线差异。",
+        product_copy=(
+            first.model_copy(update={"slot_id": "p1"}),
+            first.model_copy(update={"slot_id": "p2"}),
+        ),
+    )
+
+    _invalid(packet, draft, CopywriterValidationErrorCode.HARD_FACT)
+
+
 def test_validator_rejects_changed_alphanumeric_ingredient_name() -> None:
     packet = _packet(
         soft_facts=(
@@ -541,6 +614,110 @@ def test_validator_allows_summary_to_reference_visible_product_count() -> None:
             base_item.model_copy(update={"slot_id": "p2"}),
             base_item.model_copy(update={"slot_id": "p3"}),
         ),
+    )
+
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_validator_rejects_wrong_chinese_visible_product_count_in_summary() -> None:
+    base = _packet()
+    second_slot = base.slots[0].model_copy(
+        update={
+            "slot_id": "p2",
+            "product_id": 56,
+            "approved_soft_facts": tuple(
+                fact.model_copy(update={"product_id": 56})
+                for fact in base.slots[0].approved_soft_facts
+            ),
+            "locked_facts": (),
+            "required_cautions": (),
+        },
+        deep=True,
+    )
+    packet = base.model_copy(
+        update={
+            "slots": (base.slots[0], second_slot),
+            "section_order": (
+                PresentationSectionSpec(kind="summary"),
+                PresentationSectionSpec(kind="product", slot_id="p1"),
+                PresentationSectionSpec(kind="product", slot_id="p2"),
+                PresentationSectionSpec(kind="closing"),
+                PresentationSectionSpec(kind="full_cards"),
+                PresentationSectionSpec(kind="pitfalls"),
+            ),
+        },
+        deep=True,
+    )
+    base_item = _draft().product_copy[0]
+    draft = _draft(
+        summary="三款先按修护路线和肤感差异分开看。",
+        product_copy=(
+            base_item.model_copy(update={"slot_id": "p1"}),
+            base_item.model_copy(update={"slot_id": "p2"}),
+        ),
+    )
+
+    _invalid(packet, draft, CopywriterValidationErrorCode.HARD_FACT)
+
+
+def test_validator_allows_generic_one_product_selection_wording() -> None:
+    base = _packet()
+    second_slot = base.slots[0].model_copy(
+        update={
+            "slot_id": "p2",
+            "product_id": 56,
+            "approved_soft_facts": tuple(
+                fact.model_copy(update={"product_id": 56})
+                for fact in base.slots[0].approved_soft_facts
+            ),
+            "locked_facts": (),
+            "required_cautions": (),
+        },
+        deep=True,
+    )
+    packet = base.model_copy(
+        update={
+            "slots": (base.slots[0], second_slot),
+            "section_order": (
+                PresentationSectionSpec(kind="summary"),
+                PresentationSectionSpec(kind="product", slot_id="p1"),
+                PresentationSectionSpec(kind="product", slot_id="p2"),
+                PresentationSectionSpec(kind="closing"),
+                PresentationSectionSpec(kind="full_cards"),
+                PresentationSectionSpec(kind="pitfalls"),
+            ),
+        },
+        deep=True,
+    )
+    base_item = _draft().product_copy[0]
+    draft = _draft(
+        product_copy=(
+            base_item.model_copy(update={"slot_id": "p1"}),
+            base_item.model_copy(update={"slot_id": "p2"}),
+        ),
+        closing="按自己的场景从中选一款即可。",
+    )
+
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_validator_allows_chinese_hundred_budget_in_summary() -> None:
+    packet = _packet().model_copy(
+        update={"user_need_summary": "油敏肌通勤防晒，预算100元内"}
+    )
+    draft = _draft(
+        summary="百元内优先看通勤时的轻薄和成膜表现。",
+    )
+
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_validator_allows_colloquial_hundred_price_in_summary() -> None:
+    packet = _packet().model_copy(
+        update={"user_need_summary": "油敏肌通勤防晒，预算130元内"}
+    )
+    draft = _draft(
+        summary="一百三元内先按肤感和通勤场景取舍。",
     )
 
     assert validate_copywriter_draft(packet, draft) == draft

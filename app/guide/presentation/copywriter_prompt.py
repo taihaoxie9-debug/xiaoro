@@ -6,7 +6,7 @@ from app.guide.presentation.copywriter_contracts import PresentationPacket
 
 
 PRESENTATION_COPY_PROMPT_VERSION = (
-    "guide-presentation-copy-prompt-v6"
+    "guide-presentation-copy-prompt-v7"
 )
 
 
@@ -36,6 +36,8 @@ slot_id, positioning, advisor_reason, used_soft_fact_ids。
 5. 只可改写 approved_soft_facts 的普通含义；不得编造新事实。
    user_need_summary 只是用户问题背景，不是可引用事实；不得把其中的
    商品数量、品类、效果或判断复述成已经成立的商品事实。
+   单品 summary_copy 可以自然概括该商品已批准的软事实；
+   多商品 summary_copy 不得引用任一商品的单品事实。
 6. verified_fact 可以客观表达。
 7. merchant_claim 统一自然写成“品牌主打”，同一段不要重复此前缀。
 8. consumer_report 必须保持“有用户反馈、限定样本反馈”等归属。

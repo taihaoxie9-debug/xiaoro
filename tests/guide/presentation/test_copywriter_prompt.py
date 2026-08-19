@@ -60,7 +60,7 @@ def test_copywriter_prompt_uses_strict_json_and_bounded_advisor_role() -> None:
     system, user = build_presentation_copy_messages(_packet())
 
     assert PRESENTATION_COPY_PROMPT_VERSION == (
-        "guide-presentation-copy-prompt-v6"
+        "guide-presentation-copy-prompt-v7"
     )
     for key in (
         "mode",
@@ -91,6 +91,8 @@ def test_copywriter_prompt_uses_strict_json_and_bounded_advisor_role() -> None:
         "不得在",
         "advisor_reason 里写成用户本人画像或匹配理由",
         "user_need_summary 只是用户问题背景，不是可引用事实",
+        "单品 summary_copy 可以自然概括该商品已批准的软事实",
+        "多商品 summary_copy 不得引用任一商品的单品事实",
         "归因词必须出现在使用该事实的同一个 product_copy 项",
         "不得把 consumer_report 写成品牌主打",
         "summary_copy 中的归因不能替代",

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from pathlib import Path
 
 import pytest
 
@@ -289,6 +290,16 @@ def test_compiler_attaches_locked_facts_after_valid_model_copy() -> None:
     assert product.direct_facts[0].fact_id == "price-55"
     assert product.direct_facts[0].display_value == "¥55.00"
     assert "55.00" not in product.copy_text
+
+
+def test_compiler_has_no_temporary_debug_http_instrumentation() -> None:
+    source = Path(
+        "app/guide/presentation/presentation_compiler.py"
+    ).read_text(encoding="utf-8")
+
+    assert "127.0.0.1:7777" not in source
+    assert "urllib.request" not in source
+    assert "#region debug" not in source
 
 
 @pytest.mark.parametrize(

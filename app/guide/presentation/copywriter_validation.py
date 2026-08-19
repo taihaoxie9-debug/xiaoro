@@ -39,7 +39,12 @@ ValidatedCopywriterDraft = CopywriterDraft
 _DIGIT = re.compile(r"[0-9０-９]")
 _CHINESE_QUANTITY = re.compile(
     r"[零〇一二两三四五六七八九十百千万]+"
-    r"(?:元|天|周|个月|月|年|小时|分钟|秒|人|位|名|例|成)"
+    r"(?:元|天|周|个月|月|年|小时|分钟|秒|人|位|名|例|成|款)"
+)
+_SELECTION_ACTION = re.compile(
+    r"(?:从中|其中)?\s*"
+    r"(?:选择|挑选|购买|考虑|决定|选|挑|买|入手)"
+    r"[^，。！？；\n]{0,24}$"
 )
 _PROTECTION_VALUE = re.compile(r"\bspf\s*\d*|\bpa\s*\++", re.IGNORECASE)
 _INGREDIENT = re.compile(
@@ -397,11 +402,17 @@ def _summary_authorized_hard_fact_text(packet: PresentationPacket) -> str:
         if count > 0
         else ""
     )
+    single_product_facts = (
+        _authorized_hard_fact_text(packet.slots[0].approved_soft_facts)
+        if count == 1
+        else ""
+    )
     return " ".join(
         value
         for value in (
             packet.user_need_summary,
             structural_count,
+            single_product_facts,
         )
         if value
     )
@@ -440,6 +451,8 @@ def _has_unauthorized_hard_fact(
             if _span_is_within(match.span(), authorized_spans):
                 continue
             token = match.group(0).strip()
+            if _is_selection_object_quantity(text, span=match.span()):
+                continue
             if _BARE_NUMBER.fullmatch(token):
                 if _is_authorized_alphanumeric_token(
                     text,
@@ -454,6 +467,19 @@ def _has_unauthorized_hard_fact(
             ):
                 return True
     return False
+
+
+def _is_selection_object_quantity(
+    text: str,
+    *,
+    span: tuple[int, int],
+) -> bool:
+    quantity = _semantic_measure_value(text[span[0]:span[1]])
+    return (
+        quantity is not None
+        and quantity[1] == "款"
+        and _SELECTION_ACTION.search(text[:span[0]]) is not None
+    )
 
 
 def _has_unauthorized_ingredient(
@@ -477,9 +503,16 @@ def _is_authorized_fragment(
 ) -> bool:
     if not authorized_text:
         return False
-    return _normalize_fact_fragment(
-        fragment
-    ) in _normalize_fact_fragment(authorized_text)
+    normalized_fragment = _normalize_fact_fragment(fragment)
+    normalized_authorized = _normalize_fact_fragment(authorized_text)
+    if normalized_fragment in normalized_authorized:
+        return True
+    semantic_value = _semantic_measure_value(normalized_fragment)
+    return (
+        semantic_value is not None
+        and semantic_value
+        in _semantic_measure_values(normalized_authorized)
+    )
 
 
 def _is_authorized_numeric_range(
@@ -549,10 +582,155 @@ _SPACELESS = re.compile(r"\s+")
 _ASCII_HOUR_UNIT = re.compile(
     r"(?<=[0-9])(?:hours?|hrs?|h)(?=$|[^a-z0-9])"
 )
+_FULL_WIDTH_DIGITS = str.maketrans(
+    "０１２３４５６７８９",
+    "0123456789",
+)
+_SEMANTIC_MEASURE = re.compile(
+    r"(?P<value>[0-9]+(?:\.[0-9]+)?|"
+    r"[零〇一二两三四五六七八九十百千万]+)"
+    r"(?P<unit>"
+    r"[%％]|元|块|天|周|个月|月|年|小时|分钟|秒|"
+    r"h(?:ours?|rs?)?|人|位|名|例|成|款|种|ml|毫升|滴|"
+    r"瓶|层|大|色|区|波段|倍|代|号|支|个|岁|亿"
+    r")$",
+    re.IGNORECASE,
+)
+_CHINESE_DIGITS = {
+    "零": 0,
+    "〇": 0,
+    "一": 1,
+    "二": 2,
+    "两": 2,
+    "三": 3,
+    "四": 4,
+    "五": 5,
+    "六": 6,
+    "七": 7,
+    "八": 8,
+    "九": 9,
+}
+_CHINESE_SMALL_UNITS = {
+    "十": 10,
+    "百": 100,
+    "千": 1000,
+}
+_CHINESE_LARGE_UNITS = {
+    "万": 10_000,
+}
 
 
 def _normalize_fact_fragment(value: str) -> str:
-    return _ASCII_HOUR_UNIT.sub("小时", _compact(value))
+    compact = _compact(value).translate(_FULL_WIDTH_DIGITS)
+    return _ASCII_HOUR_UNIT.sub("小时", compact)
+
+
+def _semantic_measure_values(value: str) -> set[tuple[str, str]]:
+    return {
+        semantic_value
+        for pattern in (_HARD_FACT_TOKEN, _CHINESE_QUANTITY)
+        for match in pattern.finditer(value)
+        if (
+            semantic_value := _semantic_measure_value(match.group(0))
+        )
+        is not None
+    }
+
+
+def _semantic_measure_value(
+    value: str,
+) -> tuple[str, str] | None:
+    match = _SEMANTIC_MEASURE.fullmatch(
+        _normalize_fact_fragment(value)
+    )
+    if match is None:
+        return None
+    raw_value = match.group("value")
+    if raw_value[0].isdigit():
+        numeric = raw_value
+    else:
+        parsed = _parse_chinese_numeral(raw_value)
+        if parsed is None:
+            return None
+        numeric = str(parsed)
+    return (
+        _normalize_numeric_value(numeric),
+        _normalize_measure_unit(match.group("unit")),
+    )
+
+
+def _normalize_numeric_value(value: str) -> str:
+    integer, dot, fraction = value.partition(".")
+    normalized_integer = integer.lstrip("0") or "0"
+    if not dot:
+        return normalized_integer
+    normalized_fraction = fraction.rstrip("0")
+    return (
+        normalized_integer
+        if not normalized_fraction
+        else f"{normalized_integer}.{normalized_fraction}"
+    )
+
+
+def _normalize_measure_unit(value: str) -> str:
+    normalized = _normalize_fact_fragment(value)
+    if normalized in {"元", "块"}:
+        return "currency"
+    if normalized in {"%", "％"}:
+        return "%"
+    if normalized in {"ml", "毫升"}:
+        return "ml"
+    return normalized
+
+
+def _parse_chinese_numeral(value: str) -> int | None:
+    if not value or any(
+        character not in {
+            *_CHINESE_DIGITS,
+            *_CHINESE_SMALL_UNITS,
+            *_CHINESE_LARGE_UNITS,
+        }
+        for character in value
+    ):
+        return None
+    if not any(
+        character in {
+            *_CHINESE_SMALL_UNITS,
+            *_CHINESE_LARGE_UNITS,
+        }
+        for character in value
+    ):
+        return int(
+            "".join(str(_CHINESE_DIGITS[character]) for character in value)
+        )
+    if (
+        len(value) == 3
+        and value[1] in {"百", "千"}
+        and value[0] in _CHINESE_DIGITS
+        and value[2] in _CHINESE_DIGITS
+    ):
+        scale = _CHINESE_SMALL_UNITS[value[1]]
+        return (
+            _CHINESE_DIGITS[value[0]] * scale
+            + _CHINESE_DIGITS[value[2]] * (scale // 10)
+        )
+    total = 0
+    section = 0
+    current = 0
+    for character in value:
+        if character in _CHINESE_DIGITS:
+            current = _CHINESE_DIGITS[character]
+            continue
+        if character in _CHINESE_SMALL_UNITS:
+            section += (
+                current if current else 1
+            ) * _CHINESE_SMALL_UNITS[character]
+            current = 0
+            continue
+        total += (section + current) * _CHINESE_LARGE_UNITS[character]
+        section = 0
+        current = 0
+    return total + section + current
 
 
 def _reject(code: CopywriterValidationErrorCode) -> None:
