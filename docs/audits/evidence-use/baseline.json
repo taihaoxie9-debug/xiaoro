@@ -1,0 +1,11 @@
+{
+  "accepted": 1079,
+  "active_soft_facts": 398,
+  "compare": 534,
+  "evidence_total": 1262,
+  "hard_filter": 144,
+  "merchant_claims": 1136,
+  "merchant_soft_claims": 778,
+  "products_with_active_soft_fact": 100,
+  "soft_or_weak": 299
+}

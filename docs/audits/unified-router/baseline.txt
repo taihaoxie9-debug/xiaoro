@@ -1,0 +1,19 @@
+Unified Router focused baseline
+Date: 2026-08-17
+Branch: rebuild
+Interpreter: .venv/bin/python
+
+Command:
+.venv/bin/python -m pytest -q \
+  tests/guide/runtime/test_llm_config.py \
+  tests/guide/runtime/test_runtime_http.py \
+  tests/guide/application/test_text_recommendation_flow.py \
+  tests/guide/application/test_consultation_chat_flow.py \
+  tests/guide/application/test_image_recommendation_flow.py
+
+Result:
+205 passed in 53.04s
+
+Note:
+The initial bare `pytest` command was unavailable on PATH. The repository
+virtual environment completed the authoritative baseline successfully.

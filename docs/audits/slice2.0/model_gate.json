@@ -1,0 +1,466 @@
+{
+  "schema_version": "slice2-model-gate-v1",
+  "generated_at": "2026-08-08T09:57:16Z",
+  "updated_at": "2026-08-08T10:45:11Z",
+  "status": "APPROVED_INTERNAL_DEV_RISK_EXCEPTION",
+  "scope": {
+    "audit_only": false,
+    "canonical_modified": false,
+    "dependency_installed": true,
+    "dependency_install_scope": "ISOLATED_SYSTEM_SITE_PACKAGES_VALIDATION_VENV",
+    "gate_only": true,
+    "index_persisted": false,
+    "model_downloaded": false,
+    "model_implemented": false,
+    "model_locked": true,
+    "network_reused_for_this_append": true,
+    "network_used": true,
+    "network_used_for_approved_pypi_wheels_only": true,
+    "network_used_for_official_verification_only": false,
+    "production_code_modified": false
+  },
+  "inventory_results": [
+    {
+      "id": "local_weight_and_preprocess_inventory",
+      "mode": "read_only",
+      "result": "COMPLETE"
+    },
+    {
+      "id": "m4_mps_cpu_runtime_probe",
+      "mode": "read_only_ephemeral_in_memory",
+      "result": "COMPLETE"
+    },
+    {
+      "id": "license_dependency_and_alternative_inventory",
+      "mode": "read_only",
+      "result": "COMPLETE"
+    }
+  ],
+  "recommendation": {
+    "approval_status": "APPROVED_INTERNAL_DEV_RISK_EXCEPTION",
+    "architecture": "ViT-B-32",
+    "cache_repository": "laion/CLIP-ViT-B-32-laion2B-s34B-b79K",
+    "download_requirement": {
+      "missing_clean_runtime_wheels": "LOCKED_AND_VALIDATED_WITH_SYSTEM_SITE_PACKAGES",
+      "model_card_and_weight_license": "MODEL_CARD_MIT_WEIGHT_SCOPE_UNVERIFIED_RISK_EXCEPTION_APPROVED",
+      "weight_download_on_current_host": false,
+      "weight_redownload_prohibited": true
+    },
+    "family": "OpenCLIP",
+    "pretrained_tag": "laion2b_s34b_b79k",
+    "recommendation_status": "LOCKED_INTERNAL_DEV_ONLY",
+    "weight": {
+      "blob_path": "/Users/bytedance/.cache/huggingface/hub/models--laion--CLIP-ViT-B-32-laion2B-s34B-b79K/blobs/ac4f8c4b88af6d963118cbf40ad93176d092abbedfcb752601ae1866352656e6",
+      "bytes": 605143316,
+      "format": "safetensors",
+      "sha256": "ac4f8c4b88af6d963118cbf40ad93176d092abbedfcb752601ae1866352656e6",
+      "snapshot_id": "1a25a446712ba5ee05982a381eed697ef9b435cf",
+      "snapshot_path": "/Users/bytedance/.cache/huggingface/hub/models--laion--CLIP-ViT-B-32-laion2B-s34B-b79K/snapshots/1a25a446712ba5ee05982a381eed697ef9b435cf/open_clip_model.safetensors",
+      "tensor_count": 302,
+      "verified_locally": true
+    }
+  },
+  "model_contract": {
+    "architecture": "ViT-B-32",
+    "embedding_dimension": 512,
+    "family": "OpenCLIP",
+    "model_name": "ViT-B-32",
+    "pretrained_tag": "laion2b_s34b_b79k",
+    "revision": "1a25a446712ba5ee05982a381eed697ef9b435cf",
+    "safetensors_metadata": {
+      "format": "pt"
+    },
+    "text_projection_shape": [
+      512,
+      512
+    ],
+    "visual_projection_shape": [
+      768,
+      512
+    ],
+    "runtime_device_policy": {
+      "allowed_devices": [
+        "mps",
+        "cpu"
+      ],
+      "cpu_policy": "EXPLICIT_CONFIGURATION_ONLY_FP32_FAIL_CLOSED",
+      "default_on_approved_host": "mps",
+      "dtype": "float32",
+      "implicit_fallback": false,
+      "mps_policy": "REQUIRE_BUILT_AND_AVAILABLE_FP32_FAIL_CLOSED",
+      "on_device_load_or_inference_error": "FAIL_CLOSED_NO_CROSS_DEVICE_RETRY"
+    }
+  },
+  "preprocess": {
+    "antialias": true,
+    "center_crop": [
+      224,
+      224
+    ],
+    "color_mode": "RGB",
+    "image_size": [
+      224,
+      224
+    ],
+    "interpolation": "bicubic",
+    "mean": [
+      0.48145466,
+      0.4578275,
+      0.40821073
+    ],
+    "resize_mode": "shortest",
+    "resize_short_edge": 224,
+    "std": [
+      0.26862954,
+      0.26130258,
+      0.27577711
+    ],
+    "tensor_dtype": "float32",
+    "transform_repr": "Compose(Resize(size=224, interpolation=bicubic, max_size=None, antialias=True), CenterCrop(size=(224, 224)), MaybeConvertMode(), MaybeToTensor(), Normalize(mean=(0.48145466, 0.4578275, 0.40821073), std=(0.26862954, 0.26130258, 0.27577711)))",
+    "version": "openclip-3.3.0|ViT-B-32|laion2b_s34b_b79k@1a25a446712ba5ee05982a381eed697ef9b435cf|rgb|resize-shortest-224-bicubic-antialias|center-crop-224|mean-0.48145466,0.4578275,0.40821073|std-0.26862954,0.26130258,0.27577711|tensor-fp32"
+  },
+  "prohibited_artifacts": [
+    {
+      "bytes": 73102311,
+      "load_error": "PytorchStreamReader failed reading zip archive: failed finding central directory",
+      "path": "/Users/bytedance/.cache/huggingface/hub/models--laion--CLIP-ViT-B-32-laion2B-s34B-b79K/snapshots/1a25a446712ba5ee05982a381eed697ef9b435cf/open_clip_pytorch_model.bin",
+      "policy": "PROHIBITED_NO_FALLBACK",
+      "reason": "CORRUPTED_CHECKPOINT",
+      "sha256": "6e70532d22a7f26794c8d939d362627a1ce3141ddc720ec7f9046ec171ff3491"
+    }
+  ],
+  "benchmark": {
+    "accuracy_claim": false,
+    "batch_size": 16,
+    "canonical_source_image_count": 103,
+    "environment": {
+      "hardware": "MacBook Air Apple M4 10-core / 16 GB",
+      "machine": "arm64",
+      "open_clip_torch": "3.3.0",
+      "platform": "macOS-26.5.2-arm64-arm-64bit",
+      "python": "3.11.1",
+      "torch": "2.12.0",
+      "torchvision": "0.27.0"
+    },
+    "index_written": false,
+    "method": "offline read-only ephemeral in-memory probe; FP32; batch size 16; one aggregate run per device; single-image values are medians of 12 runs",
+    "network": "offline",
+    "results": [
+      {
+        "device": "mps",
+        "encode_103_seconds": 0.7567030839854851,
+        "model_load_seconds": 1.8935158750391565,
+        "preprocess_103_seconds": 1.0523876669467427,
+        "preprocess_and_encode_103_seconds": 1.8090907509322278,
+        "single_image_query": {
+          "encode_ms_median": 22.878145973663777,
+          "preprocess_and_encode_ms_median": 31.712249474367127,
+          "preprocess_ms_median": 9.07495801220648,
+          "product_id": 47,
+          "repeats": 12,
+          "retrieval_over_103_ms_median": 0.1305414771195501,
+          "top1_self_hits": 12
+        }
+      },
+      {
+        "device": "cpu",
+        "encode_103_seconds": 0.949544542003423,
+        "model_load_seconds": 0.845861750014592,
+        "preprocess_103_seconds": 0.9086532919900492,
+        "preprocess_and_encode_103_seconds": 1.8581978339934722,
+        "single_image_query": {
+          "encode_ms_median": 21.49725001072511,
+          "preprocess_and_encode_ms_median": 29.107249982189387,
+          "preprocess_ms_median": 7.59743747767061,
+          "product_id": 47,
+          "repeats": 12,
+          "retrieval_over_103_ms_median": 0.10364598711021245,
+          "top1_self_hits": 12
+        }
+      }
+    ],
+    "result_boundary": "product 47 repeated self-query only; 12/12 on each device is not 103-image accuracy",
+    "source_venv": "/Users/bytedance/Desktop/xiaoro-shopping-master/.venv",
+    "source_venv_policy": "READ_ONLY_BENCHMARK_ONLY_NEVER_A_RUNTIME_DEPENDENCY"
+  },
+  "licenses": {
+    "code": {
+      "content_sha256": "4a5b4f13ea4792a8211a69f32d2b460b6d520e57cd23c6301e707c76a6e97a55",
+      "evidence": "/private/tmp/xiaoro-guide-image-venv/lib/python3.11/site-packages/open_clip_torch-3.3.0.dist-info/licenses/LICENSE",
+      "license": "MIT",
+      "package": "open_clip_torch==3.3.0",
+      "status": "VERIFIED_LOCAL_AND_FIXED_OFFICIAL_SOURCE",
+      "url": "https://raw.githubusercontent.com/mlfoundations/open_clip/v3.3.0/LICENSE"
+    },
+    "weight": {
+      "code_license_is_not_weight_license": true,
+      "independent_weight_license_present": false,
+      "local_model_card_present": false,
+      "local_weight_license_present": false,
+      "model_card_license": "mit",
+      "model_card_risk_boundary": [
+        "INTENDED_USE_LIMITATIONS",
+        "TRAINING_DATA_RISK",
+        "NO_INDEPENDENT_WEIGHT_LICENSE"
+      ],
+      "risk_exception": {
+        "approval_token": "WEIGHT_LICENSE_RISK_EXCEPTION_APPROVE",
+        "approved_at": "2026-08-08T10:45:11Z",
+        "approved_scope": [
+          "LOCAL_INTERNAL_DEVELOPMENT",
+          "LOCAL_INTERNAL_ACCEPTANCE"
+        ],
+        "prohibited_scope": [
+          "RELEASE",
+          "DEPLOYMENT",
+          "DISTRIBUTION"
+        ],
+        "risk_accepted": true
+      },
+      "status": "UNVERIFIED_RISK_ACCEPTED_INTERNAL_DEV_ONLY"
+    }
+  },
+  "official_license_verification": {
+    "approval_effect": "RISK_ACCEPTED_INTERNAL_DEV_ONLY",
+    "evidence_origin": "USER_CONDITIONALLY_APPROVED_ONE_TIME_OFFICIAL_SOURCE_CHECK",
+    "network_reused_for_this_append": false,
+    "performed_under_one_time_network_allow": true,
+    "recorded_at": "2026-08-08T10:11:03Z",
+    "result": "UNVERIFIED",
+    "revision": "1a25a446712ba5ee05982a381eed697ef9b435cf",
+    "sources": {
+      "hf_lfs_pointer": {
+        "oid_sha256": "ac4f8c4b88af6d963118cbf40ad93176d092abbedfcb752601ae1866352656e6",
+        "size": 605143316,
+        "url": "https://huggingface.co/laion/CLIP-ViT-B-32-laion2B-s34B-b79K/raw/1a25a446712ba5ee05982a381eed697ef9b435cf/open_clip_model.safetensors"
+      },
+      "hf_model_api": {
+        "cardData": {
+          "license": "mit"
+        },
+        "url": "https://huggingface.co/api/models/laion/CLIP-ViT-B-32-laion2B-s34B-b79K/revision/1a25a446712ba5ee05982a381eed697ef9b435cf"
+      },
+      "hf_readme": {
+        "content_sha256": null,
+        "digest_status": "VERIFIED_DURING_APPROVED_CHECK_BUT_VALUE_NOT_PRESENT_IN_CURRENT_HANDOFF_NO_REDOWNLOAD",
+        "url": "https://huggingface.co/laion/CLIP-ViT-B-32-laion2B-s34B-b79K/raw/1a25a446712ba5ee05982a381eed697ef9b435cf/README.md"
+      },
+      "openclip_license": {
+        "content_sha256": "4a5b4f13ea4792a8211a69f32d2b460b6d520e57cd23c6301e707c76a6e97a55",
+        "url": "https://raw.githubusercontent.com/mlfoundations/open_clip/v3.3.0/LICENSE"
+      },
+      "openclip_pretrained": {
+        "content_sha256": "5ffc377bb61392ca07581b7fa3705ed358d99188082f9a260854b2044ec3bc45",
+        "mapping": "laion2b_s34b_b79k -> laion/CLIP-ViT-B-32-laion2B-s34B-b79K/",
+        "url": "https://raw.githubusercontent.com/mlfoundations/open_clip/v3.3.0/src/open_clip/pretrained.py"
+      }
+    },
+    "weight_matches_local": {
+      "oid_sha256": true,
+      "size": true
+    }
+  },
+  "dependency_gate": {
+    "artifact_evidence": [
+      {
+        "bytes": 1547268,
+        "cache_body_sha256": "c549ad5ed6bfc119cc11105033c0a2b9d7a2a4afeb40a58a09aab3da1a0043ce",
+        "install_mode": "PIP_NO_DEPS_CACHED_WHEEL",
+        "package": "open_clip_torch==3.3.0",
+        "report_sha256": "2ea8f872a6b3311b7c65e4e69fe2adf8667c413a1b150efe1d326df330e5dc0b",
+        "url": "https://files.pythonhosted.org/packages/37/b5/41c315ccd94ca332ead3e832e83eee343ab245005c3e43d9d3e75eae34eb/open_clip_torch-3.3.0-py3-none-any.whl"
+      },
+      {
+        "bytes": 54433,
+        "cache_body_sha256": "f94a2c34b76e07475720e3096f5ca80911d152406fbde66fdb45c4d0c9150026",
+        "install_mode": "PIP_NO_DEPS_SMALL_WHEEL",
+        "package": "ftfy==6.2.0",
+        "report_sha256": "fe91a12ed7ae3a27ca958bbb079a1f61df1a90bcfa162555a0c206f6b70ec8ec",
+        "url": "https://files.pythonhosted.org/packages/f4/f0/21efef51304172736b823689aaf82f33dbc64f54e9b046b75f5212d5cee7/ftfy-6.2.0-py3-none-any.whl"
+      },
+      {
+        "bytes": 37286,
+        "cache_body_sha256": "a7bb560c8aee30f9957e5f9895805edd20602f2d7f720186dfd906e82b4982e1",
+        "install_mode": "PIP_NO_DEPS_SMALL_WHEEL",
+        "package": "wcwidth==0.2.14",
+        "report_sha256": "6f6d9dfe7dad0061aa070413de7f2552c7d71f0564fde465585d7ed74d587b3d",
+        "url": "https://files.pythonhosted.org/packages/af/b5/123f13c975e9f27ab9c0770f514345bd406d0e8d3b7a0723af9d43f710af/wcwidth-0.2.14-py2.py3-none-any.whl"
+      }
+    ],
+    "initial_full_install_attempt": "TERMINATED_DURING_TORCH_WHEEL_DOWNLOAD_NO_PACKAGES_INSTALLED",
+    "old_repository_venv_on_sys_path": false,
+    "permission": "APPROVED_INSTALLED_AND_VERIFIED",
+    "pip_check": "PASS_NO_BROKEN_REQUIREMENTS",
+    "resolved_versions": {
+      "annotated-doc": "0.0.4",
+      "anyio": "4.13.0",
+      "certifi": "2025.8.3",
+      "click": "8.4.1",
+      "filelock": "3.29.0",
+      "fsspec": "2026.4.0",
+      "ftfy": "6.2.0",
+      "h11": "0.16.0",
+      "hf-xet": "1.5.0",
+      "httpcore": "1.0.9",
+      "httpx": "0.28.1",
+      "huggingface-hub": "1.17.0",
+      "idna": "3.17",
+      "Jinja2": "3.1.6",
+      "markdown-it-py": "4.2.0",
+      "MarkupSafe": "3.0.3",
+      "mdurl": "0.1.2",
+      "mpmath": "1.3.0",
+      "networkx": "3.6.1",
+      "numpy": "2.3.4",
+      "open_clip_torch": "3.3.0",
+      "packaging": "26.2",
+      "Pillow": "12.3.0",
+      "Pygments": "2.20.0",
+      "PyYAML": "6.0.3",
+      "regex": "2026.5.9",
+      "rich": "15.0.0",
+      "safetensors": "0.7.0",
+      "setuptools": "65.5.0",
+      "shellingham": "1.5.4",
+      "sympy": "1.14.0",
+      "timm": "1.0.27",
+      "torch": "2.12.0",
+      "torchvision": "0.27.0",
+      "tqdm": "4.67.3",
+      "typer": "0.25.1",
+      "typing_extensions": "4.15.0",
+      "wcwidth": "0.2.14"
+    },
+    "requirements": {
+      "path": "requirements-guide-image.txt",
+      "sha256": "630b712f7a3fd3794f12a729e3554b0d89cd9ed1687fef2cba9c1333ce5c066e"
+    },
+    "root_requirements_mismatch": {
+      "openai-clip": "1.0.1",
+      "torch": "2.4.0"
+    },
+    "runtime_requirements_boundary": "INDEPENDENT_IMAGE_ENV_DO_NOT_MERGE_WITH_REQUIREMENTS_GUIDE_RUNTIME",
+    "system_distribution_metadata_evidence": {
+      "Pillow==12.3.0": "8fc07146cab33ef7582361dab6eac596d340b03ec648f18217da7894f73838c8",
+      "huggingface-hub==1.17.0": "eb0725b1ae13acfe637105adf0401b8ba225c1a8698e172e6eb9c64d736777b2",
+      "numpy==2.3.4": "a4351467c0b0124799fb0fe58fd64070a5720fb0e4ea9fe9dd536978fa7185b4",
+      "regex==2026.5.9": "463d12c4755958eaa7a11d0aed2d0e5e629f67d03ef484677ee3c72d70eccf81",
+      "safetensors==0.7.0": "6809326fbf17444dd520ab19f0a55b7a18476dbe52a430466bbf5389967c2aaa",
+      "timm==1.0.27": "b6ecaedbcaea5d0d5e431983c3df8e05113a51a2dad062e51dab0500ac6f2bb4",
+      "torch==2.12.0": "b6d383be28bad9be3ba58d2057c59b33e2e0eb4901da8fad0852c161e35dda05",
+      "torchvision==0.27.0": "86f64f2a6e50c4a0ace1dd4fb0fb4aa62a84a121746e74906c28631d99fa6cb4",
+      "tqdm==4.67.3": "7c0e9a662c19095f339a4b761201eb06cff9c61fb9581535b2f96f44e718ed29"
+    },
+    "system_site_packages": true,
+    "venv": "/private/tmp/xiaoro-guide-image-venv"
+  },
+  "acceptance_probe": {
+    "device": "mps",
+    "dtype": "float32",
+    "embedding_dimension": 512,
+    "embedding_finite": true,
+    "embedding_l2_norm": 0.9999999403953552,
+    "image_path": "app/static/images/products/tmall_v3_764432666085.png",
+    "image_sha256": "1377844ac99429a8f0ee77c8ebdfd7947a9ea822a4118c9e1134a39aef4248f8",
+    "index_written": false,
+    "load_seconds": 1.2899197500082664,
+    "network": "HF_HUB_OFFLINE_TRANSFORMERS_OFFLINE",
+    "old_repository_venv_dependency": false,
+    "output_shape": [
+      1,
+      512
+    ],
+    "product_id": 47,
+    "result": "PASS",
+    "venv": "/private/tmp/xiaoro-guide-image-venv",
+    "weight_sha256_reverified_before_load": true
+  },
+  "alternatives": [
+    {
+      "family": "MobileCLIP",
+      "local_code_or_config_present": true,
+      "local_weight_present": false,
+      "recommendation": "NOT_RECOMMENDED_THIS_ROUND",
+      "sha256": null,
+      "weight_license": "UNVERIFIED_PENDING_EXACT_CHECKPOINT"
+    },
+    {
+      "family": "SigLIP",
+      "local_code_or_config_present": true,
+      "local_weight_present": false,
+      "recommendation": "NOT_RECOMMENDED_THIS_ROUND",
+      "sha256": null,
+      "weight_license": "UNVERIFIED_PENDING_EXACT_CHECKPOINT"
+    },
+    {
+      "family": "DINOv2",
+      "local_code_or_config_present": true,
+      "local_weight_present": false,
+      "recommendation": "NOT_RECOMMENDED_THIS_ROUND",
+      "sha256": null,
+      "weight_license": "UNVERIFIED_PENDING_EXACT_CHECKPOINT"
+    }
+  ],
+  "hard_gate": {
+    "required_decisions": [
+      {
+        "allow": "MODEL_APPROVE",
+        "deny": "MODEL_REJECT",
+        "id": "model_and_weight_sha",
+        "status": "APPROVED_INTERNAL_DEV_RISK_EXCEPTION"
+      },
+      {
+        "allow": "DEPENDENCY_INSTALL_ALLOW",
+        "deny": "DEPENDENCY_INSTALL_DENY",
+        "id": "dependency_install_and_lock",
+        "status": "APPROVED_INSTALLED_AND_VERIFIED"
+      },
+      {
+        "allow": "ONE_TIME_NETWORK_ALLOW",
+        "deny": "ONE_TIME_NETWORK_DENY",
+        "id": "model_card_license_and_missing_wheels_only",
+        "status": "APPROVED_CONSUMED_NO_FURTHER_NETWORK"
+      },
+      {
+        "allow": "WEIGHT_LICENSE_RISK_EXCEPTION_APPROVE",
+        "deny": "MODEL_REJECT",
+        "id": "missing_independent_weight_license_risk",
+        "status": "APPROVED_INTERNAL_DEV_RISK_EXCEPTION"
+      }
+    ],
+    "approval_effect": "APPROVED_INTERNAL_DEV_RISK_EXCEPTION",
+    "authorization": {
+      "accepted_risks": [
+        "HF_CARD_LICENSE_MIT_BUT_WEIGHT_SCOPE_UNVERIFIED",
+        "NO_INDEPENDENT_WEIGHT_LICENSE",
+        "MODEL_CARD_INTENDED_USE_LIMITATIONS",
+        "TRAINING_DATA_RISK"
+      ],
+      "approval_token": "WEIGHT_LICENSE_RISK_EXCEPTION_APPROVE",
+      "approved_model": "OpenCLIP ViT-B/32 laion2b_s34b_b79k",
+      "approved_revision": "1a25a446712ba5ee05982a381eed697ef9b435cf",
+      "approved_weight_sha256": "ac4f8c4b88af6d963118cbf40ad93176d092abbedfcb752601ae1866352656e6",
+      "prohibited_uses": [
+        "RELEASE",
+        "DEPLOYMENT",
+        "DISTRIBUTION"
+      ],
+      "scope": [
+        "LOCAL_INTERNAL_DEVELOPMENT",
+        "LOCAL_INTERNAL_ACCEPTANCE"
+      ]
+    },
+    "task_10_1": "COMPLETE",
+    "task_10_2": "COMPLETE",
+    "task_10_3": "COMPLETE",
+    "task_10_4": "COMPLETE",
+    "task_11_entry": "ALLOWED_INTERNAL_DEV_ONLY_NOT_STARTED"
+  },
+  "token_ledger": {
+    "duplicate_row_added": false,
+    "event": "SLICE_2_0_START",
+    "head": "050e9ac619e730995586ae9f74daa9028c15a0c1",
+    "path": "docs/audits/slice1.7-to-2.0/token_usage.csv",
+    "status": "APPROVED"
+  }
+}

@@ -1,0 +1,243 @@
+{
+  "schema_version": "guide-continuous-truth-correction-v1",
+  "fixture_sha256": "544d6c7a8b6e05a69d695261c68c14cb44710e4a4a41613a893ca960f42c0b76",
+  "manifest_sha256": "a6a36e56bdb992d312b0e2a8ef36f2e4864c1c849a979c6675da4cbda90727d5",
+  "mechanical_truth_sha256": "05f53fad5e95771b6336ae59f36af53d89754e7d6f78e9a513082036c1a7b27b",
+  "corrections": [
+    {
+      "turn_id": "blindb-replacement-v2-02-t2",
+      "issue_codes": [
+        "explicit_comparison_requires_replace_task"
+      ],
+      "expected_route": {
+        "processor": "comparison",
+        "continuity": "replace_task",
+        "focus_source": "explicit_product"
+      }
+    },
+    {
+      "turn_id": "blindb-replacement-v2-02-t4",
+      "issue_codes": [
+        "route_continuity_contract"
+      ],
+      "expected_route": {
+        "processor": "recommendation",
+        "continuity": "supplement",
+        "focus_source": "none"
+      }
+    },
+    {
+      "turn_id": "blindb-replacement-v2-02-t5",
+      "issue_codes": [
+        "explicit_comparison_requires_replace_task"
+      ],
+      "expected_route": {
+        "processor": "comparison",
+        "continuity": "replace_task",
+        "focus_source": "explicit_product"
+      }
+    },
+    {
+      "turn_id": "blindb-replacement-v2-03-t5",
+      "issue_codes": [
+        "explicit_comparison_requires_replace_task"
+      ],
+      "expected_route": {
+        "processor": "comparison",
+        "continuity": "replace_task",
+        "focus_source": "explicit_product"
+      }
+    },
+    {
+      "turn_id": "blindb-replacement-v2-04-t3",
+      "issue_codes": [
+        "clarification_forbids_presentation_packet"
+      ],
+      "presentation_mode_action": "clear"
+    },
+    {
+      "turn_id": "blindb-replacement-v2-04-t4",
+      "issue_codes": [
+        "explicit_comparison_requires_replace_task"
+      ],
+      "expected_route": {
+        "processor": "comparison",
+        "continuity": "replace_task",
+        "focus_source": "explicit_product"
+      }
+    },
+    {
+      "turn_id": "blindb-replacement-v2-05-t1",
+      "issue_codes": [
+        "clarification_forbids_presentation_packet"
+      ],
+      "presentation_mode_action": "clear"
+    },
+    {
+      "turn_id": "blindb-replacement-v2-05-t5",
+      "issue_codes": [
+        "explicit_comparison_requires_replace_task"
+      ],
+      "expected_route": {
+        "processor": "comparison",
+        "continuity": "replace_task",
+        "focus_source": "explicit_product"
+      }
+    },
+    {
+      "turn_id": "blindb-replacement-v2-07-t1",
+      "issue_codes": [
+        "clarification_forbids_presentation_packet"
+      ],
+      "presentation_mode_action": "clear"
+    },
+    {
+      "turn_id": "blindb-replacement-v2-07-t2",
+      "issue_codes": [
+        "pending_response_parent_contract"
+      ],
+      "acceptable_semantic": {
+        "operation_hints": [
+          "clarification",
+          "recommendation",
+          "followup"
+        ],
+        "topic_hints": [
+          null,
+          "serum"
+        ],
+        "continuity_hints": [
+          "continue"
+        ],
+        "subject_scope_hints": [
+          "self",
+          "unknown"
+        ]
+      }
+    },
+    {
+      "turn_id": "blindb-replacement-v2-07-t5",
+      "issue_codes": [
+        "explicit_comparison_requires_replace_task"
+      ],
+      "expected_route": {
+        "processor": "comparison",
+        "continuity": "replace_task",
+        "focus_source": "explicit_product"
+      }
+    },
+    {
+      "turn_id": "blindb-replacement-v2-08-t1",
+      "issue_codes": [
+        "clarification_forbids_presentation_packet"
+      ],
+      "presentation_mode_action": "clear"
+    },
+    {
+      "turn_id": "blindb-replacement-v2-08-t5",
+      "issue_codes": [
+        "explicit_comparison_requires_replace_task"
+      ],
+      "expected_route": {
+        "processor": "comparison",
+        "continuity": "replace_task",
+        "focus_source": "explicit_product"
+      }
+    },
+    {
+      "turn_id": "blindb-replacement-v2-09-t1",
+      "issue_codes": [
+        "clarification_forbids_presentation_packet"
+      ],
+      "presentation_mode_action": "clear"
+    },
+    {
+      "turn_id": "blindb-replacement-v2-09-t2",
+      "issue_codes": [
+        "clarification_forbids_presentation_packet"
+      ],
+      "presentation_mode_action": "clear"
+    },
+    {
+      "turn_id": "blindb-replacement-v2-09-t5",
+      "issue_codes": [
+        "clarification_forbids_presentation_packet"
+      ],
+      "presentation_mode_action": "clear"
+    },
+    {
+      "turn_id": "blindb-replacement-v2-10-t3",
+      "issue_codes": [
+        "explicit_comparison_requires_replace_task"
+      ],
+      "expected_route": {
+        "processor": "comparison",
+        "continuity": "replace_task",
+        "focus_source": "explicit_product"
+      }
+    },
+    {
+      "turn_id": "blindb-replacement-v2-13-t3",
+      "issue_codes": [
+        "suitability_requires_single_product",
+        "semantic_route_alternative"
+      ],
+      "acceptable_routes": [
+        {
+          "processor": "product_knowledge",
+          "continuity": "continue",
+          "focus_source": "explicit_product"
+        }
+      ],
+      "presentation_mode_action": "replace",
+      "expected_presentation_mode": "single_product"
+    },
+    {
+      "turn_id": "blindb-replacement-v2-16-t3",
+      "issue_codes": [
+        "route_continuity_contract"
+      ],
+      "expected_route": {
+        "processor": "recommendation",
+        "continuity": "continue",
+        "focus_source": "confirmed_image"
+      }
+    },
+    {
+      "turn_id": "blindb-replacement-v2-16-t4",
+      "issue_codes": [
+        "explicit_comparison_requires_replace_task"
+      ],
+      "expected_route": {
+        "processor": "comparison",
+        "continuity": "replace_task",
+        "focus_source": "explicit_product"
+      }
+    },
+    {
+      "turn_id": "blindb-replacement-v2-18-t2",
+      "issue_codes": [
+        "clarification_forbids_presentation_packet"
+      ],
+      "presentation_mode_action": "clear"
+    },
+    {
+      "turn_id": "blindb-replacement-v2-19-t3",
+      "issue_codes": [
+        "clarification_forbids_presentation_packet"
+      ],
+      "presentation_mode_action": "clear"
+    },
+    {
+      "turn_id": "blindb-replacement-v2-20-t4",
+      "issue_codes": [
+        "explicit_comparison_requires_replace_task"
+      ],
+      "expected_route": {
+        "processor": "comparison",
+        "continuity": "replace_task",
+        "focus_source": "explicit_product"
+      }
+    }
+  ]
+}

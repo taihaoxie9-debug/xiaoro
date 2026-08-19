@@ -1,0 +1,8 @@
+{"case_id":"concept-soothing-match","expected_effect_claim_supported":false,"expected_match_status":"matched","expected_relation_kind":null,"expected_source_alignment":true,"scenario":"concept"}
+{"case_id":"concept-refreshing-and-soothing","expected_effect_claim_supported":false,"expected_match_status":"matched,matched","expected_relation_kind":null,"expected_source_alignment":true,"scenario":"concept"}
+{"case_id":"concept-no-evidence-unknown","expected_effect_claim_supported":false,"expected_match_status":"unknown","expected_relation_kind":null,"expected_source_alignment":true,"scenario":"concept"}
+{"case_id":"concept-explicit-opposition-mismatch","expected_effect_claim_supported":false,"expected_match_status":"mismatch","expected_relation_kind":null,"expected_source_alignment":true,"scenario":"concept"}
+{"case_id":"relative-more-affordable","expected_effect_claim_supported":true,"expected_match_status":"better","expected_relation_kind":"numeric","expected_source_alignment":true,"scenario":"relative"}
+{"case_id":"relative-better-refreshing-match","expected_effect_claim_supported":false,"expected_match_status":"better","expected_relation_kind":"better_preference_match","expected_source_alignment":true,"scenario":"relative"}
+{"case_id":"relative-stronger-soothing-evidence","expected_effect_claim_supported":false,"expected_match_status":"better","expected_relation_kind":"better_evidence_support","expected_source_alignment":true,"scenario":"relative"}
+{"case_id":"relative-unsupported-evidence-gap","expected_effect_claim_supported":false,"expected_match_status":"evidence_gap","expected_relation_kind":"unsupported","expected_source_alignment":true,"scenario":"relative"}

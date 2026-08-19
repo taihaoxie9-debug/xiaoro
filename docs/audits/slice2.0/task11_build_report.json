@@ -1,0 +1,42 @@
+{
+  "acceptance_passed": true,
+  "attempt_id": "d1989e25121247d5ae88e32af5281651",
+  "build_report": {
+    "acceptance_passed": true,
+    "artifact_path": "/private/tmp/xiaoro-task11-review-rebuild.RCuXf9/primary",
+    "batch_size": 16,
+    "build_seconds": 2.5072888750582933,
+    "device": "mps",
+    "git_head": "dcd64fd03443456d66f14b45d633408b66f3858c",
+    "index_sha256": "f61ba8ed45dc6f3d285e22016f7c643bfd01eec78ba65c84e75e5fabb843d340",
+    "manifest_file_sha256": "a1af55f193c37ed6b9aaa634ed82cd9993d5d688141235bae25e1dc6a0985ccd",
+    "manifest_sha256": "f47e183aaec1f8418f9d4dcef78481607ab4a74d38b46920025c23070a3427d9",
+    "model_name": "OpenCLIP:ViT-B-32:laion2b_s34b_b79k@1a25a446712ba5ee05982a381eed697ef9b435cf",
+    "ordering_stable": true,
+    "original_top1_hits": 103,
+    "original_top1_rate": 1.0,
+    "preprocessing_version": "openclip-3.3.0|ViT-B-32|laion2b_s34b_b79k@1a25a446712ba5ee05982a381eed697ef9b435cf|rgb|resize-shortest-224-bicubic-antialias|center-crop-224|mean-0.48145466,0.4578275,0.40821073|std-0.26862954,0.26130258,0.27577711|tensor-fp32",
+    "relevant_source_sha256": "afdc29e9b691c99be734ca931882ab452f973119668824c00fe001ea1c9b486c",
+    "repeat_build_seconds": 1.7399458748986945,
+    "repeat_index_sha256": "f61ba8ed45dc6f3d285e22016f7c643bfd01eec78ba65c84e75e5fabb843d340",
+    "repeat_manifest_sha256": "f47e183aaec1f8418f9d4dcef78481607ab4a74d38b46920025c23070a3427d9",
+    "reproducible": true,
+    "schema_version": "slice2-task11-build-v2",
+    "source_count": 103,
+    "source_status": "clean",
+    "transformed_top3_hits": 103,
+    "transformed_top3_rate": 1.0,
+    "vector_count": 103,
+    "vector_dimension": 512,
+    "vector_sha256_aggregate": "c182ab9d45507ecaf3b8ce5f5a11bcc0f547320524529744ebe019bfcb775010",
+    "weights_sha256": "ac4f8c4b88af6d963118cbf40ad93176d092abbedfcb752601ae1866352656e6"
+  },
+  "code": "accepted",
+  "schema_version": "slice2-task11-cli-v2",
+  "source_provenance": {
+    "git_head": "dcd64fd03443456d66f14b45d633408b66f3858c",
+    "relevant_source_sha256": "afdc29e9b691c99be734ca931882ab452f973119668824c00fe001ea1c9b486c",
+    "source_status": "clean"
+  },
+  "status": "accepted"
+}

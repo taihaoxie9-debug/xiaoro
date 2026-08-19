@@ -1,0 +1,388 @@
+from __future__ import annotations
+
+from contextlib import contextmanager
+import os
+from pathlib import Path
+import sqlite3
+from typing import Iterator
+
+from app.guide.adapters.state.trusted_sqlite_storage import (
+    TrustedSqliteStorage,
+)
+from app.guide.feedback.contracts import ConversationSnapshot
+from app.guide.feedback.ports import (
+    ConversationStateConflict,
+    ConversationStateCorrupt,
+    validate_conversation_state_transition,
+)
+from app.guide.feedback.profile_contracts import ProfileOwnerRef
+
+
+_APPLICATION_ID = 0x58524356
+_SCHEMA_VERSION = 1
+
+_CONVERSATIONS_SCHEMA = """
+CREATE TABLE conversations (
+    session_id TEXT NOT NULL PRIMARY KEY,
+    snapshot_version INTEGER NOT NULL CHECK (snapshot_version >= 1),
+    owner_scope TEXT CHECK (
+        owner_scope IS NULL OR owner_scope IN (
+            'authenticated_user',
+            'local_demo',
+            'anonymous_browser'
+        )
+    ),
+    owner_subject_id TEXT,
+    snapshot_json TEXT NOT NULL,
+    CHECK (
+        (owner_scope IS NULL AND owner_subject_id IS NULL)
+        OR
+        (owner_scope IS NOT NULL AND owner_subject_id IS NOT NULL)
+    )
+)
+"""
+
+
+class SqliteConversationState:
+    """Durable optimistic-CAS storage for authoritative conversations."""
+
+    def __init__(
+        self,
+        database_path: str | os.PathLike[str],
+        *,
+        trusted_state_root: str | os.PathLike[str],
+    ) -> None:
+        self._storage = TrustedSqliteStorage(
+            database_path,
+            trusted_state_root=trusted_state_root,
+        )
+        self._state_root = self._storage.state_root
+        self._database_path = self._storage.database_path
+        self._database_relative_path = (
+            self._storage.database_relative_path
+        )
+        try:
+            with self._storage.initialize() as (connection, created):
+                self._initialize_schema(
+                    connection=connection,
+                    created=created,
+                )
+        except sqlite3.DatabaseError:
+            raise ConversationStateCorrupt(
+                str(self._database_path)
+            ) from None
+
+    @property
+    def database_path(self) -> Path:
+        return self._database_path
+
+    def load(self, session_id: str) -> ConversationSnapshot | None:
+        if not isinstance(session_id, str):
+            raise TypeError("session_id must be a string")
+        with self._read_transaction(session_id) as connection:
+            return self._load(connection, session_id)
+
+    def save(
+        self,
+        snapshot: ConversationSnapshot,
+        *,
+        expected_version: int,
+    ) -> ConversationSnapshot:
+        if type(snapshot) is not ConversationSnapshot:
+            raise TypeError("snapshot must be an exact ConversationSnapshot")
+        if (
+            not isinstance(expected_version, int)
+            or isinstance(expected_version, bool)
+            or expected_version < 0
+        ):
+            raise ValueError(
+                "expected_version must be a non-negative integer"
+            )
+        with self._transaction(snapshot.session_id) as connection:
+            current = self._load(connection, snapshot.session_id)
+            current_version = current.version if current is not None else 0
+            if current_version != expected_version:
+                raise ConversationStateConflict(snapshot.session_id)
+            if (
+                current is not None
+                and current.profile_owner != snapshot.profile_owner
+            ):
+                raise ConversationStateConflict(snapshot.session_id)
+            if snapshot.version != expected_version + 1:
+                raise ValueError("snapshot version must increment by one")
+            validate_conversation_state_transition(current, snapshot)
+            owner_scope, owner_subject_id = self._owner_columns(snapshot)
+            payload = snapshot.model_dump_json()
+            if current is None:
+                connection.execute(
+                    """
+                    INSERT INTO conversations (
+                        session_id,
+                        snapshot_version,
+                        owner_scope,
+                        owner_subject_id,
+                        snapshot_json
+                    )
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (
+                        snapshot.session_id,
+                        snapshot.version,
+                        owner_scope,
+                        owner_subject_id,
+                        payload,
+                    ),
+                )
+            else:
+                cursor = connection.execute(
+                    """
+                    UPDATE conversations
+                    SET
+                        snapshot_version = ?,
+                        owner_scope = ?,
+                        owner_subject_id = ?,
+                        snapshot_json = ?
+                    WHERE session_id = ? AND snapshot_version = ?
+                    """,
+                    (
+                        snapshot.version,
+                        owner_scope,
+                        owner_subject_id,
+                        payload,
+                        snapshot.session_id,
+                        expected_version,
+                    ),
+                )
+                if cursor.rowcount != 1:
+                    raise ConversationStateConflict(snapshot.session_id)
+            stored = self._load(connection, snapshot.session_id)
+            if stored != snapshot:
+                raise ConversationStateCorrupt(snapshot.session_id)
+            return stored.model_copy(deep=True)
+
+    def delete(
+        self,
+        session_id: str,
+        *,
+        expected_owner: ProfileOwnerRef | None,
+    ) -> bool:
+        if not isinstance(session_id, str):
+            raise TypeError("session_id must be a string")
+        if (
+            expected_owner is not None
+            and type(expected_owner) is not ProfileOwnerRef
+        ):
+            raise TypeError(
+                "expected_owner must be ProfileOwnerRef or None"
+            )
+        owner_scope = (
+            expected_owner.scope
+            if expected_owner is not None
+            else None
+        )
+        owner_subject_id = (
+            expected_owner.subject_id
+            if expected_owner is not None
+            else None
+        )
+        with self._transaction(session_id) as connection:
+            cursor = connection.execute(
+                """
+                DELETE FROM conversations
+                WHERE
+                    session_id = ?
+                    AND (
+                        (
+                            ? IS NULL
+                            AND owner_scope IS NULL
+                            AND owner_subject_id IS NULL
+                        )
+                        OR (
+                            owner_scope = ?
+                            AND owner_subject_id = ?
+                        )
+                    )
+                """,
+                (
+                    session_id,
+                    owner_scope,
+                    owner_scope,
+                    owner_subject_id,
+                ),
+            )
+            return cursor.rowcount == 1
+
+    @staticmethod
+    def _owner_columns(
+        snapshot: ConversationSnapshot,
+    ) -> tuple[str | None, str | None]:
+        owner = snapshot.profile_owner
+        if owner is None:
+            return None, None
+        return owner.scope, owner.subject_id
+
+    def _initialize_schema(
+        self,
+        *,
+        connection: sqlite3.Connection,
+        created: bool,
+    ) -> None:
+        if not created:
+            self._validate_schema(connection)
+        journal_mode = connection.execute(
+            "PRAGMA journal_mode = WAL"
+        ).fetchone()
+        if journal_mode != ("wal",):
+            raise sqlite3.DatabaseError("WAL mode is unavailable")
+        if created:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                connection.execute(_CONVERSATIONS_SCHEMA)
+                connection.execute(
+                    f"PRAGMA application_id = {_APPLICATION_ID}"
+                )
+                connection.execute(
+                    f"PRAGMA user_version = {_SCHEMA_VERSION}"
+                )
+                connection.commit()
+            except BaseException:
+                connection.rollback()
+                raise
+        self._validate_schema(connection)
+
+    @staticmethod
+    def _validate_schema(connection: sqlite3.Connection) -> None:
+        if connection.execute("PRAGMA quick_check").fetchall() != [("ok",)]:
+            raise sqlite3.DatabaseError(
+                "conversation state integrity check failed"
+            )
+        if (
+            connection.execute("PRAGMA application_id").fetchone()
+            != (_APPLICATION_ID,)
+            or connection.execute("PRAGMA user_version").fetchone()
+            != (_SCHEMA_VERSION,)
+        ):
+            raise sqlite3.DatabaseError(
+                "conversation state schema version is incompatible"
+            )
+        schema_rows = connection.execute(
+            """
+            SELECT name, sql
+            FROM sqlite_schema
+            WHERE type = 'table'
+            ORDER BY name ASC
+            """
+        ).fetchall()
+        actual_schema = {
+            name: " ".join(sql.split())
+            for name, sql in schema_rows
+            if isinstance(name, str) and isinstance(sql, str)
+        }
+        if actual_schema != {
+            "conversations": " ".join(_CONVERSATIONS_SCHEMA.split())
+        }:
+            raise sqlite3.DatabaseError(
+                "conversation state schema is incompatible"
+            )
+
+    @contextmanager
+    def _connect(self) -> Iterator[sqlite3.Connection]:
+        with self._storage.connect() as connection:
+            yield connection
+
+    @contextmanager
+    def _transaction(
+        self,
+        session_id: str,
+    ) -> Iterator[sqlite3.Connection]:
+        connection: sqlite3.Connection | None = None
+        try:
+            with self._connect() as connection:
+                connection.execute("BEGIN IMMEDIATE")
+                yield connection
+                connection.commit()
+        except ConversationStateCorrupt:
+            if connection is not None:
+                self._rollback_quietly(connection)
+            raise
+        except sqlite3.DatabaseError:
+            if connection is not None:
+                self._rollback_quietly(connection)
+            raise ConversationStateCorrupt(session_id) from None
+        except BaseException:
+            if connection is not None:
+                self._rollback_quietly(connection)
+            raise
+        finally:
+            self._secure_database_files()
+
+    @contextmanager
+    def _read_transaction(
+        self,
+        session_id: str,
+    ) -> Iterator[sqlite3.Connection]:
+        connection: sqlite3.Connection | None = None
+        try:
+            with self._connect() as connection:
+                connection.execute("BEGIN")
+                yield connection
+                connection.commit()
+        except ConversationStateCorrupt:
+            if connection is not None:
+                self._rollback_quietly(connection)
+            raise
+        except sqlite3.DatabaseError:
+            if connection is not None:
+                self._rollback_quietly(connection)
+            raise ConversationStateCorrupt(session_id) from None
+        except BaseException:
+            if connection is not None:
+                self._rollback_quietly(connection)
+            raise
+        finally:
+            self._secure_database_files()
+
+    @staticmethod
+    def _rollback_quietly(connection: sqlite3.Connection) -> None:
+        try:
+            connection.rollback()
+        except sqlite3.DatabaseError:
+            pass
+
+    def _secure_database_files(self) -> None:
+        self._storage.secure_database_files()
+
+    @staticmethod
+    def _load(
+        connection: sqlite3.Connection,
+        session_id: str,
+    ) -> ConversationSnapshot | None:
+        row = connection.execute(
+            """
+            SELECT
+                snapshot_version,
+                owner_scope,
+                owner_subject_id,
+                snapshot_json
+            FROM conversations
+            WHERE session_id = ?
+            """,
+            (session_id,),
+        ).fetchone()
+        if row is None:
+            return None
+        try:
+            snapshot = ConversationSnapshot.model_validate_json(row[3])
+        except (TypeError, ValueError):
+            raise ConversationStateCorrupt(session_id) from None
+        owner_scope, owner_subject_id = (
+            SqliteConversationState._owner_columns(snapshot)
+        )
+        if (
+            snapshot.session_id != session_id
+            or snapshot.version != row[0]
+            or owner_scope != row[1]
+            or owner_subject_id != row[2]
+        ):
+            raise ConversationStateCorrupt(session_id)
+        return snapshot.model_copy(deep=True)

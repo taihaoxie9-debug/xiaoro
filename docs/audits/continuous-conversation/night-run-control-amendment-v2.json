@@ -1,0 +1,23 @@
+{
+  "schema_version": "guide-night-run-control-amendment-v2",
+  "base_control": "night-run-control-v1.json",
+  "base_control_sha256": "84feeeecdfe4295bde5b8beb3569d0f8ad8f9c0b6dc0ba350e08b187935e1fad",
+  "authorized_at": "2026-08-18",
+  "authorization_source": "explicit_user_message",
+  "changed_fields": {
+    "copywriter_call_cap": {
+      "from": 35,
+      "to": 55
+    }
+  },
+  "unchanged_fields": {
+    "estimated_cost_stop_cny": "18.00",
+    "provider_retry_count": 0,
+    "format_repair_attempts": 0,
+    "semantic_call_cap": 325
+  },
+  "copywriter_calls_already_spent": 20,
+  "fresh_copywriter_gate_calls": 20,
+  "reserved_browser_copywriter_calls": 15,
+  "projected_copywriter_calls_after_acceptance": 55
+}

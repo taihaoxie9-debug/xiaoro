@@ -1,0 +1,84 @@
+{
+  "schema_version": "guide-continuous-blind-b-replacement-final-decision-v1",
+  "decided_at": "2026-08-19",
+  "status": "backend_blind_qualification_failed_closed",
+  "exam_policy": {
+    "paper": "replacement_for_invalid_blind_b",
+    "same_exam_resumes_only": true,
+    "blind_c_created": false,
+    "question_or_prompt_patched": false
+  },
+  "paid_capture": {
+    "file": "docs/audits/continuous-conversation/backend-blind-b-replacement-20x5-v2-final/result.json",
+    "sha256": "66b7f04f3c559a4e3a1504aae6b77199f0159c580928a95ed60b4537ac0ce5ed",
+    "logical_turn_count": 78,
+    "provider_attempt_count": 72,
+    "dependency_skipped_turn_count": 6,
+    "provider_retry_count": 0,
+    "format_repair_attempts": 0
+  },
+  "authoritative_zero_api_score": {
+    "file": "docs/audits/continuous-conversation/backend-blind-b-replacement-zero-api-final78-v7-inherited-topic.json",
+    "sha256": "dc1a045ff5e981214ff26c9820ea45dc396fb4fc1977124e78a4534729e381ec",
+    "replayed_turn_count": 78,
+    "passed_turn_count": 45,
+    "passed_trajectory_count": 1,
+    "failure_counts": {
+      "model_translation": 16,
+      "semantic_admission": 1,
+      "identity_binding": 0,
+      "route_selection": 9,
+      "state_transition": 0,
+      "decision_execution": 0,
+      "data_coverage": 0,
+      "public_presentation": 7
+    },
+    "zero_tolerance_counters": {
+      "wrong_product_or_image_binding_count": 0,
+      "unauthorized_state_transition_count": 0,
+      "hard_condition_override_count": 0,
+      "unsafe_downgrade_count": 0,
+      "cross_session_or_subject_leak_count": 0
+    }
+  },
+  "qualification_math": {
+    "remaining_logical_turns": 22,
+    "maximum_possible_passed_turn_count": 67,
+    "required_passed_turn_count": 90,
+    "maximum_possible_passed_trajectory_count": 6,
+    "required_passed_trajectory_count": 18,
+    "qualification_reachable": false
+  },
+  "final_resume_rejection": {
+    "artifact_file": "docs/audits/continuous-conversation/backend-blind-b-replacement-20x5-v2-complete/result.json",
+    "artifact_sha256": "4e5f7189564fba91d7b903d42ab078545487da83ef59029ebf20b0266af90b6f",
+    "reused_provider_attempts_before_rejection": 4,
+    "new_provider_attempts": 0,
+    "reason": "deterministic public repairs changed an early conversation state, so later saved provider outputs no longer match the context hashes under which they were generated",
+    "why_not_relaxed": "accepting drifted contexts would falsify blind evidence",
+    "why_not_recalled": "repeating already consumed provider attempts is prohibited"
+  },
+  "shared_repairs_proved_by_zero_api_replay": [
+    "exact-lane parent and child category specificity",
+    "context topic projection into downstream task constraints",
+    "typed efficacy removal suppressing same-value exact constraints",
+    "combined remove-and-add transition classified as correction",
+    "typed withdrawal suppressing later legacy scenario constraints",
+    "resume and replay accounting for dependency-skipped turns",
+    "mechanical card truth and inherited-topic scoring"
+  ],
+  "verification": {
+    "changed_module_tests_passed": 293,
+    "pre_exam_focused_tests_passed": 6240,
+    "pre_exam_focused_tests_failed": 0,
+    "last_full_repository_passed": 8444,
+    "last_full_repository_failed": 48
+  },
+  "release_decision": {
+    "backend_qualified": false,
+    "real_chat_browser_3x5_allowed": false,
+    "release_allowed": false,
+    "commit_push_deploy_performed": false,
+    "user_discussion_required": true
+  }
+}
