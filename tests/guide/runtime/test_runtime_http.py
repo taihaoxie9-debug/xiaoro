@@ -72,9 +72,9 @@ def _isolate_guide_state(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.delenv(
+    monkeypatch.setenv(
         "GUIDE_UNIFIED_ROUTER_ENABLED",
-        raising=False,
+        "false",
     )
     monkeypatch.setenv(
         "XIAORO_GUIDE_STATE_DIR",
@@ -441,7 +441,14 @@ def _image_client(
     )
 
 
-def test_health_and_page_contract(tmp_path: Path) -> None:
+def test_health_and_page_contract(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv(
+        "GUIDE_UNIFIED_ROUTER_ENABLED",
+        raising=False,
+    )
     client = TestClient(
         create_app(image_runtime=StaticImageRuntime(object()))
     )
@@ -455,7 +462,7 @@ def test_health_and_page_contract(tmp_path: Path) -> None:
         "status": "healthy",
         "runtime": "guide",
         "scope": "slice1_text_skincare",
-        "turn_router": "legacy",
+        "turn_router": "unified_v1",
         "capabilities": [
             "sunscreen",
             "repair_serum",
@@ -804,7 +811,7 @@ def test_unified_router_real_image_persists_confirmed_focus(
         for name, data in events
         if name == "products"
     )
-    assert presentation["mode"] == "recommendation"
+    assert presentation["mode"] == "image_recommendation"
     assert 53 not in {item["id"] for item in products}
     assert events[-1] == ("end", {"conversation_version": 1})
     stored = vertical.conversation_state.load(session_id)
@@ -821,10 +828,38 @@ def test_unified_router_two_images_use_standard_comparison(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    from app.guide.intent.executable_intent_compiler import (
+        compile_turn_meaning,
+    )
+    from app.guide.understanding.turn_meaning_contracts import TurnMeaning
     from app.guide_runtime.composition import (
         build_consultation_vertical_runtime,
     )
     from tests.guide.runtime.test_composition import StoredVectorEncoder
+
+    class ComparisonTranslator:
+        def translate(self, message, *, context):
+            meaning = TurnMeaning(
+                operation_hint="comparison",
+                topic_hint=None,
+                continuity_hint="new_task",
+                subject_scope_hint="self",
+                reference_mentions=(
+                    {
+                        "raw_text": "这两张图",
+                        "object_family_hint": "image",
+                        "ordinal_hint": None,
+                        "plurality_hint": "batch",
+                    },
+                ),
+                question_meaning=message,
+                safety_language="ordinary",
+            )
+            return meaning, compile_turn_meaning(
+                message=message,
+                meaning=meaning,
+                context=context,
+            )
 
     monkeypatch.setenv("GUIDE_UNIFIED_ROUTER_ENABLED", "true")
     state_root = tmp_path / "unified-image-comparison-state"
@@ -834,6 +869,7 @@ def test_unified_router_two_images_use_standard_comparison(
     vertical = build_consultation_vertical_runtime(
         state_dir=state_root,
     )
+    vertical.unified._understanding = ComparisonTranslator()
     image = build_image_recommendation_orchestrator(
         repo_root=REPO_ROOT,
         image_bundle_service=service,

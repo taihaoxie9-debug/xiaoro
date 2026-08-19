@@ -60,7 +60,7 @@ def test_copywriter_prompt_uses_strict_json_and_bounded_advisor_role() -> None:
     system, user = build_presentation_copy_messages(_packet())
 
     assert PRESENTATION_COPY_PROMPT_VERSION == (
-        "guide-presentation-copy-prompt-v5"
+        "guide-presentation-copy-prompt-v6"
     )
     for key in (
         "mode",
@@ -76,15 +76,20 @@ def test_copywriter_prompt_uses_strict_json_and_bounded_advisor_role() -> None:
     for boundary in (
         "不得改变商品槽位",
         "不得输出价格",
-        "不得输出成分",
-        "不得输出百分比",
+        "只有 approved_soft_facts 已明示的数字",
+        "只有 approved_soft_facts 已明示的成分",
         "证据不足",
         "品牌主打",
-        "至少 80%",
+        "至少使用一条 approved_soft_facts",
+        "不得机械逐条抄写或为凑覆盖率堆料",
         "预算利用算法",
         "约束优先级",
         "摘要需要给出完整判断",
         "综合建议需要明确首选、备选和场景切换",
+        "positioning 讲品牌主打，优先自然合并已批准的功效方向、核心成分",
+        "不要把核心成分或适合肤质只堆在 advisor_reason 里",
+        "不得在",
+        "advisor_reason 里写成用户本人画像或匹配理由",
         "user_need_summary 只是用户问题背景，不是可引用事实",
         "归因词必须出现在使用该事实的同一个 product_copy 项",
         "不得把 consumer_report 写成品牌主打",

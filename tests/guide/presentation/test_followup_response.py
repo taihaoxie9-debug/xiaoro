@@ -106,6 +106,38 @@ def test_ordinal_card_preserves_snapshot_evidence() -> None:
     assert cards[0].matched_efficacies == ["修护"]
 
 
+def test_followup_card_preserves_canonical_direct_display_facts() -> None:
+    facts = presentation_facts(
+        38,
+        "理肤泉新B5多效修护精华",
+    ).model_copy(
+        update={
+            "efficacy": ("修护", "补水保湿", "舒缓"),
+            "efficacy_state": "known",
+            "ingredients_present": ("维生素原B5（泛醇）",),
+            "ingredients_present_state": "known",
+            "suitable_skin": ("多种肤质适用",),
+            "suitable_skin_state": "known",
+        }
+    )
+
+    card = build_followup_cards(
+        ordinal_result(),
+        snapshot=snapshot(),
+        product_facts={38: facts},
+    )[0]
+
+    assert {
+        fact.field_key
+        for fact in card.category_facts
+        if fact.state == "known"
+    } >= {
+        "efficacy",
+        "ingredients_present",
+        "suitable_skin",
+    }
+
+
 def test_followup_messages_do_not_claim_comprehensive_winner() -> None:
     ordinal = build_followup_message(
         ordinal_result(),

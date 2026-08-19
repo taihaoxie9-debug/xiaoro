@@ -71,6 +71,7 @@ def admit_turn_meaning(
     message: str,
     meaning: TurnMeaning,
     topic: TopicCode | None,
+    active_topic: TopicCode | None = None,
     concept_catalog: ConceptPreferenceCatalog | None,
 ) -> SemanticAdmissionResult:
     if not isinstance(message, str) or not message.strip():
@@ -79,6 +80,11 @@ def admit_turn_meaning(
         raise TypeError("meaning must be an exact TurnMeaning")
     if topic is not None and not isinstance(topic, TopicCode):
         raise TypeError("topic must be a TopicCode or None")
+    if active_topic is not None and not isinstance(
+        active_topic,
+        TopicCode,
+    ):
+        raise TypeError("active_topic must be a TopicCode or None")
     if (
         concept_catalog is not None
         and not isinstance(concept_catalog, ConceptPreferenceCatalog)
@@ -121,15 +127,32 @@ def admit_turn_meaning(
             )
         )
 
-    outcomes.extend(
-        _source_bound_outcome(
-            message,
-            atom_kind="reference",
-            raw_text=item.raw_text,
-            normalized_value=item.object_family_hint,
+    for item in meaning.reference_mentions:
+        if (
+            item.object_family_hint == "topic"
+            and meaning.continuity_hint == "return_to_focus"
+            and meaning.product_mentions
+            and topic is not None
+            and active_topic is topic
+        ):
+            outcomes.append(
+                AdmissionOutcome(
+                    atom_kind="reference",
+                    raw_text=item.raw_text,
+                    disposition="admitted",
+                    normalized_value=item.object_family_hint,
+                    reason="typed current topic matches active context",
+                )
+            )
+            continue
+        outcomes.append(
+            _source_bound_outcome(
+                message,
+                atom_kind="reference",
+                raw_text=item.raw_text,
+                normalized_value=item.object_family_hint,
+            )
         )
-        for item in meaning.reference_mentions
-    )
     outcomes.extend(
         _source_bound_outcome(
             message,
@@ -157,6 +180,27 @@ def admit_turn_meaning(
         )
         for item in meaning.preference_candidates
     )
+    outcomes.extend(
+        _source_bound_outcome(
+            message,
+            atom_kind="constraint_change",
+            raw_text=item.raw_text,
+            normalized_value=(
+                f"{item.parent_concept}:{item.requested_change}"
+            ),
+        )
+        for item in meaning.constraint_changes
+    )
+    if meaning.pending_response_hint != "unknown":
+        outcomes.append(
+            AdmissionOutcome(
+                atom_kind="pending_response",
+                raw_text=meaning.pending_response_hint,
+                disposition="admitted",
+                normalized_value=meaning.pending_response_hint,
+                reason="closed pending response hint",
+            )
+        )
     outcomes.extend(
         _source_bound_outcome(
             message,
@@ -272,6 +316,17 @@ def _preference_outcome(
     )
     if source.disposition == "rejected_protocol":
         return source
+    if (
+        candidate.field_key == "ingredient"
+        and candidate.polarity == "avoid"
+    ):
+        return AdmissionOutcome(
+            atom_kind="preference",
+            raw_text=candidate.raw_text,
+            disposition="rejected_protocol",
+            normalized_value=None,
+            reason="ingredient exclusions require ingredient_exclusion",
+        )
     if candidate.strength != "ordinary":
         return AdmissionOutcome(
             atom_kind="preference",

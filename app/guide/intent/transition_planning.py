@@ -26,15 +26,20 @@ from app.guide.intent.task_planning import (
     compile_task_constraints,
     plan_task,
 )
+from app.guide.retrieval.ingredient_entities import (
+    normalize_ingredient_entity,
+)
 from app.guide.understanding.contracts import (
     BudgetDraft,
     ExactRevisionConfirmation,
     ExactRevisionTarget,
+    ExclusionDraft,
     SourceSpan,
     StructuredUnderstanding,
 )
 from app.guide.understanding.exact_parsing import (
     parse_exact_constraints,
+    parse_exact_efficacy_withdrawals,
     parse_exact_revision_confirmations,
 )
 from app.guide.understanding.semantic_contracts import ClarificationCode
@@ -78,14 +83,56 @@ def plan_code_owned_transitions(
             transition_result=None,
         )
 
+    semantic_changes = tuple(understanding.constraint_changes)
     transition_requested = any(
         reference.kind == "previous_constraint"
         for reference in understanding.references
     ) or (
         continuation_requested
         and previous is not None
+    ) or bool(semantic_changes)
+    semantic_withdrawals = {
+        (
+            item.parent_concept,
+            item.value.casefold(),
+        )
+        for item in semantic_changes
+        if item.requested_change == "remove"
+    }
+    proofs = (
+        ()
+        if understanding.semantic_authoritative
+        else tuple(
+            proof
+            for proof in parse_exact_revision_confirmations(message)
+            if not (
+                proof.target is ExactRevisionTarget.INGREDIENT_EXCLUSION
+                and proof.affected_value is not None
+                and (
+                    "ingredient_exclusion",
+                    normalize_ingredient_entity(
+                        proof.affected_value
+                    ).casefold(),
+                )
+                in semantic_withdrawals
+            )
+        )
     )
-    proofs = tuple(parse_exact_revision_confirmations(message))
+    withdrawn_efficacy_concepts = (
+        {
+            f"efficacy.{item.value}"
+            for item in semantic_changes
+            if (
+                item.parent_concept == "efficacy"
+                and item.requested_change == "remove"
+            )
+        }
+        if understanding.semantic_authoritative
+        else {
+            f"efficacy.{target.value}"
+            for target in parse_exact_efficacy_withdrawals(message)
+        }
+    )
     if not (
         task.mode == "recommend"
         or (
@@ -98,7 +145,26 @@ def plan_code_owned_transitions(
             transition_result=None,
         )
 
-    exact_drafts, _ = parse_exact_constraints(message)
+    exact_drafts = (
+        list(understanding.exact_constraints)
+        if understanding.semantic_authoritative
+        else parse_exact_constraints(message)[0]
+    )
+    if semantic_withdrawals:
+        exact_drafts = [
+            item
+            for item in exact_drafts
+            if not (
+                isinstance(item, ExclusionDraft)
+                and (
+                    "ingredient_exclusion",
+                    normalize_ingredient_entity(
+                        item.value
+                    ).casefold(),
+                )
+                in semantic_withdrawals
+            )
+        ]
     if not any(
         isinstance(item, BudgetDraft)
         for item in exact_drafts
@@ -117,15 +183,32 @@ def plan_code_owned_transitions(
     )
     exact_constraints = compile_task_constraints(exact_understanding)
     if transition_requested or proofs:
-        current_understanding = exact_understanding.model_copy(
+        current_understanding = understanding.model_copy(
             update={
-                "preference_drafts": understanding.preference_drafts,
+                "preference_drafts": [
+                    preference
+                    for preference in understanding.preference_drafts
+                    if not (
+                        preference.field_key == "efficacy"
+                        and preference.polarity == "avoid"
+                        and preference.concept_id
+                        in withdrawn_efficacy_concepts
+                    )
+                ],
             },
             deep=True,
         )
         current_constraints = compile_task_constraints(
             current_understanding
         )
+        current_constraints = [
+            constraint
+            for constraint in current_constraints
+            if not _matches_inherited_category(
+                constraint,
+                previous=previous,
+            )
+        ]
     else:
         current_constraints = list(task.constraints)
 
@@ -141,6 +224,7 @@ def plan_code_owned_transitions(
             for constraint in current_constraints
         ),
         revision_confirmations=proofs,
+        semantic_changes=semantic_changes,
         goal=understanding.goal,
         safety_sensitive=task.safety_sensitive,
         transition_requested=transition_requested,
@@ -299,6 +383,18 @@ def _bind_transition_constraint(
             if constraint in exact_constraints
             else "validated_semantic"
         ),
+    )
+
+
+def _matches_inherited_category(
+    constraint: TaskConstraint,
+    *,
+    previous: RecommendationQueryContext | None,
+) -> bool:
+    return (
+        previous is not None
+        and isinstance(constraint, CategoryConstraint)
+        and constraint.value.value == previous.category
     )
 
 

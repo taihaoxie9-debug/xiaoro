@@ -76,6 +76,10 @@ class ContinuousTurnExpectation(_StrictFrozen):
     acceptable_semantic: SemanticExpectation
     expected_bindings: tuple[ResolvedProductBinding, ...] = ()
     expected_route: RouteExpectation
+    acceptable_routes: tuple[RouteExpectation, ...] = Field(
+        default=(),
+        exclude=True,
+    )
     expected_snapshot_subset: dict[str, JsonValue]
     expected_task_plan_subset: dict[str, JsonValue]
     expected_card_ids: tuple[int, ...] = Field(
@@ -90,6 +94,7 @@ class ContinuousTurnExpectation(_StrictFrozen):
     @field_validator(
         "image_fixture_ids",
         "expected_bindings",
+        "acceptable_routes",
         "expected_card_ids",
         mode="before",
     )
@@ -137,6 +142,26 @@ class ContinuousTurnExpectation(_StrictFrozen):
             set(self.expected_card_ids)
         ):
             raise ValueError("expected card IDs must be unique")
+        route_keys = tuple(
+            (
+                route.processor,
+                route.continuity,
+                route.focus_source,
+            )
+            for route in self.acceptable_routes
+        )
+        expected_route_key = (
+            self.expected_route.processor,
+            self.expected_route.continuity,
+            self.expected_route.focus_source,
+        )
+        if (
+            len(route_keys) != len(set(route_keys))
+            or expected_route_key in route_keys
+        ):
+            raise ValueError(
+                "acceptable routes must be unique alternatives"
+            )
         return self
 
 

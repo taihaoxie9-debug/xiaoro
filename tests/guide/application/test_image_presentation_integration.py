@@ -14,6 +14,7 @@ from app.guide.presentation.copywriter_contracts import (
 from app.guide.presentation.presentation_compiler import (
     PresentationCompiler,
 )
+from app.guide_runtime.composition import build_review_evidence_reader
 from app.guide.understanding.image_contracts import IdentityState
 from tests.guide.application.test_image_recommendation_flow import (
     FakeIdentityObserver,
@@ -72,6 +73,7 @@ def _flow(
     *,
     image_count: int = 1,
     observer=None,
+    review_evidence=None,
 ):
     service, receipt, _ = _bundle(image_count=image_count)
     catalog = _catalog()
@@ -82,6 +84,7 @@ def _flow(
         category_catalog=catalog,
         decision_facts=catalog,
         presentation_facts=catalog,
+        review_evidence=review_evidence,
         presentation_compiler=PresentationCompiler(
             copywriter=copywriter
         ),
@@ -121,11 +124,63 @@ def test_confirmed_identity_shows_only_confirmed_product() -> None:
     presentation = _event(events, "presentation_contract").data
     products = _event(events, "products").data.cards
 
-    assert presentation.mode == "product_knowledge"
+    assert presentation.mode == "image_identity"
     assert presentation.card_display.mode == "single"
     assert [card.product_id for card in products] == [53]
     assert presentation.card_display.visible_product_ids == (53,)
     assert len(copywriter.calls) == 1
+
+
+def test_confirmed_identity_preserves_canonical_direct_display_facts() -> None:
+    flow, receipt, copywriter = _flow(
+        observer=FakeIdentityObserver(candidate_ids=(38, 91)),
+    )
+
+    events = list(flow.stream(_turn(receipt, "这是什么商品")))
+    presentation = _event(events, "presentation_contract").data
+    product = _event(events, "products").data.cards[0]
+    product_section = next(
+        section
+        for section in presentation.sections
+        if section.kind == "product"
+    )
+    slot = copywriter.calls[0].slots[0]
+
+    assert {
+        fact.field_key
+        for fact in product.category_facts
+        if fact.state == "known"
+    } >= {
+        "efficacy",
+        "ingredients_present",
+        "suitable_skin",
+    }
+    assert {
+        fact.field_key for fact in slot.approved_soft_facts
+    } >= {
+        "efficacy",
+        "ingredients_present",
+        "suitable_skin",
+    }
+    assert {
+        fact.label for fact in product_section.direct_facts
+    } >= {"核心成分", "适合肤质"}
+
+
+def test_confirmed_identity_passes_approved_reviews_to_copywriter() -> None:
+    flow, receipt, copywriter = _flow(
+        observer=FakeIdentityObserver(candidate_ids=(49, 46)),
+        review_evidence=build_review_evidence_reader(),
+    )
+
+    list(flow.stream(_turn(receipt, "这是什么商品")))
+    slot = copywriter.calls[0].slots[0]
+
+    assert slot.product_id == 49
+    assert any(
+        fact.attribution == "consumer_report"
+        for fact in slot.approved_soft_facts
+    )
 
 
 @pytest.mark.parametrize(
@@ -182,6 +237,27 @@ def test_image_suitability_binds_one_product() -> None:
     assert len(copywriter.calls) == 1
 
 
+def test_image_suitability_preserves_facts_without_inventing_match() -> None:
+    flow, receipt, _ = _flow(
+        observer=FakeIdentityObserver(candidate_ids=(38, 91)),
+    )
+
+    events = list(flow.stream(_turn(receipt, "这款适合敏感肌吗")))
+    product = _event(events, "products").data.cards[0]
+
+    assert product.product_id == 38
+    assert product.skin_match == "unknown"
+    assert {
+        fact.field_key
+        for fact in product.category_facts
+        if fact.state == "known"
+    } >= {
+        "efficacy",
+        "ingredients_present",
+        "suitable_skin",
+    }
+
+
 def test_two_image_comparison_preserves_ordinal_order() -> None:
     flow, receipt, copywriter = _flow(
         image_count=2,
@@ -196,3 +272,38 @@ def test_two_image_comparison_preserves_ordinal_order() -> None:
     assert [card.product_id for card in products] == [53, 55]
     assert presentation.card_display.visible_product_ids == (53, 55)
     assert len(copywriter.calls) == 1
+
+
+def test_two_image_comparison_preserves_order_and_known_fact_states() -> None:
+    flow, receipt, _ = _flow(
+        image_count=2,
+        observer=SequencedIdentityObserver((38, 91)),
+    )
+
+    events = list(flow.stream(_turn(receipt, "比较这两张图")))
+    products = _event(events, "products").data.cards
+
+    assert [product.product_id for product in products] == [38, 91]
+    assert [product.skin_match for product in products] == [
+        "unknown",
+        "unknown",
+    ]
+    assert {
+        fact.field_key
+        for fact in products[0].category_facts
+        if fact.state == "known"
+    } >= {
+        "efficacy",
+        "ingredients_present",
+        "suitable_skin",
+    }
+    assert {
+        fact.field_key
+        for fact in products[1].category_facts
+        if fact.state == "known"
+    } >= {"efficacy", "suitable_skin"}
+    assert not any(
+        fact.field_key == "ingredients_present"
+        and fact.state == "known"
+        for fact in products[1].category_facts
+    )

@@ -39,7 +39,7 @@ class GuideRuntimeFlags:
         return cls(
             unified_router=_read_bool(
                 "GUIDE_UNIFIED_ROUTER_ENABLED",
-                default=False,
+                default=True,
             )
         )
 

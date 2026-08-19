@@ -593,6 +593,7 @@ def execute_replay_case(
         message=case.message,
         meaning=case.raw_turn_meaning,
         topic=compiled.topic,
+        active_topic=context.active_topic,
         concept_catalog=concept_catalog,
     )
     product_resolution = (

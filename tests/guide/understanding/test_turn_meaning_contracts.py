@@ -87,6 +87,14 @@ def test_turn_meaning_forbids_offsets_ids_and_state_operations() -> None:
         TurnMeaning.model_validate(payload, strict=True)
 
 
+def test_batch_size_hint_requires_a_batch_reference() -> None:
+    payload = _payload()
+    payload["reference_mentions"][0]["batch_size_hint"] = 2
+
+    with pytest.raises(ValidationError, match="batch_size_hint"):
+        TurnMeaning.model_validate(payload, strict=True)
+
+
 def test_concept_id_must_be_scoped_to_preference_field() -> None:
     payload = _payload()
     payload["preference_candidates"][0]["concept_id"] = (
@@ -115,6 +123,23 @@ def test_free_descriptor_is_valid_without_parent_concept() -> None:
     assert meaning.preference_candidates[0].concept_id is None
 
 
+def test_ingredient_exclusion_parent_requires_a_bare_avoid_target() -> None:
+    payload = _payload()
+    payload["preference_candidates"] = [
+        {
+            "field_key": "ingredient_exclusion",
+            "concept_id": "ingredient_exclusion.alcohol",
+            "raw_text": "酒精",
+            "polarity": "avoid",
+            "strength": "ordinary",
+        }
+    ]
+    payload["relative_candidates"] = []
+
+    with pytest.raises(ValidationError, match="ingredient exclusion"):
+        TurnMeaning.model_validate(payload, strict=True)
+
+
 def test_turn_meaning_rejects_duplicate_raw_semantic_atoms() -> None:
     payload = _payload()
     payload["preference_candidates"] = [
@@ -124,6 +149,39 @@ def test_turn_meaning_rejects_duplicate_raw_semantic_atoms() -> None:
 
     with pytest.raises(ValidationError, match="unique"):
         TurnMeaning.model_validate(payload, strict=True)
+
+
+def test_turn_meaning_accepts_closed_state_action_atoms() -> None:
+    payload = _payload()
+    payload["pending_response_hint"] = "unknown"
+    payload["constraint_changes"] = [
+        {
+            "parent_concept": "efficacy",
+            "requested_change": "replace",
+            "raw_text": "修护",
+            "normalized_value": "repair",
+        },
+        {
+            "parent_concept": "skin",
+            "requested_change": "replace",
+            "raw_text": "油皮",
+            "normalized_value": "oily",
+        },
+    ]
+
+    meaning = TurnMeaning.model_validate(payload, strict=True)
+
+    assert [
+        (
+            item.parent_concept,
+            item.requested_change,
+            item.normalized_value,
+        )
+        for item in meaning.constraint_changes
+    ] == [
+        ("efficacy", "replace", "repair"),
+        ("skin", "replace", "oily"),
+    ]
 
 
 def test_consultation_hypothesis_references_current_observation_ids() -> None:

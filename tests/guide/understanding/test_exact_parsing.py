@@ -33,6 +33,48 @@ def test_skin_revision_emits_code_owned_single_slot_proof() -> None:
     assert "肤质改成油敏肌"[span.start:span.end] == "肤质改成油敏肌"
 
 
+def test_efficacy_withdrawal_emits_code_owned_single_slot_proof() -> None:
+    proofs = _proofs("抗老先撤掉")
+
+    assert len(proofs) == 1
+    assert proofs[0].operation is (
+        ExactRevisionOperation.WITHDRAW_CONSTRAINT
+    )
+    assert proofs[0].target is ExactRevisionTarget.EFFICACY
+    assert proofs[0].affected_value == "anti_aging"
+    span = proofs[0].source_span
+    assert "抗老先撤掉"[span.start:span.end] == "抗老先撤掉"
+
+
+def test_efficacy_replacement_supersedes_withdrawal_in_compound_turn(
+) -> None:
+    message = "抗老先撤掉，改成保湿修护优先"
+    proofs = _proofs(message)
+
+    assert len(proofs) == 1
+    assert proofs[0].operation is (
+        ExactRevisionOperation.REVISE_CONSTRAINT
+    )
+    assert proofs[0].target is ExactRevisionTarget.EFFICACY
+    assert proofs[0].affected_value == "repair"
+    span = proofs[0].source_span
+    assert message[span.start:span.end] == "改成保湿修护"
+
+
+@pytest.mark.parametrize(
+    "message",
+    (
+        "如果抗老先撤掉会怎样",
+        "不要撤掉抗老",
+        "也许取消抗老",
+    ),
+)
+def test_nonassertive_efficacy_withdrawal_has_no_proof(
+    message: str,
+) -> None:
+    assert _proofs(message) == []
+
+
 @pytest.mark.parametrize(
     ("message", "target", "value"),
     (
@@ -193,6 +235,26 @@ def test_skincare_routine_phrase_does_not_add_second_product_topic(
         for item in constraints
         if isinstance(item, CategoryDraft)
     ] == expected_topics
+
+
+@pytest.mark.parametrize(
+    "message",
+    (
+        "想精简护肤，找三百以内的修护精华",
+        "护肤只留一支保湿精华，预算不超过三百",
+    ),
+)
+def test_parent_and_child_product_topics_choose_more_specific_topic(
+    message: str,
+) -> None:
+    constraints, issues = parse_exact_constraints(message)
+
+    assert issues == []
+    assert [
+        item.value
+        for item in constraints
+        if isinstance(item, CategoryDraft)
+    ] == [TopicCode.SERUM]
 
 
 @pytest.mark.parametrize(

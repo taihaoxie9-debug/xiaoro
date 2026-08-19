@@ -25,6 +25,7 @@ from app.guide.understanding.contracts import (
 from app.guide_runtime.composition import (
     build_general_knowledge_assets,
     build_product_evidence_retriever,
+    build_review_evidence_reader,
     compose_text_recommendation_orchestrator,
 )
 from tests.guide.semantic_test_port import exact_echo_understanding
@@ -203,6 +204,71 @@ def test_named_comparison_uses_comparison_presentation(
     assert len(copywriter.calls) == 1
 
 
+def test_recommendation_passes_approved_reviews_to_copywriter(
+    real_reader,
+    real_product_assets,
+) -> None:
+    message = "500内保湿面霜"
+    copywriter = RecordingCopywriter()
+    orchestrator = compose_text_recommendation_orchestrator(
+        real_reader,
+        product_assets=real_product_assets,
+        conversation_state=InMemoryConversationState(),
+        understanding=exact_echo_understanding(),
+        review_evidence=build_review_evidence_reader(),
+        presentation_copywriter=copywriter,
+    )
+
+    list(orchestrator.stream(_turn(message)))
+    slot = next(
+        item
+        for item in copywriter.calls[0].slots
+        if item.product_id == 42
+    )
+
+    assert any(
+        fact.attribution == "consumer_report"
+        for fact in slot.approved_soft_facts
+    )
+
+
+def test_named_comparison_passes_approved_reviews_to_copywriter(
+    real_reader,
+    real_product_assets,
+) -> None:
+    names = (
+        "玉泽皮肤屏障修护保湿霜",
+        "理肤泉B5霜40ml修护舒缓泛红保湿面霜",
+    )
+    message = f"对比{names[0]}和{names[1]}"
+    copywriter = RecordingCopywriter()
+    orchestrator = compose_text_recommendation_orchestrator(
+        real_reader,
+        product_assets=real_product_assets,
+        conversation_state=InMemoryConversationState(),
+        understanding=_product_understanding(
+            message,
+            goal=UnderstandingGoal.COMPARISON,
+            names=names,
+            topic=TopicCode.SKINCARE,
+        ),
+        review_evidence=build_review_evidence_reader(),
+        presentation_copywriter=copywriter,
+    )
+
+    list(orchestrator.stream(_turn(message)))
+    slot = next(
+        item
+        for item in copywriter.calls[0].slots
+        if item.product_id == 49
+    )
+
+    assert any(
+        fact.attribution == "consumer_report"
+        for fact in slot.approved_soft_facts
+    )
+
+
 def test_general_knowledge_keeps_direct_answer_and_adds_presentation(
     real_reader,
     real_product_assets,
@@ -299,6 +365,60 @@ def test_product_knowledge_emits_only_bound_product_card(
         for section in presentation.sections
     )
     assert len(copywriter.calls) == 1
+
+
+def test_product_knowledge_preserves_canonical_direct_display_facts(
+    real_reader,
+    real_product_assets,
+) -> None:
+    name = "理肤泉新B5多效修护精华"
+    message = f"{name}的品牌主打、核心成分和适合肤质是什么？"
+    copywriter = RecordingCopywriter()
+    orchestrator = compose_text_recommendation_orchestrator(
+        real_reader,
+        product_assets=real_product_assets,
+        conversation_state=InMemoryConversationState(),
+        understanding=_product_understanding(
+            message,
+            goal=UnderstandingGoal.KNOWLEDGE,
+            names=(name,),
+            topic=TopicCode.SERUM,
+            question_meaning="询问商品主打、核心成分和适合肤质",
+        ),
+        product_evidence=build_product_evidence_retriever(),
+        presentation_copywriter=copywriter,
+    )
+
+    events = list(orchestrator.stream(_turn(message)))
+    presentation = _event(events, "presentation_contract").data
+    product = _event(events, "products").data.cards[0]
+    product_section = next(
+        section
+        for section in presentation.sections
+        if section.kind == "product"
+    )
+    slot = copywriter.calls[0].slots[0]
+
+    assert product.product_id == 38
+    assert {
+        fact.field_key
+        for fact in product.category_facts
+        if fact.state == "known"
+    } >= {
+        "efficacy",
+        "ingredients_present",
+        "suitable_skin",
+    }
+    assert {
+        fact.field_key for fact in slot.approved_soft_facts
+    } >= {
+        "efficacy",
+        "ingredients_present",
+        "suitable_skin",
+    }
+    assert {
+        fact.label for fact in product_section.direct_facts
+    } >= {"核心成分", "适合肤质"}
 
 
 def test_copywriter_toggle_cannot_change_decision_or_state(

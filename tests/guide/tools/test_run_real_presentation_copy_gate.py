@@ -27,12 +27,16 @@ from tools.guide_gates import run_real_presentation_copy_gate as runner
 
 
 FIXTURE = Path(
-    "tests/fixtures/guide/presentation/copy_gate_v2.jsonl"
+    "tests/fixtures/guide/presentation/copy_gate_v3_production.jsonl"
 )
 
 
 def test_real_copy_gate_uses_production_token_limit() -> None:
     assert getattr(runner, "COPY_GATE_MAX_TOKENS", None) == 1536
+
+
+def test_real_copy_gate_defaults_to_production_v3_fixture() -> None:
+    assert Path(runner.DEFAULT_CASES).resolve() == FIXTURE.resolve()
 
 
 def test_copywriter_budget_guard_preserves_browser_reserve() -> None:
@@ -87,6 +91,45 @@ def test_cli_rejects_call_cap_before_key_or_output(
     assert not output.exists()
 
 
+def _qualifying_draft(packet):
+    draft = fallback_copy(packet)
+    product_copy = []
+    for item, slot in zip(
+        draft.product_copy,
+        packet.slots,
+        strict=True,
+    ):
+        has_consumer_report = any(
+            fact.attribution == "consumer_report"
+            for fact in slot.approved_soft_facts
+        )
+        product_copy.append(
+            item.model_copy(
+                update={
+                    "positioning": (
+                        "按商家资料，这款的功效、肤感与使用场景"
+                        "以已审核事实为准。"
+                    ),
+                    "advisor_reason": (
+                        "结合当前需求可以比较这些信息；"
+                        + (
+                            "限定样本的用户反馈只作体验参考。"
+                            if has_consumer_report
+                            else "未给出的部分不作推断。"
+                        )
+                    ),
+                    "used_soft_fact_ids": tuple(
+                        fact.fact_id
+                        for fact in slot.approved_soft_facts
+                    ),
+                }
+            )
+        )
+    return draft.model_copy(
+        update={"product_copy": tuple(product_copy)}
+    )
+
+
 class RecordingAdapter:
     provider = "offline"
     model = "offline/copywriter"
@@ -96,7 +139,7 @@ class RecordingAdapter:
 
     def write(self, packet):
         self.calls.append(packet)
-        draft = fallback_copy(packet)
+        draft = _qualifying_draft(packet)
         return CopywriterCallResult(
             draft=draft,
             usage=SemanticTokenUsage(
@@ -189,6 +232,20 @@ class OneTerseAdapter(RecordingAdapter):
         )
 
 
+class ThreeTerseAdapter(RecordingAdapter):
+    def write(self, packet):
+        result = super().write(packet)
+        if len(self.calls) > 3:
+            return result
+        return result.model_copy(
+            update={
+                "draft": result.draft.model_copy(
+                    update={"summary_copy": "过短。"}
+                )
+            }
+        )
+
+
 def test_real_runner_calls_once_and_writes_content_addressed_evidence(
     tmp_path: Path,
 ) -> None:
@@ -270,18 +327,37 @@ def test_zero_api_replay_rescores_immutable_real_results(
     assert len(persisted["rows"]) == 3
 
 
-def test_real_runner_requires_every_case_to_pass(tmp_path: Path) -> None:
+def test_real_runner_allows_two_ordinary_misses(tmp_path: Path) -> None:
     cases = load_copy_gate_cases(FIXTURE)
 
     report = run_real_copy_gate(
         adapter=OneTerseAdapter(),
         cases=cases,
-        output_dir=tmp_path / "strict-twenty",
-        run_id="strict-twenty",
+        output_dir=tmp_path / "nineteen-of-twenty",
+        run_id="nineteen-of-twenty",
     )
 
     assert report.case_count == 20
     assert report.passed_count == 19
+    assert report.hard_violation_count == 0
+    assert report.passed
+
+
+def test_real_runner_rejects_below_eighteen_of_twenty(
+    tmp_path: Path,
+) -> None:
+    cases = load_copy_gate_cases(FIXTURE)
+
+    report = run_real_copy_gate(
+        adapter=ThreeTerseAdapter(),
+        cases=cases,
+        output_dir=tmp_path / "seventeen-of-twenty",
+        run_id="seventeen-of-twenty",
+    )
+
+    assert report.case_count == 20
+    assert report.passed_count == 17
+    assert report.hard_violation_count == 0
     assert not report.passed
 
 

@@ -65,6 +65,7 @@ def _meaning(
     *,
     continuity: str = "new_task",
     next_gap: str | None = None,
+    pending_response: str = "unknown",
 ):
     return TurnMeaning.model_validate(
         {
@@ -72,6 +73,7 @@ def _meaning(
             "topic_hint": "sunscreen",
             "continuity_hint": continuity,
             "subject_scope_hint": "self",
+            "pending_response_hint": pending_response,
             "reference_mentions": [],
             "product_mentions": [],
             "budget_candidates": [],
@@ -121,6 +123,7 @@ class RecordingTextProcessor:
     def __init__(self) -> None:
         self.preunderstood_calls = []
         self.raw_calls = []
+        self.pending_calls = []
 
     def resolve_product_bindings(self, **kwargs):
         self.binding_request = kwargs
@@ -153,6 +156,17 @@ class RecordingTextProcessor:
 
     def stream(self, turn):
         self.raw_calls.append(turn)
+        yield StartEvent(data=StartData(session_id=turn.session_id))
+        yield IntentEvent(data=IntentData(mode="clarify"))
+        yield MessageEvent(data=MessageData(content="pending"))
+        yield EndEvent(
+            data=EndData(
+                conversation_version=turn.conversation_version
+            )
+        )
+
+    def stream_pending_reply(self, turn, *, reply):
+        self.pending_calls.append((turn, reply))
         yield StartEvent(data=StartData(session_id=turn.session_id))
         yield IntentEvent(data=IntentData(mode="clarify"))
         yield MessageEvent(data=MessageData(content="pending"))
@@ -664,8 +678,14 @@ def test_pending_turn_is_translated_once_then_uses_existing_pending_processor(
         expected_version=0,
     )
     translator = RecordingTranslator(
-        _meaning("clarification", continuity="continue"),
-        _understanding(UnderstandingGoal.CLARIFICATION),
+        _meaning(
+            "clarification",
+            continuity="continue",
+            pending_response="affirm",
+        ),
+        _understanding(
+            UnderstandingGoal.CLARIFICATION
+        ).model_copy(update={"semantic_authoritative": True}),
     )
     text = RecordingTextProcessor()
     flow = UnifiedGuideFlow(
@@ -679,7 +699,9 @@ def test_pending_turn_is_translated_once_then_uses_existing_pending_processor(
 
     assert events[2].data.content == "pending"
     assert len(translator.calls) == 1
-    assert len(text.raw_calls) == 1
+    assert text.raw_calls == []
+    assert len(text.pending_calls) == 1
+    assert text.pending_calls[0][1].kind == "affirm"
     assert text.preunderstood_calls == []
 
 

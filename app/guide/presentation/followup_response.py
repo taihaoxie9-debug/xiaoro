@@ -2,7 +2,7 @@ from app.guide.decision.contracts import FollowupDecisionResult
 from app.guide.feedback.contracts import ConversationSnapshot
 from app.guide.presentation.contracts import ProductCard, ProductCardFacts
 from app.guide.presentation.response_planning import (
-    project_public_category_facts,
+    build_product_card,
 )
 from app.guide.understanding.contracts import FollowupAction
 
@@ -29,27 +29,10 @@ def build_followup_cards(
         reference = references[product_id]
         facts = product_facts[product_id]
         cards.append(
-            ProductCard(
-                product_id=product_id,
-                category_profile=facts.category_profile,
-                category_facts=project_public_category_facts(
-                    facts.category_fields
-                ),
-                variant_scope=facts.variant_scope,
-                specification=facts.specification,
-                name=facts.name,
-                brand=facts.brand,
-                category=facts.category,
-                price=facts.price,
-                image_url=facts.image_url,
-                detail_url=facts.detail_url,
-                platform=facts.platform,
-                image_source_sha256=facts.image_source_sha256,
+            build_product_card(
+                facts,
                 skin_match=reference.skin_match,
-                matched_efficacies=list(
-                    reference.matched_efficacies
-                ),
-                fact_warnings=list(facts.fact_warnings),
+                matched_efficacies=reference.matched_efficacies,
             )
         )
     return cards

@@ -1,0 +1,70 @@
+{
+  "schema_version": "guide-overnight-freeze-v6-replacement-b-resume",
+  "frozen_at": "2026-08-19",
+  "status": "ready_to_resume_unconsumed_replacement_b_turns",
+  "git_head": "16721edcc1afa4dbef51ef847b7c455a17ba4332",
+  "app_and_gate_diff_sha256": "47edfd0e8336403083e78d0a8903b65d27cce09f0ff2c76f9f7b9cc8a7180cd0",
+  "unchanged_authority": {
+    "prompt_sha256": "f1490e46e92213398bdd9625b32398b0ab00f1102292fcc4cda0614dc6584e3d",
+    "fixture_sha256": "544d6c7a8b6e05a69d695261c68c14cb44710e4a4a41613a893ca960f42c0b76",
+    "manifest_sha256": "a6a36e56bdb992d312b0e2a8ef36f2e4864c1c849a979c6675da4cbda90727d5",
+    "truth_sha256": "05f53fad5e95771b6336ae59f36af53d89754e7d6f78e9a513082036c1a7b27b",
+    "question_bodies_previewed_by_main_agent": false
+  },
+  "runner_repair": {
+    "runner_sha256": "ba1de7b0cabec30767b9b920fcf73c4e8c3829c2b1d4cd682098ff71a443b237",
+    "earliest_owner": "paid_gate_control",
+    "observed_failure": "resume indexed logical capture rows by provider call count, so dependency-skipped rows shifted the resume prefix and were mis-scored as unsafe",
+    "rule": "consume capture rows by logical turn order; count only provider_call_attempted rows as provider calls; preserve dependency-skipped rows in resume and zero-API replay",
+    "provider_retry_count": 0,
+    "format_repair_attempts": 0,
+    "runner_tests_passed": 39,
+    "pre_exam_focused_tests_passed": 6230,
+    "pre_exam_focused_tests_failed": 0
+  },
+  "captured_prefix": {
+    "capture_file": "docs/audits/continuous-conversation/backend-blind-b-replacement-20x5-v2-resumed/result.json",
+    "capture_sha256": "a26b0188391ddd51d3a38844b9b9209779c03acb7e2f5b06e6a6acbc36d88a29",
+    "logical_turn_count": 72,
+    "provider_call_count": 66,
+    "reused_provider_call_count": 39,
+    "new_provider_call_count": 27,
+    "dependency_skipped_turn_count": 6,
+    "passed_turn_count": 36,
+    "stale_unsafe_counter_from_pre_repair_scorer": 3
+  },
+  "zero_api_replay": {
+    "file": "docs/audits/continuous-conversation/backend-blind-b-replacement-zero-api-resumed72-v1.json",
+    "sha256": "449351221fc4b839a446612d5da2fbf2349e1af8d503592649776389ddd5d474",
+    "provider_call_count": 0,
+    "captured_turn_count": 72,
+    "replayed_turn_count": 72,
+    "passed_turn_count": 36,
+    "failure_counts_match_capture": true,
+    "zero_tolerance_counter_total": 0
+  },
+  "resume_accounting": {
+    "reused_provider_attempts": 66,
+    "remaining_logical_turns": 28,
+    "maximum_new_provider_calls": 28,
+    "maximum_total_provider_attempts": 94,
+    "provider_retry_count": 0,
+    "format_repair_attempts": 0,
+    "single_phase_budget_cny": "3.00",
+    "hard_cost_stop_cny": "28.00"
+  },
+  "release_regression_status": {
+    "full_repository_passed": 8444,
+    "full_repository_failed": 48,
+    "failure_scope": "superseded intent A/B fixtures, production-routing fixtures, and legacy unified-router expectations",
+    "blind_resume_blocked": false,
+    "browser_release_blocked_until_resolved": true
+  },
+  "policy": {
+    "same_exam_continuation": true,
+    "new_exam_created": false,
+    "failed_provider_turn_recalled": false,
+    "existing_provider_attempt_recalled": false,
+    "browser_and_release_remain_blocked_until_final_score": true
+  }
+}

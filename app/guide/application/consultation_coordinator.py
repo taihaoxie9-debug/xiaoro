@@ -862,7 +862,7 @@ class ConsultationApplicationCoordinator:
         )
         if not observations_changed and not assessment_required:
             assert snapshot is not None
-            return snapshot, False
+            return self._advance_read_only_snapshot(snapshot), False
         current_version = snapshot.version if snapshot is not None else 0
         next_version = current_version + 1
         consultation = (

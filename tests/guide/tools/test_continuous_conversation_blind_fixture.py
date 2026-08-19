@@ -231,7 +231,19 @@ def test_pending_turn_family_contains_clarification_then_resume() -> None:
         assert first.expected_route.processor == "clarification"
         assert first.expected_clarification is True
         assert first.expected_card_ids == ()
+        assert first.expected_snapshot_subset["pending_turn"] == {
+            "gap": "budget",
+            "resume_mode": "recommendation",
+            "resume_context": {"category": "serum"},
+        }
+        assert (
+            "clarification"
+            in second.acceptable_semantic.operation_hints
+        )
+        assert None in second.acceptable_semantic.topic_hints
+        assert "skincare" in second.acceptable_semantic.topic_hints
         assert second.expected_route.processor == "recommendation"
+        assert second.expected_route.continuity == "correct"
         assert second.expected_clarification is False
         assert second.expected_card_ids
 

@@ -4,7 +4,9 @@ from collections.abc import Iterator
 from typing import Protocol
 
 from app.guide.application.contracts import UserTurn
-from app.guide.application.pending_turn import classify_pending_reply
+from app.guide.application.pending_turn import (
+    resolve_semantic_pending_reply,
+)
 from app.guide.feedback.contracts import ConversationSnapshot
 from app.guide.feedback.ports import (
     ConversationStateConflict,
@@ -170,12 +172,18 @@ class UnifiedGuideFlow:
             if understanding.product_mentions
             else ()
         )
-        pending_reply_kind = None
+        pending_reply = None
         if snapshot is not None and snapshot.pending_turn is not None:
-            pending_reply_kind = classify_pending_reply(
-                message=turn.message,
+            pending_reply = resolve_semantic_pending_reply(
+                meaning=meaning,
+                understanding=understanding,
                 pending=snapshot.pending_turn,
-            ).kind
+            )
+        pending_reply_kind = (
+            pending_reply.kind
+            if pending_reply is not None
+            else None
+        )
         route = route_unified_turn(
             meaning=meaning,
             understanding=understanding,
@@ -219,10 +227,22 @@ class UnifiedGuideFlow:
         if (
             snapshot is not None
             and snapshot.pending_turn is not None
-            and pending_reply_kind is not None
+            and pending_reply is not None
             and meaning.continuity_hint != "new_task"
         ):
-            yield from self._text_processor.stream(turn)
+            stream_pending_reply = getattr(
+                self._text_processor,
+                "stream_pending_reply",
+                None,
+            )
+            if not callable(stream_pending_reply):
+                raise TypeError(
+                    "text processor must expose stream_pending_reply"
+                )
+            yield from stream_pending_reply(
+                turn,
+                reply=pending_reply,
+            )
             return
         if route.processor in {
             "consultation",

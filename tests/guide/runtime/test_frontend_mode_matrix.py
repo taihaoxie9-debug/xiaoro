@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 MATRIX = Path(
-    "tests/fixtures/guide/presentation/frontend_mode_matrix_v1.jsonl"
+    "tests/fixtures/guide/presentation/frontend_mode_matrix_v2.jsonl"
 )
 
 EXPECTED_CASE_IDS = {
@@ -47,6 +47,34 @@ COMPARISON_CASE_IDS = {
     "compare-two",
     "followup-relative",
     "image-compare-two",
+}
+
+PRODUCT_KNOWLEDGE_CASE_IDS = {
+    "knowledge-product-one",
+    "image-suitability-one",
+}
+
+EXPECTED_PRESENTATION_MODES = {
+    "clarify-zero": "clarification",
+    "compare-two": "comparison",
+    "consultation-confirmation-zero": "consultation",
+    "consultation-entry-zero": "consultation",
+    "consultation-medical-zero": "consultation",
+    "consultation-provisional-zero": "consultation",
+    "error-zero": "error",
+    "followup-product-one": "followup",
+    "followup-relative": "followup",
+    "followup-state-zero": "followup",
+    "image-compare-two": "comparison",
+    "image-identity-one": "image_identity",
+    "image-recommend-three": "recommendation",
+    "image-suitability-one": "product_knowledge",
+    "knowledge-general-zero": "general_knowledge",
+    "knowledge-product-one": "product_knowledge",
+    "no-match-zero": "recommendation",
+    "recommend-three": "recommendation",
+    "revision-products": "revision",
+    "suitability-one": "single_product",
 }
 
 EXPECTED_CARD_RANGES = {
@@ -98,6 +126,10 @@ def test_frontend_mode_matrix_covers_every_public_display_family() -> None:
     assert len(rows) == 20
     assert {row["case_id"] for row in rows} == EXPECTED_CASE_IDS
     assert {row["mode"] for row in rows} <= PUBLIC_MODES
+    assert {
+        row["case_id"]: row["presentation_mode"]
+        for row in rows
+    } == EXPECTED_PRESENTATION_MODES
     assert [row["case_id"] for row in rows] == sorted(
         row["case_id"] for row in rows
     )
@@ -130,6 +162,14 @@ def test_mode_matrix_binds_both_card_forms_to_visible_products() -> None:
 
         minimum, maximum = EXPECTED_CARD_RANGES[case_id]
         assert minimum <= len(visible) <= maximum
+        if case_id in PRODUCT_KNOWLEDGE_CASE_IDS:
+            assert row["section_order"] == [
+                "product:p1",
+                "full_cards",
+            ]
+            assert row["advisor_reason"] is False
+            assert "pitfalls" not in row["section_order"]
+            continue
         expected_sections = ["summary"]
         if case_id in COMPARISON_CASE_IDS:
             expected_sections.append("comparison")
@@ -141,6 +181,7 @@ def test_mode_matrix_binds_both_card_forms_to_visible_products() -> None:
             ["closing", "full_cards", "pitfalls"]
         )
         assert row["section_order"] == expected_sections
+        assert row["advisor_reason"] is True
         assert "evidence" not in row["section_order"]
 
 
@@ -148,6 +189,7 @@ def test_mode_matrix_has_explicit_copy_sections_and_thinking_states() -> None:
     for row in _rows():
         assert isinstance(row["copy_schema"], str)
         assert row["copy_schema"]
+        assert row["copy_schema"] == row["presentation_mode"]
         assert isinstance(row["section_order"], list)
         assert row["section_order"]
         assert row["section_order"][0] in {
@@ -155,6 +197,8 @@ def test_mode_matrix_has_explicit_copy_sections_and_thinking_states() -> None:
             "question",
             "observation",
             "error",
+            "product:p1",
+            "general_knowledge",
         }
         assert isinstance(row["thinking_stages"], list)
         assert 0 <= len(row["thinking_stages"]) <= 4

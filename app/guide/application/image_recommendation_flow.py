@@ -89,8 +89,8 @@ from app.guide.presentation.presentation_packet import (
 )
 from app.guide.presentation.ports import PresentationFactPort
 from app.guide.presentation.response_planning import (
+    build_product_card,
     build_response_plan,
-    project_public_category_facts,
 )
 from app.guide.presentation.sse_events import (
     AnswerContractData,
@@ -446,6 +446,14 @@ class ImageRecommendationOrchestrator:
             yield _error_event("IMAGE_IDENTITY_UNCONFIRMED")
             return
         assert observation.confirmed_product_id is not None
+        category_records = {
+            record.product_id: record
+            for record in self._category_catalog.iter_category_records()
+        }
+        anchor_record = category_records.get(
+            observation.confirmed_product_id
+        )
+        anchor_topic = _topic_for_record(anchor_record)
         unified_route = None
         if meaning is not None and understanding is not None:
             unified_route = route_unified_turn(
@@ -464,24 +472,34 @@ class ImageRecommendationOrchestrator:
                 ),
             )
             if unified_route.processor == "clarification":
-                assert unified_route.clarification is not None
-                assert unified_route.clarification_code is not None
-                yield IntentEvent(data=IntentData(mode="clarify"))
-                yield ClarifyEvent(
-                    data=ClarifyData(
-                        question=unified_route.clarification,
-                        clarification_code=(
-                            unified_route.clarification_code
-                        ),
+                if (
+                    unified_route.clarification_code
+                    is ClarificationCode.TOPIC
+                    and anchor_topic is not None
+                ):
+                    unified_route = None
+                else:
+                    assert unified_route.clarification is not None
+                    assert unified_route.clarification_code is not None
+                    yield IntentEvent(data=IntentData(mode="clarify"))
+                    yield ClarifyEvent(
+                        data=ClarifyData(
+                            question=unified_route.clarification,
+                            clarification_code=(
+                                unified_route.clarification_code
+                            ),
+                        )
                     )
-                )
-                yield EndEvent(
-                    data=EndData(
-                        conversation_version=turn.conversation_version
+                    yield EndEvent(
+                        data=EndData(
+                            conversation_version=turn.conversation_version
+                        )
                     )
-                )
-                return
-            if unified_route.processor == "safety_escalation":
+                    return
+            if (
+                unified_route is not None
+                and unified_route.processor == "safety_escalation"
+            ):
                 yield IntentEvent(data=IntentData(mode="clarify"))
                 yield ClarifyEvent(
                     data=ClarifyData(
@@ -531,6 +549,21 @@ class ImageRecommendationOrchestrator:
             yield from self._stream_confirmed_image_identities(
                 turn,
                 [observation],
+            )
+            return
+        standard_route = (
+            unified_route is not None
+            and unified_route.processor
+            in {"recommendation", "comparison", "product_knowledge"}
+            and self._standard_processor is not None
+            and understanding is not None
+        )
+        if standard_route:
+            yield from self._stream_standard_processor(
+                turn,
+                understanding=understanding,
+                route_decision=unified_route,
+                observations=[observation],
             )
             return
         suitability_route = (
@@ -583,14 +616,6 @@ class ImageRecommendationOrchestrator:
                 deep=True,
             )
 
-        category_records = {
-            record.product_id: record
-            for record in self._category_catalog.iter_category_records()
-        }
-        anchor_record = category_records.get(
-            observation.confirmed_product_id
-        )
-        anchor_topic = _topic_for_record(anchor_record)
         if anchor_topic is None:
             yield _error_event("IMAGE_CATEGORY_UNSUPPORTED")
             return
@@ -877,29 +902,13 @@ class ImageRecommendationOrchestrator:
         facts = self._presentation_facts.get_presentation_facts(
             observation.confirmed_product_id
         )
-        card = ProductCard(
-            product_id=facts.product_id,
-            category_profile=facts.category_profile,
-            category_facts=project_public_category_facts(
-                facts.category_fields
-            ),
-            variant_scope=facts.variant_scope,
-            specification=facts.specification,
-            name=facts.name,
-            brand=facts.brand,
-            category=facts.category,
-            price=facts.price,
-            image_url=facts.image_url,
-            detail_url=facts.detail_url,
-            platform=facts.platform,
-            image_source_sha256=facts.image_source_sha256,
+        card = build_product_card(
+            facts,
             skin_match={
                 "suitable": "matched",
                 "not_suitable": "not_applicable",
                 "insufficient_evidence": "unknown",
             }[result.status],
-            matched_efficacies=[],
-            fact_warnings=list(facts.fact_warnings),
         )
         suitability_data = _suitability_data(result)
         card_display = single_product_card_display(card)
@@ -1037,10 +1046,27 @@ class ImageRecommendationOrchestrator:
         observations: list[ImageIdentityObservation],
     ) -> Iterator[SseEvent]:
         assert self._standard_processor is not None
-        expected_goal = {
-            "comparison": UnderstandingGoal.COMPARISON,
-            "product_knowledge": UnderstandingGoal.KNOWLEDGE,
-        }.get(route_decision.processor)
+        if route_decision.processor == "recommendation":
+            expected_goal = (
+                UnderstandingGoal.IMAGE_SIMILARITY
+                if route_decision.product_bindings
+                else UnderstandingGoal.RECOMMENDATION
+            )
+        elif route_decision.processor == "comparison":
+            expected_goal = UnderstandingGoal.COMPARISON
+        elif route_decision.processor == "product_knowledge":
+            expected_goal = (
+                understanding.goal
+                if understanding.goal
+                in {
+                    UnderstandingGoal.KNOWLEDGE,
+                    UnderstandingGoal.FOLLOWUP,
+                    UnderstandingGoal.SUITABILITY,
+                }
+                else UnderstandingGoal.KNOWLEDGE
+            )
+        else:
+            expected_goal = None
         if expected_goal is None:
             raise ValueError(
                 "standard image delegation requires a standard route"
@@ -1212,18 +1238,22 @@ class ImageRecommendationOrchestrator:
                     observations,
                 )
                 return
-            if route.processor != "comparison":
-                yield from _stream_noncomparison_image_route(
-                    route,
-                    turn=turn,
-                )
-                return
-            if self._standard_processor is not None:
+            if (
+                route.processor
+                in {"recommendation", "comparison", "product_knowledge"}
+                and self._standard_processor is not None
+            ):
                 yield from self._stream_standard_processor(
                     turn,
                     understanding=understanding,
                     route_decision=route,
                     observations=observations,
+                )
+                return
+            if route.processor != "comparison":
+                yield from _stream_noncomparison_image_route(
+                    route,
+                    turn=turn,
                 )
                 return
 
@@ -1353,18 +1383,22 @@ class ImageRecommendationOrchestrator:
                     observations,
                 )
                 return
-            if route.processor != "comparison":
-                yield from _stream_noncomparison_image_route(
-                    route,
-                    turn=turn,
-                )
-                return
-            if self._standard_processor is not None:
+            if (
+                route.processor
+                in {"recommendation", "comparison", "product_knowledge"}
+                and self._standard_processor is not None
+            ):
                 yield from self._stream_standard_processor(
                     turn,
                     understanding=understanding,
                     route_decision=route,
                     observations=observations,
+                )
+                return
+            if route.processor != "comparison":
+                yield from _stream_noncomparison_image_route(
+                    route,
+                    turn=turn,
                 )
                 return
 
@@ -1542,25 +1576,9 @@ class ImageRecommendationOrchestrator:
                 product_id
             )
             cards.append(
-                ProductCard(
-                    product_id=product_id,
-                    category_profile=facts.category_profile,
-                    category_facts=project_public_category_facts(
-                        facts.category_fields
-                    ),
-                    variant_scope=facts.variant_scope,
-                    specification=facts.specification,
-                    name=facts.name,
-                    brand=facts.brand,
-                    category=facts.category,
-                    price=facts.price,
-                    image_url=facts.image_url,
-                    detail_url=facts.detail_url,
-                    platform=facts.platform,
-                    image_source_sha256=facts.image_source_sha256,
+                build_product_card(
+                    facts,
                     skin_match="unknown",
-                    matched_efficacies=[],
-                    fact_warnings=list(facts.fact_warnings),
                 )
             )
         return cards
@@ -1574,6 +1592,21 @@ class ImageRecommendationOrchestrator:
         card_display: CardDisplayContract,
         cards: tuple[ProductCard, ...] | list[ProductCard],
     ) -> PresentationContractEvent:
+        review_summaries = (
+            tuple(
+                summary
+                for card in cards
+                if (
+                    summary := build_review_summary(
+                        self._review_evidence.read(
+                            product_id=card.product_id
+                        )
+                    )
+                ) is not None
+            )
+            if self._review_evidence is not None
+            else ()
+        )
         packet = build_presentation_packet(
             mode=mode,
             user_need_summary=user_need_summary,
@@ -1583,6 +1616,7 @@ class ImageRecommendationOrchestrator:
             selection_slots=(),
             concept_slots=(),
             merchant_claims=(),
+            review_summaries=review_summaries,
             pitfalls=(),
         )
         return PresentationContractEvent(

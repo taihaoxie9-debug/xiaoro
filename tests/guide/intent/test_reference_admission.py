@@ -47,16 +47,17 @@ def _mention(
     family: str,
     ordinal: int | None = None,
     plurality: str = "single",
+    batch_size: int | None = None,
 ) -> TurnReferenceMention:
-    return TurnReferenceMention.model_validate(
-        {
-            "raw_text": raw_text,
-            "object_family_hint": family,
-            "ordinal_hint": ordinal,
-            "plurality_hint": plurality,
-        },
-        strict=True,
-    )
+    payload = {
+        "raw_text": raw_text,
+        "object_family_hint": family,
+        "ordinal_hint": ordinal,
+        "plurality_hint": plurality,
+    }
+    if batch_size is not None:
+        payload["batch_size_hint"] = batch_size
+    return TurnReferenceMention.model_validate(payload, strict=True)
 
 
 @pytest.mark.parametrize(
@@ -194,6 +195,37 @@ def test_batch_plurality_overrides_non_authoritative_count_ordinal() -> None:
 
     assert admitted.kind == "current_batch"
     assert admitted.ordinal is None
+
+
+def test_typed_batch_size_rejects_ambiguous_subset() -> None:
+    with pytest.raises(ReferenceAdmissionError) as caught:
+        admit_reference(
+            message="这两款防晒怎么选",
+            mention=_mention(
+                "这两款防晒",
+                family="product",
+                plurality="batch",
+                batch_size=2,
+            ),
+            authority=_authority(candidates=(1, 2, 3)),
+        )
+
+    assert caught.value.code == "ambiguous"
+
+
+def test_typed_batch_size_binds_complete_visible_batch() -> None:
+    admitted = admit_reference(
+        message="这两款防晒怎么选",
+        mention=_mention(
+            "这两款防晒",
+            family="product",
+            plurality="batch",
+            batch_size=2,
+        ),
+        authority=_authority(candidates=(1, 2)),
+    )
+
+    assert admitted.kind == "current_batch"
 
 
 def test_nonordinal_raw_text_cannot_invent_candidate_ordinal() -> None:

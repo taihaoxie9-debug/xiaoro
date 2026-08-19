@@ -1,0 +1,98 @@
+{
+  "schema_version": "guide-continuous-blind-seal-v2",
+  "sealed_at": "2026-08-19",
+  "resealed_at_utc": "2026-08-18T20:27:15Z",
+  "prior_seal_invalidated": true,
+  "prior_seal_invalidation_reason": "Blind A was invalidated to exercise; shared repairs and the independent Blind B truth audit changed frozen code, runner, fixture, and manifest hashes",
+  "system_freeze_file": "docs/audits/continuous-conversation/overnight-freeze-v2-after-blind-a.json",
+  "system_freeze_sha256": "f35173e0f8ec3802ca461a992262992bff7db5ce86a4b39b2d3e13f40b7a0c5d",
+  "turn_meaning_prompt_version": "guide-turn-meaning-prompt-v27",
+  "turn_meaning_prompt_sha256": "f1490e46e92213398bdd9625b32398b0ab00f1102292fcc4cda0614dc6584e3d",
+  "sealed_fixture_loader_sha256": "fd027f95e87cfbcd2e5ee80abce24ff52ba6fbaa4273bfd74bb5f449a1518e8c",
+  "blind_runner_sha256": "bfae3652eb0d8b681c5bbd373ae248f5dee90bdf1accdab9f5dc61083c5b2801",
+  "blind_exam_phase_budget_cny": "3.00",
+  "papers": {
+    "A": {
+      "fixture_file": "tests/fixtures/guide/conversation/continuous_blind_a_20x5_v2.jsonl",
+      "fixture_sha256": "3f382b07216a7497d246141949c4a9078e29a5367b0bceba5bd22c3889a57c90",
+      "manifest_file": "tests/fixtures/guide/conversation/continuous_blind_a_20x5_v2_manifest.json",
+      "manifest_sha256": "eb2752e34c101c1af42497507138ffaf62dba323366ea0c15a8a1716768af7e8",
+      "trajectory_count": 20,
+      "turn_count": 100,
+      "unique_normalized_message_count": 100,
+      "coverage_counts": {
+        "recommendation_and_revision": 11,
+        "product_followup_and_focus_return": 10,
+        "general_knowledge_detour": 11,
+        "comparison": 11,
+        "consultation_correction": 3,
+        "consultation_safety": 2,
+        "pending_turn": 3,
+        "clarification_recovery": 6,
+        "image_identity": 5,
+        "image_suitability": 4,
+        "image_recommendation": 5,
+        "image_comparison": 2,
+        "batch_size_mismatch_clarification": 1
+      }
+    },
+    "B": {
+      "fixture_file": "tests/fixtures/guide/conversation/continuous_blind_b_20x5_v2.jsonl",
+      "fixture_sha256": "230a0b6d9f536bb59cf3838a0d6a5f36ac1930e03f637541f9672d1748c183cb",
+      "manifest_file": "tests/fixtures/guide/conversation/continuous_blind_b_20x5_v2_manifest.json",
+      "manifest_sha256": "c3fc0329fd94587da9be84425f08c29f0cda92d9a92b0cd65802d55b9ccc9ee1",
+      "trajectory_count": 20,
+      "turn_count": 100,
+      "unique_normalized_message_count": 100,
+      "coverage_counts": {
+        "recommendation_and_revision": 9,
+        "product_followup_and_focus_return": 14,
+        "general_knowledge_detour": 7,
+        "comparison": 11,
+        "consultation_profile": 5,
+        "consultation_correction": 4,
+        "consultation_safety": 1,
+        "pending_turn": 3,
+        "clarification_recovery": 6,
+        "ambiguous_product_reference": 1,
+        "explicit_product_reference": 5,
+        "pending_confirmation": 1,
+        "pending_correction": 1,
+        "pending_rejection": 1,
+        "image_identity": 5,
+        "image_suitability": 5,
+        "image_recommendation": 4,
+        "image_comparison": 4,
+        "batch_size_mismatch_clarification": 2
+      }
+    }
+  },
+  "validation": {
+    "seen_ledger_unique_normalized_count": 1106,
+    "a_seen_hash_collision_count": 0,
+    "b_seen_hash_collision_count": 0,
+    "a_b_normalized_message_collision_count": 0,
+    "a_b_trajectory_id_collision_count": 0,
+    "noncanonical_product_reference_count": 0,
+    "subject_scope": "self_only",
+    "focused_loader_and_runner_test_count": 33,
+    "focused_loader_and_runner_tests_passed": true,
+    "post_a_shared_repair_test_count": 4621,
+    "post_a_shared_repair_tests_passed": true,
+    "runtime_image_fixture_ids": [
+      "product-53-front",
+      "product-55-front"
+    ],
+    "blind_a_question_bodies_previewed_after_invalidation": true,
+    "blind_b_question_bodies_previewed_before_open": false,
+    "blind_b_question_bodies_previewed_after_failure": true
+  },
+  "seal_policy": {
+    "blind_a_opened": true,
+    "blind_a_status": "invalidated_to_exercise",
+    "blind_b_opened": true,
+    "blind_b_status": "failed_checkpoint",
+    "blind_c_allowed": false,
+    "paper_or_manifest_edit_invalidates_seal": true
+  }
+}

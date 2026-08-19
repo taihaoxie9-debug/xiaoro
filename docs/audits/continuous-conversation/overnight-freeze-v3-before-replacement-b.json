@@ -1,0 +1,70 @@
+{
+  "schema_version": "guide-overnight-freeze-v3-before-replacement-b",
+  "frozen_at": "2026-08-19",
+  "status": "production_frozen_for_replacement_b",
+  "git_head": "16721edcc1afa4dbef51ef847b7c455a17ba4332",
+  "app_and_gate_diff_sha256": "3f5163cd3117a1cddf7217002c7f2bc1ba35970c6a42b3d042f463889bdcf134",
+  "prompt": {
+    "version": "guide-turn-meaning-prompt-v27",
+    "sha256": "f1490e46e92213398bdd9625b32398b0ab00f1102292fcc4cda0614dc6584e3d",
+    "changed_after_blind_b": false
+  },
+  "shared_repairs": {
+    "category_specificity": {
+      "owner": "app/guide/retrieval/category_taxonomy.py",
+      "owner_sha256": "2dde7cd4fbde032f8abe90ab8e3eae8b88e43ed2295cf40490de90d8ac403c7b",
+      "consumer": "app/guide/intent/signal_merger.py",
+      "consumer_sha256": "2b8b0cff4af8050d6a0abb7991f436430c94a8efea721945cf184279d91bfb9b",
+      "rule": "compatible parent and child category sets collapse to the strict subset topic; disjoint categories still clarify"
+    },
+    "reference_specificity": {
+      "owner": "app/guide/retrieval/product_name_resolver.py",
+      "owner_sha256": "97a50fbd72974992f3280b536c3e0444f60235489803273983b76dc3547d8625",
+      "router": "app/guide/intent/unified_turn_router.py",
+      "router_sha256": "35d0a636bdc61dffaa824b1b18f31c1d7b36a3c25f405789aa27b8620b2eaf7c",
+      "application_consumer": "app/guide/application/text_recommendation_flow.py",
+      "application_consumer_sha256": "ea0eb1a81ba528fc08878ac7bfdfd99f118535ce62f388b9dc1ff514a2035a95",
+      "rule": "one specific product inside the current batch overrides the overlapping batch; a product outside the batch remains an additive comparison target"
+    }
+  },
+  "mechanical_truth": {
+    "gate": "tools/guide_gates/continuous_conversation_mechanical_truth.py",
+    "gate_sha256": "a83a9f99b55c6ed8aeab1262f90aa17a08872c8e2ece2dcdfd277af7545e8d6c",
+    "runtime": "tools/guide_gates/continuous_conversation_runtime.py",
+    "runtime_sha256": "58ab6da3a66f663c6ffb3faf15cfead601f6b8bd20195e61a1fadd63db0f9fce",
+    "runner": "tools/guide_gates/run_real_continuous_conversation_gate.py",
+    "runner_sha256": "e8d4b71fdc0afa358597ecf0f45a442e46d839643c573ba6b0954820dfe54c73",
+    "data_preflight": "docs/audits/continuous-conversation/blind-b-replacement-data-truth-preflight-v1.json",
+    "data_preflight_sha256": "3b6e806ebe4d8b4078520b8ecd362812c7c9f4d735a9d94ec7acc39603ea40f4"
+  },
+  "data": {
+    "canonical_products_sha256": "0ba95df8c38d39f5bc0d73a32c318b157903abb64778c3e7b0acebfb75e95734",
+    "canonical_manifest_file_sha256": "e0430a244af451a3fa73642295c4a79128e1622dfeed19ff8140eda9f2df0c69",
+    "selection_concepts_manifest_file_sha256": "216db6ee39e0a05d50483e1f38f90d723fca6eb9191bcbabe8c0cf73738af0df",
+    "category_facts_manifest_file_sha256": "1f7913ea7005fe00503aaabdec4fbfeebc977e6ad5e52a9f298bde483d914605",
+    "merchant_claims_manifest_file_sha256": "29771195411866f28fdfea56859b24deb63ad94f328eed707346568b65cddc54",
+    "presentation_fact_admission_sha256": "3e2dbd4ad3cf872f4a066ecf0a684775afd34d961b33ed5ad627baa4cb269d25"
+  },
+  "verification": {
+    "category_and_reference_focused_passed": 9,
+    "shared_module_regression_passed": 3230,
+    "mechanical_gate_and_runner_passed": 45,
+    "final_zero_api_regression_passed": 6235,
+    "final_zero_api_regression_failed": 0,
+    "git_diff_check_passed": true,
+    "new_action_or_intent_regex_count": 0,
+    "canonical_identity_syntax_regex_hits": 2
+  },
+  "paid_usage": {
+    "additional_semantic_calls_after_blind_b": 0,
+    "additional_copywriter_calls_after_blind_b": 0,
+    "provider_retry_count": 0,
+    "format_repair_attempts": 0
+  },
+  "seal_policy": {
+    "replacement_paper_replaces_invalid_blind_b": true,
+    "blind_c_allowed": false,
+    "production_or_prompt_edit_invalidates_replacement_paper": true,
+    "main_agent_must_not_preview_question_bodies": true
+  }
+}

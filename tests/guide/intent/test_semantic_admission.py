@@ -122,6 +122,32 @@ def test_unsupported_open_descriptor_is_retained_losslessly() -> None:
     assert preference.normalized_value == "雨后潮湿木头感"
 
 
+def test_generic_ingredient_avoid_is_rejected_without_closed_parent() -> None:
+    result = admit_turn_meaning(
+        message="给我找防晒，避开乙醇",
+        meaning=_meaning(
+            topic_hint="sunscreen",
+            preference_candidates=(
+                {
+                    "field_key": "ingredient",
+                    "concept_id": None,
+                    "raw_text": "乙醇",
+                    "polarity": "avoid",
+                    "strength": "ordinary",
+                },
+            ),
+        ),
+        topic=TopicCode.SUNSCREEN,
+        concept_catalog=_catalog(),
+    )
+
+    preference = result.for_kind("preference")[0]
+    assert preference.disposition == "rejected_protocol"
+    assert preference.reason == (
+        "ingredient exclusions require ingredient_exclusion"
+    )
+
+
 def test_unbound_source_is_rejected_as_protocol_not_semantic_mismatch() -> None:
     result = admit_turn_meaning(
         message="想要清爽防晒",
@@ -144,6 +170,66 @@ def test_unbound_source_is_rejected_as_protocol_not_semantic_mismatch() -> None:
     preference = result.for_kind("preference")[0]
     assert preference.disposition == "rejected_protocol"
     assert preference.reason == "raw_text is not uniquely source-bound"
+
+
+def test_matching_active_topic_return_reference_is_admitted() -> None:
+    result = admit_turn_meaning(
+        message="回到精华，比较B5精华和CE精华",
+        meaning=_meaning(
+            operation_hint="comparison",
+            topic_hint="serum",
+            continuity_hint="return_to_focus",
+            reference_mentions=(
+                {
+                    "raw_text": "精华",
+                    "object_family_hint": "topic",
+                    "ordinal_hint": None,
+                    "plurality_hint": "single",
+                },
+            ),
+            product_mentions=(
+                {"raw_text": "B5精华"},
+                {"raw_text": "CE精华"},
+            ),
+        ),
+        topic=TopicCode.SERUM,
+        active_topic=TopicCode.SERUM,
+        concept_catalog=_catalog(),
+    )
+
+    reference = result.for_kind("reference")[0]
+    assert reference.disposition == "admitted"
+    assert reference.reason == "typed current topic matches active context"
+
+
+def test_mismatched_active_topic_return_reference_is_rejected() -> None:
+    result = admit_turn_meaning(
+        message="回到精华，比较B5精华和CE精华",
+        meaning=_meaning(
+            operation_hint="comparison",
+            topic_hint="serum",
+            continuity_hint="return_to_focus",
+            reference_mentions=(
+                {
+                    "raw_text": "精华",
+                    "object_family_hint": "topic",
+                    "ordinal_hint": None,
+                    "plurality_hint": "single",
+                },
+            ),
+            product_mentions=(
+                {"raw_text": "B5精华"},
+                {"raw_text": "CE精华"},
+            ),
+        ),
+        topic=TopicCode.SERUM,
+        active_topic=TopicCode.SUNSCREEN,
+        concept_catalog=_catalog(),
+    )
+
+    assert result.for_kind("reference")[0].disposition == (
+        "rejected_protocol"
+    )
 
 
 def test_all_consultation_observations_receive_auditable_outcomes() -> None:

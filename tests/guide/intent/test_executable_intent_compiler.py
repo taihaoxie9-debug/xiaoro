@@ -2,12 +2,23 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from app.guide.feedback.contracts import RecommendationQueryContext
+import pytest
+
+from app.guide.feedback.contracts import (
+    RecommendationQueryContext,
+    StoredConcept,
+)
 from app.guide.intent.concept_preferences import (
     ConceptCatalogEntry,
     ConceptPreferenceCatalog,
 )
-from app.guide.intent.contracts import ConceptConstraint, SkinConstraint
+from app.guide.intent.contracts import (
+    CategoryConstraint,
+    ConceptConstraint,
+    EfficacyConstraint,
+    ExclusionConstraint,
+    SkinConstraint,
+)
 from app.guide.intent.executable_intent_compiler import (
     compile_turn_meaning,
 )
@@ -794,6 +805,84 @@ def test_factual_topic_reference_does_not_compete_with_product_ordinal(
     assert task.product_ids == [91]
 
 
+@pytest.mark.parametrize(
+    ("message", "first_product", "second_product"),
+    (
+        (
+            "回到精华，B5精华和玉泽屏障修护精华做比较",
+            "B5精华",
+            "玉泽屏障修护精华",
+        ),
+        (
+            "继续精华这条线，对比B5精华与CE精华",
+            "B5精华",
+            "CE精华",
+        ),
+    ),
+)
+def test_matching_topic_return_does_not_compete_with_explicit_products(
+    message: str,
+    first_product: str,
+    second_product: str,
+) -> None:
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=_meaning(
+            operation_hint="comparison",
+            topic_hint="serum",
+            continuity_hint="return_to_focus",
+            reference_mentions=[
+                {
+                    "raw_text": "精华",
+                    "object_family_hint": "topic",
+                    "ordinal_hint": None,
+                    "plurality_hint": "single",
+                }
+            ],
+            product_mentions=[
+                {"raw_text": first_product},
+                {"raw_text": second_product},
+            ],
+        ),
+        context=_context(topic=TopicCode.SERUM, candidates=2),
+    )
+
+    assert understanding.uncertainties == []
+    assert [item.text for item in understanding.product_mentions] == [
+        first_product,
+        second_product,
+    ]
+
+
+def test_mismatched_topic_return_still_requires_clarification() -> None:
+    message = "回到精华，B5精华和玉泽屏障修护精华做比较"
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=_meaning(
+            operation_hint="comparison",
+            topic_hint="serum",
+            continuity_hint="return_to_focus",
+            reference_mentions=[
+                {
+                    "raw_text": "精华",
+                    "object_family_hint": "topic",
+                    "ordinal_hint": None,
+                    "plurality_hint": "single",
+                }
+            ],
+            product_mentions=[
+                {"raw_text": "B5精华"},
+                {"raw_text": "玉泽屏障修护精华"},
+            ],
+        ),
+        context=_context(topic=TopicCode.SUNSCREEN, candidates=2),
+    )
+
+    assert [item.code for item in understanding.uncertainties] == [
+        "ambiguous_reference"
+    ]
+
+
 def test_return_to_focus_uses_preserved_current_item_without_reference_atom(
 ) -> None:
     understanding = compile_turn_meaning(
@@ -922,6 +1011,43 @@ def test_pending_reference_clarification_with_product_name_becomes_knowledge(
     assert understanding.uncertainties == []
 
 
+def test_overlapping_product_surface_preserves_typed_current_reference(
+) -> None:
+    message = "回到玉泽那支，早上叠防晒该留意什么"
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=_meaning(
+            operation_hint="followup",
+            topic_hint="serum",
+            continuity_hint="return_to_focus",
+            reference_mentions=[
+                {
+                    "raw_text": "玉泽那支",
+                    "object_family_hint": "product",
+                    "ordinal_hint": 1,
+                    "plurality_hint": "single",
+                }
+            ],
+            product_mentions=[{"raw_text": "玉泽那支"}],
+            question_meaning="查询当前商品叠加防晒的注意事项",
+        ),
+        context=_context(
+            topic=TopicCode.SERUM,
+            candidates=1,
+            focused=1,
+        ),
+    )
+
+    assert [item.text for item in understanding.product_mentions] == [
+        "玉泽那支"
+    ]
+    assert [
+        (item.kind, item.ordinal)
+        for item in understanding.references
+    ] == [("current_item", None)]
+    assert understanding.uncertainties == []
+
+
 def test_unbound_followup_fails_closed_with_reference_clarification() -> None:
     understanding = compile_turn_meaning(
         message="改成另一个吧",
@@ -981,6 +1107,148 @@ def test_exact_narrow_topic_wins_without_rejecting_open_observation() -> None:
     assert understanding.topic is TopicCode.CLEANSER
     assert "tightness:present:post_cleanse" in understanding.observations
     assert understanding.uncertainties == []
+
+
+def test_ingredient_exclusion_parent_projects_canonical_target() -> None:
+    understanding = compile_turn_meaning(
+        message="给我找防晒，先避开乙醇",
+        meaning=_meaning(
+            operation_hint="recommendation",
+            topic_hint="sunscreen",
+            preference_candidates=[
+                {
+                    "field_key": "ingredient_exclusion",
+                    "concept_id": None,
+                    "raw_text": "乙醇",
+                    "polarity": "avoid",
+                    "strength": "ordinary",
+                }
+            ],
+        ),
+        context=_context(),
+        concept_catalog=_concept_catalog(),
+    )
+    task = plan_task(understanding)
+
+    assert [
+        item.value
+        for item in task.constraints
+        if isinstance(item, ExclusionConstraint)
+    ] == ["酒精"]
+    assert task.free_descriptors == []
+
+
+def test_ingredient_exclusion_withdrawal_uses_semantic_parent_change() -> None:
+    message = "酒精这一条放开，继续看防晒"
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=_meaning(
+            operation_hint="recommendation",
+            topic_hint="sunscreen",
+            continuity_hint="continue",
+            constraint_changes=[
+                {
+                    "parent_concept": "ingredient_exclusion",
+                    "requested_change": "remove",
+                    "raw_text": "酒精",
+                }
+            ],
+        ),
+        context=_context(
+            topic=TopicCode.SUNSCREEN,
+            constraints=(
+                ActiveConstraintKind.CATEGORY,
+                ActiveConstraintKind.INGREDIENT_EXCLUSION,
+            ),
+        ),
+        concept_catalog=_concept_catalog(),
+    )
+    planned = plan_code_owned_transitions(
+        message=message,
+        understanding=understanding,
+        task=plan_task(understanding),
+        previous=RecommendationQueryContext(
+            category="sunscreen",
+            exclusions=("酒精",),
+        ),
+        continuation_requested=True,
+    )
+
+    assert planned.task_plan.mode == "recommend"
+    assert not any(
+        isinstance(item, ExclusionConstraint)
+        for item in planned.task_plan.constraints
+    )
+    assert planned.transition_result is not None
+    assert {
+        (
+            item.target,
+            item.operation,
+            item.authority,
+        )
+        for item in planned.transition_result.transitions
+    } >= {
+        ("exclusion:酒精", "remove", "validated_semantic"),
+    }
+
+
+def test_semantic_topic_survives_supplement_transition() -> None:
+    message = "预算放到一百五，仍然要清爽通勤"
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=_meaning(
+            operation_hint="recommendation",
+            topic_hint="sunscreen",
+            continuity_hint="continue",
+            budget_candidates=[
+                {
+                    "raw_text": "一百五",
+                    "relation": "maximum",
+                    "minimum": None,
+                    "maximum": "150",
+                }
+            ],
+            preference_candidates=[
+                {
+                    "field_key": "texture",
+                    "concept_id": "texture.refreshing",
+                    "raw_text": "清爽",
+                    "polarity": "prefer",
+                    "strength": "ordinary",
+                }
+            ],
+        ),
+        context=_context(
+            topic=TopicCode.SUNSCREEN,
+            constraints=(ActiveConstraintKind.CATEGORY,),
+        ),
+        concept_catalog=_concept_catalog(),
+    )
+    planned = plan_code_owned_transitions(
+        message=message,
+        understanding=understanding,
+        task=plan_task(understanding),
+        previous=RecommendationQueryContext(
+            category="sunscreen",
+            budget_maximum=Decimal("100"),
+        ),
+        continuation_requested=True,
+    )
+
+    assert planned.task_plan.mode == "recommend"
+    assert any(
+        isinstance(item, CategoryConstraint)
+        and item.value is TopicCode.SUNSCREEN
+        for item in planned.task_plan.constraints
+    )
+    assert any(
+        item.target == "budget" and item.operation == "replace"
+        for item in planned.transition_result.transitions
+    )
+    assert not any(
+        item.target == "category"
+        for item in planned.transition_result.transitions
+    )
 
 
 def test_budget_revision_uses_existing_code_owned_reducer() -> None:
@@ -1050,6 +1318,359 @@ def test_budget_revision_uses_existing_code_owned_reducer() -> None:
     }
     assert operations["budget"] == "replace"
     assert operations["exclusion:酒精"] == "retain"
+
+
+def test_untyped_efficacy_action_does_not_use_wording_parser() -> None:
+    message = "抗老先撤掉，改成保湿修护优先"
+    catalog = ConceptPreferenceCatalog(
+        entries=tuple(
+            ConceptCatalogEntry(
+                profile=CategoryProfile.SKINCARE,
+                field_key="efficacy",
+                concept_id=concept_id,
+            )
+            for concept_id in (
+                "efficacy.anti_aging",
+                "efficacy.hydration",
+                "efficacy.repair",
+            )
+        )
+    )
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=_meaning(
+            operation_hint="recommendation",
+            topic_hint="serum",
+            continuity_hint="continue",
+            preference_candidates=[
+                {
+                    "field_key": "efficacy",
+                    "concept_id": "efficacy.anti_aging",
+                    "raw_text": "抗老",
+                    "polarity": "avoid",
+                    "strength": "ordinary",
+                },
+                {
+                    "field_key": "efficacy",
+                    "concept_id": "efficacy.hydration",
+                    "raw_text": "保湿",
+                    "polarity": "prefer",
+                    "strength": "ordinary",
+                },
+                {
+                    "field_key": "efficacy",
+                    "concept_id": "efficacy.repair",
+                    "raw_text": "修护",
+                    "polarity": "prefer",
+                    "strength": "ordinary",
+                },
+            ],
+        ),
+        context=_context(
+            topic=TopicCode.SERUM,
+            candidates=1,
+            constraints=(
+                ActiveConstraintKind.BUDGET,
+                ActiveConstraintKind.CATEGORY,
+                ActiveConstraintKind.EFFICACY,
+            ),
+        ),
+        concept_catalog=catalog,
+    )
+    planned = plan_code_owned_transitions(
+        message=message,
+        understanding=understanding,
+        task=plan_task(understanding),
+        previous=RecommendationQueryContext(
+            category="serum",
+            budget_maximum=Decimal("400"),
+            efficacy="anti_aging",
+            concepts=(
+                StoredConcept(
+                    field_key="efficacy",
+                    concept_id="efficacy.anti_aging",
+                    polarity="prefer",
+                ),
+            ),
+        ),
+        continuation_requested=True,
+    )
+
+    assert planned.task_plan.mode == "clarify"
+    assert planned.transition_result is not None
+    assert [
+        issue.code
+        for issue in planned.transition_result.issues
+    ] == ["confirm_hard_constraint_revision"]
+
+
+def test_typed_efficacy_withdrawal_replaces_old_quiz_without_parser(
+    monkeypatch,
+) -> None:
+    message = "抗老先撤掉，改成保湿修护优先"
+    catalog = ConceptPreferenceCatalog(
+        entries=tuple(
+            ConceptCatalogEntry(
+                profile=CategoryProfile.SKINCARE,
+                field_key="efficacy",
+                concept_id=concept_id,
+            )
+            for concept_id in (
+                "efficacy.hydration",
+                "efficacy.repair",
+            )
+        )
+    )
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=_meaning(
+            operation_hint="recommendation",
+            topic_hint="serum",
+            continuity_hint="continue",
+            preference_candidates=[
+                {
+                    "field_key": "efficacy",
+                    "concept_id": "efficacy.hydration",
+                    "raw_text": "保湿",
+                    "polarity": "prefer",
+                    "strength": "ordinary",
+                },
+                {
+                    "field_key": "efficacy",
+                    "concept_id": "efficacy.repair",
+                    "raw_text": "修护",
+                    "polarity": "prefer",
+                    "strength": "ordinary",
+                },
+            ],
+            constraint_changes=[
+                {
+                    "parent_concept": "efficacy",
+                    "requested_change": "remove",
+                    "raw_text": "抗老",
+                    "normalized_value": "anti_aging",
+                }
+            ],
+        ),
+        context=_context(
+            topic=TopicCode.SERUM,
+            candidates=1,
+            constraints=(
+                ActiveConstraintKind.BUDGET,
+                ActiveConstraintKind.CATEGORY,
+                ActiveConstraintKind.EFFICACY,
+            ),
+        ),
+        concept_catalog=catalog,
+    )
+    monkeypatch.setattr(
+        "app.guide.intent.transition_planning."
+        "parse_exact_revision_confirmations",
+        lambda message: (_ for _ in ()).throw(
+            AssertionError("semantic path called exact action parser")
+        ),
+    )
+    monkeypatch.setattr(
+        "app.guide.intent.transition_planning."
+        "parse_exact_efficacy_withdrawals",
+        lambda message: (_ for _ in ()).throw(
+            AssertionError("semantic path called efficacy wording parser")
+        ),
+    )
+
+    planned = plan_code_owned_transitions(
+        message=message,
+        understanding=understanding,
+        task=plan_task(understanding),
+        previous=RecommendationQueryContext(
+            category="serum",
+            budget_maximum=Decimal("400"),
+            efficacy="anti_aging",
+            concepts=(
+                StoredConcept(
+                    field_key="efficacy",
+                    concept_id="efficacy.anti_aging",
+                    polarity="prefer",
+                ),
+            ),
+        ),
+        continuation_requested=True,
+    )
+
+    assert planned.task_plan.mode == "recommend"
+    assert planned.transition_result is not None
+    assert any(
+        item.target == "efficacy"
+        and item.operation == "replace"
+        and item.authority == "validated_semantic"
+        for item in planned.transition_result.transitions
+    )
+    assert not any(
+        item.target == "category"
+        for item in planned.transition_result.transitions
+    )
+
+
+def test_context_topic_is_projected_into_continuation_task_constraints(
+) -> None:
+    message = "抗老退出，接下来保湿优先，预算仍然四百以内"
+    catalog = ConceptPreferenceCatalog(
+        entries=(
+            ConceptCatalogEntry(
+                profile=CategoryProfile.SKINCARE,
+                field_key="efficacy",
+                concept_id="efficacy.hydration",
+            ),
+        )
+    )
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=_meaning(
+            operation_hint="recommendation",
+            topic_hint=None,
+            continuity_hint="continue",
+            budget_candidates=[
+                {
+                    "raw_text": "四百以内",
+                    "relation": "maximum",
+                    "minimum": None,
+                    "maximum": "400",
+                }
+            ],
+            preference_candidates=[
+                {
+                    "field_key": "efficacy",
+                    "concept_id": "efficacy.hydration",
+                    "raw_text": "保湿",
+                    "polarity": "prefer",
+                    "strength": "ordinary",
+                }
+            ],
+            constraint_changes=[
+                {
+                    "parent_concept": "efficacy",
+                    "requested_change": "remove",
+                    "raw_text": "抗老",
+                    "normalized_value": "anti_aging",
+                }
+            ],
+        ),
+        context=_context(
+            topic=TopicCode.SERUM,
+            candidates=2,
+            constraints=(
+                ActiveConstraintKind.BUDGET,
+                ActiveConstraintKind.CATEGORY,
+                ActiveConstraintKind.EFFICACY,
+            ),
+        ),
+        concept_catalog=catalog,
+    )
+    task = plan_task(understanding)
+
+    assert understanding.topic is TopicCode.SERUM
+    assert task.mode == "recommend"
+    assert any(
+        isinstance(item, CategoryConstraint)
+        and item.value is TopicCode.SERUM
+        for item in task.constraints
+    )
+    assert not any(
+        isinstance(item, EfficacyConstraint)
+        for item in task.constraints
+    )
+    assert any(
+        isinstance(item, ConceptConstraint)
+        and item.concept_id == "efficacy.hydration"
+        for item in task.constraints
+    )
+
+
+def test_efficacy_replacement_uses_typed_parent_change(
+    monkeypatch,
+) -> None:
+    message = "抗老这项退出，接下来重点看修护"
+    catalog = ConceptPreferenceCatalog(
+        entries=(
+            ConceptCatalogEntry(
+                profile=CategoryProfile.SKINCARE,
+                field_key="efficacy",
+                concept_id="efficacy.repair",
+            ),
+        )
+    )
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=_meaning(
+            operation_hint="recommendation",
+            topic_hint="serum",
+            continuity_hint="continue",
+            constraint_changes=[
+                {
+                    "parent_concept": "efficacy",
+                    "requested_change": "replace",
+                    "raw_text": "修护",
+                    "normalized_value": "repair",
+                }
+            ],
+        ),
+        context=_context(
+            topic=TopicCode.SERUM,
+            constraints=(
+                ActiveConstraintKind.CATEGORY,
+                ActiveConstraintKind.EFFICACY,
+            ),
+        ),
+        concept_catalog=catalog,
+    )
+    monkeypatch.setattr(
+        "app.guide.intent.transition_planning."
+        "parse_exact_revision_confirmations",
+        lambda message: (_ for _ in ()).throw(
+            AssertionError("semantic path called exact action parser")
+        ),
+    )
+    monkeypatch.setattr(
+        "app.guide.intent.transition_planning."
+        "parse_exact_efficacy_withdrawals",
+        lambda message: (_ for _ in ()).throw(
+            AssertionError("semantic path called efficacy wording parser")
+        ),
+    )
+    planned = plan_code_owned_transitions(
+        message=message,
+        understanding=understanding,
+        task=plan_task(understanding),
+        previous=RecommendationQueryContext(
+            category="serum",
+            efficacy="anti_aging",
+            concepts=(
+                StoredConcept(
+                    field_key="efficacy",
+                    concept_id="efficacy.anti_aging",
+                    polarity="prefer",
+                ),
+            ),
+        ),
+        continuation_requested=True,
+    )
+
+    assert any(
+        item.target == "efficacy"
+        and item.operation == "replace"
+        and item.authority == "validated_semantic"
+        for item in planned.transition_result.transitions
+    )
+    dumped = [
+        item.model_dump(mode="json")
+        for item in planned.task_plan.constraints
+    ]
+    assert {"kind": "efficacy", "value": "repair"} in dumped
+    assert {
+        item["concept_id"]
+        for item in dumped
+        if item["kind"] == "concept"
+    } == set()
 
 
 def test_ordinary_avoid_descriptor_is_not_vetoed_by_exact_parser() -> None:
@@ -1137,13 +1758,14 @@ def test_optional_unbound_knowledge_reference_does_not_force_clarify() -> None:
     assert task.mode == "knowledge"
 
 
-def test_exact_revision_proof_does_not_require_model_reference_label() -> None:
+def test_semantic_budget_continuation_does_not_require_wording_proof() -> None:
     message = "预算改成三百以内，而且还是不要含酒精的呢"
     understanding = compile_turn_meaning(
         message=message,
         meaning=_meaning(
             operation_hint="followup",
             topic_hint="sunscreen",
+                continuity_hint="continue",
             budget_candidates=[
                 {
                     "raw_text": "三百以内",
@@ -1156,7 +1778,7 @@ def test_exact_revision_proof_does_not_require_model_reference_label() -> None:
                 {
                     "field_key": "ingredient_exclusion",
                     "concept_id": None,
-                    "raw_text": "不要含酒精",
+                        "raw_text": "酒精",
                     "polarity": "avoid",
                     "strength": "ordinary",
                 }
@@ -1184,6 +1806,7 @@ def test_exact_revision_proof_does_not_require_model_reference_label() -> None:
             exclusions=("酒精",),
             safety_sensitive=True,
         ),
+        continuation_requested=True,
     )
 
     assert understanding.uncertainties == []
@@ -1469,6 +2092,32 @@ def test_image_batch_reference_expands_to_current_image_ordinals() -> None:
         ("image_ordinal", 3),
     ]
     assert understanding.uncertainties == []
+
+
+def test_image_batch_size_mismatch_clarifies_instead_of_expanding() -> None:
+    understanding = compile_turn_meaning(
+        message="比较这两张图",
+        meaning=_meaning(
+            operation_hint="comparison",
+            topic_hint=None,
+            reference_mentions=[
+                {
+                    "raw_text": "这两张图",
+                    "object_family_hint": "image",
+                    "ordinal_hint": None,
+                    "plurality_hint": "batch",
+                    "batch_size_hint": 2,
+                }
+            ],
+            question_meaning="比较两张图片中的商品",
+        ),
+        context=_context(images=3),
+    )
+
+    assert understanding.references == []
+    assert [item.code for item in understanding.uncertainties] == [
+        "ambiguous_reference"
+    ]
 
 
 def test_generic_product_coreference_reuses_unique_explicit_image_anchor(

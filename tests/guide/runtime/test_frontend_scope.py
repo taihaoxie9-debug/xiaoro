@@ -163,6 +163,37 @@ def test_consultation_observation_uses_rose_label_without_left_rule() -> None:
     assert "color: var(--primary-deep);" in html
 
 
+def test_product_title_and_advisor_label_use_rose_accent() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+
+    assert ".guide-presentation-product h3 {" in html
+    assert ".guide-product-advisor-reason strong {" in html
+    assert ".guide-presentation-product h3 {\n            color: var(--primary-deep);" in html
+    assert ".guide-product-advisor-reason strong {\n            color: var(--primary-deep);" in html
+
+
+def test_ordinary_product_references_do_not_inherit_rose_accent() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+
+    assert (
+        ".guide-product-ref {\n"
+        "            margin: 0 3px;\n"
+        "            padding: 0;\n"
+        "            border: 0;\n"
+        "            border-bottom: 1px solid currentColor;\n"
+        "            background: transparent;\n"
+        "            color: inherit;"
+    ) in html
+    assert (
+        ".guide-product-ref:hover {\n"
+        "            color: var(--primary);"
+    ) in html
+    assert (
+        ".guide-product-ref:focus-visible {\n"
+        "            color: var(--primary);"
+    ) in html
+
+
 def test_session_id_source_uses_only_browser_cryptography() -> None:
     html = CHAT_HTML.read_text(encoding="utf-8")
     function_source = _session_id_function_source(html)

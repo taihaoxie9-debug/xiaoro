@@ -396,12 +396,46 @@ class SignalTrace(_StrictContract):
     ]
 
 
+class ConstraintChangeDraft(_StrictContract):
+    parent_concept: Literal[
+        "ingredient_exclusion",
+        "efficacy",
+        "skin",
+    ]
+    requested_change: Literal["remove", "replace"]
+    value: Annotated[
+        str,
+        StringConstraints(strip_whitespace=True, min_length=1, max_length=64),
+    ]
+    source_span: SourceSpan
+
+    @model_validator(mode="after")
+    def validate_parent_change(self) -> Self:
+        if (
+            self.parent_concept == "ingredient_exclusion"
+            and self.requested_change != "remove"
+        ):
+            raise ValueError(
+                "ingredient exclusion supports remove only"
+            )
+        if (
+            self.parent_concept == "skin"
+            and self.requested_change != "replace"
+        ):
+            raise ValueError("skin change supports replace only")
+        return self
+
+
 class StructuredUnderstanding(_StrictContract):
     goal: UnderstandingGoal = UnderstandingGoal.RECOMMENDATION
     topic: TopicCode | None
     observations: list[str]
     exact_constraints: list[ExactConstraintDraft]
     preference_drafts: list[PreferenceDraft] = Field(default_factory=list)
+    constraint_changes: list[ConstraintChangeDraft] = Field(
+        default_factory=list,
+        max_length=4,
+    )
     relative_drafts: list[RelativeDraft] = Field(
         default_factory=list,
         max_length=4,
@@ -416,6 +450,7 @@ class StructuredUnderstanding(_StrictContract):
     image_references: list[str]
     uncertainties: list[UnderstandingIssue]
     confidence: float = Field(ge=0.0, le=1.0)
+    semantic_authoritative: bool = False
     question_meaning: str | None = Field(
         default=None,
         min_length=1,

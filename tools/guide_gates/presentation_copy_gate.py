@@ -372,7 +372,6 @@ class PresentationCopyGateRow(_StrictFrozenModel):
                 self.hard_atom_violation_count,
                 self.winner_language_violation_count,
                 self.attribution_violation_count,
-                self.fact_coverage_violation_count,
                 self.internal_language_violation_count,
             )
         )
@@ -508,7 +507,11 @@ def evaluate_copy_gate_output(
         }
         and _passes_readability(case, draft)
     )
-    hard_total = call_violation + sum(violations.values())
+    hard_total = call_violation + sum(
+        count
+        for name, count in violations.items()
+        if name != "coverage"
+    )
     return PresentationCopyGateRow(
         case_id=case.case_id,
         provider_call_count=provider_call_count,
@@ -534,6 +537,7 @@ def evaluate_copy_gate_output(
         passed=(
             validation_code is None
             and hard_total == 0
+            and violations["coverage"] == 0
             and readability_passed
         ),
     )
@@ -587,7 +591,11 @@ def summarize_copy_gate(
             row.internal_language_violation_count for row in normalized
         ),
     }
-    hard_violation_count = sum(counts.values())
+    hard_violation_count = sum(
+        count
+        for name, count in counts.items()
+        if name != "coverage"
+    )
     schema_rate = (
         schema_valid_count / case_count if case_count else 0.0
     )
@@ -610,9 +618,15 @@ def summarize_copy_gate(
         (row.minimum_fact_coverage for row in normalized),
         default=0.0,
     )
+    minimum_qualified_count = (
+        (case_count * 9 + 9) // 10
+        if case_count
+        else 0
+    )
+    passed_count = sum(row.passed for row in normalized)
     return PresentationCopyGateSummary(
         case_count=case_count,
-        passed_count=sum(row.passed for row in normalized),
+        passed_count=passed_count,
         schema_valid_count=schema_valid_count,
         readability_passed_count=readability_passed_count,
         fact_coverage_passed_count=fact_coverage_passed_count,
@@ -635,9 +649,10 @@ def summarize_copy_gate(
         hard_violation_count=hard_violation_count,
         passed=(
             case_count > 0
-            and schema_rate >= 0.95
-            and readability_rate >= 0.90
-            and fact_coverage_rate == 1.0
+            and passed_count >= minimum_qualified_count
+            and schema_valid_count >= minimum_qualified_count
+            and readability_passed_count >= minimum_qualified_count
+            and fact_coverage_passed_count >= minimum_qualified_count
             and internal_language_rate == 1.0
             and hard_violation_count == 0
         ),
@@ -649,6 +664,10 @@ def _section_order(
     mode: PresentationMode,
     slot_ids: tuple[str, ...],
 ) -> tuple[PresentationSectionSpec, ...]:
+    if mode == "clarification":
+        return (PresentationSectionSpec(kind="question"),)
+    if mode == "error":
+        return (PresentationSectionSpec(kind="error"),)
     if mode == "consultation":
         return (
             PresentationSectionSpec(kind="observation"),

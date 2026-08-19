@@ -3,10 +3,12 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 import errno
+import fcntl
 import os
 from pathlib import Path
 import sqlite3
 import stat
+from threading import Lock
 
 from app.guide.feedback.event_contracts import (
     FeedbackEventRequest,
@@ -30,6 +32,13 @@ _EXPECTED_COLUMNS = (
     ("event_json", "TEXT", True, 0),
 )
 _CORRUPT_MESSAGE = "feedback event store is invalid or unavailable"
+_INITIALIZATION_LOCKS_GUARD = Lock()
+_INITIALIZATION_LOCKS: dict[Path, Lock] = {}
+
+
+def _thread_initialization_lock(database_path: Path) -> Lock:
+    with _INITIALIZATION_LOCKS_GUARD:
+        return _INITIALIZATION_LOCKS.setdefault(database_path, Lock())
 
 
 class SqliteFeedbackEventStore:
@@ -44,7 +53,20 @@ class SqliteFeedbackEventStore:
         ).expanduser().absolute()
         self._prepare_storage()
         try:
-            self._initialize_schema()
+            with _thread_initialization_lock(self._database_path):
+                directory_fd = os.open(
+                    self._database_path.parent,
+                    os.O_RDONLY
+                    | os.O_DIRECTORY
+                    | os.O_CLOEXEC
+                    | os.O_NOFOLLOW,
+                )
+                try:
+                    fcntl.flock(directory_fd, fcntl.LOCK_EX)
+                    self._initialize_schema()
+                finally:
+                    fcntl.flock(directory_fd, fcntl.LOCK_UN)
+                    os.close(directory_fd)
         except sqlite3.Error:
             raise FeedbackEventStoreCorrupt(
                 _CORRUPT_MESSAGE

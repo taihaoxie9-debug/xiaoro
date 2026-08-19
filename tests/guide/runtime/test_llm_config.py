@@ -31,7 +31,7 @@ def _clear_environment(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv(name, raising=False)
 
 
-def test_unified_router_defaults_disabled(
+def test_unified_router_defaults_enabled(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.delenv(
@@ -39,7 +39,7 @@ def test_unified_router_defaults_disabled(
         raising=False,
     )
 
-    assert GuideRuntimeFlags.from_environment().unified_router is False
+    assert GuideRuntimeFlags.from_environment().unified_router is True
 
 
 def test_unified_router_accepts_explicit_true(
@@ -48,6 +48,14 @@ def test_unified_router_accepts_explicit_true(
     monkeypatch.setenv("GUIDE_UNIFIED_ROUTER_ENABLED", "true")
 
     assert GuideRuntimeFlags.from_environment().unified_router is True
+
+
+def test_unified_router_accepts_explicit_false(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("GUIDE_UNIFIED_ROUTER_ENABLED", "false")
+
+    assert GuideRuntimeFlags.from_environment().unified_router is False
 
 
 def test_unified_router_rejects_unknown_boolean(

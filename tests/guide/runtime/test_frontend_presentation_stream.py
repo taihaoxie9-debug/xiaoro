@@ -401,3 +401,30 @@ def test_chat_skips_legacy_consultation_panel_when_contract_exists() -> None:
         "                    shouldRenderLegacyConsultationUpdates"
         in stream
     )
+
+
+def test_chat_skips_legacy_image_panels_when_contract_exists() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    stream = html[
+        html.index("const flushDeferredPanels = () =>"):
+        html.index("const resolveTypewriterIfIdle")
+    ]
+
+    assert (
+        "const guideOwnsPresentation = (\n"
+        "                    GUIDE_RUNTIME_MODE\n"
+        "                    && Boolean(deferredPanels.presentationContract)\n"
+        "                );"
+    ) in stream
+    assert (
+        "if (\n"
+        "                    !guideOwnsPresentation\n"
+        "                    && deferredPanels.imageObservations.length"
+    ) in stream
+    assert (
+        "if (\n"
+        "                    !guideOwnsPresentation\n"
+        "                    && deferredPanels.suitabilityData"
+    ) in stream
+    assert "deferredPanels.imageObservations = [];" in stream
+    assert "deferredPanels.suitabilityData = null;" in stream

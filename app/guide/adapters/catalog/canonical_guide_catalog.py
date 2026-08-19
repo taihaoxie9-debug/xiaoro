@@ -182,6 +182,14 @@ class CanonicalGuideCatalog:
             and category_field.resolved_state == "known"
             else None
         )
+        efficacy, efficacy_state = _tuple_value(
+            product.fields.get("efficacy")
+        )
+        skin_field = product.fields.get("suitable_skin")
+        skin, skin_state = _tuple_value(skin_field)
+        present, present_state = _tuple_value(
+            product.fields.get("ingredients_present")
+        )
         warnings: list[str] = []
         if name is None or name.strip() in _UNUSABLE_NAMES:
             warnings.append("product_identity_unusable")
@@ -205,6 +213,12 @@ class CanonicalGuideCatalog:
             brand=brand,
             category=category,
             price=price,
+            efficacy=efficacy,
+            efficacy_state=efficacy_state.value,
+            suitable_skin=skin,
+            suitable_skin_state=skin_state.value,
+            ingredients_present=present,
+            ingredients_present_state=present_state.value,
             image_url=asset.image_url if asset is not None else None,
             detail_url=asset.detail_url if asset is not None else None,
             platform=asset.platform if asset is not None else None,

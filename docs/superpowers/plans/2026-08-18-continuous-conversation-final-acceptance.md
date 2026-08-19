@@ -1,10 +1,15 @@
 # Continuous Conversation Final Acceptance Implementation Plan
 
+> **Superseded for execution on 2026-08-19:** The remaining unchecked steps
+> in this document are replaced by
+> `docs/superpowers/plans/2026-08-19-overnight-final-acceptance.md`.
+> This file remains architecture and historical evidence only.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `executing-plans` to implement this plan task-by-task. The main agent may dispatch read-only or isolated sub-agents for parallel evidence collection, but the main agent must personally review every responsibility decision, production edit, real-API run, and final acceptance result. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Close the Unified Router multi-turn mixed conversation chain with truthful layer-by-layer diagnosis, real semantic and copywriter qualification, an independent `20 x 5` blind exam, and three real five-turn browser trajectories using the approved G inline card.
 
-**Architecture:** Keep the current "model translates, code judges" architecture. Repair only the earliest incorrect boundary: semantic context/prompt, source admission, Canonical/image binding, Unified Router, state commit, processor execution, data coverage, presentation contract, or browser renderer. Images remain context and identity inputs to the normal recommendation, product-knowledge, suitability, and comparison processors rather than a separate thin answer system.
+**Architecture:** Keep the current "model translates, code judges" architecture. The model reduces unlimited user phrasing to finite semantic parent concepts; code validates source grounding, maps each parent concept to finite Canonical data concepts, executes typed state transitions, and judges product evidence. Repair only the earliest incorrect boundary: semantic context/prompt, source admission, Canonical/image binding, Unified Router, state commit, processor execution, data coverage, presentation contract, or browser renderer. Images remain context and identity inputs to the normal recommendation, product-knowledge, suitability, and comparison processors rather than a separate thin answer system.
 
 **Tech Stack:** Python 3.11, Pydantic v2, FastAPI, SQLite CAS conversation state, typed SSE, DeepSeek/SiliconFlow-compatible JSON providers, pytest, Node.js DOM contract tests, Playwright Chromium.
 
@@ -81,6 +86,82 @@ qualification. Before the next provider call:
 Cross-session leakage and state corruption remain zero-tolerance failures.
 The existing cross-subject instrumentation may remain in code, but deliberate
 third-person isolation is no longer an acceptance target.
+
+### Semantic Parent-Concept And Anti-Patch Amendment (2026-08-18)
+
+This amendment governs every remaining semantic repair and supersedes any
+local strategy that recognizes one user wording in order to fix one fixture.
+
+The required path is:
+
+```text
+unlimited user wording
+  -> model translates to a finite semantic parent concept plus source-grounded target
+  -> code maps the parent concept to finite Canonical data concepts
+  -> code validates, transitions state, and judges product facts
+```
+
+Examples:
+
+```text
+"保湿" / "补水" / "想润一点" -> hydration
+product evidence such as "水润" / "锁水" / "润泽" -> hydration descendants
+
+"不要酒精" / "避开乙醇" / "排除酒精" -> ingredient_exclusion(alcohol)
+product facts "乙醇" / "alcohol" -> alcohol evidence identity
+```
+
+The model owns translation from wording to a finite parent concept. The code
+owns source grounding, Canonical target normalization, state legality,
+arithmetic, product identity, evidence evaluation, and public rendering. The
+model never owns product IDs, candidate IDs, product facts, scores, or final
+state commits.
+
+The following are prohibited as permanent semantic fixes:
+
+```text
+adding a regex, keyword, or one-off phrase branch merely because a fixed or
+blind utterance used that wording
+making a product ID, fixture ID, or particular sentence a special case
+using exact-language parsing to override a valid source-grounded model parent
+concept in the provider-backed path
+```
+
+The following remain legitimate deterministic infrastructure:
+
+```text
+numeric token conversion and bound arithmetic after the model nominates a
+source-grounded budget atom
+source-span uniqueness checks
+controlled Canonical product aliases and brand-to-identity matching
+candidate/image ordinal binding
+typed state transition validation and data-evidence evaluation
+```
+
+Before any further real semantic call, perform and record a patch-layer audit:
+
+1. classify every current repair as `keep`, `migrate_to_parent_concept`, or
+   `remove`;
+2. remove confirmed wording-level patches before they are relied on by fixed
+   qualification;
+3. repair the underlying parent-concept bridge with RED -> GREEN tests;
+4. replay the frozen capture with zero API;
+5. continue fixed qualification only after the replay is green.
+
+For every future failed turn, the mandatory stop protocol is:
+
+```text
+1. freeze the current-message text, typed context, raw model output, and
+   terminal trace;
+2. determine whether the model selected the wrong parent concept, the code
+   failed to admit/map a correct parent concept, state/router execution was
+   wrong, or Canonical evidence is absent or conflicting;
+3. name exactly one earliest responsible layer;
+4. write a RED test that varies wording while preserving the same parent
+   concept and expected data behavior;
+5. only then make the smallest parent-concept, data-contract, or state-layer
+   repair; never special-case the observed sentence, product ID, or token.
+```
 
 ## 2. Final Product Decisions
 
@@ -192,7 +273,7 @@ format repair retry: 0
 Maximum attempts in this plan:
 
 ```text
-semantic calls: 325
+semantic calls: 545
 copywriter calls: 55
 ```
 
@@ -337,7 +418,7 @@ Create canonical JSON containing:
   "browser_trajectory_count": 3,
   "browser_turn_count": 15,
   "copywriter_case_count": 20,
-  "semantic_call_cap": 325,
+  "semantic_call_cap": 545,
   "copywriter_call_cap": 55,
   "estimated_cost_stop_cny": "18.00",
   "provider_retry_count": 0,
@@ -1206,8 +1287,45 @@ Any fallback or adapter failure fails this task.
   `docs/audits/continuous-conversation/backend-fixed-20x5-real-v2.json`
 - Create:
   `docs/audits/continuous-conversation/backend-fixed-20x5-replay-v2.json`
+- Create:
+  `docs/audits/continuous-conversation/semantic-patch-audit-v1.md`
 - Modify:
   `docs/audits/continuous-conversation/failure-ledger.md`
+
+- [ ] **Step 0: Audit semantic patches before resuming paid qualification**
+
+Classify every uncommitted semantic-related repair and every relevant
+pre-existing exact-language branch as one of:
+
+```text
+keep: deterministic numeric conversion, source grounding, Canonical identity,
+ordinal binding, state legality, or evidence evaluation
+migrate_to_parent_concept: the branch interprets natural-language intent that
+the model should normalize to a finite parent concept
+remove: a fixed-utterance, product-specific, or phrase-specific special case
+```
+
+The audit must explicitly cover:
+
+```text
+exact_parsing exclusion, inclusion, efficacy, skin, and revision wording
+colloquial budget wording
+pending reply affirmation/rejection wording
+TurnMeaning -> executable compiler parent-concept projection
+selection concept and product-evidence descendant mapping
+controlled product aliases versus uncontrolled text aliases
+```
+
+For every `migrate_to_parent_concept` item, state the destination parent
+concept, Canonical target normalization, state-transition owner, and data
+field contract. Remove confirmed `remove` items before the next paid call.
+Do not merely widen an accepted wording list.
+
+For a hard ingredient exclusion, a fixture may expect a nonempty result only
+when Canonical `verified_absences` contains an approved matching entity. When
+that evidence is unknown, the expected result is zero cards. A later
+follow-up may name a product only after the user withdraws the exclusion and
+a new displayed batch exists.
 
 - [ ] **Step 1: Run focused zero-API regression**
 
@@ -1588,6 +1706,7 @@ The closure must state:
 ```text
 what failed at each earliest layer
 which issues were engine, model, fixture, data, gate, or presentation defects
+semantic patch-audit classification and every removed or migrated phrase rule
 fixed 20 x 5 result
 copywriter 20/20 result
 independent blind 20 x 5 result

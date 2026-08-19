@@ -8,7 +8,7 @@
     <script>
         window.feather = window.feather || { replace() {} };
     </script>
-    <script src="/static/guide-presentation.js?v=48274ce9d428"></script>
+    <script src="/static/guide-presentation.js?v=0f3bef5e11bb"></script>
     <style>
         :root {
             --primary: #B88F9D;
@@ -1504,6 +1504,15 @@
             color: var(--text-primary);
         }
 
+        .guide-presentation-product h3 {
+            color: var(--primary-deep);
+            font-weight: 700;
+        }
+
+        .guide-product-advisor-reason strong {
+            color: var(--primary-deep);
+        }
+
         .guide-presentation-observation {
             border-left: 0;
         }
@@ -1548,15 +1557,20 @@
             border: 0;
             border-bottom: 1px solid currentColor;
             background: transparent;
-            color: var(--primary-deep);
+            color: inherit;
             font: inherit;
             cursor: pointer;
         }
 
-        .guide-product-ref:hover,
+        .guide-product-ref:hover {
+            color: var(--primary);
+        }
+
         .guide-product-ref:focus-visible {
             color: var(--primary);
-            outline: none;
+            outline: 2px solid currentColor;
+            outline-offset: 2px;
+            border-radius: 2px;
         }
 
         .guide-presentation-section .inline-product-image {
@@ -1675,7 +1689,9 @@
 
         @media (prefers-reduced-motion: reduce) {
             .guide-thinking-pipeline,
-            .guide-thinking-markers span {
+            .guide-thinking-markers span,
+            .preview-item,
+            .recommendation-card {
                 transition: none;
                 animation: none;
             }
@@ -2187,6 +2203,7 @@
         /* 输入区域 */
         .chat-input-area {
             padding: 24px 32px;
+            padding-bottom: calc(24px + env(safe-area-inset-bottom));
             background: linear-gradient(to top, #FFFFFF 80%, transparent);
         }
 
@@ -2200,7 +2217,9 @@
             display: flex;
             align-items: flex-end;
             gap: 8px;
-            transition: all 0.3s ease;
+            transition: border-color 0.3s ease,
+                background-color 0.3s ease,
+                box-shadow 0.3s ease;
         }
 
         .input-wrapper:focus-within {
@@ -2220,7 +2239,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease, color 0.3s ease;
             flex-shrink: 0;
         }
 
@@ -2253,7 +2272,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease;
             flex-shrink: 0;
         }
 
@@ -2993,7 +3012,12 @@
             .chat-messages { padding: 16px 12px; }
             .message-bubble { max-width: 90%; }
             .chat-header { padding: 12px 16px; }
-            .chat-input-area { padding: 16px; }
+            .chat-input-area {
+                padding: 16px;
+                padding-bottom: calc(
+                    16px + env(safe-area-inset-bottom)
+                );
+            }
             .input-wrapper { padding: 6px; }
             .hero-note { padding: 14px; }
             .product-mini-card { padding: 10px; }
@@ -3134,14 +3158,14 @@
                     <button class="input-action-btn" id="imageUploadBtn" title="上传图片" aria-label="上传图片">
                         <i data-feather="image" style="width: 18px; height: 18px;"></i>
                     </button>
-                    <textarea class="chat-textarea" id="chatInput" placeholder="比如：油敏肌想找夏天通勤防晒，预算 300 以内" rows="1"></textarea>
-                    <button class="send-btn" id="sendBtn">
+                    <textarea class="chat-textarea" id="chatInput" name="message" aria-label="输入消息" autocomplete="off" placeholder="比如：油敏肌想找夏天通勤防晒，预算 300 以内" rows="1"></textarea>
+                    <button class="send-btn" id="sendBtn" type="button" aria-label="发送消息">
                         <i data-feather="arrow-up" style="width: 16px; height: 16px;"></i>
                     </button>
                 </div>
 
                 <!-- 隐藏的文件输入 -->
-                <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp" multiple style="display: none;">
+                <input type="file" id="imageInput" name="images" aria-label="选择商品图片" accept="image/jpeg,image/png,image/webp" multiple style="display: none;">
             </div>
         </main>
 
@@ -5306,6 +5330,9 @@
             const image = document.createElement('img');
             image.src = dataUrl;
             image.alt = `图片预览：${fileName}`;
+            image.width = 60;
+            image.height = 60;
+            image.decoding = 'async';
             const remove = document.createElement('button');
             remove.className = 'preview-remove';
             remove.type = 'button';
@@ -6050,7 +6077,8 @@
                             typingDiv,
                             {
                                 mode: 'recommend',
-                                beforeNode: pendingBubble
+                                beforeNode: pendingBubble,
+                                autoAdvanceMs: 1000
                             }
                         );
                 }
@@ -6956,6 +6984,10 @@
 
             const flushDeferredPanels = () => {
                 if (!isActiveChatRequest(requestContext)) return;
+                const guideOwnsPresentation = (
+                    GUIDE_RUNTIME_MODE
+                    && Boolean(deferredPanels.presentationContract)
+                );
                 const shouldRenderLegacyConsultationUpdates = (
                     deferredPanels.consultationUpdates.length
                     && !deferredPanels.presentationContract
@@ -6971,18 +7003,24 @@
                     });
                 }
                 deferredPanels.consultationUpdates = [];
-                if (deferredPanels.imageObservations.length) {
+                if (
+                    !guideOwnsPresentation
+                    && deferredPanels.imageObservations.length
+                ) {
                     deferredPanels.imageObservations.forEach(observation =>
                         displayImageObservation(observation)
                     );
-                    deferredPanels.imageObservations = [];
                 }
-                if (deferredPanels.suitabilityData) {
+                deferredPanels.imageObservations = [];
+                if (
+                    !guideOwnsPresentation
+                    && deferredPanels.suitabilityData
+                ) {
                     displayImageSuitability(
                         deferredPanels.suitabilityData
                     );
-                    deferredPanels.suitabilityData = null;
                 }
+                deferredPanels.suitabilityData = null;
                 if (
                     deferredPanels.products.length
                     || deferredPanels.cardDisplayContract
@@ -7014,8 +7052,7 @@
                     deferredPanels.pitfalls = [];
                 }
                 if (
-                    GUIDE_RUNTIME_MODE
-                    && deferredPanels.presentationContract
+                    guideOwnsPresentation
                 ) {
                     deferredPanels.scenarioEvidence = null;
                     deferredPanels.merchantClaims = null;
@@ -7711,13 +7748,53 @@
         function buildDetailedProductReason(p, index) {
             const bits = [];
             const rawReason = (p.rerank_reason || '').trim();
-            if (rawReason && rawReason !== '保持原排序') bits.push(rawReason.replace(/^价格约¥?\d+[.\d]*，/g, '').trim());
-
-            const price = Number(p.price);
-            if (Number.isFinite(price) && price > 0) {
-                bits.push(`参考价约 ${formatCurrency(price)}`);
+            const cleanedReason = rawReason
+                .replace(/^价格约¥?\d+[.\d]*，/g, '')
+                .trim();
+            if (
+                cleanedReason
+                && cleanedReason !== '保持原排序'
+                && !/(参考价|实时价|预算|价格|符合预算)/.test(cleanedReason)
+            ) {
+                bits.push(cleanedReason);
             }
 
+            const matched = Array.isArray(p.matched_efficacies)
+                ? p.matched_efficacies.filter(Boolean).slice(0, 3)
+                : [];
+            if (matched.length) {
+                bits.push(`已审核${matched.join('、')}功效方向`);
+            }
+            const knownFacts = Array.isArray(p.category_facts)
+                ? p.category_facts.filter(fact => (
+                    fact
+                    && fact.state === 'known'
+                    && fact.value != null
+                ))
+                : [];
+            const factValue = fieldKey => {
+                const fact = knownFacts.find(item => (
+                    item.field_key === fieldKey
+                ));
+                if (!fact) return '';
+                return formatCategoryFactValue(fact);
+            };
+            const efficacy = factValue('efficacy');
+            if (efficacy && !matched.length) {
+                bits.push(`功效方向：${efficacy}`);
+            }
+            const ingredients = factValue('ingredients_present');
+            if (ingredients) {
+                bits.push(`核心成分：${ingredients}`);
+            }
+            const skin = factValue('suitable_skin');
+            if (skin) {
+                bits.push(`适合肤质：${skin}`);
+            }
+            const texture = factValue('texture');
+            if (texture) {
+                bits.push(`肤感：${texture}`);
+            }
             const desc = (p.description || '').replace(/\s+/g, ' ').trim();
             if (desc && bits.length < 2) {
                 const sentence = desc
@@ -7727,15 +7804,10 @@
                 if (sentence) bits.push(sentence);
             }
 
-            const linkInfo = getProductLinkInfo(p);
-            if (linkInfo.hasLink && bits.length < 3) {
-                bits.push(linkInfo.isReal ? `${linkInfo.platform}详情可查实时价` : `${linkInfo.platform}入口可核对`);
-            }
-
             const fallbacks = [
-                '更贴近你刚才说的肤质和使用场景。',
-                '和第一款路线不同，可以结合价格和肤感取舍。',
-                '现有信息不多，先结合实际肤感判断。'
+                '可结合品牌主打、核心成分和肤感继续比较。',
+                '和第一款路线不同，可以结合功效与肤感取舍。',
+                '现有信息不多，先结合品牌主打和实际肤感判断。'
             ];
             if (!bits.length) bits.push(
                 fallbacks[index] || '更贴近你刚才说的需求。'
@@ -7752,7 +7824,7 @@
             const label = String(product?.suitable_skin || '');
             if (label === '已确认适配') return '明确适配';
             if (label === '肤质数据缺失') return '适配待确认';
-            return '未限定肤质';
+            return '';
         }
 
         function displayImageObservation(observation) {
@@ -8290,6 +8362,8 @@
                          data-guide-product-id="${escapeHtml(productId)}"
                          data-feedback-product-id="${escapeHtml(productId)}">
                         <button class="recommendation-save ${isFavorite ? 'active' : ''}"
+                                type="button"
+                                aria-label="${isFavorite ? '取消收藏' : '收藏'} ${escapeHtml(p.name || '推荐商品')}"
                                 data-favorite-product-id="${escapeHtml(productId)}">
                             <i data-feather="${isFavorite ? 'heart' : 'bookmark'}" style="width:14px;height:14px;"></i>
                         </button>
@@ -8297,6 +8371,10 @@
                         <img src="${getProductImageAttribute(p, index % 2 ? 'blue' : 'rose')}"
                              class="recommendation-image"
                              alt="${escapeHtml(p.name || '推荐商品')}"
+                             width="180"
+                             height="118"
+                             loading="lazy"
+                             decoding="async"
                              onerror="this.src='${buildProductPlaceholder('商品', index % 2 ? 'blue' : 'rose')}'">
                         <div class="recommendation-body">
                             <div class="recommendation-name">${escapeHtml(p.name || '推荐商品')}</div>
@@ -8318,7 +8396,7 @@
                                     <div class="recommendation-price">${formatProductPrice(p)}</div>
                                     ${priceMeta ? `<div class="recommendation-price-meta">${priceMeta}</div>` : ''}
                                 </div>
-                                <span class="recommendation-score">${escapeHtml(evidenceLabel)}</span>
+                                ${evidenceLabel ? `<span class="recommendation-score">${escapeHtml(evidenceLabel)}</span>` : ''}
                             </div>
                             <div class="recommendation-reason"><strong>推荐理由：</strong>${escapeHtml(reason)}</div>
                             ${linkInfo.hasLink ? `<a class="recommendation-link" href="${escapeHtml(linkInfo.url)}" data-detail-url="${escapeHtml(linkInfo.url)}" target="_blank" rel="noopener">${escapeHtml(linkLabel)}</a>` : ''}

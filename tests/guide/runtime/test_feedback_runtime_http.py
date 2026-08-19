@@ -282,6 +282,7 @@ def test_runtime_stream_does_not_publish_target_before_terminal_is_final(
     monkeypatch,
 ) -> None:
     monkeypatch.setenv("XIAORO_GUIDE_STATE_DIR", str(tmp_path))
+    monkeypatch.setenv("GUIDE_UNIFIED_ROUTER_ENABLED", "false")
     app = create_app(
         orchestrator=_EndThenErrorOrchestrator(
             build_runtime_orchestrator()

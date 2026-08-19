@@ -1310,6 +1310,19 @@ def test_exclusion_known_present_is_excluded() -> None:
     assert evaluation(result, 1).disposition == "excluded_exclusion_match"
 
 
+def test_exclusion_matches_canonical_ingredient_descendant() -> None:
+    result = decide_with([
+        _suncare_facts(
+            1,
+            ingredients=("水", "乙醇"),
+            absences=(),
+        )
+    ], exclude="酒精")
+
+    assert result.ordered_product_ids == []
+    assert evaluation(result, 1).disposition == "excluded_exclusion_match"
+
+
 @pytest.mark.parametrize(
     "cue",
     ["不要有", "不要含", "不含", "不能有", "无"],

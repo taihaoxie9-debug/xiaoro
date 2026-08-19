@@ -13,7 +13,7 @@ from app.guide.adapters.image.safe_image_input import (
     UntrustedImageInput,
 )
 from app.guide.application.pending_turn import (
-    classify_pending_reply,
+    resolve_semantic_pending_reply,
     resume_pending_recommendation,
 )
 from app.guide.application.query_context import (
@@ -65,6 +65,9 @@ from tools.guide_gates.continuous_conversation_gate import (
     ContinuousRuntimeTurnResult,
     ContinuousTrajectory,
 )
+from tools.guide_gates.continuous_conversation_mechanical_truth import (
+    RuntimeImageFixture,
+)
 from tools.guide_gates.unified_router_gate import (
     RouteExpectation,
     detect_cross_session_leak,
@@ -73,15 +76,27 @@ from tools.guide_gates.unified_router_gate import (
 
 
 _IMAGE_FIXTURES = {
-    "product-53-front": (
-        "app/static/images/products/taobao_v3_572910260362.png",
-        "image/png",
+    "product-53-front": RuntimeImageFixture(
+        product_id=53,
+        relative_path=(
+            "app/static/images/products/"
+            "taobao_v3_572910260362.png"
+        ),
+        media_type="image/png",
     ),
-    "product-55-front": (
-        "app/static/images/products/tmall_v3_746513552108.png",
-        "image/png",
+    "product-55-front": RuntimeImageFixture(
+        product_id=55,
+        relative_path=(
+            "app/static/images/products/"
+            "tmall_v3_746513552108.png"
+        ),
+        media_type="image/png",
     ),
 }
+
+
+def runtime_image_fixtures() -> dict[str, RuntimeImageFixture]:
+    return dict(_IMAGE_FIXTURES)
 
 
 class ContinuousLocalRuntime:
@@ -206,6 +221,7 @@ class ContinuousLocalRuntime:
             message=message,
             meaning=meaning,
             topic=compiled.topic,
+            active_topic=context.active_topic,
             concept_catalog=self._concept_catalog,
         )
         self._failure_layer = (
@@ -242,8 +258,9 @@ class ContinuousLocalRuntime:
         pending_reply = None
         pending_reply_kind = None
         if snapshot is not None and snapshot.pending_turn is not None:
-            pending_reply = classify_pending_reply(
-                message=message,
+            pending_reply = resolve_semantic_pending_reply(
+                meaning=meaning,
+                understanding=compiled,
                 pending=snapshot.pending_turn,
             )
             pending_reply_kind = pending_reply.kind
@@ -432,15 +449,15 @@ class ContinuousLocalRuntime:
         images: list[UntrustedImageInput] = []
         for fixture_id in image_fixture_ids:
             try:
-                relative_path, media_type = _IMAGE_FIXTURES[fixture_id]
+                fixture = _IMAGE_FIXTURES[fixture_id]
             except KeyError as exc:
                 raise ValueError(
                     f"unknown image fixture: {fixture_id}"
                 ) from exc
-            path = self._repo_root / relative_path
+            path = self._repo_root / fixture.relative_path
             images.append(UntrustedImageInput(
                 file_name=path.name,
-                declared_media_type=media_type,
+                declared_media_type=fixture.media_type,
                 content=path.read_bytes(),
             ))
         receipt = self._image_bundle_service.create(
@@ -472,6 +489,7 @@ class ContinuousLocalRuntime:
             message=message,
             meaning=meaning,
             topic=compiled.topic,
+            active_topic=context.active_topic,
             concept_catalog=self._concept_catalog,
         )
 

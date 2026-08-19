@@ -26,6 +26,7 @@ from app.guide.application.query_context import (
     task_plan_to_query_context,
 )
 from app.guide.application.pending_turn import (
+    PendingReply,
     build_pending_turn,
     classify_pending_reply,
     resume_pending_recommendation,
@@ -105,8 +106,8 @@ from app.guide.presentation.presentation_packet import (
 )
 from app.guide.presentation.ports import PresentationFactPort
 from app.guide.presentation.response_planning import (
+    build_product_card,
     build_response_plan,
-    project_public_category_facts,
 )
 from app.guide.presentation.skin_revision_response import (
     build_skin_revision_message,
@@ -165,6 +166,7 @@ from app.guide.retrieval.product_name_resolver import (
     ProductResolutionIssue,
     ProductNameResolver,
     ResolvedProductBinding,
+    merge_batch_and_specific_bindings,
 )
 from app.guide.retrieval.pitfall_contracts import TypedPitfall
 from app.guide.retrieval.product_evidence_retrieval import (
@@ -183,6 +185,9 @@ from app.guide.retrieval.general_knowledge_retrieval import (
 from app.guide.retrieval.review_reader import ReviewEvidenceReader
 from app.guide.retrieval.merchant_claim_reader import MerchantClaimReader
 from app.guide.retrieval.review_summary import build_review_summary
+from app.guide.retrieval.review_summary_contracts import (
+    ReviewSummaryResult,
+)
 from app.guide.retrieval.scenario_pitfalls import (
     project_scenario_pitfalls,
 )
@@ -219,6 +224,8 @@ from app.guide.understanding.text_understanding import (
 )
 
 logger = logging.getLogger(__name__)
+
+RevisionKind = Literal["budget", "skin", "context"]
 
 
 class TextRecommendationOrchestrator:
@@ -291,15 +298,13 @@ class TextRecommendationOrchestrator:
             turn.message,
             understanding,
         )
-        product_resolution = self._resolve_product_mentions(
-            turn.message,
-            understanding.product_mentions,
-        )
-        if not understanding.product_mentions:
-            product_resolution = self._resolve_reference_products(
-                understanding.references,
+        product_resolution = (
+            self._resolve_product_mentions_or_references(
+                turn.message,
+                understanding,
                 snapshot=snapshot,
             )
+        )
         task = plan_task(
             understanding,
             resolved_product_ids=product_resolution.product_ids,
@@ -354,6 +359,22 @@ class TextRecommendationOrchestrator:
 
     def stream(self, turn: UserTurn) -> Iterator[SseEvent]:
         yield from self._stream_entry(turn, self._stream_locked)
+
+    def stream_pending_reply(
+        self,
+        turn: UserTurn,
+        *,
+        reply: PendingReply,
+    ) -> Iterator[SseEvent]:
+        if type(reply) is not PendingReply:
+            raise TypeError("reply must be an exact PendingReply")
+        yield from self._stream_entry(
+            turn,
+            lambda locked_turn: self._stream_pending_reply_locked(
+                locked_turn,
+                reply=reply,
+            ),
+        )
 
     def stream_text_vertical(
         self,
@@ -414,16 +435,11 @@ class TextRecommendationOrchestrator:
             message,
             understanding,
         )
-        resolution = self._resolve_product_mentions(
+        return self._resolve_product_mentions_or_references(
             message,
-            recovered.product_mentions,
+            recovered,
+            snapshot=snapshot,
         )
-        if not recovered.product_mentions:
-            resolution = self._resolve_reference_products(
-                recovered.references,
-                snapshot=snapshot,
-            )
-        return resolution
 
     def stream_understanding(
         self,
@@ -604,46 +620,7 @@ class TextRecommendationOrchestrator:
                 message=turn.message,
                 pending=snapshot.pending_turn,
             )
-            if pending_reply.kind == "replace_task":
-                assert pending_reply.replacement_category is not None
-                replacement_task = TaskPlan(
-                    mode="recommend",
-                    referenced_image_ids=[],
-                    constraints=[
-                        CategoryConstraint(
-                            value=TopicCode(
-                                pending_reply.replacement_category
-                            )
-                        )
-                    ],
-                    references=[],
-                    product_mentions=[],
-                    product_ids=[],
-                    required_evidence=["canonical_product"],
-                    question_meaning=turn.message,
-                )
-                yield StageEvent(
-                    data=StageData(
-                        stage="understanding",
-                        summary="已取消上一轮待确认任务并切换品类。",
-                    )
-                )
-                yield IntentEvent(
-                    data=IntentData(
-                        mode="recommend",
-                        category_profile=_task_category_profile(
-                            replacement_task
-                        ),
-                    )
-                )
-                yield from self._stream_recommendation(
-                    turn,
-                    snapshot=snapshot,
-                    task=replacement_task,
-                    revision_kind=None,
-                )
-                return
-            yield from self._stream_pending_reply(
+            yield from self._stream_pending_reply_or_replace(
                 turn,
                 snapshot=snapshot,
                 reply=pending_reply,
@@ -728,6 +705,83 @@ class TextRecommendationOrchestrator:
         yield from self._stream_planned_text_or_stale(
             turn,
             snapshot=snapshot,
+        )
+
+    def _stream_pending_reply_locked(
+        self,
+        turn: UserTurn,
+        *,
+        reply: PendingReply,
+    ) -> Iterator[SseEvent]:
+        snapshot = self._conversation_state.load(turn.session_id)
+        if (
+            snapshot is None
+            or snapshot.pending_turn is None
+            or turn.conversation_version != snapshot.version
+        ):
+            yield from self._stream_planned_text_or_stale(
+                turn,
+                snapshot=snapshot,
+            )
+            return
+        if snapshot.profile_owner != turn.profile_owner:
+            raise ConversationStateConflict(turn.session_id)
+        yield from self._stream_pending_reply_or_replace(
+            turn,
+            snapshot=snapshot,
+            reply=reply,
+        )
+
+    def _stream_pending_reply_or_replace(
+        self,
+        turn: UserTurn,
+        *,
+        snapshot: ConversationSnapshot,
+        reply: PendingReply,
+    ) -> Iterator[SseEvent]:
+        if reply.kind == "replace_task":
+            assert reply.replacement_category is not None
+            replacement_task = TaskPlan(
+                mode="recommend",
+                referenced_image_ids=[],
+                constraints=[
+                    CategoryConstraint(
+                        value=TopicCode(
+                            reply.replacement_category
+                        )
+                    )
+                ],
+                references=[],
+                product_mentions=[],
+                product_ids=[],
+                required_evidence=["canonical_product"],
+                question_meaning=turn.message,
+            )
+            yield StageEvent(
+                data=StageData(
+                    stage="understanding",
+                    summary="已取消上一轮待确认任务并切换品类。",
+                )
+            )
+            yield IntentEvent(
+                data=IntentData(
+                    mode="recommend",
+                    category_profile=_task_category_profile(
+                        replacement_task
+                    ),
+                )
+            )
+            yield from self._stream_recommendation(
+                turn,
+                snapshot=snapshot,
+                task=replacement_task,
+                revision_kind=None,
+            )
+            return
+        yield from self._stream_pending_reply(
+            turn,
+            snapshot=snapshot,
+            reply=reply,
         )
 
     def _stream_pending_reply(
@@ -895,49 +949,26 @@ class TextRecommendationOrchestrator:
                 issue=product_resolution_issue,
             )
             if product_bindings_override is not None
-            else self._resolve_product_mentions(
+            else self._resolve_product_mentions_or_references(
                 turn.message,
-                understanding.product_mentions,
+                understanding,
+                snapshot=snapshot,
             )
         )
-        if product_bindings_override is None:
-            if (
-                not understanding.product_mentions
-                and not (
-                    allow_unbound_references
-                    and snapshot is None
-                )
-            ):
-                product_resolution = self._resolve_reference_products(
-                    understanding.references,
-                    snapshot=snapshot,
-                )
+        if (
+            product_bindings_override is None
+            and allow_unbound_references
+            and snapshot is None
+            and not understanding.product_mentions
+        ):
+            product_resolution = ProductMentionResolution(
+                bindings=(),
+                issue=None,
+            )
         if (
             route_decision is not None
-            and route_decision.processor == "clarification"
+            and route_decision.processor != "clarification"
         ):
-            yield IntentEvent(data=IntentData(mode="clarify"))
-            yield ClarifyEvent(
-                data=ClarifyData(
-                    question=(
-                        route_decision.clarification
-                        or "请明确这次要查看的商品或任务。"
-                    ),
-                    clarification_code=(
-                        route_decision.clarification_code
-                        or ClarificationCode.REFERENCE
-                    ),
-                )
-            )
-            yield EndEvent(
-                data=EndData(
-                    conversation_version=self._snapshot_version(
-                        snapshot
-                    )
-                )
-            )
-            return
-        if route_decision is not None:
             expected_route_modes = {
                 "recommendation": {
                     "recommendation",
@@ -992,7 +1023,54 @@ class TextRecommendationOrchestrator:
                 task,
                 snapshot.session_profile,
             )
-        revision_kind: Literal["budget", "skin"] | None = None
+        if (
+            route_decision is not None
+            and route_decision.processor == "clarification"
+        ):
+            pending_turn = (
+                build_pending_turn(
+                    message=turn.message,
+                    source_conversation_version=(
+                        turn.conversation_version
+                    ),
+                    task=task,
+                )
+                if task.mode == "clarify"
+                else None
+            )
+            yield IntentEvent(data=IntentData(mode="clarify"))
+            yield ClarifyEvent(
+                data=ClarifyData(
+                    question=(
+                        route_decision.clarification
+                        or (
+                            task.clarification
+                            if task.mode == "clarify"
+                            else None
+                        )
+                        or "请明确这次要查看的商品或任务。"
+                    ),
+                    clarification_code=(
+                        route_decision.clarification_code
+                        or (
+                            task.clarification_code
+                            if task.mode == "clarify"
+                            else None
+                        )
+                        or ClarificationCode.REFERENCE
+                    ),
+                    pending_turn=pending_turn,
+                )
+            )
+            yield EndEvent(
+                data=EndData(
+                    conversation_version=self._snapshot_version(
+                        snapshot
+                    )
+                )
+            )
+            return
+        revision_kind: RevisionKind | None = None
         if (
             route_decision is not None
             and route_decision.continuity == "correct"
@@ -1009,15 +1087,24 @@ class TextRecommendationOrchestrator:
                 revision_kind = "budget"
             elif replaced_targets == {"skin"}:
                 revision_kind = "skin"
+        if (
+            revision_kind is None
+            and snapshot is not None
+            and snapshot.query_context is not None
+            and route_decision is not None
+            and route_decision.processor == "recommendation"
+            and route_decision.continuity in {"supplement", "correct"}
+            and task.similarity_anchor_product_id is None
+        ):
+            revision_kind = "context"
         yield IntentEvent(
             data=IntentData(
                 mode=(
-                    "revise"
-                    if revision_kind is not None
+                    "image_recommend"
+                    if task.similarity_anchor_product_id is not None
                     else (
-                        "image_recommend"
-                        if task.similarity_anchor_product_id
-                        is not None
+                        "revise"
+                        if revision_kind is not None
                         else task.mode
                     )
                 ),
@@ -1209,6 +1296,14 @@ class TextRecommendationOrchestrator:
             snapshot=snapshot,
             task=task,
             revision_kind=revision_kind,
+            suppressed_constraint_parents=frozenset(
+                item.parent_concept
+                for item in understanding.constraint_changes
+                if (
+                    item.requested_change == "remove"
+                    and item.parent_concept in {"efficacy", "skin"}
+                )
+            ),
         )
 
     def _stream_general_knowledge_task(
@@ -1374,6 +1469,17 @@ class TextRecommendationOrchestrator:
             product_ids=tuple(task.product_ids),
             constraints=task.constraints,
         )
+        review_summaries = tuple(
+            summary
+            for product_id in task.product_ids
+            if (
+                summary := build_review_summary(
+                    self._review_evidence.read(
+                        product_id=product_id
+                    )
+                )
+            ) is not None
+        )
         product_evidence_event = ProductEvidenceEvent(
             data=ProductEvidenceData(packet=packet)
         )
@@ -1386,6 +1492,7 @@ class TextRecommendationOrchestrator:
             card_display=card_display,
             cards=cards,
             merchant_claims=merchant_claims,
+            review_summaries=review_summaries,
             proof_points=_presentation_proof_points(
                 product_evidence_event
             ),
@@ -1575,6 +1682,30 @@ class TextRecommendationOrchestrator:
             mentions=semantic_mentions,
         )
 
+    def _resolve_product_mentions_or_references(
+        self,
+        message: str,
+        understanding: StructuredUnderstanding,
+        *,
+        snapshot: ConversationSnapshot | None,
+    ) -> ProductMentionResolution:
+        mention_resolution = self._resolve_product_mentions(
+            message,
+            understanding.product_mentions,
+        )
+        reference_resolution = self._resolve_reference_products(
+            understanding.references,
+            snapshot=snapshot,
+        )
+        if not understanding.product_mentions:
+            return reference_resolution
+        if (
+            mention_resolution.issue is not None
+            and reference_resolution.bindings
+        ):
+            return reference_resolution
+        return mention_resolution
+
     def _recover_explicit_product_mentions(
         self,
         message: str,
@@ -1652,10 +1783,11 @@ class TextRecommendationOrchestrator:
             ]
             if len(focused_ordinals) == 1:
                 focused_ordinal = focused_ordinals[0]
-        bindings: list[ResolvedProductBinding] = []
+        batch_bindings: list[ResolvedProductBinding] = []
+        specific_bindings: list[ResolvedProductBinding] = []
         for reference in product_references:
             if reference.kind == "current_batch":
-                bindings.extend(
+                batch_bindings.extend(
                     ResolvedProductBinding(
                         product_id=candidate.product_id,
                         source_text="current_batch",
@@ -1680,7 +1812,7 @@ class TextRecommendationOrchestrator:
                     bindings=(),
                     issue="missing_reference",
                 )
-            bindings.append(
+            specific_bindings.append(
                 ResolvedProductBinding(
                     product_id=candidate_by_ordinal[ordinal],
                     source_text=(
@@ -1688,17 +1820,11 @@ class TextRecommendationOrchestrator:
                     ),
                 )
             )
-        unique: dict[
-            tuple[int, str | None],
-            ResolvedProductBinding,
-        ] = {}
-        for binding in bindings:
-            unique.setdefault(
-                (binding.product_id, binding.variant_scope),
-                binding,
-            )
         return ProductMentionResolution(
-            bindings=tuple(unique.values())
+            bindings=merge_batch_and_specific_bindings(
+                batch_bindings,
+                specific_bindings,
+            )
         )
 
     def _task_with_inferred_product_category(
@@ -1969,6 +2095,17 @@ class TextRecommendationOrchestrator:
             product_ids=product_ids,
             constraints=task.constraints,
         )
+        review_summaries = tuple(
+            summary
+            for product_id in product_ids
+            if (
+                summary := build_review_summary(
+                    self._review_evidence.read(
+                        product_id=product_id
+                    )
+                )
+            ) is not None
+        )
         presentation_event = self._presentation_event(
             mode=(
                 "comparison"
@@ -1984,6 +2121,7 @@ class TextRecommendationOrchestrator:
             selection_slots=selection_slots,
             concept_slots=concept_slots,
             merchant_claims=merchant_claims,
+            review_summaries=review_summaries,
             proof_points=_presentation_proof_points(
                 product_evidence_event
             ),
@@ -2096,12 +2234,14 @@ class TextRecommendationOrchestrator:
         *,
         snapshot: ConversationSnapshot | None,
         task: TaskPlan,
-        revision_kind: Literal["budget", "skin"] | None,
+        revision_kind: RevisionKind | None,
         relative_baseline_product_id: int | None = None,
+        suppressed_constraint_parents: frozenset[str] = frozenset(),
     ) -> Iterator[SseEvent]:
         scenario_inputs = build_scenario_inputs(
             task,
             message=turn.message,
+            suppressed_constraint_parents=suppressed_constraint_parents,
         )
         effective_task = task.model_copy(
             update={
@@ -2258,7 +2398,10 @@ class TextRecommendationOrchestrator:
                 )
             ),
         ]
-        if scenario_inputs.query.scenarios and cards:
+        if (
+            scenario_inputs.decision.evidence_requirements
+            and cards
+        ):
             scenario_records = [
                 record
                 for product_id in visible_decision.ordered_product_ids
@@ -2267,6 +2410,7 @@ class TextRecommendationOrchestrator:
                     scenario_inputs.decision.evidence_requirements,
                 )
             ]
+        if scenario_records:
             success_events.extend(
                 [
                     ScenarioEvidenceEvent(
@@ -2285,7 +2429,7 @@ class TextRecommendationOrchestrator:
         if (
             review_results
             and (
-                scenario_inputs.query.scenarios
+                scenario_records
                 or has_review_evidence
             )
         ):
@@ -2300,7 +2444,7 @@ class TextRecommendationOrchestrator:
                     )
                 )
             )
-        if scenario_inputs.query.scenarios and cards:
+        if scenario_records:
             pitfalls = project_scenario_pitfalls(scenario_records)
             success_events.append(
                 PitfallsEvent(
@@ -2344,17 +2488,14 @@ class TextRecommendationOrchestrator:
             success_events.append(product_evidence_event)
         presentation_event = self._presentation_event(
             mode=(
-                "revision"
-                if revision_kind is not None
+                "image_recommendation"
+                if effective_task.similarity_anchor_product_id is not None
                 else (
-                    "followup"
-                    if relative_baseline_product_id is not None
+                    "revision"
+                    if revision_kind is not None
                     else (
-                        "image_recommendation"
-                        if (
-                            effective_task.similarity_anchor_product_id
-                            is not None
-                        )
+                        "followup"
+                        if relative_baseline_product_id is not None
                         else "recommendation"
                     )
                 )
@@ -2369,6 +2510,7 @@ class TextRecommendationOrchestrator:
             selection_slots=selection_slots,
             concept_slots=concept_slots,
             merchant_claims=merchant_claims,
+            review_summaries=review_summaries,
             pitfalls=pitfalls,
             proof_points=_presentation_proof_points(
                 product_evidence_event
@@ -2382,13 +2524,7 @@ class TextRecommendationOrchestrator:
         success_events.append(
             MessageEvent(data=MessageData(content=message))
         )
-        if cards or (
-            snapshot is not None
-            and snapshot.pending_turn is not None
-        ) or (
-            effective_task.similarity_anchor_product_id
-            is not None
-        ):
+        if cards or revision_kind is None:
             saved_snapshot = self._conversation_state.save(
                 self._visible_snapshot(
                     turn,
@@ -2767,6 +2903,7 @@ class TextRecommendationOrchestrator:
         merchant_claims: Sequence[
             MerchantClaimEvidenceData
         ] = (),
+        review_summaries: Sequence[ReviewSummaryResult] = (),
         pitfalls: Sequence[TypedPitfall] = (),
         proof_points: Sequence[LockedFact] = (),
         copywriter_policy: Literal[
@@ -2784,6 +2921,7 @@ class TextRecommendationOrchestrator:
             selection_slots=selection_slots,
             concept_slots=concept_slots,
             merchant_claims=merchant_claims,
+            review_summaries=review_summaries,
             pitfalls=pitfalls,
             proof_points=proof_points,
         )
@@ -2821,25 +2959,9 @@ class TextRecommendationOrchestrator:
                 )
             )
             cards.append(
-                ProductCard(
-                    product_id=product_id,
-                    category_profile=facts.category_profile,
-                    category_facts=project_public_category_facts(
-                        facts.category_fields
-                    ),
-                    variant_scope=facts.variant_scope,
-                    specification=facts.specification,
-                    name=facts.name,
-                    brand=facts.brand,
-                    category=facts.category,
-                    price=facts.price,
-                    image_url=facts.image_url,
-                    detail_url=facts.detail_url,
-                    platform=facts.platform,
-                    image_source_sha256=facts.image_source_sha256,
+                build_product_card(
+                    facts,
                     skin_match="unknown",
-                    matched_efficacies=[],
-                    fact_warnings=list(facts.fact_warnings),
                 )
             )
         return cards

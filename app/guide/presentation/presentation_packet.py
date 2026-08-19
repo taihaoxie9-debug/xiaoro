@@ -25,6 +25,9 @@ from app.guide.presentation.copywriter_contracts import (
 from app.guide.presentation.copywriter_validation import (
     is_safe_soft_fact_text,
 )
+from app.guide.presentation.fact_admission import (
+    presentation_fact_role,
+)
 from app.guide.presentation.narrative_atoms import build_narrative_atoms
 from app.guide.presentation.sse_events import (
     ConceptSlotData,
@@ -32,6 +35,9 @@ from app.guide.presentation.sse_events import (
     SelectionSlotData,
 )
 from app.guide.retrieval.pitfall_contracts import TypedPitfall
+from app.guide.retrieval.review_summary_contracts import (
+    ReviewSummaryResult,
+)
 
 
 _SPACE = re.compile(r"\s+")
@@ -49,6 +55,7 @@ def build_presentation_packet(
     concept_slots: Sequence[ConceptSlotData],
     merchant_claims: Sequence[MerchantClaimEvidenceData],
     pitfalls: Sequence[TypedPitfall],
+    review_summaries: Sequence[ReviewSummaryResult] = (),
     proof_points: Sequence[LockedFact] = (),
 ) -> PresentationPacket:
     if not isinstance(card_display, CardDisplayContract):
@@ -79,6 +86,7 @@ def build_presentation_packet(
     selections_by_product = _group_by_product(selection_slots)
     concepts_by_product = _group_by_product(concept_slots)
     claims_by_product = _group_by_product(merchant_claims)
+    reviews_by_product = _group_by_product(review_summaries)
     pitfalls_by_product = _group_by_product(pitfalls)
     proof_points_by_product = _group_by_product(
         normalized_proof_points
@@ -130,6 +138,7 @@ def build_presentation_packet(
             selection_slots=selections_by_product.get(product_id, ()),
             concept_slots=concepts_by_product.get(product_id, ()),
             merchant_claims=claims_by_product.get(product_id, ()),
+            review_summaries=reviews_by_product.get(product_id, ()),
             pitfalls=pitfalls_by_product.get(product_id, ()),
             proof_points=proof_points_by_product.get(product_id, ()),
             distinctive_fields=distinctive_fields,
@@ -186,6 +195,7 @@ def _build_slot(
     selection_slots: Sequence[SelectionSlotData],
     concept_slots: Sequence[ConceptSlotData],
     merchant_claims: Sequence[MerchantClaimEvidenceData],
+    review_summaries: Sequence[ReviewSummaryResult],
     pitfalls: Sequence[TypedPitfall],
     proof_points: Sequence[LockedFact],
     distinctive_fields: set[str],
@@ -240,6 +250,25 @@ def _build_slot(
                 source_refs=tuple(item.source_refs),
             )
         )
+    soft_facts.extend(_category_soft_facts(card))
+    for summary in review_summaries:
+        for source_fact in summary.source_facts:
+            soft_facts.append(
+                ApprovedSoftFact(
+                    fact_id=source_fact.claim_id,
+                    product_id=card.product_id,
+                    field_key="consumer_report",
+                    plain_meaning=_attributed_soft_meaning(
+                        source_fact.quote,
+                        attribution="consumer_report",
+                        limit=256,
+                    ),
+                    attribution="consumer_report",
+                    source_refs=(
+                        source_fact.provenance.source_locator,
+                    ),
+                )
+            )
     caution_values: list[DirectCaution] = [
         DirectCaution(
             caution_id=item.finding_id,
@@ -305,6 +334,42 @@ def _build_slot(
     )
 
 
+def _category_soft_facts(card: ProductCard) -> tuple[ApprovedSoftFact, ...]:
+    facts: list[ApprovedSoftFact] = []
+    for fact in card.category_facts:
+        if (
+            fact.state != "known"
+            or presentation_fact_role(fact.field_key) != "narrative"
+        ):
+            continue
+        display = _category_fact_text(fact)
+        if not display:
+            continue
+        label = (
+            "核心成分"
+            if fact.field_key == "ingredients_present"
+            else "适合肤质"
+            if fact.field_key == "suitable_skin"
+            else fact.label
+        )
+        facts.append(
+            ApprovedSoftFact(
+                fact_id=(
+                    f"card:{card.product_id}:"
+                    f"{fact.field_key}:soft_display"
+                ),
+                product_id=card.product_id,
+                field_key=fact.field_key,
+                plain_meaning=f"{label}：{display}",
+                attribution="verified_fact",
+                source_refs=(
+                    f"card:{card.product_id}:{fact.field_key}",
+                ),
+            )
+        )
+    return tuple(facts)
+
+
 def _locked_facts(
     card: ProductCard,
     *,
@@ -329,12 +394,25 @@ def _locked_facts(
                 source_refs=(f"card:{card.product_id}:price",),
             )
         )
-    for fact in card.category_facts:
-        if (
-            fact.state != "known"
-            or fact.field_key
-            not in {"ingredients_present", "suitable_skin"}
-        ):
+    category_facts = {
+        fact.field_key: fact
+        for fact in card.category_facts
+        if fact.state == "known"
+    }
+    direct_field_keys = tuple(sorted(
+        field_key
+        for field_key in category_facts
+        if presentation_fact_role(field_key) == "direct_fact"
+    ))
+    for field_key in (
+        "suitable_skin",
+        "ingredients_present",
+        *direct_field_keys,
+    ):
+        if field_key == "net_content" and specification:
+            continue
+        fact = category_facts.get(field_key)
+        if fact is None:
             continue
         display = _category_fact_text(fact)
         if not display:
@@ -351,7 +429,11 @@ def _locked_facts(
                 label=(
                     "核心成分"
                     if fact.field_key == "ingredients_present"
-                    else "适用人群"
+                    else (
+                        "适合肤质"
+                        if fact.field_key == "suitable_skin"
+                        else fact.label
+                    )
                 ),
                 display_value=display,
                 source_refs=(
@@ -378,16 +460,26 @@ def _category_fact_text(fact: DisplayCategoryFact) -> str:
 def _public_claim_meaning(
     claim: MerchantClaimEvidenceData,
 ) -> str | None:
+    display = normalize_display_text(claim.display_claim, limit=160)
+    if is_safe_soft_fact_text(
+        display,
+        attribution="merchant_claim",
+        field_key=claim.field_key,
+    ):
+        return display
     normalized = claim.normalized_value
     if normalized is not None:
         normalized = normalize_display_text(normalized, limit=128)
         if (
             _CJK.search(normalized)
-            and is_safe_soft_fact_text(normalized)
+            and is_safe_soft_fact_text(
+                normalized,
+                attribution="merchant_claim",
+                field_key=claim.field_key,
+            )
         ):
             return normalized
-    display = normalize_display_text(claim.display_claim, limit=160)
-    return display if is_safe_soft_fact_text(display) else None
+    return None
 
 
 def _deduplicate_soft_facts(

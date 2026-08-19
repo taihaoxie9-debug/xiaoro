@@ -590,6 +590,90 @@ def test_unified_image_product_question_delegates_standard_processor() -> None:
     ).data.content == "标准商品知识回答"
 
 
+def test_unified_image_similarity_delegates_standard_recommendation() -> None:
+    service, receipt, _ = _bundle()
+    observer = FakeIdentityObserver(candidate_ids=(53, 55, 57))
+    catalog = _catalog()
+    standard = RecordingStandardProcessor()
+    flow = _flow_type()(
+        image_bundles=service,
+        identity_observer=observer,
+        category_catalog=catalog,
+        decision_facts=catalog,
+        presentation_facts=catalog,
+        standard_processor=standard,
+        max_results=10,
+    )
+    turn = _turn(receipt, "照这张图找两款相似的")
+    understanding = understand_text(turn.message).model_copy(
+        update={
+            "goal": UnderstandingGoal.IMAGE_SIMILARITY,
+            "uncertainties": [],
+        },
+        deep=True,
+    )
+
+    events = list(
+        flow.stream_understanding(
+            turn,
+            meaning=_image_meaning("image_similarity"),
+            understanding=understanding,
+            snapshot=None,
+        )
+    )
+
+    assert len(standard.calls) == 1
+    route = standard.calls[0][2]
+    bindings = standard.calls[0][3]
+    assert route.processor == "recommendation"
+    assert [item.product_id for item in bindings] == [53]
+    assert next(
+        event for event in events if event.event == "message"
+    ).data.content == "标准商品知识回答"
+
+
+def test_unified_image_suitability_delegates_standard_processor() -> None:
+    service, receipt, _ = _bundle()
+    observer = FakeIdentityObserver(candidate_ids=(53, 55, 57))
+    catalog = _catalog()
+    standard = RecordingStandardProcessor()
+    flow = _flow_type()(
+        image_bundles=service,
+        identity_observer=observer,
+        category_catalog=catalog,
+        decision_facts=catalog,
+        presentation_facts=catalog,
+        standard_processor=standard,
+        max_results=10,
+    )
+    turn = _turn(receipt, "这款适合敏感肌吗")
+    understanding = understand_text(turn.message).model_copy(
+        update={
+            "goal": UnderstandingGoal.SUITABILITY,
+            "uncertainties": [],
+        },
+        deep=True,
+    )
+
+    events = list(
+        flow.stream_understanding(
+            turn,
+            meaning=_image_meaning("suitability"),
+            understanding=understanding,
+            snapshot=None,
+        )
+    )
+
+    assert len(standard.calls) == 1
+    route = standard.calls[0][2]
+    bindings = standard.calls[0][3]
+    assert route.processor == "product_knowledge"
+    assert [item.product_id for item in bindings] == [53]
+    assert next(
+        event for event in events if event.event == "message"
+    ).data.content == "标准商品知识回答"
+
+
 def test_unified_multi_image_safety_precedes_comparison() -> None:
     service, receipt, _ = _bundle(image_count=2)
     catalog = _catalog()

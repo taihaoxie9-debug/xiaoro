@@ -229,21 +229,32 @@ class PendingBudgetRange(_StrictContract):
         frozen=True,
     )
 
-    minimum: Decimal
-    maximum: Decimal
+    minimum: Decimal | None = None
+    maximum: Decimal | None = None
 
     @model_validator(mode="after")
     def validate_range(self) -> Self:
-        if (
-            not self.minimum.is_finite()
-            or not self.maximum.is_finite()
-            or self.minimum <= 0
-            or self.maximum <= 0
+        bounds = [
+            value
+            for value in (self.minimum, self.maximum)
+            if value is not None
+        ]
+        if not bounds:
+            raise ValueError(
+                "pending budget requires at least one bound"
+            )
+        if any(
+            not value.is_finite() or value <= 0
+            for value in bounds
         ):
             raise ValueError(
                 "pending budget bounds must be positive and finite"
             )
-        if self.minimum > self.maximum:
+        if (
+            self.minimum is not None
+            and self.maximum is not None
+            and self.minimum > self.maximum
+        ):
             raise ValueError(
                 "pending budget minimum exceeds maximum"
             )

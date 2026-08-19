@@ -19,6 +19,7 @@ from app.guide.feedback.focus_state import (
 from app.guide.retrieval.product_name_resolver import (
     ProductResolutionIssue,
     ResolvedProductBinding,
+    merge_batch_and_specific_bindings,
 )
 from app.guide.understanding.contracts import (
     ReferenceDraft,
@@ -138,6 +139,14 @@ def reconcile_product_resolution_issue(
         raise TypeError(
             "understanding must be an exact StructuredUnderstanding"
         )
+    if (
+        issue in {"missing_reference", "ambiguous_reference"}
+        and any(
+            reference.kind == "current_item"
+            for reference in understanding.references
+        )
+    ):
+        return None
     if issue != "missing_reference":
         return issue
     mention_spans = {
@@ -441,8 +450,6 @@ def _select_processor(
         return "recommendation"
     if operation == "comparison":
         return "comparison"
-    if has_current_images and len(bindings) >= 2:
-        return "comparison"
     if operation == "recommendation":
         return "recommendation"
     if operation == "image_similarity":
@@ -547,6 +554,8 @@ def _resolve_bindings(
     operation_hint: str,
 ) -> tuple[tuple[ResolvedProductBinding, ...], FocusSource]:
     reference_bindings: list[ResolvedProductBinding] = []
+    batch_reference_bindings: list[ResolvedProductBinding] = []
+    specific_reference_bindings: list[ResolvedProductBinding] = []
     image_reference_bindings: list[ResolvedProductBinding] = []
     reference_source: FocusSource = "none"
     for reference in understanding.references:
@@ -557,7 +566,14 @@ def _resolve_bindings(
         )
         if resolved:
             reference_bindings.extend(resolved)
-            if reference.kind == "image_ordinal":
+            if reference.kind == "current_batch":
+                batch_reference_bindings.extend(resolved)
+            elif reference.kind in {
+                "current_item",
+                "candidate_ordinal",
+            }:
+                specific_reference_bindings.extend(resolved)
+            elif reference.kind == "image_ordinal":
                 image_reference_bindings.extend(resolved)
             reference_source = source
 
@@ -570,14 +586,32 @@ def _resolve_bindings(
             "confirmed_image",
         )
     if (
-        explicit_bindings
+        operation_hint == "recommendation"
+        and continuity_hint == "new_task"
         and any(
             item.kind == "current_batch"
             for item in understanding.references
         )
     ):
-        combined = (*reference_bindings, *explicit_bindings)
-        return _deduplicate_bindings(combined), "candidate_batch"
+        if explicit_bindings:
+            return (
+                _deduplicate_bindings(explicit_bindings),
+                "explicit_product",
+            )
+        return (), "none"
+    if batch_reference_bindings:
+        combined = merge_batch_and_specific_bindings(
+            batch_reference_bindings,
+            (*specific_reference_bindings, *explicit_bindings),
+        )
+        return (
+            combined,
+            (
+                "explicit_product"
+                if len(combined) == 1 and explicit_bindings
+                else "candidate_batch"
+            ),
+        )
     if (
         operation_hint == "comparison"
         and len(explicit_bindings) == 1
@@ -794,10 +828,14 @@ def _continuity(
 ) -> ContinuityKind:
     if meaning.continuity_hint == "new_task":
         return "replace_task"
+    operation_set = set(operations)
+    if (
+        "replace" in operation_set
+        or {"remove", "add"} <= operation_set
+    ):
+        return "correct"
     if "remove" in operations:
         return "withdraw"
-    if "replace" in operations:
-        return "correct"
     if "add" in operations:
         return "supplement"
     if meaning.continuity_hint == "return_to_focus":

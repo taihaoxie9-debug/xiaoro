@@ -11,6 +11,7 @@ from app.guide.decision.recommendation import decide_recommendation
 from app.guide.intent.contracts import (
     BudgetConstraint,
     CategoryConstraint,
+    EfficacyConstraint,
     SkinConstraint,
     TaskPlan,
 )
@@ -134,6 +135,34 @@ def test_repair_scenario_adds_auditable_existing_decision_constraint() -> None:
     )
     assert _evaluation(result, 803).disposition == (
         "excluded_efficacy_unknown"
+    )
+
+
+def test_typed_parent_withdrawal_suppresses_legacy_scenario_constraint() -> None:
+    build_scenario_inputs = scenario_api()
+    task = TaskPlan(
+        mode="recommend",
+        referenced_image_ids=[],
+        constraints=[
+            CategoryConstraint(value=TopicCode.SERUM),
+            BudgetConstraint(maximum=Decimal("500")),
+        ],
+        required_evidence=["canonical_product"],
+        clarification=None,
+    )
+
+    inputs = build_scenario_inputs(
+        task,
+        message="当前修护不再作为硬条件",
+        suppressed_constraint_parents={"efficacy"},
+    )
+
+    assert not any(
+        isinstance(item, EfficacyConstraint)
+        for item in inputs.decision.constraints
+    )
+    assert inputs.decision.scenario_resolutions[0].status == (
+        "suppressed_by_withdrawal"
     )
 
 

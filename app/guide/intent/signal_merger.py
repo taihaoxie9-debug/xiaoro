@@ -3,6 +3,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 import unicodedata
 
+from app.guide.retrieval.category_taxonomy import (
+    most_specific_compatible_topic,
+)
 from app.guide.understanding.contracts import (
     BudgetDraft,
     CategoryDraft,
@@ -912,6 +915,35 @@ def _merge_topic(
         return exact_topic
 
     if exact_topic is not None and semantic_topic is not None:
+        more_specific = most_specific_compatible_topic(
+            exact_topic,
+            semantic_topic,
+        )
+        if more_specific is not None:
+            constraints[:] = [
+                (
+                    CategoryDraft(value=more_specific)
+                    if (
+                        isinstance(item, CategoryDraft)
+                        and item.value is exact_topic
+                    )
+                    else item
+                )
+                for item in constraints
+            ]
+            traces.append(
+                SignalTrace(
+                    field="topic",
+                    exact_value=exact_topic.value,
+                    semantic_value=semantic_topic.value,
+                    resolution=(
+                        "exact_wins"
+                        if more_specific is exact_topic
+                        else "semantic_fills"
+                    ),
+                )
+            )
+            return more_specific
         _append_issue(
             issues,
             code="ambiguous_category",

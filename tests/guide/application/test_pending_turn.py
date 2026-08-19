@@ -4,7 +4,11 @@ from decimal import Decimal
 
 import pytest
 
-from app.guide.application.pending_turn import classify_pending_reply
+from app.guide.application.pending_turn import (
+    classify_pending_reply,
+    resolve_semantic_pending_reply,
+)
+from app.guide.application.pending_turn import build_pending_turn
 from app.guide.application.chat_api_adapter import (
     commit_http_event_delivery,
     iter_guide_public_events,
@@ -15,8 +19,24 @@ from app.guide.feedback.contracts import (
     PendingRecommendationContext,
     PendingTurn,
 )
-from app.guide.understanding.semantic_contracts import ClarificationCode
+from app.guide.intent.executable_intent_compiler import (
+    compile_turn_meaning,
+)
+from app.guide.understanding.contracts import (
+    StructuredUnderstanding,
+    UnderstandingGoal,
+)
+from app.guide.understanding.turn_meaning_contracts import TurnMeaning
+from app.guide.intent.task_planning import plan_task
+from app.guide.understanding.context_resolver import (
+    resolve_semantic_context,
+)
+from app.guide.understanding.semantic_contracts import (
+    ClarificationCode,
+    SemanticContext,
+)
 from app.guide_runtime.composition import build_runtime_orchestrator
+from tests.guide.semantic_test_port import exact_echo_understanding
 
 
 def _pending() -> PendingTurn:
@@ -108,6 +128,57 @@ def test_exact_budget_correction_replaces_proposal() -> None:
     )
 
 
+def test_maximum_only_budget_confirmation_replaces_proposal() -> None:
+    reply = classify_pending_reply(
+        message="对，五百就是上限",
+        pending=_pending(),
+    )
+
+    assert reply.kind == "correct"
+    assert reply.accepted_proposal
+    assert reply.budget == PendingBudgetRange(
+        minimum=None,
+        maximum=Decimal("500"),
+    )
+
+
+def test_negated_budget_bound_rejects_pending_proposal() -> None:
+    reply = classify_pending_reply(
+        message="不是三百封顶，我还没决定具体上限",
+        pending=_pending(),
+    )
+
+    assert reply.kind == "reject"
+    assert not reply.accepted_proposal
+    assert reply.budget is None
+
+
+def test_adjacent_hundreds_clarification_builds_pending_turn() -> None:
+    message = "修护精华两三百左右都行"
+    understanding = exact_echo_understanding().understand(
+        message,
+        context=resolve_semantic_context(
+            conversation_version=0,
+            snapshot=None,
+        ),
+    )
+    task = plan_task(understanding, message=message)
+
+    pending = build_pending_turn(
+        message=message,
+        source_conversation_version=0,
+        task=task,
+    )
+
+    assert pending is not None
+    assert pending.proposed_budget == PendingBudgetRange(
+        minimum=Decimal("200"),
+        maximum=Decimal("300"),
+    )
+    assert pending.resume_context.category == "serum"
+    assert pending.resume_context.efficacy == "repair"
+
+
 def test_affirmation_with_compatible_constraint_supplements_task() -> None:
     reply = classify_pending_reply(
         message="是的，而且不要酒精",
@@ -138,6 +209,130 @@ def test_ambiguous_short_reply_preserves_pending_task() -> None:
     )
 
     assert reply.kind == "ambiguous"
+    assert not reply.accepted_proposal
+    assert reply.budget is None
+
+
+def test_semantic_pending_affirmation_owns_open_language() -> None:
+    meaning = TurnMeaning.model_validate(
+        {
+            "operation_hint": "clarification",
+            "topic_hint": None,
+            "continuity_hint": "continue",
+            "subject_scope_hint": "self",
+            "pending_response_hint": "affirm",
+            "reference_mentions": [],
+            "product_mentions": [],
+            "budget_candidates": [],
+            "observation_candidates": [],
+            "preference_candidates": [],
+            "relative_candidates": [],
+            "constraint_changes": [],
+            "consultation_hypothesis": None,
+            "next_observation_gap": None,
+            "question_meaning": None,
+            "safety_language": "ordinary",
+        },
+        strict=True,
+    )
+    understanding = StructuredUnderstanding(
+        goal=UnderstandingGoal.CLARIFICATION,
+        topic=None,
+        observations=[],
+        exact_constraints=[],
+        semantic_proposals=["pending_response:admitted:affirm:照刚才方案走"],
+        signal_trace=[],
+        image_references=[],
+        uncertainties=[],
+        confidence=1.0,
+        semantic_authoritative=True,
+    )
+
+    reply = resolve_semantic_pending_reply(
+        meaning=meaning,
+        understanding=understanding,
+        pending=_pending(),
+    )
+
+    assert reply.kind == "affirm"
+    assert reply.accepted_proposal
+    assert reply.budget == _pending().proposed_budget
+
+
+def test_semantic_pending_exact_maximum_correction_owns_old_quiz() -> None:
+    message = "对，五百就是上限"
+    meaning = TurnMeaning(
+        operation_hint="clarification",
+        topic_hint=None,
+        continuity_hint="continue",
+        subject_scope_hint="self",
+        pending_response_hint="correct",
+        budget_candidates=(
+            {
+                "raw_text": "五百就是上限",
+                "relation": "maximum",
+                "minimum": None,
+                "maximum": "500",
+            },
+        ),
+        safety_language="ordinary",
+    )
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=meaning,
+        context=SemanticContext(
+            conversation_version=1,
+            active_topic=None,
+            visible_candidate_count=0,
+            image_count=0,
+            pending_clarification=ClarificationCode.BUDGET,
+            confirmed_profile_fields=(),
+        ),
+    )
+
+    reply = resolve_semantic_pending_reply(
+        meaning=meaning,
+        understanding=understanding,
+        pending=_pending(),
+    )
+
+    assert reply.kind == "correct"
+    assert reply.budget == PendingBudgetRange(
+        minimum=None,
+        maximum=Decimal("500"),
+    )
+
+
+def test_semantic_pending_negated_old_bound_rejects_old_quiz() -> None:
+    message = "不是三百封顶，我还没决定具体上限"
+    meaning = TurnMeaning(
+        operation_hint="clarification",
+        topic_hint=None,
+        continuity_hint="continue",
+        subject_scope_hint="self",
+        pending_response_hint="reject",
+        safety_language="ordinary",
+    )
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=meaning,
+        context=SemanticContext(
+            conversation_version=1,
+            active_topic=None,
+            visible_candidate_count=0,
+            image_count=0,
+            pending_clarification=ClarificationCode.BUDGET,
+            confirmed_profile_fields=(),
+        ),
+    )
+
+    reply = resolve_semantic_pending_reply(
+        meaning=meaning,
+        understanding=understanding,
+        pending=_pending(),
+    )
+
+    assert reply.kind == "reject"
     assert not reply.accepted_proposal
     assert reply.budget is None
 
@@ -212,6 +407,50 @@ def test_real_budget_confirmation_resumes_original_recommendation(
     assert saved.query_context is not None
     assert saved.query_context.budget_minimum == Decimal("900")
     assert saved.query_context.budget_maximum == Decimal("1100")
+
+
+def test_chinese_approximate_budget_then_maximum_resumes_original_task(
+    tmp_path,
+) -> None:
+    orchestrator = build_runtime_orchestrator(
+        state_dir=tmp_path / "pending-chinese-approximate",
+    )
+    first = _deliver(
+        orchestrator,
+        _turn(
+            "想看敏感肌修护精华，预算大概五百吧",
+            version=0,
+        ),
+    )
+    pending = orchestrator._conversation_state._delegate.load(
+        "pending-budget-flow"
+    )
+
+    assert any(
+        event == "message" and data.get("clarify") is True
+        for event, data in first
+    )
+    assert pending is not None
+    assert pending.pending_turn is not None
+    assert pending.pending_turn.proposed_budget == PendingBudgetRange(
+        minimum=Decimal("450"),
+        maximum=Decimal("550"),
+    )
+
+    second = _deliver(
+        orchestrator,
+        _turn("对，五百就是上限", version=1),
+    )
+    saved = orchestrator._conversation_state._delegate.load(
+        "pending-budget-flow"
+    )
+
+    assert any(event == "products" for event, _ in second)
+    assert saved is not None
+    assert saved.pending_turn is None
+    assert saved.query_context is not None
+    assert saved.query_context.budget_minimum is None
+    assert saved.query_context.budget_maximum == Decimal("500")
 
 
 @pytest.mark.parametrize(

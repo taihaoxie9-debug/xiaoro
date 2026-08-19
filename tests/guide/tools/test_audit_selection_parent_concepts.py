@@ -28,10 +28,10 @@ def test_production_selection_inventory_has_locked_totals() -> None:
 
     assert inventory.schema_version == "guide-selection-concept-inventory-v1"
     assert inventory.product_count == 100
-    assert inventory.selection_fact_count == 2344
+    assert inventory.selection_fact_count == 2355
     assert inventory.soft_rank_fact_count == 1775
     assert inventory.rank_strength_counts == {"1": 1312, "2": 463}
-    assert inventory.non_rank_fact_count == 569
+    assert inventory.non_rank_fact_count == 580
     assert [item.profile for item in inventory.profiles] == [
         "base_makeup",
         "cleanser",

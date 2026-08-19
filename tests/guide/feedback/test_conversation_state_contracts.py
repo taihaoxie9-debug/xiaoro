@@ -449,6 +449,22 @@ def test_pending_budget_turn_rejects_mismatched_or_invalid_payloads() -> None:
         )
 
 
+def test_pending_budget_range_accepts_one_sided_bound() -> None:
+    maximum_only = PendingBudgetRange(
+        minimum=None,
+        maximum=Decimal("500"),
+    )
+    minimum_only = PendingBudgetRange(
+        minimum=Decimal("500"),
+        maximum=None,
+    )
+
+    assert maximum_only.maximum == Decimal("500")
+    assert maximum_only.minimum is None
+    assert minimum_only.minimum == Decimal("500")
+    assert minimum_only.maximum is None
+
+
 def test_pending_turn_transition_preserves_original_task_and_advances_attempt(
 ) -> None:
     pending = PendingTurn(

@@ -19,7 +19,11 @@ class _StrictContract(BaseModel):
 
 class ScenarioConstraintResolution(_StrictContract):
     constraint: ScenarioConstraint
-    status: Literal["applied", "shadowed_by_explicit"]
+    status: Literal[
+        "applied",
+        "shadowed_by_explicit",
+        "suppressed_by_withdrawal",
+    ]
 
 
 class ScenarioQueryInput(_StrictContract):

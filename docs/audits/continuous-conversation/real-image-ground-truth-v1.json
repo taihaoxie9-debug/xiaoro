@@ -1,0 +1,82 @@
+{
+  "schema_version": "guide-real-image-ground-truth-v1",
+  "frozen_at": "2026-08-18T19:05:23Z",
+  "canonical_sha256": "0ba95df8c38d39f5bc0d73a32c318b157903abb64778c3e7b0acebfb75e95734",
+  "image_index_manifest_sha256": "a1af55f193c37ed6b9aaa634ed82cd9993d5d688141235bae25e1dc6a0985ccd",
+  "compared_local_image_hash_inventory_sha256": "4db7007270fb339c510d05f601464e51eec3d5dc848760411ac041010507a859",
+  "images": [
+    {
+      "image_id": "real-image-v1-product-53-clear",
+      "duty": "clear_non_index",
+      "source_page_url": "https://fe.suning.com/bigimages/10806428521.html",
+      "source_url": "https://imgservice.suning.cn/uimg1/b2c/image/xgKjARLB_pUNYLO_kubNLw.jpg",
+      "source_page_title": "理肤泉特护清盈防晒乳 SPF50 PA++++ 50ml 高清实拍大图",
+      "downloaded_at": "2026-08-18T19:05:23Z",
+      "local_path": "docs/audits/continuous-conversation/real-image-ground-truth-v1/product-53-lrp-clear-non-index.jpg",
+      "sha256": "512584f392029e44216c12cbd77f5e95fdffd3c701b43ad4040a8640891922fd",
+      "pixel_width": 800,
+      "pixel_height": 800,
+      "expected_product_id": 53,
+      "expected_product_name": "理肤泉特护清盈防晒乳 SPF50 PA++++",
+      "visible_packaging_evidence": [
+        "LA ROCHE-POSAY",
+        "ANTHELIOS XL",
+        "Ultra-light",
+        "50ml"
+      ],
+      "backgrounded": true,
+      "angled": false,
+      "cropped": false,
+      "white_pixel_ratio": 0.258,
+      "index_source_hash_matches": 0,
+      "static_or_seed_hash_matches": 0,
+      "ground_truth_status": "independently_confirmed"
+    },
+    {
+      "image_id": "real-image-v1-product-57-background",
+      "duty": "background_angle_or_crop",
+      "source_page_url": "https://post.smzdm.com/p/a64wp8wg/",
+      "source_url": "https://a.zdmimg.com/202504/04/67eecbbc78cfb6262.jpg_fo742.jpg",
+      "source_page_title": "Biore碧柔水活防晒水润凝蜜：身体防晒新选择",
+      "downloaded_at": "2026-08-18T19:05:23Z",
+      "local_path": "docs/audits/continuous-conversation/real-image-ground-truth-v1/product-57-biore-background-non-index.jpg",
+      "sha256": "cfad724b00cd21351faf8b8c4cb405ca04de84991e95da4a6967c7e7dcb9d09a",
+      "pixel_width": 742,
+      "pixel_height": 314,
+      "expected_product_id": 57,
+      "expected_product_name": "碧柔Biore水活防晒水润凝蜜",
+      "visible_packaging_evidence": [
+        "Biore blue sunscreen package",
+        "article image bound to the exact 50g water-essence product title",
+        "real scene background rather than an isolated white-background cutout"
+      ],
+      "backgrounded": true,
+      "angled": false,
+      "cropped": true,
+      "white_pixel_ratio": 0.0,
+      "index_source_hash_matches": 0,
+      "static_or_seed_hash_matches": 0,
+      "ground_truth_status": "independently_confirmed"
+    }
+  ],
+  "two_image_upload": {
+    "ordered_image_ids": [
+      "real-image-v1-product-53-clear",
+      "real-image-v1-product-57-background"
+    ],
+    "ordered_product_ids": [
+      53,
+      57
+    ],
+    "automatic_comparison_without_user_intent_allowed": false
+  },
+  "acceptance": {
+    "allowed_outcomes": [
+      "high_confidence_correct_identity",
+      "honest_low_confidence_or_ambiguous_clarification"
+    ],
+    "high_confidence_wrong_identity": 0,
+    "silent_ordinal_swap": 0,
+    "unrelated_current_product_change": 0
+  }
+}

@@ -84,6 +84,12 @@ def admit_reference(
     ):
         if not authority.current_batch_available:
             raise ReferenceAdmissionError("unbound")
+        if (
+            mention.batch_size_hint is not None
+            and mention.batch_size_hint
+            != len(authority.candidate_ordinals)
+        ):
+            raise ReferenceAdmissionError("ambiguous")
         return ReferenceDraft(
             kind="current_batch",
             ordinal=None,

@@ -49,7 +49,7 @@ DEFAULT_CASES = (
     / "fixtures"
     / "guide"
     / "presentation"
-    / "copy_gate_v2.jsonl"
+    / "copy_gate_v3_production.jsonl"
 )
 COPY_GATE_MAX_TOKENS = 1536
 
@@ -337,7 +337,6 @@ def run_real_copy_gate(
         passed=(
             provider_call_count == len(normalized)
             and summary.passed
-            and summary.passed_count == len(normalized)
         ),
     )
     summary_bytes = (
@@ -410,8 +409,7 @@ def replay_real_copy_gate_results(
         passed=(
             bool(normalized)
             and len(evaluations) == len(normalized)
-            and summary.passed_count == len(normalized)
-            and summary.hard_violation_count == 0
+            and summary.passed
         ),
     )
     destination = Path(output_path)

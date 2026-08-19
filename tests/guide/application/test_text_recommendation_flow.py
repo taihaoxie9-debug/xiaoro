@@ -75,10 +75,16 @@ from app.guide.understanding.consultation_contracts import (
 from app.guide.understanding.contracts import (
     BudgetDraft,
     CategoryDraft,
+    ConstraintChangeDraft,
+    EfficacyDraft,
+    EfficacyTarget,
+    ExclusionDraft,
     PreferenceDraft,
     ProductMentionDraft,
     ReferenceDraft,
     RelativeDraft,
+    SkinDraft,
+    SkinTarget,
     SourceSpan,
     StructuredUnderstanding,
     TopicCode,
@@ -87,8 +93,12 @@ from app.guide.understanding.contracts import (
 from app.guide.understanding.parallel_understanding import (
     ParallelUnderstanding,
 )
+from app.guide.understanding.context_resolver import (
+    resolve_semantic_context,
+)
 from app.guide.understanding.exact_parsing import parse_exact_constraints
 from app.guide.understanding.semantic_contracts import (
+    ClarificationCode,
     ConfirmedProfileField,
     SemanticContext,
     SemanticGoal,
@@ -102,6 +112,7 @@ from app.guide_runtime.composition import (
     build_product_evidence_reader,
     build_review_evidence_reader,
     build_selection_fact_reader,
+    build_selection_parent_concept_reader,
     compose_text_recommendation_orchestrator,
 )
 from tests.guide.semantic_test_port import exact_echo_understanding
@@ -1347,6 +1358,72 @@ def test_current_item_reference_uses_focus_state_product() -> None:
     assert [item.product_id for item in resolution.bindings] == [91]
 
 
+def test_failed_product_surface_falls_back_to_typed_current_reference(
+    real_reader,
+    real_product_assets,
+    conversation_state,
+) -> None:
+    message = "回到玉泽那支，继续查它的资料"
+    understanding = _product_goal_understanding(
+        message,
+        goal=UnderstandingGoal.FOLLOWUP,
+        topic=TopicCode.SERUM,
+        names=("玉泽那支",),
+        question_meaning="继续查询当前商品资料",
+    ).model_copy(
+        update={
+            "references": [
+                ReferenceDraft(
+                    kind="current_item",
+                    source_span=SourceSpan(start=2, end=6),
+                )
+            ]
+        },
+        deep=True,
+    )
+    snapshot = ConversationSnapshot(
+        session_id="fallback-current-item",
+        version=2,
+        query_context=RecommendationQueryContext(
+            category="serum",
+        ),
+        candidates=(
+            DisplayedCandidateRef(
+                product_id=38,
+                ordinal=1,
+                skin_match="unknown",
+                matched_efficacies=(),
+            ),
+            DisplayedCandidateRef(
+                product_id=91,
+                ordinal=2,
+                skin_match="unknown",
+                matched_efficacies=(),
+            ),
+        ),
+        focused_candidate_ordinal=2,
+        focus_state=FocusState(
+            active_processor="general_knowledge",
+            current_product_id=91,
+        ),
+    )
+    orchestrator = compose_text_recommendation_orchestrator(
+        real_reader,
+        product_assets=real_product_assets,
+        conversation_state=conversation_state,
+    )
+
+    resolution = orchestrator.resolve_product_resolution(
+        message=message,
+        understanding=understanding,
+        snapshot=snapshot,
+    )
+
+    assert resolution.issue is None
+    assert [item.product_id for item in resolution.bindings] == [91]
+    assert resolution.bindings[0].source_text == "current_item:2"
+
+
 def test_duplicate_reference_forms_to_same_product_are_deduplicated() -> None:
     snapshot = ConversationSnapshot(
         session_id="same-product-references",
@@ -1383,6 +1460,40 @@ def test_duplicate_reference_forms_to_same_product_are_deduplicated() -> None:
 
     assert resolution.issue is None
     assert [item.product_id for item in resolution.bindings] == [51]
+
+
+def test_specific_ordinal_inside_batch_overrides_batch_resolution() -> None:
+    snapshot = ConversationSnapshot(
+        session_id="specific-reference-over-batch",
+        version=1,
+        query_context=RecommendationQueryContext(category="sunscreen"),
+        candidates=(
+            DisplayedCandidateRef(
+                product_id=56,
+                ordinal=1,
+                skin_match="not_applicable",
+                matched_efficacies=(),
+            ),
+            DisplayedCandidateRef(
+                product_id=51,
+                ordinal=2,
+                skin_match="not_applicable",
+                matched_efficacies=(),
+            ),
+        ),
+    )
+
+    resolution = TextRecommendationOrchestrator._resolve_reference_products(
+        (
+            ReferenceDraft(kind="current_batch"),
+            ReferenceDraft(kind="candidate_ordinal", ordinal=2),
+        ),
+        snapshot=snapshot,
+    )
+
+    assert resolution.issue is None
+    assert [item.product_id for item in resolution.bindings] == [51]
+    assert resolution.bindings[0].source_text == "candidate_ordinal:2"
 
 
 def test_reference_forms_to_different_products_remain_distinct() -> None:
@@ -2450,6 +2561,68 @@ def test_image_similarity_empty_budget_result_commits_one_version(
     )
 
 
+def test_text_recommendation_empty_exclusion_result_commits_one_version(
+    real_reader,
+    real_product_assets,
+    conversation_state,
+    tmp_path: Path,
+) -> None:
+    subset = _subset_reader(real_reader, tmp_path, (38, 91))
+    understanding = StructuredUnderstanding(
+        goal=UnderstandingGoal.RECOMMENDATION,
+        topic=TopicCode.SERUM,
+        observations=[],
+        exact_constraints=[
+            CategoryDraft(value=TopicCode.SERUM),
+            SkinDraft(value=SkinTarget.SENSITIVE),
+            EfficacyDraft(value=EfficacyTarget.REPAIR),
+            ExclusionDraft(value="酒精"),
+        ],
+        semantic_proposals=[],
+        signal_trace=[],
+        references=[],
+        image_references=[],
+        uncertainties=[],
+        confidence=1.0,
+        question_meaning=None,
+    )
+    flow = compose_text_recommendation_orchestrator(
+        subset,
+        product_assets=real_product_assets,
+        conversation_state=conversation_state,
+        understanding=RecordingUnderstandingPort(understanding),
+    )
+
+    events = list(
+        flow.stream_understanding(
+            _turn(
+                "给我挑修护精华，敏感皮，先排除酒精",
+                conversation_version=0,
+            ),
+            understanding=understanding,
+            route_decision=UnifiedRouteDecision(
+                processor="recommendation",
+                continuity="replace_task",
+                focus_source="none",
+            ),
+            product_bindings=(),
+        )
+    )
+
+    products = next(
+        event for event in events if event.event == "products"
+    )
+    assert products.data.cards == []
+    end = next(event for event in events if event.event == "end")
+    assert end.data.conversation_version == 1
+    stored = conversation_state.load("s-1")
+    assert stored is not None
+    assert stored.version == 1
+    assert stored.empty_result is True
+    assert stored.query_context is not None
+    assert stored.query_context.exclusions == ("酒精",)
+
+
 def test_image_similarity_respects_requested_alternative_count(
     real_reader,
     real_product_assets,
@@ -2582,6 +2755,56 @@ def test_text_recommendation_respects_requested_result_count(
         event for event in events if event.event == "products"
     )
     assert len(products.data.cards) == 2
+
+
+def test_route_budget_clarification_preserves_pending_recommendation(
+    real_reader,
+    real_product_assets,
+    conversation_state,
+) -> None:
+    message = "想看敏感肌修护精华，预算大概五百吧"
+    understanding = exact_echo_understanding().understand(
+        message,
+        context=resolve_semantic_context(
+            conversation_version=0,
+            snapshot=None,
+        ),
+    )
+    flow = compose_text_recommendation_orchestrator(
+        real_reader,
+        product_assets=real_product_assets,
+        conversation_state=conversation_state,
+    )
+
+    events = list(
+        flow.stream_understanding(
+            _turn(message),
+            understanding=understanding,
+            route_decision=UnifiedRouteDecision(
+                processor="clarification",
+                continuity="replace_task",
+                focus_source="none",
+                clarification=(
+                    "你说的“预算大概五百”"
+                    "是指 450 到 550 元吗？"
+                ),
+                clarification_code=ClarificationCode.BUDGET,
+            ),
+            product_bindings=(),
+        )
+    )
+
+    clarify = next(event for event in events if event.event == "clarify")
+    pending = clarify.data.pending_turn
+    assert pending is not None
+    assert pending.gap is ClarificationCode.BUDGET
+    assert pending.source_message == message
+    assert pending.resume_context.category == "serum"
+    assert pending.resume_context.skin == "sensitive"
+    assert pending.resume_context.efficacy == "repair"
+    assert pending.proposed_budget is not None
+    assert pending.proposed_budget.minimum == Decimal("450")
+    assert pending.proposed_budget.maximum == Decimal("550")
 
 
 def test_application_layer_does_not_import_siliconflow_adapter() -> None:
@@ -3235,6 +3458,92 @@ def test_repair_scenario_uses_budget_proximity_for_equal_fits(
     )
 
     assert [card.product_id for card in products.data.cards] == [38, 91]
+
+
+def test_typed_efficacy_withdrawal_cannot_be_readded_by_scenario_parser(
+    real_reader,
+    real_product_assets,
+    conversation_state,
+) -> None:
+    second_message = "修护不再作为硬条件，接下来保湿优先"
+    understanding = SequenceUnderstandingPort((
+        StructuredUnderstanding(
+            goal=UnderstandingGoal.RECOMMENDATION,
+            topic=TopicCode.SERUM,
+            observations=[],
+            exact_constraints=[
+                CategoryDraft(value=TopicCode.SERUM),
+                BudgetDraft(maximum=Decimal("300")),
+                EfficacyDraft(value=EfficacyTarget.REPAIR),
+            ],
+            semantic_proposals=[],
+            signal_trace=[],
+            image_references=[],
+            uncertainties=[],
+            confidence=1.0,
+            semantic_authoritative=True,
+        ),
+        StructuredUnderstanding(
+            goal=UnderstandingGoal.RECOMMENDATION,
+            topic=TopicCode.SERUM,
+            observations=[],
+            exact_constraints=[
+                CategoryDraft(value=TopicCode.SERUM),
+                BudgetDraft(maximum=Decimal("300")),
+            ],
+            preference_drafts=[
+                PreferenceDraft(
+                    field_key="efficacy",
+                    value="保湿",
+                    preference_kind="concept",
+                    concept_id="efficacy.hydration",
+                )
+            ],
+            constraint_changes=[
+                ConstraintChangeDraft(
+                    parent_concept="efficacy",
+                    requested_change="remove",
+                    value="repair",
+                    source_span=SourceSpan(start=0, end=2),
+                )
+            ],
+            semantic_proposals=[],
+            signal_trace=[],
+            image_references=[],
+            uncertainties=[],
+            confidence=1.0,
+            semantic_authoritative=True,
+        ),
+    ))
+    orchestrator = compose_text_recommendation_orchestrator(
+        real_reader,
+        product_assets=real_product_assets,
+        conversation_state=conversation_state,
+        understanding=understanding,
+        concept_reader=build_selection_parent_concept_reader(
+            Path(__file__).resolve().parents[3]
+        ),
+    )
+
+    list(orchestrator.stream(_turn("三百元内修护精华")))
+    events = list(
+        orchestrator.stream(
+            _turn(second_message, conversation_version=1)
+        )
+    )
+    snapshot = conversation_state.load("s-1")
+
+    assert not any(event.event == "error" for event in events)
+    assert not any(
+        event.event == "scenario_evidence"
+        for event in events
+    )
+    assert snapshot is not None
+    assert snapshot.query_context is not None
+    assert snapshot.query_context.efficacy is None
+    assert [
+        item.concept_id for item in snapshot.query_context.concepts
+    ] == ["efficacy.hydration"]
 
 
 def test_scenario_failure_remains_terminal_without_partial_evidence(
@@ -4071,6 +4380,94 @@ def test_budget_revision_reruns_full_flow_and_updates_snapshot(
         if section.kind == "product"
     ) == tuple(
         card.product_id for card in products.data.cards
+    )
+
+
+def test_recommendation_supplement_uses_revision_presentation(
+    real_reader,
+    real_product_assets,
+    conversation_state,
+) -> None:
+    flow = compose_text_recommendation_orchestrator(
+        real_reader,
+        product_assets=real_product_assets,
+        conversation_state=conversation_state,
+    )
+    initial = StructuredUnderstanding(
+        goal=UnderstandingGoal.RECOMMENDATION,
+        topic=TopicCode.SERUM,
+        observations=[],
+        exact_constraints=[
+            CategoryDraft(value=TopicCode.SERUM),
+            BudgetDraft(maximum=Decimal("400")),
+        ],
+        semantic_proposals=[],
+        signal_trace=[],
+        image_references=[],
+        uncertainties=[],
+        confidence=1.0,
+    )
+    list(
+        flow.stream_understanding(
+            _turn("四百以内的修护精华"),
+            understanding=initial,
+            route_decision=UnifiedRouteDecision(
+                processor="recommendation",
+                continuity="replace_task",
+                focus_source="none",
+            ),
+            product_bindings=(),
+        )
+    )
+    supplement = StructuredUnderstanding(
+        goal=UnderstandingGoal.RECOMMENDATION,
+        topic=TopicCode.SERUM,
+        observations=[],
+        exact_constraints=[
+            CategoryDraft(value=TopicCode.SERUM),
+        ],
+        preference_drafts=[
+            PreferenceDraft(
+                field_key="texture",
+                value="清爽",
+            ),
+        ],
+        semantic_proposals=[],
+        signal_trace=[],
+        image_references=[],
+        uncertainties=[],
+        confidence=1.0,
+    )
+
+    events = list(
+        flow.stream_understanding(
+            _turn(
+                "加上清爽偏好，不要改预算",
+                conversation_version=1,
+            ),
+            understanding=supplement,
+            route_decision=UnifiedRouteDecision(
+                processor="recommendation",
+                continuity="supplement",
+                focus_source="none",
+            ),
+            product_bindings=(),
+        )
+    )
+
+    presentation = next(
+        event.data
+        for event in events
+        if event.event == "presentation_contract"
+    )
+    assert presentation.mode == "revision"
+    snapshot = conversation_state.load("s-1")
+    assert snapshot is not None
+    assert snapshot.query_context is not None
+    assert snapshot.query_context.budget_maximum == Decimal("400")
+    assert any(
+        facet.field_key == "texture" and facet.value == "清爽"
+        for facet in snapshot.query_context.facets
     )
 
 

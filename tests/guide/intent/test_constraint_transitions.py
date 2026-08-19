@@ -26,6 +26,7 @@ from app.guide.intent.contracts import (
     TaskConstraint,
 )
 from app.guide.understanding.contracts import (
+    ConstraintChangeDraft,
     EfficacyTarget,
     ExactRevisionConfirmation,
     ExactRevisionOperation,
@@ -394,6 +395,64 @@ def test_transition_reference_without_value_or_proof_clarifies() -> None:
     assert [
         issue.code for issue in result.issues
     ] == ["confirm_hard_constraint_revision"]
+
+
+def test_transition_reference_with_only_unchanged_category_clarifies() -> None:
+    result = reduce_constraint_state(
+        previous=_previous(),
+        current_constraints=(
+            _bound(CategoryConstraint(value=TopicCode.SUNSCREEN)),
+        ),
+        revision_confirmations=(),
+        goal=UnderstandingGoal.FOLLOWUP,
+        transition_requested=True,
+    )
+
+    assert [
+        issue.code for issue in result.issues
+    ] == ["confirm_hard_constraint_revision"]
+
+
+def test_remove_old_efficacy_plus_new_value_collapses_to_replace() -> None:
+    result = reduce_constraint_state(
+        previous=_previous().model_copy(
+            update={"efficacy": "anti_aging"},
+            deep=True,
+        ),
+        current_constraints=(
+            _bound(
+                CategoryConstraint(value=TopicCode.SUNSCREEN),
+                authority="validated_semantic",
+            ),
+            _bound(
+                EfficacyConstraint(value=EfficacyTarget.REPAIR),
+                authority="validated_semantic",
+            ),
+        ),
+        revision_confirmations=(),
+        semantic_changes=(
+            ConstraintChangeDraft(
+                parent_concept="efficacy",
+                requested_change="remove",
+                value="anti_aging",
+                source_span=SourceSpan(start=0, end=2),
+            ),
+        ),
+        goal=UnderstandingGoal.RECOMMENDATION,
+        transition_requested=True,
+    )
+
+    efficacy = [
+        item
+        for item in result.transitions
+        if item.target == "efficacy"
+    ]
+    assert [(item.operation, item.authority) for item in efficacy] == [
+        ("replace", "validated_semantic"),
+    ]
+    assert EfficacyConstraint(
+        value=EfficacyTarget.REPAIR
+    ) in result.constraints
 
 
 def test_proof_value_must_match_replacement_value() -> None:

@@ -1704,6 +1704,46 @@ def test_matching_exact_and_semantic_topic_agree_without_duplication() -> None:
     assert merged.uncertainties == []
 
 
+@pytest.mark.parametrize(
+    ("exact_topic", "semantic_topic", "expected_resolution"),
+    (
+        (
+            TopicCode.SERUM,
+            TopicCode.SKINCARE,
+            "exact_wins",
+        ),
+        (
+            TopicCode.SKINCARE,
+            TopicCode.SERUM,
+            "semantic_fills",
+        ),
+    ),
+)
+def test_parent_and_child_topics_choose_the_more_specific_topic(
+    exact_topic: TopicCode,
+    semantic_topic: TopicCode,
+    expected_resolution: str,
+) -> None:
+    merged = merge_intent_signals(
+        message="想找一款护肤精华",
+        exact_constraints=[CategoryDraft(value=exact_topic)],
+        exact_issues=[],
+        semantic=_proposal(topic=semantic_topic),
+    )
+
+    assert merged.topic is TopicCode.SERUM
+    assert [
+        item.value
+        for item in merged.exact_constraints
+        if isinstance(item, CategoryDraft)
+    ] == [TopicCode.SERUM]
+    assert not any(
+        item.code == "ambiguous_category"
+        for item in merged.uncertainties
+    )
+    assert merged.signal_trace[0].resolution == expected_resolution
+
+
 def test_non_hard_topic_conflict_preserves_exact_and_clarifies() -> None:
     merged = merge_intent_signals(
         message="推荐防晒",
@@ -2854,7 +2894,7 @@ def test_round9_attribute_scope_is_preserved_as_typed_clarification(
         ),
         (
             UnderstandingGoal.IMAGE_SIMILARITY,
-            ClarificationCode.GOAL,
+            ClarificationCode.REFERENCE,
         ),
         (
             UnderstandingGoal.ASSESSMENT,

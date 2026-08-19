@@ -6,6 +6,9 @@
 """
 from __future__ import annotations
 
+from collections.abc import Sequence
+from typing import Literal
+
 from app.guide.decision.contracts import DecisionResult
 from app.guide.presentation.contracts import (
     DisplayCategoryFact,
@@ -72,6 +75,97 @@ def project_public_category_facts(
     return tuple(projected)
 
 
+def _merge_direct_display_facts(
+    projected: tuple[DisplayCategoryFact, ...],
+    facts: ProductCardFacts,
+) -> tuple[DisplayCategoryFact, ...]:
+    by_key = {fact.field_key: fact for fact in projected}
+    direct_values = (
+        (
+            "efficacy",
+            "功效",
+            facts.efficacy,
+            facts.efficacy_state,
+        ),
+        (
+            "ingredients_present",
+            "确认含有成分",
+            facts.ingredients_present,
+            facts.ingredients_present_state,
+        ),
+        (
+            "suitable_skin",
+            "适用肤质",
+            facts.suitable_skin,
+            facts.suitable_skin_state,
+        ),
+    )
+    for field_key, label, value, state in direct_values:
+        current = by_key.get(field_key)
+        if state == "known" and value is not None:
+            if current is not None and current.state == "known":
+                merged = _merge_display_values(current.value, value)
+                by_key[field_key] = DisplayCategoryFact(
+                    field_key=field_key,
+                    label=current.label,
+                    value=merged,
+                    state="known",
+                )
+                continue
+            by_key[field_key] = DisplayCategoryFact(
+                field_key=field_key,
+                label=label,
+                value=value,
+                state="known",
+            )
+    return tuple(
+        by_key[field_key]
+        for field_key in sorted(by_key)
+    )
+
+
+def _merge_display_values(
+    first,
+    second,
+):
+    values: list[str] = []
+    for value in (first, second):
+        items = value if isinstance(value, tuple) else (value,)
+        for item in items:
+            if isinstance(item, str) and item not in values:
+                values.append(item)
+    return tuple(values) if values else first
+
+
+def build_product_card(
+    facts: ProductCardFacts,
+    *,
+    skin_match: Literal["matched", "unknown", "not_applicable"],
+    matched_efficacies: Sequence[str] = (),
+) -> ProductCard:
+    return ProductCard(
+        product_id=facts.product_id,
+        category_profile=facts.category_profile,
+        category_facts=_merge_direct_display_facts(
+            project_public_category_facts(facts.category_fields),
+            facts,
+        ),
+        variant_scope=facts.variant_scope,
+        specification=facts.specification,
+        name=facts.name,
+        brand=facts.brand,
+        category=facts.category,
+        price=facts.price,
+        image_url=facts.image_url,
+        detail_url=facts.detail_url,
+        platform=facts.platform,
+        image_source_sha256=facts.image_source_sha256,
+        skin_match=skin_match,
+        matched_efficacies=list(matched_efficacies),
+        fact_warnings=list(facts.fact_warnings),
+    )
+
+
 def build_response_plan(
     decision: DecisionResult,
     *,
@@ -92,27 +186,10 @@ def build_response_plan(
                 f"missing presentation facts for product_id {product_id}"
             ) from exc
         cards.append(
-            ProductCard(
-                product_id=product_id,
-                category_profile=facts.category_profile,
-                category_facts=project_public_category_facts(
-                    facts.category_fields
-                ),
-                variant_scope=facts.variant_scope,
-                specification=facts.specification,
-                name=facts.name,
-                brand=facts.brand,
-                category=facts.category,
-                price=facts.price,
-                image_url=facts.image_url,
-                detail_url=facts.detail_url,
-                platform=facts.platform,
-                image_source_sha256=facts.image_source_sha256,
+            build_product_card(
+                facts,
                 skin_match=evaluation.skin_match,
-                matched_efficacies=list(
-                    evaluation.matched_efficacies
-                ),
-                fact_warnings=list(facts.fact_warnings),
+                matched_efficacies=evaluation.matched_efficacies,
             )
         )
 

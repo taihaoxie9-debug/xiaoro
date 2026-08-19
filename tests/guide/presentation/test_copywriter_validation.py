@@ -26,12 +26,13 @@ def _soft_fact(
     fact_id: str,
     *,
     attribution: str = "verified_fact",
+    field_key: str = "texture",
     plain_meaning: str = "质地轻薄清透、不黏腻",
 ) -> ApprovedSoftFact:
     return ApprovedSoftFact(
         fact_id=fact_id,
         product_id=55,
-        field_key="texture",
+        field_key=field_key,
         plain_meaning=plain_meaning,
         attribution=attribution,
         source_refs=(f"source:{fact_id}",),
@@ -111,6 +112,7 @@ def _draft(
     summary: str = "现有信息更适合先看使用路线，不急着直接拍板。",
     positioning: str = "更偏轻盈不黏的通勤路线。",
     reason: str = "早上赶时间时会更利落。",
+    product_copy: tuple[ProductCopy, ...] | None = None,
     used_fact_ids: tuple[str, ...] = (
         "soft-texture",
         "soft-film",
@@ -120,7 +122,7 @@ def _draft(
     return CopywriterDraft(
         mode="recommendation",
         summary_copy=summary,
-        product_copy=(
+        product_copy=product_copy or (
             ProductCopy(
                 slot_id="p1",
                 positioning=positioning,
@@ -151,6 +153,397 @@ def test_validator_accepts_natural_soft_fact_paraphrases() -> None:
     assert validated.product_copy[0].advisor_reason == (
         "早上赶时间时会更利落。"
     )
+
+
+def test_validator_allows_approved_merchant_positioning_numbers_and_ingredients() -> None:
+    packet = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-efficacy",
+                attribution="merchant_claim",
+                field_key="efficacy",
+                plain_meaning="品牌主打：12周充盈凹陷",
+            ),
+            _soft_fact(
+                "soft-ingredient",
+                attribution="merchant_claim",
+                field_key="ingredients_present",
+                plain_meaning="品牌主打：12%玻色因溶液、透明质酸",
+            ),
+        )
+    )
+    packet = packet.model_copy(
+        update={
+            "copy_budget": CopyLengthBudget(
+                summary_max_chars=180,
+                positioning_max_chars=200,
+                advisor_reason_max_chars=120,
+                closing_max_chars=180,
+            )
+        }
+    )
+    draft = _draft(
+        positioning=(
+            "这款主打12周充盈凹陷，配方方向包含12%玻色因溶液"
+            "和透明质酸。"
+        ),
+        reason="适合想看充盈、淡纹和饱满感路线的人先重点比较。",
+        used_fact_ids=("soft-efficacy", "soft-ingredient"),
+    )
+
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_validator_authorizes_hard_fact_even_when_fact_id_is_not_listed() -> None:
+    packet = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-efficacy",
+                attribution="merchant_claim",
+                field_key="efficacy",
+                plain_meaning="品牌主打：12周充盈凹陷",
+            ),
+            _soft_fact(
+                "soft-skin",
+                attribution="verified_fact",
+                field_key="suitable_skin",
+                plain_meaning="适合肤质：多种肤质适用",
+            ),
+        )
+    )
+    draft = _draft(
+        positioning="品牌主打12周充盈凹陷。",
+        reason="多种肤质适用，可以作为充盈路线的补充选择。",
+        used_fact_ids=("soft-skin",),
+    )
+
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_validator_allows_approved_verified_ingredients() -> None:
+    packet = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-ingredient",
+                attribution="verified_fact",
+                field_key="ingredients_present",
+                plain_meaning="核心成分：玻色因、透明质酸",
+            ),
+        )
+    )
+    draft = _draft(
+        positioning="配方方向包含玻色因和透明质酸。",
+        reason="适合想看充盈和保湿路线的人先比较。",
+        used_fact_ids=("soft-ingredient",),
+    )
+
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_validator_allows_approved_alphanumeric_ingredient_name() -> None:
+    packet = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-ingredient",
+                attribution="verified_fact",
+                field_key="ingredients_present",
+                plain_meaning="核心成分：维生素原B5（泛醇）",
+            ),
+        )
+    )
+    draft = _draft(
+        positioning="配方方向包含维生素原B5（泛醇）。",
+        reason="适合想看保湿修护路线的人比较。",
+        used_fact_ids=("soft-ingredient",),
+    )
+
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_validator_rejects_changed_alphanumeric_ingredient_name() -> None:
+    packet = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-ingredient",
+                attribution="verified_fact",
+                field_key="ingredients_present",
+                plain_meaning="核心成分：维生素原B5（泛醇）",
+            ),
+        )
+    )
+    draft = _draft(
+        positioning="配方方向包含维生素原B6（泛醇）。",
+        reason="适合想看保湿修护路线的人比较。",
+        used_fact_ids=("soft-ingredient",),
+    )
+
+    _invalid(packet, draft, CopywriterValidationErrorCode.HARD_FACT)
+
+
+def test_validator_allows_exact_number_from_approved_finish_fact() -> None:
+    packet = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-finish",
+                attribution="merchant_claim",
+                field_key="finish",
+                plain_meaning="品牌主打：24小时不暗沉柔雾妆效",
+            ),
+        )
+    )
+    draft = _draft(
+        positioning="品牌主打24小时不暗沉的柔雾妆效。",
+        reason="适合更看重通勤持妆观感的人比较。",
+        used_fact_ids=("soft-finish",),
+    )
+
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_validator_rejects_changed_number_from_approved_finish_fact() -> None:
+    packet = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-finish",
+                attribution="merchant_claim",
+                field_key="finish",
+                plain_meaning="品牌主打：24小时不暗沉柔雾妆效",
+            ),
+        )
+    )
+    draft = _draft(
+        positioning="品牌主打48小时不暗沉的柔雾妆效。",
+        reason="适合更看重通勤持妆观感的人比较。",
+        used_fact_ids=("soft-finish",),
+    )
+
+    _invalid(packet, draft, CopywriterValidationErrorCode.HARD_FACT)
+
+
+@pytest.mark.parametrize(
+    "positioning",
+    (
+        "品牌主打16小时持久贴肤。",
+        "按商家资料，持久贴肤时长为16 h。",
+    ),
+)
+def test_validator_allows_equivalent_hour_unit_from_approved_fact(
+    positioning: str,
+) -> None:
+    packet = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-film",
+                attribution="merchant_claim",
+                field_key="film_speed",
+                plain_meaning="品牌主打：16H持久贴肤",
+            ),
+        )
+    )
+    draft = _draft(
+        positioning=positioning,
+        reason="适合想了解成膜持久度的人比较。",
+        used_fact_ids=("soft-film",),
+    )
+
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_validator_rejects_changed_hour_value_from_approved_fact() -> None:
+    packet = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-film",
+                attribution="merchant_claim",
+                field_key="film_speed",
+                plain_meaning="品牌主打：16H持久贴肤",
+            ),
+        )
+    )
+    draft = _draft(
+        positioning="品牌主打18小时持久贴肤。",
+        reason="适合想了解成膜持久度的人比较。",
+        used_fact_ids=("soft-film",),
+    )
+
+    _invalid(packet, draft, CopywriterValidationErrorCode.HARD_FACT)
+
+
+def test_validator_allows_approved_decimal_percentage() -> None:
+    packet = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-efficacy",
+                attribution="merchant_claim",
+                field_key="efficacy",
+                plain_meaning="品牌主打：皮肤紧致提升35.97%",
+            ),
+        )
+    )
+    draft = _draft(
+        positioning="品牌主打皮肤紧致提升35.97%。",
+        reason="适合想了解紧致路线的人比较。",
+        used_fact_ids=("soft-efficacy",),
+    )
+
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_validator_allows_approved_chinese_quantity_unit() -> None:
+    packet = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-efficacy",
+                attribution="merchant_claim",
+                field_key="efficacy",
+                plain_meaning="品牌主打：1瓶覆盖抗老与抗氧方向",
+            ),
+        )
+    )
+    draft = _draft(
+        positioning="品牌主打1瓶覆盖抗老与抗氧方向。",
+        reason="适合想简化护肤步骤的人比较。",
+        used_fact_ids=("soft-efficacy",),
+    )
+
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+@pytest.mark.parametrize(
+    "positioning",
+    (
+        "品牌主打皮肤紧致提升53.97%。",
+        "品牌主打2瓶覆盖抗老与抗氧方向。",
+    ),
+)
+def test_validator_rejects_changed_approved_quantity(
+    positioning: str,
+) -> None:
+    packet = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-efficacy",
+                attribution="merchant_claim",
+                field_key="efficacy",
+                plain_meaning=(
+                    "品牌主打：皮肤紧致提升35.97%；"
+                    "1瓶覆盖抗老与抗氧方向"
+                ),
+            ),
+        )
+    )
+    draft = _draft(
+        positioning=positioning,
+        reason="适合想了解功效路线的人比较。",
+        used_fact_ids=("soft-efficacy",),
+    )
+
+    _invalid(packet, draft, CopywriterValidationErrorCode.HARD_FACT)
+
+
+def test_validator_still_rejects_unauthorized_numbers_and_ingredients() -> None:
+    packet = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-texture",
+                attribution="merchant_claim",
+                plain_meaning="品牌主打：轻盈滋润、快速吸收、不粘腻",
+            ),
+        )
+    )
+    draft = _draft(
+        positioning="这款主打12周见效，还额外加入12%玻色因溶液。",
+        reason="适合想看清爽肤感的人先比较。",
+        used_fact_ids=("soft-texture",),
+    )
+
+    _invalid(packet, draft, CopywriterValidationErrorCode.HARD_FACT)
+
+
+def test_validator_rejects_bare_number_reuse_from_approved_claim() -> None:
+    packet = _packet(
+        soft_facts=(
+            _soft_fact(
+                "soft-ingredient",
+                attribution="merchant_claim",
+                field_key="ingredients_present",
+                plain_meaning="品牌主打：12%玻色因溶液",
+            ),
+        )
+    )
+    draft = _draft(
+        positioning="这款主打12种活性思路，配方方向包含玻色因。",
+        reason="适合想看充盈路线的人先比较。",
+        used_fact_ids=("soft-ingredient",),
+    )
+
+    _invalid(packet, draft, CopywriterValidationErrorCode.HARD_FACT)
+
+
+def test_validator_allows_summary_to_restate_user_budget_range() -> None:
+    packet = _packet().model_copy(
+        update={
+            "user_need_summary": (
+                "干敏肌想要抗初老精华，预算 900 到 1100 元"
+            )
+        }
+    )
+    draft = _draft(
+        summary="在900-1100元预算内，先看抗初老精华的路线差异。",
+    )
+
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_validator_allows_summary_to_reference_visible_product_count() -> None:
+    base = _packet()
+
+    def clone_slot(slot_id: str, product_id: int) -> CopySlot:
+        slot = base.slots[0]
+        return slot.model_copy(
+            update={
+                "slot_id": slot_id,
+                "product_id": product_id,
+                "approved_soft_facts": tuple(
+                    fact.model_copy(update={"product_id": product_id})
+                    for fact in slot.approved_soft_facts
+                ),
+                "locked_facts": (),
+                "required_cautions": (),
+            },
+            deep=True,
+        )
+
+    packet = base.model_copy(
+        update={
+            "slots": (
+                clone_slot("p1", 55),
+                clone_slot("p2", 56),
+                clone_slot("p3", 57),
+            ),
+            "section_order": (
+                PresentationSectionSpec(kind="summary"),
+                PresentationSectionSpec(kind="product", slot_id="p1"),
+                PresentationSectionSpec(kind="product", slot_id="p2"),
+                PresentationSectionSpec(kind="product", slot_id="p3"),
+                PresentationSectionSpec(kind="closing"),
+                PresentationSectionSpec(kind="full_cards"),
+                PresentationSectionSpec(kind="pitfalls"),
+            ),
+        },
+        deep=True,
+    )
+    base_item = _draft().product_copy[0]
+    draft = _draft(
+        summary="这3款先按肤感、主打方向和预算取舍分开看。",
+        product_copy=(
+            base_item.model_copy(update={"slot_id": "p1"}),
+            base_item.model_copy(update={"slot_id": "p2"}),
+            base_item.model_copy(update={"slot_id": "p3"}),
+        ),
+    )
+
+    assert validate_copywriter_draft(packet, draft) == draft
 
 
 def test_placeholder_product_name_does_not_ban_normal_copy_character() -> None:
@@ -419,15 +812,26 @@ def test_validator_enforces_packet_copy_budget() -> None:
     )
 
 
-def test_validator_requires_eighty_percent_soft_fact_coverage() -> None:
+def test_validator_allows_partial_substantive_soft_fact_coverage() -> None:
+    facts = tuple(
+        _soft_fact(f"fact-{index}")
+        for index in range(5)
+    )
+    packet = _packet(soft_facts=facts)
+    draft = _draft(
+        used_fact_ids=("fact-0", "fact-1"),
+    )
+
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_validator_requires_at_least_one_soft_fact_when_available() -> None:
     facts = tuple(
         _soft_fact(f"fact-{index}")
         for index in range(4)
     )
     packet = _packet(soft_facts=facts)
-    draft = _draft(
-        used_fact_ids=("fact-0", "fact-1", "fact-2"),
-    )
+    draft = _draft(used_fact_ids=())
 
     with pytest.raises(CopywriterValidationError) as caught:
         validate_copywriter_draft(packet, draft)

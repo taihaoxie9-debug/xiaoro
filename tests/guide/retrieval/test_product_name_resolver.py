@@ -3,6 +3,8 @@ from __future__ import annotations
 import importlib
 from pathlib import Path
 
+import pytest
+
 from app.guide.understanding.image_contracts import CanonicalIdentity
 from app.guide.retrieval.controlled_product_aliases import (
     ControlledProductAliasRecord,
@@ -158,6 +160,93 @@ def test_controlled_alias_resolves_without_model_product_id() -> None:
     assert resolution.issue is None
 
 
+def test_brand_qualified_controlled_aliases_resolve_exact_products() -> None:
+    module = _resolver_module()
+    catalog = FakeIdentityCatalog({
+        34: CanonicalIdentity(
+            product_id=34,
+            brand="修丽可（SKINCEUTICALS）",
+            product_name="修丽可维生素CE复合修护精华液",
+        ),
+        38: CanonicalIdentity(
+            product_id=38,
+            brand="理肤泉（LA ROCHE-POSAY）",
+            product_name="理肤泉新B5多效修护精华",
+        ),
+    })
+    aliases = ControlledProductAliasRegistry((
+        ControlledProductAliasRecord(
+            alias="CE精华",
+            identity_scope="exact_product",
+            product_ids=(34,),
+            default_product_id=34,
+            source_refs=("a" * 64,),
+            review_status="approved",
+            review_rationale="审核别名唯一绑定 CE 精华。",
+        ),
+        ControlledProductAliasRecord(
+            alias="B5精华",
+            identity_scope="exact_product",
+            product_ids=(38,),
+            default_product_id=38,
+            source_refs=("b" * 64,),
+            review_status="approved",
+            review_rationale="审核别名唯一绑定 B5 精华。",
+        ),
+    ))
+    resolver = module.ProductNameResolver(
+        catalog,
+        controlled_aliases=aliases,
+    )
+    message = "修丽可CE精华和理肤泉B5精华的路线差在哪"
+
+    resolution = resolver.resolve(
+        message=message,
+        mentions=(
+            _mention(message, "修丽可CE精华"),
+            _mention(message, "理肤泉B5精华"),
+        ),
+    )
+
+    assert resolution.product_ids == (34, 38)
+    assert resolution.issue is None
+
+
+def test_brand_qualified_alias_rejects_mismatched_brand() -> None:
+    module = _resolver_module()
+    catalog = FakeIdentityCatalog({
+        34: CanonicalIdentity(
+            product_id=34,
+            brand="修丽可（SKINCEUTICALS）",
+            product_name="修丽可维生素CE复合修护精华液",
+        ),
+    })
+    aliases = ControlledProductAliasRegistry((
+        ControlledProductAliasRecord(
+            alias="CE精华",
+            identity_scope="exact_product",
+            product_ids=(34,),
+            default_product_id=34,
+            source_refs=("a" * 64,),
+            review_status="approved",
+            review_rationale="审核别名唯一绑定 CE 精华。",
+        ),
+    ))
+    resolver = module.ProductNameResolver(
+        catalog,
+        controlled_aliases=aliases,
+    )
+    message = "理肤泉CE精华适合我吗"
+
+    resolution = resolver.resolve(
+        message=message,
+        mentions=(_mention(message, "理肤泉CE精华"),),
+    )
+
+    assert resolution.product_ids == ()
+    assert resolution.issue == "missing_reference"
+
+
 def test_exact_variant_alias_preserves_reviewed_variant_scope() -> None:
     module = _resolver_module()
     catalog = FakeIdentityCatalog({
@@ -279,6 +368,77 @@ def test_unique_canonical_prefix_resolves_without_model_product_id() -> None:
 
     assert resolution.product_ids == (56,)
     assert resolution.issue is None
+
+
+@pytest.mark.parametrize(
+    ("brand", "canonical_name", "mention_text"),
+    (
+        (
+            "Biore/碧柔",
+            "碧柔Biore水活防晒水润凝蜜",
+            "碧柔水活防晒水润凝蜜",
+        ),
+        (
+            "ARMANI/阿玛尼",
+            "阿玛尼（ARMANI）权力持妆PRO粉底液#2",
+            "阿玛尼权力持妆PRO",
+        ),
+        (
+            "CHANEL/香奈儿",
+            "香奈儿五号香水（经典）",
+            "香奈儿五号香水经典版",
+        ),
+    ),
+)
+def test_canonical_identity_surfaces_allow_brand_and_version_forms(
+    brand: str,
+    canonical_name: str,
+    mention_text: str,
+) -> None:
+    module = _resolver_module()
+    catalog = FakeIdentityCatalog({
+        1: CanonicalIdentity(
+            product_id=1,
+            brand=brand,
+            product_name=canonical_name,
+        ),
+    })
+    message = f"请核对{mention_text}的资料"
+
+    resolution = module.ProductNameResolver(catalog).resolve(
+        message=message,
+        mentions=(_mention(message, mention_text),),
+    )
+
+    assert resolution.product_ids == (1,)
+    assert resolution.issue is None
+
+
+def test_derived_identity_surface_stays_ambiguous_for_two_products() -> None:
+    module = _resolver_module()
+    catalog = FakeIdentityCatalog({
+        1: CanonicalIdentity(
+            product_id=1,
+            brand="Biore/碧柔",
+            product_name="碧柔Biore水活防晒水润凝蜜70ml",
+        ),
+        2: CanonicalIdentity(
+            product_id=2,
+            brand="Biore/碧柔",
+            product_name="碧柔Biore水活防晒水润凝蜜90ml",
+        ),
+    })
+    message = "碧柔水活防晒水润凝蜜怎么选"
+
+    resolution = module.ProductNameResolver(catalog).resolve(
+        message=message,
+        mentions=(
+            _mention(message, "碧柔水活防晒水润凝蜜"),
+        ),
+    )
+
+    assert resolution.product_ids == ()
+    assert resolution.issue == "ambiguous_reference"
 
 
 def test_finds_explicit_full_canonical_name_when_model_omits_mention() -> None:

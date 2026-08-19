@@ -6,6 +6,9 @@ from enum import Enum
 import re
 import unicodedata
 
+from app.guide.retrieval.category_taxonomy import (
+    most_specific_compatible_topic,
+)
 from app.guide.understanding.colloquial_budget import (
     parse_colloquial_budget,
 )
@@ -170,6 +173,31 @@ _EFFICACY_ALIASES = (
     ("补水", EfficacyTarget.HYDRATION),
     ("控油", EfficacyTarget.OIL_CONTROL),
     ("祛痘", EfficacyTarget.ACNE_CARE),
+)
+_EFFICACY_ALIAS_PATTERN = "|".join(
+    re.escape(alias) for alias, _target in _EFFICACY_ALIASES
+)
+_EFFICACY_REVISION_CUE = re.compile(
+    r"(?:功效\s*)?(?:改成|改为|换成)"
+)
+_EFFICACY_TARGET_FIRST_WITHDRAWAL = re.compile(
+    rf"(?P<proof>(?P<value>{_EFFICACY_ALIAS_PATTERN})\s*"
+    r"(?:先)?(?:撤掉|去掉|取消|删掉))"
+)
+_EFFICACY_ACTION_FIRST_WITHDRAWAL = re.compile(
+    rf"(?P<proof>(?:先)?(?:撤掉|去掉|取消|删掉)\s*"
+    rf"(?P<value>{_EFFICACY_ALIAS_PATTERN}))"
+)
+_NONASSERTIVE_REVISION_MARKERS = (
+    "如果",
+    "假如",
+    "要是",
+    "是否",
+    "也许",
+    "可能",
+    "不要",
+    "别",
+    "不必",
 )
 _SKIN_ALIASES = (
     ("油敏肌", SkinTarget.OILY_SENSITIVE),
@@ -1158,6 +1186,13 @@ def parse_exact_revision_confirmations(
                 affected_value=_skin_target_for_alias(alias).value,
             )
         )
+    efficacy_revision = _efficacy_revision_confirmation(text)
+    if efficacy_revision is not None:
+        confirmations.append(efficacy_revision)
+    else:
+        efficacy_withdrawal = _efficacy_withdrawal_confirmation(text)
+        if efficacy_withdrawal is not None:
+            confirmations.append(efficacy_withdrawal)
     for pattern, target in (
         (
             _EXCLUSION_WITHDRAWAL,
@@ -1241,6 +1276,100 @@ def parse_exact_revision_confirmations(
             )
         )
     return confirmations
+
+
+def _efficacy_revision_confirmation(
+    text: str,
+) -> ExactRevisionConfirmation | None:
+    cue = _EFFICACY_REVISION_CUE.search(text)
+    if cue is None or _nonassertive_revision_prefix(
+        text,
+        start=cue.start(),
+    ):
+        return None
+    clause_end = next(
+        (
+            index
+            for index in range(cue.end(), len(text))
+            if text[index] in "，,。.!！?？；;：:\n\r"
+        ),
+        len(text),
+    )
+    for alias, target in _EFFICACY_ALIASES:
+        value_start = text.find(alias, cue.end(), clause_end)
+        if value_start < 0:
+            continue
+        return ExactRevisionConfirmation(
+            operation=ExactRevisionOperation.REVISE_CONSTRAINT,
+            target=ExactRevisionTarget.EFFICACY,
+            source_span=SourceSpan(
+                start=cue.start(),
+                end=value_start + len(alias),
+            ),
+            affected_value=target.value,
+        )
+    return None
+
+
+def _efficacy_withdrawal_confirmation(
+    text: str,
+) -> ExactRevisionConfirmation | None:
+    for pattern in (
+        _EFFICACY_TARGET_FIRST_WITHDRAWAL,
+        _EFFICACY_ACTION_FIRST_WITHDRAWAL,
+    ):
+        for match in pattern.finditer(text):
+            if _nonassertive_revision_prefix(
+                text,
+                start=match.start("proof"),
+            ):
+                continue
+            alias = match.group("value")
+            target = next(
+                target
+                for candidate, target in _EFFICACY_ALIASES
+                if candidate == alias
+            )
+            return ExactRevisionConfirmation(
+                operation=(
+                    ExactRevisionOperation.WITHDRAW_CONSTRAINT
+                ),
+                target=ExactRevisionTarget.EFFICACY,
+                source_span=SourceSpan(
+                    start=match.start("proof"),
+                    end=match.end("proof"),
+                ),
+                affected_value=target.value,
+            )
+    return None
+
+
+def parse_exact_efficacy_withdrawals(
+    text: str,
+) -> tuple[EfficacyTarget, ...]:
+    confirmation = _efficacy_withdrawal_confirmation(text)
+    if confirmation is None or confirmation.affected_value is None:
+        return ()
+    return (EfficacyTarget(confirmation.affected_value),)
+
+
+def _nonassertive_revision_prefix(
+    text: str,
+    *,
+    start: int,
+) -> bool:
+    clause_start = max(
+        (
+            text.rfind(separator, 0, start)
+            for separator in "，,。.!！?？；;：:\n\r"
+        ),
+        default=-1,
+    ) + 1
+    prefix = text[clause_start:start]
+    return any(
+        marker in prefix
+        for marker in _NONASSERTIVE_REVISION_MARKERS
+    )
 
 
 def _budget_revision_confirmation_spans(
@@ -1783,13 +1912,22 @@ def _parse_category_analysis(
         for topic, polarity in topic_states.items()
         if polarity is _SelectionPolarity.POSITIVE
     ]
-    if len(topics) > 1:
-        return None, UnderstandingIssue(
-            code="ambiguous_category",
-            detail="检测到多个不同品类，请只保留一个明确的推荐品类。",
-        )
     if topics:
-        return topics[0], None
+        selected = topics[0]
+        for topic in topics[1:]:
+            compatible = most_specific_compatible_topic(
+                selected,
+                topic,
+            )
+            if compatible is None:
+                return None, UnderstandingIssue(
+                    code="ambiguous_category",
+                    detail=(
+                        "检测到多个不同品类，请只保留一个明确的推荐品类。"
+                    ),
+                )
+            selected = compatible
+        return selected, None
     if any(
         polarity is _SelectionPolarity.UNKNOWN
         for polarity in topic_states.values()

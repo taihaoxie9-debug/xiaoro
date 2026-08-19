@@ -649,3 +649,51 @@ def test_coordinator_records_dynamic_breakage_as_terminal_safety() -> None:
     assert stored.version == 1
     assert stored.consultation is not None
     assert stored.consultation.medical_escalation is not None
+
+
+def test_dynamic_read_only_return_advances_conversation_version() -> None:
+    state = InMemoryConversationState()
+    coordinator = ConsultationApplicationCoordinator(
+        conversation_state=state,
+    )
+    first = coordinator.handle_dynamic_turn(
+        session_id="dynamic-consultation-read-only",
+        conversation_version=0,
+        message="洗脸后两颊会紧",
+        meaning=_meaning(
+            observations=(
+                _observation(
+                    "obs_tight",
+                    code="tightness",
+                    raw_text="洗脸后两颊会紧",
+                    location="cheeks",
+                    trigger="post_cleanse",
+                ),
+            ),
+            support=("obs_tight",),
+            next_gap="persistence_or_trigger",
+        ),
+        source_turn_id="turn_dynamic_coordinator_0004",
+        profile_owner=_OWNER,
+    )
+    before = state.load("dynamic-consultation-read-only")
+    assert before is not None
+
+    returned = coordinator.handle_dynamic_turn(
+        session_id="dynamic-consultation-read-only",
+        conversation_version=first.conversation_version,
+        message="回到刚才的判断，继续问缺的信息",
+        meaning=_meaning(
+            observations=(),
+            next_gap="persistence_or_trigger",
+        ),
+        source_turn_id="turn_dynamic_coordinator_0005",
+        profile_owner=_OWNER,
+    )
+    stored = state.load("dynamic-consultation-read-only")
+
+    assert returned.intent == "consultation_clarification"
+    assert returned.conversation_version == first.conversation_version + 1
+    assert stored is not None
+    assert stored.version == first.conversation_version + 1
+    assert stored.consultation == before.consultation

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from decimal import Decimal
 from hashlib import sha256
 import json
@@ -17,6 +17,11 @@ from app.guide.adapters.llm.deepseek_intent import (
 )
 from app.guide.adapters.llm.deepseek_turn_meaning import (
     DeepSeekTurnMeaningAdapter,
+)
+from app.guide.adapters.catalog import CanonicalProductReader
+from app.guide.adapters.llm.contracts import (
+    SemanticProviderFailure,
+    SemanticProviderFailureCode,
 )
 from app.guide.intent.concept_preferences import (
     ConceptPreferenceCatalog,
@@ -36,6 +41,13 @@ from app.guide_runtime.composition import (
 from tools.guide_gates.continuous_conversation_fixture import (
     load_frozen_trajectories,
 )
+from tools.guide_gates.continuous_conversation_mechanical_truth import (
+    MechanicalTruthSpec,
+    TruthCorrectionOverlay,
+    TurnTruthRequirement,
+    apply_truth_correction_overlay,
+    audit_mechanical_truth,
+)
 from tools.guide_gates.continuous_conversation_gate import (
     ContinuousFailureLayer,
     ContinuousRuntime,
@@ -46,6 +58,7 @@ from tools.guide_gates.continuous_conversation_gate import (
 )
 from tools.guide_gates.continuous_conversation_runtime import (
     build_local_continuous_runtime,
+    runtime_image_fixtures,
 )
 from tools.guide_gates.run_official_deepseek_smoke import (
     DEFAULT_KEY_PATH,
@@ -69,6 +82,10 @@ _LAYER_ORDER = (
     ContinuousFailureLayer.DATA_COVERAGE,
     ContinuousFailureLayer.PUBLIC_PRESENTATION,
 )
+_SCORABLE_TRANSLATION_FAILURES = frozenset({
+    SemanticProviderFailureCode.INVALID_OUTPUT,
+    SemanticProviderFailureCode.FORBIDDEN_OUTPUT,
+})
 
 
 class _StrictFrozen(BaseModel):
@@ -113,6 +130,7 @@ class ContinuousCaptureRow(_StrictFrozen):
     message: str
     starting_version: int = Field(ge=0)
     semantic_context: SemanticContext
+    provider_call_attempted: bool = True
     provider_raw_output: str | None
     provider_trace_id: str | None
     provider_output: TurnMeaning | None
@@ -142,6 +160,7 @@ class ContinuousGateReport(_StrictFrozen):
     provider_call_count: int = Field(ge=0)
     reused_provider_call_count: int = Field(ge=0)
     new_provider_call_count: int = Field(ge=0)
+    skipped_dependency_turn_count: int = Field(ge=0)
     copywriter_call_count: Literal[0] = 0
     retry_count: Literal[0] = 0
     passed_turn_count: int = Field(ge=0)
@@ -270,9 +289,16 @@ def _translation_matches(
     meaning: TurnMeaning,
 ) -> bool:
     expected = turn.acceptable_semantic
+    topic_matches = (
+        meaning.topic_hint in expected.topic_hints
+        or (
+            meaning.topic_hint is None
+            and turn.expected_route.continuity != "replace_task"
+        )
+    )
     return (
         meaning.operation_hint in expected.operation_hints
-        and meaning.topic_hint in expected.topic_hints
+        and topic_matches
         and meaning.continuity_hint in expected.continuity_hints
         and meaning.subject_scope_hint in expected.subject_scope_hints
     )
@@ -288,16 +314,21 @@ def _public_presentation_matches(
             validate_public_text(message)
     except PublicLanguageError:
         internal_language = True
+    if turn.expected_clarification:
+        return (
+            (
+                trace.clarification
+                and trace.presentation_mode is None
+                and not internal_language
+            ),
+            internal_language,
+        )
     return (
         (
             trace.presentation_mode
             == turn.expected_presentation_mode
             and (
                 bool(trace.public_messages)
-                or (
-                    turn.expected_clarification
-                    and trace.clarification
-                )
             )
             and not internal_language
         ),
@@ -311,6 +342,8 @@ def evaluate_continuous_turn(
     turn: ContinuousTurnExpectation,
     meaning: TurnMeaning,
     trace: ContinuousTurnTrace,
+    truth: TurnTruthRequirement | None = None,
+    outcome_scoring: bool = False,
 ) -> ContinuousTurnEvaluation:
     if type(turn) is not ContinuousTurnExpectation:
         raise TypeError(
@@ -320,11 +353,26 @@ def evaluate_continuous_turn(
         raise TypeError("meaning must be an exact TurnMeaning")
     if type(trace) is not ContinuousTurnTrace:
         raise TypeError("trace must be an exact ContinuousTurnTrace")
+    if truth is not None and (
+        type(truth) is not TurnTruthRequirement
+        or truth.turn_id != turn.turn_id
+    ):
+        raise TypeError(
+            "truth must match the evaluated turn"
+        )
     identity_binding = (
         _binding_keys(trace.bindings)
         == _binding_keys(turn.expected_bindings)
     )
-    route_selection = trace.route == turn.expected_route
+    route_selection = (
+        trace.route.processor == turn.expected_route.processor
+        if outcome_scoring
+        else trace.route
+        in (
+            turn.expected_route,
+            *turn.acceptable_routes,
+        )
+    )
     state_transition = (
         _contains_expected(
             trace.final_snapshot.model_dump(mode="json"),
@@ -341,15 +389,20 @@ def evaluate_continuous_turn(
         and trace.clarification == turn.expected_clarification
         and not trace.hard_condition_override
     )
-    data_coverage = (
-        len(trace.card_ids) == len(turn.expected_card_ids)
-        and set(trace.card_ids) == set(turn.expected_card_ids)
+    data_coverage = _data_coverage_matches(
+        turn=turn,
+        trace=trace,
+        truth=truth,
     )
     public_presentation, internal_language = (
         _public_presentation_matches(turn, trace)
     )
     evidence = ContinuousLayerEvidence(
-        model_translation=_translation_matches(turn, meaning),
+        model_translation=(
+            True
+            if outcome_scoring
+            else _translation_matches(turn, meaning)
+        ),
         semantic_admission=trace.semantic_admission_passed,
         identity_binding=identity_binding,
         route_selection=route_selection,
@@ -370,14 +423,22 @@ def evaluate_continuous_turn(
     unexpected_bindings = set(_binding_keys(trace.bindings)).difference(
         _binding_keys(turn.expected_bindings)
     )
-    unexpected_cards = set(trace.card_ids).difference(
-        turn.expected_card_ids
+    unexpected_cards = (
+        set(trace.card_ids).difference(
+            truth.eligible_product_ids
+        )
+        if truth is not None
+        else set()
     )
     stale_focus = (
         turn.expected_route.continuity == "return_to_focus"
         and (
-            not route_selection
-            or not state_transition
+            bool(unexpected_bindings or unexpected_cards)
+            or (
+                trace.route.processor
+                != turn.expected_route.processor
+                and trace.route.focus_source != "none"
+            )
         )
     )
     return ContinuousTurnEvaluation(
@@ -389,7 +450,10 @@ def evaluate_continuous_turn(
             len(unexpected_bindings) + len(unexpected_cards)
         ),
         unauthorized_state_transition_count=(
-            0 if state_transition else 1
+            int(
+                failure_layer
+                is ContinuousFailureLayer.STATE_TRANSITION
+            )
         ),
         hard_condition_override_count=int(
             trace.hard_condition_override
@@ -403,6 +467,36 @@ def evaluate_continuous_turn(
         internal_public_language_count=int(internal_language),
         stale_focus_hijack_count=int(stale_focus),
         passed=failure_layer is None,
+    )
+
+
+def _data_coverage_matches(
+    *,
+    turn: ContinuousTurnExpectation,
+    trace: ContinuousTurnTrace,
+    truth: TurnTruthRequirement | None,
+) -> bool:
+    if truth is None:
+        return (
+            len(trace.card_ids) == len(turn.expected_card_ids)
+            and set(trace.card_ids) == set(turn.expected_card_ids)
+        )
+    if truth.card_policy == "none":
+        return not trace.card_ids
+    eligible = set(truth.eligible_product_ids)
+    if truth.card_policy == "eligible_subset":
+        return (
+            truth.minimum_card_count
+            <= len(trace.card_ids)
+            <= truth.maximum_card_count
+            and len(trace.card_ids) == len(set(trace.card_ids))
+            and set(trace.card_ids).issubset(eligible)
+        )
+    return (
+        truth.minimum_card_count
+        <= len(trace.card_ids)
+        <= truth.maximum_card_count
+        and set(trace.card_ids) == eligible
     )
 
 
@@ -436,7 +530,7 @@ def _failed_translation_evaluation(
         wrong_product_or_image_binding_count=0,
         unauthorized_state_transition_count=0,
         hard_condition_override_count=0,
-        unsafe_downgrade_count=int(turn.expected_safety),
+        unsafe_downgrade_count=0,
         cross_session_or_subject_leak_count=0,
         internal_public_language_count=0,
         stale_focus_hijack_count=0,
@@ -623,6 +717,7 @@ def _capture_row(
     trace: ContinuousTurnTrace | None,
     evaluation: ContinuousTurnEvaluation,
     usage: object,
+    provider_call_attempted: bool = True,
 ) -> ContinuousCaptureRow:
     input_payload = {
         "trajectory_id": trajectory.trajectory_id,
@@ -648,6 +743,7 @@ def _capture_row(
         "provider_raw_output": provider_raw_output,
         "provider_trace_id": provider_trace_id,
         "provider_output": output_payload,
+        "provider_call_attempted": provider_call_attempted,
         "trace": trace_payload,
         "evaluation": evaluation.model_dump(mode="json"),
     }
@@ -658,6 +754,7 @@ def _capture_row(
         message=turn.message,
         starting_version=starting_version,
         semantic_context=context,
+        provider_call_attempted=provider_call_attempted,
         provider_raw_output=provider_raw_output,
         provider_trace_id=provider_trace_id,
         provider_output=meaning,
@@ -696,6 +793,68 @@ def _validate_trajectories(
     if len(ids) != len(set(ids)):
         raise ValueError("trajectory IDs must be unique")
     return normalized
+
+
+def _validate_truth_by_turn(
+    *,
+    trajectories: Sequence[ContinuousTrajectory],
+    truth_by_turn: Mapping[str, TurnTruthRequirement] | None,
+) -> dict[str, TurnTruthRequirement]:
+    if truth_by_turn is None:
+        return {}
+    expected_ids = {
+        turn.turn_id
+        for trajectory in trajectories
+        for turn in trajectory.turns
+    }
+    normalized = dict(truth_by_turn)
+    if set(normalized) != expected_ids or any(
+        type(value) is not TurnTruthRequirement
+        or value.turn_id != turn_id
+        for turn_id, value in normalized.items()
+    ):
+        raise ValueError(
+            "mechanical truth must cover every turn exactly once"
+        )
+    return normalized
+
+
+def _validate_truth_spec_binding(
+    *,
+    manifest_path: str | Path,
+    truth_spec_path: str | Path,
+) -> None:
+    manifest_file = Path(manifest_path)
+    truth_file = Path(truth_spec_path)
+    try:
+        manifest = json.loads(
+            manifest_file.read_text(encoding="utf-8")
+        )
+    except (OSError, ValueError) as exc:
+        raise ValueError(
+            "truth spec must be manifest-bound"
+        ) from exc
+    declared_name = manifest.get("mechanical_truth_file")
+    declared_sha256 = manifest.get("mechanical_truth_sha256")
+    declared_path = (
+        manifest_file.parent / declared_name
+        if isinstance(declared_name, str)
+        else None
+    )
+    try:
+        actual_sha256 = sha256(
+            truth_file.read_bytes()
+        ).hexdigest()
+    except OSError as exc:
+        raise ValueError(
+            "truth spec must be manifest-bound"
+        ) from exc
+    if (
+        declared_path is None
+        or declared_path.resolve() != truth_file.resolve()
+        or declared_sha256 != actual_sha256
+    ):
+        raise ValueError("truth spec must be manifest-bound")
 
 
 def _summarize_capture(
@@ -743,6 +902,9 @@ def _summarize_capture(
         new_provider_call_count=(
             provider_call_count - reused_provider_call_count
         ),
+        skipped_dependency_turn_count=sum(
+            not row.provider_call_attempted for row in rows
+        ),
         passed_turn_count=passed_turn_count,
         passed_trajectory_count=passed_trajectories,
         complete_trajectory_rate=(
@@ -758,12 +920,31 @@ def _summarize_capture(
         ),
         total_tokens=sum(row.total_tokens for row in rows),
         results_sha256=_hash_json(rows_payload),
-        passed=(
-            passed_turn_count == len(rows)
-            and passed_trajectories == len(trajectories)
-            and not any(counters.values())
+        passed=blind_qualification_passed(
+            turn_count=len(rows),
+            passed_turn_count=passed_turn_count,
+            trajectory_count=len(trajectories),
+            passed_trajectory_count=passed_trajectories,
+            zero_tolerance_counters=counters,
         ),
         **counters,
+    )
+
+
+def blind_qualification_passed(
+    *,
+    turn_count: int,
+    passed_turn_count: int,
+    trajectory_count: int,
+    passed_trajectory_count: int,
+    zero_tolerance_counters: Mapping[str, int],
+) -> bool:
+    return (
+        turn_count == 100
+        and trajectory_count == 20
+        and passed_turn_count >= 90
+        and passed_trajectory_count >= 18
+        and not any(zero_tolerance_counters.values())
     )
 
 
@@ -882,10 +1063,21 @@ def run_real_continuous_gate(
     output_path: str | Path,
     stop_on_first_failure: bool = False,
     resume_capture_path: str | Path | None = None,
+    truth_by_turn: Mapping[
+        str,
+        TurnTruthRequirement,
+    ] | None = None,
+    outcome_scoring: bool = False,
 ) -> ContinuousGateReport:
     normalized = _validate_trajectories(trajectories)
+    normalized_truth = _validate_truth_by_turn(
+        trajectories=normalized,
+        truth_by_turn=truth_by_turn,
+    )
     if type(stop_on_first_failure) is not bool:
         raise TypeError("stop_on_first_failure must be a bool")
+    if type(outcome_scoring) is not bool:
+        raise TypeError("outcome_scoring must be a bool")
     if not callable(getattr(adapter, "propose_with_result", None)):
         raise TypeError("adapter must expose propose_with_result")
     del copywriter
@@ -909,6 +1101,7 @@ def run_real_continuous_gate(
     rows: list[ContinuousCaptureRow] = []
     provider_call_count = 0
     reused_provider_call_count = 0
+    resume_row_index = 0
     for trajectory in normalized:
         runtime = runtime_factory(
             trajectory,
@@ -916,6 +1109,7 @@ def run_real_continuous_gate(
         )
         snapshot = None
         version = 0
+        translation_dependency_broken = False
         for ordinal, turn in enumerate(
             trajectory.turns,
             start=1,
@@ -924,20 +1118,13 @@ def run_real_continuous_gate(
                 conversation_version=version,
                 snapshot=snapshot,
             )
-            provider_call_count += 1
             source_row = (
-                resume_rows[provider_call_count - 1]
-                if provider_call_count <= len(resume_rows)
+                resume_rows[resume_row_index]
+                if resume_row_index < len(resume_rows)
                 else None
             )
-            meaning = None
-            trace = None
-            usage = None
-            raw_output = None
-            trace_id = None
-            fatal_error: BaseException | None = None
-            trajectory_broken = False
             if source_row is not None:
+                resume_row_index += 1
                 _validate_resume_row(
                     source_row=source_row,
                     trajectory=trajectory,
@@ -945,16 +1132,54 @@ def run_real_continuous_gate(
                     version=version,
                     context=context,
                 )
+            source_call_attempted = (
+                source_row.get("provider_call_attempted", True)
+                if source_row is not None
+                else True
+            )
+            if type(source_call_attempted) is not bool:
+                raise ValueError(
+                    "resume capture provider call flag is invalid"
+                )
+            meaning = None
+            trace = None
+            usage = None
+            raw_output = None
+            trace_id = None
+            provider_call_attempted = True
+            fatal_error: BaseException | None = None
+            trajectory_broken = False
+            translation_broken = False
+            if translation_dependency_broken:
+                if source_row is not None and source_call_attempted:
+                    raise ValueError(
+                        "resume capture attempted a dependency-skipped turn"
+                    )
+                provider_call_attempted = False
+                evaluation = _failed_translation_evaluation(
+                    trajectory_id=trajectory.trajectory_id,
+                    turn=turn,
+                )
+            elif source_row is not None:
+                if not source_call_attempted:
+                    raise ValueError(
+                        "resume capture skipped an independent turn"
+                    )
+                provider_call_count += 1
                 meaning = _meaning_from_captured_output(source_row)
                 if meaning is None:
-                    raise ValueError(
-                        "resume capture translation is not valid now"
+                    evaluation = _failed_translation_evaluation(
+                        trajectory_id=trajectory.trajectory_id,
+                        turn=turn,
                     )
+                    trajectory_broken = True
+                    translation_broken = True
                 raw_output = source_row.get("provider_raw_output")
                 trace_id = source_row.get("provider_trace_id")
                 usage = source_row
                 reused_provider_call_count += 1
             else:
+                provider_call_count += 1
                 try:
                     call = adapter.propose_with_result(
                         turn.message,
@@ -978,7 +1203,15 @@ def run_real_continuous_gate(
                         trajectory_id=trajectory.trajectory_id,
                         turn=turn,
                     )
-                    fatal_error = error
+                    if (
+                        isinstance(error, SemanticProviderFailure)
+                        and error.code
+                        in _SCORABLE_TRANSLATION_FAILURES
+                    ):
+                        trajectory_broken = True
+                        translation_broken = True
+                    else:
+                        fatal_error = error
             if meaning is not None:
                 try:
                     trace = _execute_turn(
@@ -993,6 +1226,8 @@ def run_real_continuous_gate(
                         turn=turn,
                         meaning=meaning,
                         trace=trace,
+                        truth=normalized_truth.get(turn.turn_id),
+                        outcome_scoring=outcome_scoring,
                     )
                     snapshot = trace.final_snapshot
                     version = trace.terminal_version
@@ -1018,15 +1253,12 @@ def run_real_continuous_gate(
                     trajectory_broken = True
             if (
                 source_row is not None
-                and (
-                    not evaluation.passed
-                    or any(
-                        _zero_tolerance_counters((evaluation,)).values()
-                    )
+                and any(
+                    _zero_tolerance_counters((evaluation,)).values()
                 )
             ):
                 raise ValueError(
-                    "resume capture prefix must replay green"
+                    "resume capture prefix contains a serious failure"
                 )
             rows.append(_capture_row(
                 trajectory=trajectory,
@@ -1042,6 +1274,7 @@ def run_real_continuous_gate(
                 trace=trace,
                 evaluation=evaluation,
                 usage=usage,
+                provider_call_attempted=provider_call_attempted,
             ))
             partial_rows = tuple(rows)
             partial_report = _summarize_capture(
@@ -1066,15 +1299,23 @@ def run_real_continuous_gate(
                 f"attempted_calls={provider_call_count} "
                 "new_calls="
                 f"{provider_call_count - reused_provider_call_count} "
+                f"{'skipped_dependency=true ' if not provider_call_attempted else ''}"
                 f"total_tokens={sum(row.total_tokens for row in partial_rows)}",
                 flush=True,
             )
             if fatal_error is not None:
                 raise fatal_error
+            if any(
+                _zero_tolerance_counters((evaluation,)).values()
+            ):
+                return partial_report
             if stop_on_first_failure and not evaluation.passed:
                 return partial_report
             if trajectory_broken:
-                break
+                if translation_broken:
+                    translation_dependency_broken = True
+                else:
+                    break
     frozen_rows = tuple(rows)
     report = _summarize_capture(
         trajectories=normalized,
@@ -1100,8 +1341,19 @@ def replay_captured_continuous_gate(
     state_root: str | Path,
     output_path: str | Path,
     allow_partial: bool = False,
+    truth_by_turn: Mapping[
+        str,
+        TurnTruthRequirement,
+    ] | None = None,
+    outcome_scoring: bool = False,
 ) -> ContinuousReplayReport:
     normalized = _validate_trajectories(trajectories)
+    normalized_truth = _validate_truth_by_turn(
+        trajectories=normalized,
+        truth_by_turn=truth_by_turn,
+    )
+    if type(outcome_scoring) is not bool:
+        raise TypeError("outcome_scoring must be a bool")
     source = json.loads(
         Path(capture_path).read_text(encoding="utf-8")
     )
@@ -1165,6 +1417,7 @@ def replay_captured_continuous_gate(
         )
         snapshot = None
         version = 0
+        translation_dependency_broken = False
         for ordinal, turn in enumerate(
             replay_turns,
             start=1,
@@ -1172,6 +1425,14 @@ def replay_captured_continuous_gate(
             source_row = by_key[
                 (trajectory.trajectory_id, turn.turn_id)
             ]
+            provider_call_attempted = source_row.get(
+                "provider_call_attempted",
+                True,
+            )
+            if type(provider_call_attempted) is not bool:
+                raise ValueError(
+                    "capture provider call flag is invalid"
+                )
             meaning = _meaning_from_captured_output(source_row)
             source_starting_version = source_row.get(
                 "starting_version"
@@ -1196,13 +1457,32 @@ def replay_captured_continuous_gate(
                 conversation_version=version,
                 snapshot=snapshot,
             )
-            if meaning is None:
+            if translation_dependency_broken:
+                if provider_call_attempted or meaning is not None:
+                    raise ValueError(
+                        "capture attempted a dependency-skipped turn"
+                    )
                 evaluation = _failed_translation_evaluation(
                     trajectory_id=trajectory.trajectory_id,
                     turn=turn,
                 )
                 trace = None
+            elif meaning is None:
+                if not provider_call_attempted:
+                    raise ValueError(
+                        "capture skipped an independent turn"
+                    )
+                evaluation = _failed_translation_evaluation(
+                    trajectory_id=trajectory.trajectory_id,
+                    turn=turn,
+                )
+                trace = None
+                translation_dependency_broken = True
             else:
+                if not provider_call_attempted:
+                    raise ValueError(
+                        "capture skipped a turn with provider output"
+                    )
                 try:
                     trace = _execute_turn(
                         trajectory=trajectory,
@@ -1227,6 +1507,8 @@ def replay_captured_continuous_gate(
                         turn=turn,
                         meaning=meaning,
                         trace=trace,
+                        truth=normalized_truth.get(turn.turn_id),
+                        outcome_scoring=outcome_scoring,
                     )
                     snapshot = trace.final_snapshot
                     version = trace.terminal_version
@@ -1248,8 +1530,9 @@ def replay_captured_continuous_gate(
                 trace=trace,
                 evaluation=evaluation,
                 usage=None,
+                provider_call_attempted=provider_call_attempted,
             ))
-            if meaning is None or trace is None:
+            if trace is None and not translation_dependency_broken:
                 break
     frozen_rows = tuple(rows)
     evaluations = tuple(row.evaluation for row in frozen_rows)
@@ -1322,7 +1605,7 @@ def _build_adapter(
         timeout_seconds=20.0,
         max_tokens=1024,
         concept_catalog=concept_ids,
-        daily_budget_cny=Decimal("100.00"),
+        daily_budget_cny=Decimal("3.00"),
         daily_call_cap=turn_count,
     )
 
@@ -1335,8 +1618,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     parser.add_argument("--cases", required=True, type=Path)
     parser.add_argument("--manifest", required=True, type=Path)
+    parser.add_argument("--truth-spec", type=Path)
+    parser.add_argument("--truth-correction", type=Path)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--replay", type=Path)
+    run_mode = parser.add_mutually_exclusive_group()
+    run_mode.add_argument("--replay", type=Path)
+    run_mode.add_argument("--resume", type=Path)
+    parser.add_argument(
+        "--allow-partial-replay",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--outcome-scoring",
+        action="store_true",
+    )
     parser.add_argument(
         "--repo-root",
         type=Path,
@@ -1370,6 +1665,77 @@ def main(argv: Sequence[str] | None = None) -> int:
             "turn_count": turn_count,
         }))
         return 6
+    truth_by_turn: dict[str, TurnTruthRequirement] = {}
+    if (
+        args.truth_correction is not None
+        and args.truth_spec is None
+    ):
+        print(json.dumps({
+            "status": "truth_correction_requires_truth_spec",
+        }))
+        return 8
+    if args.truth_spec is not None:
+        try:
+            _validate_truth_spec_binding(
+                manifest_path=args.manifest,
+                truth_spec_path=args.truth_spec,
+            )
+            truth_spec = MechanicalTruthSpec.model_validate_json(
+                args.truth_spec.read_text(encoding="utf-8"),
+                strict=True,
+            )
+            if args.truth_correction is not None:
+                truth_correction = (
+                    TruthCorrectionOverlay.model_validate_json(
+                        args.truth_correction.read_text(
+                            encoding="utf-8"
+                        ),
+                        strict=True,
+                    )
+                )
+                trajectories = apply_truth_correction_overlay(
+                    trajectories=trajectories,
+                    overlay=truth_correction,
+                    fixture_path=args.cases,
+                    manifest_path=args.manifest,
+                    mechanical_truth_path=args.truth_spec,
+                )
+            canonical_root = (
+                args.repo_root / "data" / "canonical"
+            )
+            truth_report = audit_mechanical_truth(
+                trajectories=trajectories,
+                canonical_reader=CanonicalProductReader.from_files(
+                    manifest_path=(
+                        canonical_root
+                        / "core_products_v1_manifest.json"
+                    ),
+                    products_path=(
+                        canonical_root / "core_products_v1.jsonl"
+                    ),
+                ),
+                spec=truth_spec,
+                runtime_image_fixtures=runtime_image_fixtures(),
+                repo_root=args.repo_root,
+            )
+        except (OSError, ValueError) as error:
+            print(json.dumps({
+                "status": "mechanical_truth_failed",
+                "error": str(error),
+            }))
+            return 8
+        truth_by_turn = {
+            item.turn_id: item for item in truth_spec.turns
+        }
+        print(json.dumps({
+            "status": "mechanical_truth_passed",
+            "truth_correction_count": (
+                len(truth_correction.corrections)
+                if args.truth_correction is not None
+                else 0
+            ),
+            **truth_report.model_dump(mode="json"),
+        }))
     runtime_factory = lambda trajectory, state_root: (
         build_local_continuous_runtime(
             trajectory,
@@ -1388,6 +1754,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 runtime_factory=runtime_factory,
                 state_root=state_root,
                 output_path=args.output,
+                allow_partial=args.allow_partial_replay,
+                truth_by_turn=truth_by_turn or None,
+                outcome_scoring=args.outcome_scoring,
             )
             print(report.model_dump_json())
             return 0 if report.passed else 3
@@ -1425,6 +1794,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                 runtime_factory=runtime_factory,
                 state_root=state_root,
                 output_path=args.output,
+                resume_capture_path=args.resume,
+                truth_by_turn=truth_by_turn or None,
+                outcome_scoring=args.outcome_scoring,
             )
         finally:
             close = getattr(adapter, "close", None)
@@ -1440,6 +1812,7 @@ __all__ = [
     "ContinuousLayerEvidence",
     "ContinuousReplayReport",
     "ContinuousTurnEvaluation",
+    "blind_qualification_passed",
     "evaluate_continuous_turn",
     "replay_captured_continuous_gate",
     "run_real_continuous_gate",

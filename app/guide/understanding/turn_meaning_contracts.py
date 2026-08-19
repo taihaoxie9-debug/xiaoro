@@ -154,6 +154,20 @@ TurnRelativeBaselineHint = Literal[
     "current_batch",
     "unknown",
 ]
+TurnConstraintParent = Literal[
+    "ingredient_exclusion",
+    "efficacy",
+    "skin",
+]
+TurnConstraintChange = Literal["remove", "replace"]
+TurnPendingResponseHint = Literal[
+    "affirm",
+    "reject",
+    "correct",
+    "supplement",
+    "replace_task",
+    "unknown",
+]
 
 
 class _StrictFrozenModel(BaseModel):
@@ -170,6 +184,18 @@ class TurnReferenceMention(_StrictFrozenModel):
     object_family_hint: TurnObjectFamilyHint
     ordinal_hint: int | None = Field(default=None, ge=1, le=4)
     plurality_hint: TurnPluralityHint
+    batch_size_hint: int | None = Field(default=None, ge=2, le=4)
+
+    @model_validator(mode="after")
+    def validate_batch_size(self) -> Self:
+        if (
+            self.batch_size_hint is not None
+            and self.plurality_hint != "batch"
+        ):
+            raise ValueError(
+                "batch_size_hint requires batch plurality"
+            )
+        return self
 
 
 class TurnProductMention(_StrictFrozenModel):
@@ -272,11 +298,73 @@ class TurnPreferenceCandidate(_StrictFrozenModel):
 
     @model_validator(mode="after")
     def validate_concept_scope(self) -> Self:
+        if self.field_key == "ingredient_exclusion":
+            if (
+                self.concept_id is not None
+                or self.polarity != "avoid"
+            ):
+                raise ValueError(
+                    "ingredient exclusion requires a bare avoid target"
+                )
+            return self
         if (
             self.concept_id is not None
             and not self.concept_id.startswith(f"{self.field_key}.")
         ):
             raise ValueError("concept_id must be field-scoped")
+        return self
+
+
+class TurnConstraintChangeCandidate(_StrictFrozenModel):
+    parent_concept: TurnConstraintParent
+    requested_change: TurnConstraintChange
+    raw_text: str = Field(min_length=1, max_length=160)
+    normalized_value: str | None = Field(
+        default=None,
+        pattern=r"^[a-z][a-z0-9_]{1,63}$",
+    )
+
+    @model_validator(mode="after")
+    def validate_parent_change(self) -> Self:
+        allowed_values = {
+            "efficacy": {
+                "hydration",
+                "soothing",
+                "repair",
+                "anti_aging",
+                "brightening",
+                "oil_control",
+                "acne_care",
+            },
+            "skin": {
+                "oily_sensitive",
+                "oily",
+                "dry",
+                "combination",
+                "sensitive",
+                "normal",
+            },
+        }
+        if self.parent_concept == "ingredient_exclusion":
+            if (
+                self.requested_change != "remove"
+                or self.normalized_value is not None
+            ):
+                raise ValueError(
+                    "ingredient exclusion supports bare remove only"
+                )
+            return self
+        if self.normalized_value not in allowed_values[
+            self.parent_concept
+        ]:
+            raise ValueError(
+                "constraint change normalized value is not parent-scoped"
+            )
+        if (
+            self.parent_concept == "skin"
+            and self.requested_change != "replace"
+        ):
+            raise ValueError("skin change supports replace only")
         return self
 
 
@@ -307,6 +395,7 @@ class TurnMeaning(_StrictFrozenModel):
     topic_hint: TurnTopicHint | None
     continuity_hint: TurnContinuityHint = "unknown"
     subject_scope_hint: TurnSubjectScopeHint = "unknown"
+    pending_response_hint: TurnPendingResponseHint = "unknown"
     reference_mentions: tuple[TurnReferenceMention, ...] = Field(
         default_factory=tuple,
         max_length=4,
@@ -326,6 +415,10 @@ class TurnMeaning(_StrictFrozenModel):
     preference_candidates: tuple[TurnPreferenceCandidate, ...] = Field(
         default_factory=tuple,
         max_length=12,
+    )
+    constraint_changes: tuple[TurnConstraintChangeCandidate, ...] = Field(
+        default_factory=tuple,
+        max_length=4,
     )
     relative_candidates: tuple[TurnRelativeCandidate, ...] = Field(
         default_factory=tuple,
@@ -362,6 +455,7 @@ class TurnMeaning(_StrictFrozenModel):
         "budget_candidates",
         "observation_candidates",
         "preference_candidates",
+        "constraint_changes",
         "relative_candidates",
         mode="before",
     )
@@ -379,6 +473,7 @@ class TurnMeaning(_StrictFrozenModel):
             "budget_candidates",
             "observation_candidates",
             "preference_candidates",
+            "constraint_changes",
             "relative_candidates",
         ):
             values = getattr(self, field_name)
@@ -421,6 +516,7 @@ class TurnMeaning(_StrictFrozenModel):
 __all__ = [
     "TurnBudgetCandidate",
     "TurnConsultationHypothesis",
+    "TurnConstraintChangeCandidate",
     "TurnContinuityHint",
     "TurnMeaning",
     "TurnNextObservationGap",

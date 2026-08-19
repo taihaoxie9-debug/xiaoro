@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import subprocess
 from pathlib import Path
 
 
@@ -72,6 +74,86 @@ def test_full_product_cards_omit_category_table_and_bound_efficacy_tags() -> Non
     assert "p.matched_efficacies" in body
     assert ".filter(Boolean).slice(0, 2)" in body
     assert "data-match-percentage" not in body
+
+
+def test_full_product_card_reason_avoids_price_or_budget_fillers() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    format_source = _source(
+        html,
+        "function formatCategoryFactValue(fact)",
+        "\n\n        function buildCategoryFactsHtml",
+    )
+    body = _source(
+        html,
+        "function buildDetailedProductReason(p, index)",
+        "\n\n        function getSkinEvidenceLabel",
+    )
+    completed = subprocess.run(
+        [
+            "node",
+            "-e",
+            f"""
+{format_source}
+{body}
+const product = {{
+  price: 1080,
+  rerank_reason: '价格约¥1080，符合预算，京东详情可查实时价',
+  matched_efficacies: ['修护', '抗老'],
+  category_facts: [
+    {{
+      field_key: 'ingredients_present',
+      label: '核心成分',
+      value: ['玻色因', '透明质酸'],
+      state: 'known',
+    }},
+    {{
+      field_key: 'suitable_skin',
+      label: '适合肤质',
+      value: ['多种肤质适用'],
+      state: 'known',
+    }},
+  ],
+}};
+process.stdout.write(JSON.stringify({{
+  reason: buildDetailedProductReason(product, 0),
+}}));
+""",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    reason = json.loads(completed.stdout)["reason"]
+
+    for prohibited_output in (
+        "参考价约",
+        "实时价",
+        "预算建议",
+        "符合预算",
+        "价格和肤感取舍",
+    ):
+        assert prohibited_output not in reason
+    assert "修护" in reason
+    assert "抗老" in reason
+    assert "玻色因" in reason
+
+
+def test_full_product_card_hides_default_unbounded_skin_label() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    score_source = _source(
+        html,
+        "function getSkinEvidenceLabel(product)",
+        "\n\n        function displayImageObservation",
+    )
+    display_source = _source(
+        html,
+        "function displayProducts(products)",
+        "\n\n        // 显示来源引用",
+    )
+
+    assert "return '未限定肤质'" not in score_source
+    assert "evidenceLabel ? " in display_source
+    assert "recommendation-score" in display_source
 
 
 def test_typed_pitfalls_keep_high_separate_and_merge_other_severities() -> None:

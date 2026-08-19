@@ -57,6 +57,7 @@ def test_message_response_includes_replayable_presentation_contract(
     tmp_path,
     monkeypatch,
 ) -> None:
+    monkeypatch.setenv("GUIDE_UNIFIED_ROUTER_ENABLED", "false")
     monkeypatch.delenv("GUIDE_COPY_LLM_API_KEY", raising=False)
     monkeypatch.delenv("GUIDE_COPY_LLM_MODEL", raising=False)
     orchestrator = build_runtime_orchestrator(

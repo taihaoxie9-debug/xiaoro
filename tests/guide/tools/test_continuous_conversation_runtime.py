@@ -473,14 +473,7 @@ def test_local_runtime_product_interruption_returns_to_consultation(
                 "subject_scope_hint": "self",
                 "reference_mentions": [],
                 "product_mentions": [],
-                "budget_candidates": [
-                    {
-                        "raw_text": "三百以内",
-                        "relation": "maximum",
-                        "minimum": None,
-                        "maximum": "300",
-                    }
-                ],
+                "budget_candidates": [],
                 "observation_candidates": [],
                 "preference_candidates": [],
                 "relative_candidates": [],
@@ -613,6 +606,125 @@ def test_local_runtime_image_followup_presents_product_knowledge(
     assert trace.turns[1].card_ids == (55,)
     assert trace.turns[1].presentation_mode == "product_knowledge"
     assert "error" not in trace.turns[1].event_names
+
+
+def test_local_runtime_keeps_image_presentation_after_budget_revision(
+    tmp_path: Path,
+) -> None:
+    trajectory = next(
+        item
+        for item in load_frozen_trajectories()
+        if item.trajectory_id == "image-budget-similarity"
+    )
+
+    def meaning(**updates: object) -> TurnMeaning:
+        payload: dict[str, object] = {
+            "operation_hint": "recommendation",
+            "topic_hint": "sunscreen",
+            "continuity_hint": "continue",
+            "subject_scope_hint": "self",
+            "reference_mentions": [],
+            "product_mentions": [],
+            "budget_candidates": [],
+            "observation_candidates": [],
+            "preference_candidates": [],
+            "relative_candidates": [],
+            "consultation_hypothesis": None,
+            "next_observation_gap": None,
+            "question_meaning": None,
+            "safety_language": "ordinary",
+        }
+        payload.update(updates)
+        return TurnMeaning.model_validate(payload, strict=True)
+
+    meanings = (
+        meaning(
+            operation_hint="image_identity",
+            continuity_hint="new_task",
+            reference_mentions=[{
+                "raw_text": "照片",
+                "object_family_hint": "image",
+                "ordinal_hint": None,
+                "plurality_hint": "batch",
+            }],
+            product_mentions=[{"raw_text": "清透防晒乳"}],
+            question_meaning="识别照片里的清透防晒乳",
+        ),
+        meaning(
+            operation_hint="followup",
+            topic_hint=None,
+            reference_mentions=[{
+                "raw_text": "它",
+                "object_family_hint": "image",
+                "ordinal_hint": 1,
+                "plurality_hint": "single",
+            }],
+            question_meaning="核对图片商品的规格",
+        ),
+        meaning(
+            operation_hint="image_similarity",
+            reference_mentions=[{
+                "raw_text": "它",
+                "object_family_hint": "image",
+                "ordinal_hint": 1,
+                "plurality_hint": "single",
+            }],
+            budget_candidates=[{
+                "raw_text": "一百以内",
+                "relation": "maximum",
+                "minimum": None,
+                "maximum": "100",
+            }],
+            question_meaning="找相似方向，预算一百以内",
+        ),
+        meaning(
+            budget_candidates=[{
+                "raw_text": "一百五",
+                "relation": "maximum",
+                "minimum": None,
+                "maximum": "150",
+            }],
+            preference_candidates=[{
+                "field_key": "texture",
+                "concept_id": "texture.refreshing",
+                "raw_text": "清爽",
+                "polarity": "prefer",
+                "strength": "ordinary",
+            }],
+            question_meaning="预算改为一百五并保持清爽通勤",
+        ),
+        meaning(
+            operation_hint="followup",
+            reference_mentions=[{
+                "raw_text": "第二款",
+                "object_family_hint": "product",
+                "ordinal_hint": 2,
+                "plurality_hint": "single",
+            }],
+            question_meaning="询问新结果的第二款",
+        ),
+    )
+    runtime = build_local_continuous_runtime(
+        trajectory,
+        tmp_path / "image-budget-revision-state",
+        repo_root=Path.cwd(),
+    )
+
+    trace = execute_continuous_trajectory(
+        trajectory,
+        runtime=runtime,
+        meanings=meanings,
+    )
+
+    revision = trace.turns[3]
+    assert revision.route.continuity == "correct"
+    assert revision.card_ids == (51, 57, 53)
+    assert revision.presentation_mode == "image_recommendation"
+    assert (
+        revision.final_snapshot.query_context
+        .similarity_anchor_product_id
+        == 55
+    )
 
 
 def _image_trajectory() -> ContinuousTrajectory:

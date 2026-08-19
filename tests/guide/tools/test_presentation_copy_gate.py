@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from collections import Counter
+from hashlib import sha256
+import json
 from pathlib import Path
 
 from app.guide.presentation.copywriter_fallback import fallback_copy
@@ -13,15 +15,22 @@ from tools.guide_gates.presentation_copy_gate import (
 
 
 FIXTURE = Path(
-    "tests/fixtures/guide/presentation/copy_gate_v2.jsonl"
+    "tests/fixtures/guide/presentation/copy_gate_v3_production.jsonl"
 )
-FIXTURE_V2 = Path(
-    "tests/fixtures/guide/presentation/copy_gate_v2.jsonl"
+MANIFEST = Path(
+    "tests/fixtures/guide/presentation/"
+    "copy_gate_v3_production_manifest.json"
+)
+CANONICAL = Path("data/canonical/core_products_v1.jsonl")
+FACT_AUDIT = Path(
+    "docs/audits/continuous-conversation/"
+    "presentation-fact-admission-v1.json"
 )
 
 
 def test_twenty_case_fixture_exists() -> None:
-    assert FIXTURE_V2.is_file()
+    assert FIXTURE.is_file()
+    assert MANIFEST.is_file()
 
 
 def _cases():
@@ -30,6 +39,113 @@ def _cases():
 
 def _case(mode: str):
     return next(case for case in _cases() if case.packet.mode == mode)
+
+
+def _qualified_copy(case):
+    draft = fallback_copy(case.packet)
+    product_copy = []
+    for item, slot in zip(
+        draft.product_copy,
+        case.slots,
+        strict=True,
+    ):
+        has_consumer_report = any(
+            fact.attribution == "consumer_report"
+            for fact in slot.soft_facts
+        )
+        product_copy.append(
+            item.model_copy(
+                update={
+                    "positioning": (
+                        "按商家资料，这款的功效、肤感与使用场景"
+                        "以已审核事实为准。"
+                    ),
+                    "advisor_reason": (
+                        "结合当前需求可以比较这些信息；"
+                        + (
+                            "限定样本的用户反馈只作体验参考。"
+                            if has_consumer_report
+                            else "未给出的部分不作推断。"
+                        )
+                    ),
+                    "used_soft_fact_ids": tuple(
+                        fact.fact_id for fact in slot.soft_facts
+                    ),
+                }
+            )
+        )
+    return draft.model_copy(
+        update={"product_copy": tuple(product_copy)}
+    )
+
+
+def test_fixture_uses_canonical_products_and_production_fact_inventory() -> None:
+    cases = _cases()
+    canonical = {
+        row["product_id"]: row
+        for row in (
+            json.loads(line)
+            for line in CANONICAL.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        )
+    }
+    audit = json.loads(FACT_AUDIT.read_text(encoding="utf-8"))
+    merchant_facts = {
+        (
+            row["packet_fact_id"],
+            row["product_id"],
+            row["field_key"],
+            row["plain_meaning"],
+        )
+        for row in audit["rows"]
+        if (
+            row["disposition"] == "positioning"
+            and row["packet_fact_id"] is not None
+        )
+    }
+    consumer_facts = {
+        (
+            f"consumer-report:{row['content_sha256']}",
+            row["product_id"],
+            f"限定样本的用户反馈：{row['content']}",
+        )
+        for row in audit["review_inventory"]
+    }
+
+    for case in cases:
+        for slot in case.slots:
+            product = canonical[slot.product_id]
+            assert slot.name == product["fields"]["product_identity"]["value"]
+            for fact in slot.soft_facts:
+                if fact.attribution == "merchant_claim":
+                    assert (
+                        fact.fact_id,
+                        slot.product_id,
+                        fact.field_key,
+                        fact.plain_meaning,
+                    ) in merchant_facts
+                elif fact.attribution == "consumer_report":
+                    assert (
+                        fact.fact_id,
+                        slot.product_id,
+                        fact.plain_meaning,
+                    ) in consumer_facts
+                else:
+                    raise AssertionError(
+                        "production gate facts require reviewed attribution"
+                    )
+
+    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    assert manifest["case_count"] == len(cases) == 20
+    assert manifest["fixture_sha256"] == sha256(
+        FIXTURE.read_bytes()
+    ).hexdigest()
+    assert manifest["canonical_sha256"] == sha256(
+        CANONICAL.read_bytes()
+    ).hexdigest()
+    assert manifest["fact_admission_sha256"] == sha256(
+        FACT_AUDIT.read_bytes()
+    ).hexdigest()
 
 
 def test_fixture_covers_every_copywriter_eligible_mode() -> None:
@@ -80,13 +196,22 @@ def test_fixture_covers_every_copywriter_eligible_mode() -> None:
     assert len(_case("revision").slots[0].soft_facts) == 5
 
 
+def test_clarification_gate_uses_current_question_only_contract() -> None:
+    case = _case("clarification")
+
+    assert tuple(
+        section.kind for section in case.packet.section_order
+    ) == ("question",)
+    assert _qualified_copy(case).closing_copy is None
+
+
 def test_three_product_packet_is_complete_and_schema_valid() -> None:
     case = next(
         item
         for item in _cases()
         if item.case_id == "copy-013-recommendation-three-products"
     )
-    draft = fallback_copy(case.packet)
+    draft = _qualified_copy(case)
     row = evaluate_copy_gate_output(
         case=case,
         output=draft,
@@ -160,7 +285,7 @@ def test_fixture_does_not_duplicate_winner_policy_as_fact_claim() -> None:
 
 def test_valid_paraphrases_pass_without_exact_paragraph_matching() -> None:
     case = _case("recommendation")
-    draft = fallback_copy(case.packet)
+    draft = _qualified_copy(case)
     product = draft.product_copy[0]
     paraphrased = draft.model_copy(
         update={
@@ -206,7 +331,7 @@ def test_valid_paraphrases_pass_without_exact_paragraph_matching() -> None:
 
 def test_gate_separates_schema_readability_and_hard_failures() -> None:
     case = _case("recommendation")
-    draft = fallback_copy(case.packet)
+    draft = _qualified_copy(case)
 
     invalid_schema = evaluate_copy_gate_output(
         case=case,
@@ -245,7 +370,7 @@ def test_gate_separates_schema_readability_and_hard_failures() -> None:
 
 def test_gate_rejects_slot_fact_winner_attribution_and_second_call() -> None:
     comparison = _case("comparison")
-    comparison_draft = fallback_copy(comparison.packet)
+    comparison_draft = _qualified_copy(comparison)
     reordered = comparison_draft.model_copy(
         update={
             "product_copy": tuple(
@@ -254,7 +379,7 @@ def test_gate_rejects_slot_fact_winner_attribution_and_second_call() -> None:
         }
     )
     recommendation = _case("recommendation")
-    recommendation_draft = fallback_copy(recommendation.packet)
+    recommendation_draft = _qualified_copy(recommendation)
     unknown_fact = recommendation_draft.model_copy(
         update={
             "product_copy": (
@@ -325,7 +450,7 @@ def test_gate_rejects_slot_fact_winner_attribution_and_second_call() -> None:
 
 def test_gate_rejects_fixture_specific_unsupported_claim() -> None:
     case = _case("recommendation")
-    draft = fallback_copy(case.packet).model_copy(
+    draft = _qualified_copy(case).model_copy(
         update={"summary_copy": "它还能额外补水，可以直接拍板。"}
     )
 
@@ -341,7 +466,7 @@ def test_gate_rejects_fixture_specific_unsupported_claim() -> None:
 
 def test_gate_rejects_low_coverage_and_internal_ranking_language() -> None:
     case = _case("recommendation")
-    draft = fallback_copy(case.packet)
+    draft = _qualified_copy(case)
     product = draft.product_copy[0]
     low_coverage = draft.model_copy(
         update={
@@ -375,9 +500,10 @@ def test_gate_rejects_low_coverage_and_internal_ranking_language() -> None:
         provider_call_count=1,
     )
 
-    assert coverage_row.validation_error_code == "fact_coverage"
+    assert coverage_row.fact_coverage_violation_count == 1
     assert coverage_row.minimum_fact_coverage == 0.6
     assert not coverage_row.fact_coverage_passed
+    assert coverage_row.hard_violation_count == 0
     assert not coverage_row.passed
     assert internal_row.fact_coverage_passed
     assert not internal_row.internal_language_passed
@@ -386,7 +512,7 @@ def test_gate_rejects_low_coverage_and_internal_ranking_language() -> None:
 
 def test_gate_records_validator_internal_language_failure() -> None:
     case = _case("followup")
-    draft = fallback_copy(case.packet).model_copy(
+    draft = _qualified_copy(case).model_copy(
         update={
             "summary_copy": (
                 "沿用上一轮候选，再结合你补充的清爽偏好继续判断。"
@@ -408,13 +534,13 @@ def test_gate_records_validator_internal_language_failure() -> None:
 
 def test_short_positioning_with_substantive_reason_is_readable() -> None:
     case = _case("revision")
-    draft = fallback_copy(case.packet)
+    draft = _qualified_copy(case)
     concise = draft.model_copy(
         update={
             "product_copy": (
                 draft.product_copy[0].model_copy(
                     update={
-                        "positioning": "偏柔润路线。",
+                        "positioning": "品牌主打偏柔润路线。",
                         "advisor_reason": (
                             "预算调整后，可以把它理解为更重视包裹感的选择。"
                         ),
@@ -446,7 +572,7 @@ def test_concise_positioning_can_be_supported_by_substantive_reason() -> None:
             )
         }
     )
-    draft = fallback_copy(case.packet)
+    draft = _qualified_copy(case)
     product = draft.product_copy[0]
     concise = draft.model_copy(
         update={
@@ -478,7 +604,7 @@ def test_summary_uses_layered_admission_thresholds() -> None:
     rows = [
         evaluate_copy_gate_output(
             case=case,
-            output=fallback_copy(case.packet),
+            output=_qualified_copy(case),
             provider_call_count=1,
         )
         for case in _cases()

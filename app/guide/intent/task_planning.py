@@ -103,8 +103,8 @@ def plan_task(
             product_mentions=product_mentions,
             required_evidence=[],
             clarification=(
-                "商品名称未能唯一绑定 Canonical 目录，"
-                "请提供完整商品名称。"
+                "这个名称可能对应多款商品，"
+                "请补充品牌和完整商品名称。"
             ),
             clarification_code=ClarificationCode.REFERENCE,
         )

@@ -86,7 +86,42 @@ def test_atoms_prioritize_need_then_distinctive_fields_stably() -> None:
     ]
 
 
-def test_atoms_drop_usage_numeric_and_mechanism_copy() -> None:
+def test_atoms_keep_approved_merchant_efficacy_and_ingredient_claims() -> None:
+    atoms = _build(
+        (
+            _fact(
+                "efficacy",
+                "efficacy",
+                "品牌主打：12周充盈凹陷，堪比玻尿酸填充",
+                "merchant_claim",
+            ),
+            _fact(
+                "ingredients",
+                "ingredients_present",
+                "品牌主打：12%玻色因溶液、超小分子透明质酸",
+                "merchant_claim",
+            ),
+            _fact(
+                "texture",
+                "texture",
+                "轻盈滋润、快速吸收、不粘腻",
+                "merchant_claim",
+            ),
+        ),
+        preferred_fields={"efficacy"},
+        distinctive_fields={"ingredients_present"},
+    )
+
+    assert [item.field_key for item in atoms] == [
+        "efficacy",
+        "ingredients_present",
+        "texture",
+    ]
+    assert "12周充盈凹陷" in atoms[0].plain_meaning
+    assert "12%玻色因溶液" in atoms[1].plain_meaning
+
+
+def test_atoms_drop_question_only_copy_but_keep_approved_numeric_texture() -> None:
     atoms = _build(
         (
             _fact("usage", "usage", "每天使用两次", "merchant_claim"),
@@ -100,4 +135,71 @@ def test_atoms_drop_usage_numeric_and_mechanism_copy() -> None:
 
     assert len(atoms) == 1
     assert atoms[0].field_key == "texture"
-    assert atoms[0].plain_meaning == "轻薄清透"
+    assert atoms[0].plain_meaning == "持续16小时；轻薄清透"
+
+
+def test_atoms_keep_approved_purchase_fields_without_whitelist_loss() -> None:
+    atoms = _build(
+        (
+            _fact("long", "longevity", "不易暗沉", "merchant_claim"),
+            _fact(
+                "form",
+                "product_form",
+                "自发泡洁面",
+                "merchant_claim",
+            ),
+            _fact(
+                "ingredient",
+                "claimed_ingredients",
+                "品牌主打：四重氨基酸",
+                "merchant_claim",
+            ),
+            _fact(
+                "area",
+                "application_area",
+                "适合面部与颈部",
+                "merchant_claim",
+            ),
+            _fact(
+                "material",
+                "mask_material",
+                "膜布材质轻薄贴合",
+                "merchant_claim",
+            ),
+            _fact(
+                "concentration",
+                "concentration",
+                "淡香精浓度",
+                "merchant_claim",
+            ),
+        ),
+        preferred_fields={"longevity"},
+        distinctive_fields={"product_form"},
+    )
+
+    assert {atom.field_key for atom in atoms} == {
+        "application_area",
+        "claimed_ingredients",
+        "concentration",
+        "longevity",
+        "mask_material",
+        "product_form",
+    }
+
+
+def test_future_approved_field_does_not_disappear_by_default() -> None:
+    atoms = _build(
+        (
+            _fact(
+                "future",
+                "future_purchase_attribute",
+                "已审核的新购买维度",
+                "verified_fact",
+            ),
+        ),
+        preferred_fields=set(),
+        distinctive_fields=set(),
+    )
+
+    assert len(atoms) == 1
+    assert atoms[0].field_key == "future_purchase_attribute"
