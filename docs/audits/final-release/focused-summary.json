@@ -1,0 +1,19 @@
+{
+  "schema_version": "guide-final-focused-gate-v1",
+  "passed": true,
+  "row_count": 6480,
+  "legal_row_failures": 0,
+  "wrong_binding_count": 0,
+  "wrong_processor_count": 0,
+  "wrong_presentation_count": 0,
+  "forbidden_public_text_count": 0,
+  "matrix_hash_mismatch": 0,
+  "matrix_summary": {
+    "invalid_input_count": 2592,
+    "legal_row_count": 3888,
+    "row_count": 6480,
+    "schema_version": "guide-responsibility-matrix-v1",
+    "truth_file": "truth.jsonl",
+    "truth_sha256": "09d0ad26c5247c45b0fae49e62b17830f05b56ac7361c5f8998368e7adf6d3d5"
+  }
+}

@@ -1,0 +1,250 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:64:net_content:200ml-canonical-unresolved-v1",
+      "field_key": "net_content",
+      "promotion_status": "rejected",
+      "public_text": "200ml",
+      "review_rationale": "来源标题和参数为200ml，但Canonical和参考价SKU未锁定，且图库含双只礼盒，不能覆盖展示规格或组合参考价。",
+      "sku_status": "source_sku_exact_canonical_and_price_unresolved",
+      "source_kind": "product_title_parameter_and_detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-browser-body:07c9a33f9032d76e4fa6095ba41926d9b5a3b62fb585d6dfa8544eb84c85d311",
+        "smzdm-detail-image:bd6ebb03bfa7e1672116481909566a7c3612d5744c69bbe87fb40ffb218609e7"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:64:ingredients:hydrating-soothing-botanicals-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "透明质酸钠、甘草酸二钾、传明酸及多种植物提取物",
+      "review_rationale": "第3、4张长图明确列出这些成分；不采纳渗透至肌肤内部、强化抵御力或改善粉刺等机制扩写。",
+      "sku_status": "exact_product_source_sku",
+      "source_kind": "detail_images",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:f22ce58eef7fc3c2bb70d2f4471ae79ca681e3e61bc4ee9aecd24427f0e4ee81",
+        "smzdm-detail-image:8f378655393afd76d1c69894eea6b2a45daed7ced0fd0867dd194e6611f3a6ec"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.refreshing",
+      "decision": "map",
+      "fact_id": "reviewed:product:64:texture:refreshing-watery-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "清爽水润的水状肤感",
+      "review_rationale": "第2张长图明确清爽水润，商品介绍也描述水润不泛油光；不采用第9张用户口碑作为事实依据。",
+      "sku_status": "exact_product_source_sku",
+      "source_kind": "product_introduction_and_detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-browser-body:07c9a33f9032d76e4fa6095ba41926d9b5a3b62fb585d6dfa8544eb84c85d311",
+        "smzdm-detail-image:a3403dd118b330d39754b1cdbbdc409216c246f90120cdef3c9cf31433fd252b"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.hydration",
+      "decision": "map",
+      "fact_id": "reviewed:product:64:efficacy:hydration-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "补水保湿方向",
+      "review_rationale": "结构化参数、商品介绍和第2张长图均支持补水保湿；不保留深层渗透或人工水层机制。",
+      "sku_status": "exact_product_source_sku",
+      "source_kind": "parameter_introduction_and_detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-browser-body:07c9a33f9032d76e4fa6095ba41926d9b5a3b62fb585d6dfa8544eb84c85d311",
+        "smzdm-detail-image:a3403dd118b330d39754b1cdbbdc409216c246f90120cdef3c9cf31433fd252b"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.oil_control",
+      "decision": "map",
+      "fact_id": "reviewed:product:64:efficacy:oil-balance-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "调节水油平衡方向",
+      "review_rationale": "结构化参数、商品介绍和第2张长图共同支持控油平衡方向；不延伸为治疗粉刺或闭口。",
+      "sku_status": "exact_product_source_sku",
+      "source_kind": "parameter_introduction_and_detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-browser-body:07c9a33f9032d76e4fa6095ba41926d9b5a3b62fb585d6dfa8544eb84c85d311",
+        "smzdm-detail-image:a3403dd118b330d39754b1cdbbdc409216c246f90120cdef3c9cf31433fd252b"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:64:usage:cotton-pad-v1",
+      "field_key": "usage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "洁面爽肤后用化妆棉取适量涂抹全脸，再轻拍至吸收",
+      "review_rationale": "第7张长图给出当前单品的常规用法；不保留跨商品流程、一个月体验或痘痘改善结论。",
+      "sku_status": "exact_product_source_sku",
+      "source_kind": "detail_image",
+      "source_ordinal": 7,
+      "source_refs": [
+        "smzdm-detail-image:f3102d376ef4010a20db7f0a9f86e1cc409aba8a7c07247810ce327bc12a99fb"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:64:efficacy:acne-comedone-testimonials-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "痘痘闭口改善与用户体验结论",
+      "review_rationale": "第2、4、9张内容把原料和用户体验延伸为粉刺、闭口及持续效果，不进入公开事实。",
+      "sku_status": "exact_product_source_sku",
+      "source_kind": "detail_images",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:a3403dd118b330d39754b1cdbbdc409216c246f90120cdef3c9cf31433fd252b",
+        "smzdm-detail-image:8f378655393afd76d1c69894eea6b2a45daed7ced0fd0867dd194e6611f3a6ec",
+        "smzdm-detail-image:30d6bc354d4f65c4081a1caedd4d113d7a9fb4dc72a6432744f0260034e66b55"
+      ]
+    }
+  ],
+  "canonical_identity": "茵芙莎流金岁月凝润美肤水",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T18:12:39.461Z",
+  "category_profile": "skincare",
+  "detail_image_count": 9,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 790,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/64/001_bd6ebb03bfa7e167.webp",
+      "ordinal": 1,
+      "sha256": "bd6ebb03bfa7e1672116481909566a7c3612d5744c69bbe87fb40ffb218609e7",
+      "width": 600
+    },
+    {
+      "height": 779,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/64/002_a3403dd118b330d3.webp",
+      "ordinal": 2,
+      "sha256": "a3403dd118b330d39754b1cdbbdc409216c246f90120cdef3c9cf31433fd252b",
+      "width": 600
+    },
+    {
+      "height": 633,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/64/003_f22ce58eef7fc3c2.webp",
+      "ordinal": 3,
+      "sha256": "f22ce58eef7fc3c2bb70d2f4471ae79ca681e3e61bc4ee9aecd24427f0e4ee81",
+      "width": 600
+    },
+    {
+      "height": 806,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/64/004_8f378655393afd76.webp",
+      "ordinal": 4,
+      "sha256": "8f378655393afd76d1c69894eea6b2a45daed7ced0fd0867dd194e6611f3a6ec",
+      "width": 600
+    },
+    {
+      "height": 912,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/64/005_550d13661f547741.webp",
+      "ordinal": 5,
+      "sha256": "550d13661f547741a32b3cc1ab9b4847d321f2c8e3ff1172a5f2b4f8629af91a",
+      "width": 600
+    },
+    {
+      "height": 816,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/64/006_364ea81ca11edfe6.webp",
+      "ordinal": 6,
+      "sha256": "364ea81ca11edfe61c0bdfde2342266c302ef79bf6c256d12382dc6ccdfc9339",
+      "width": 600
+    },
+    {
+      "height": 604,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/64/007_f3102d376ef4010a.webp",
+      "ordinal": 7,
+      "sha256": "f3102d376ef4010a20db7f0a9f86e1cc409aba8a7c07247810ce327bc12a99fb",
+      "width": 600
+    },
+    {
+      "height": 349,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/64/008_09b778ad991750b3.webp",
+      "ordinal": 8,
+      "sha256": "09b778ad991750b315db177a729f5864a82f2b1a082db1db41b1a8d6e9a2db4d",
+      "width": 600
+    },
+    {
+      "height": 946,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/64/009_30d6bc354d4f65c4.webp",
+      "ordinal": 9,
+      "sha256": "30d6bc354d4f65c4081a1caedd4d113d7a9fb4dc72a6432744f0260034e66b55",
+      "width": 600
+    }
+  ],
+  "introduction_text": "IPSA（茵芙莎）来自日本的护肤品牌，创建于1987年， IPSA的主形象由LOGO首字母和经典产品自律循环液的形象组成，寓意\"IamI\"，其产品分为护肤系列，彩妆系列以及身体护理系列。流金水是IPSA的经典产品，升级后的流金水取消了酒精，变得更加温和。主打抗炎美白，添加马乔莲、玫瑰、芍药精华和甘油，打造人工水层，以极致保湿力孕育健康角质，将水份源源不断渗透至肌肤底层，改善肌肤粗糙、粉刺问题。流金水特有的水油平衡技术，可以增强角质层的储水能力，调节肌肤内的水分循环，从而改善肌肤过度出油的情况，帮助培养水润不泛油光的健康肌肤。",
+  "missing_fields": [
+    "net_content",
+    "ingredients_present",
+    "texture"
+  ],
+  "parameter_text": "规格\n200ml\n类别\n爽肤水\n国产/进口\n进口\n是否为特殊用途化妆品\n是\n商品名称\n流金岁月凝润美肤水\n商品产地\n日本\n净含量（mL/g）\n401g/mL-600g/mL\n批准文号\n国妆特进字J20150585\n保质期\n5年\n功效\n补水、保湿、控油平衡、细致毛孔\n适合肤质\n任何肤质",
+  "portfolio_role": "balancing_toner",
+  "product_id": 64,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "200ml"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "07c9a33f9032d76e4fa6095ba41926d9b5a3b62fb585d6dfa8544eb84c85d311",
+  "source_product_title": "IPSA/茵芙莎 流金岁月系列 抗痘控油保湿 女士护肤品  200ml",
+  "source_title": "IPSA/茵芙莎 流金岁月系列 抗痘控油保湿 女士护肤品 200ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/y5rwgje/"
+}

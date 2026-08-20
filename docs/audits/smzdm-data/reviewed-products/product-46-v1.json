@@ -1,0 +1,188 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:46:net_content:40ml-pack-variant-v1",
+      "field_key": "net_content",
+      "promotion_status": "rejected",
+      "public_text": "40ml",
+      "review_rationale": "来源页是40ml×2套装，不能据此覆盖单支商品的展示规格或参考价绑定。",
+      "sku_status": "pack_variant",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:ce518cde1d1d96b862b68aeed2f024a04f8baf5e49245368ef6f437733f9dea3"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:46:ingredients:b5-madecassoside-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "维生素原B5（泛醇）、积雪草苷与乳木果油",
+      "review_rationale": "参数表和第3张长图重复出现核心成分；套装内为同一40ml单品，且该事实不依赖包装数量。",
+      "sku_status": "exact_product_pack_variant",
+      "source_kind": "parameter_and_detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-browser-body:ce518cde1d1d96b862b68aeed2f024a04f8baf5e49245368ef6f437733f9dea3",
+        "smzdm-detail-image:eedde308ef70b2068f733bcbc3094def11da6c011d2585d8bf0850df70e8a6bb"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.rich_cream",
+      "decision": "map",
+      "fact_id": "reviewed:product:46:texture:rich-cream-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "绵密厚重的乳霜质地",
+      "review_rationale": "商品介绍明确写出绵密厚重，第2张长图展示膏状乳霜；该质地可形成跨商品可比较方向。",
+      "sku_status": "exact_product_pack_variant",
+      "source_kind": "product_introduction_and_detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-browser-body:ce518cde1d1d96b862b68aeed2f024a04f8baf5e49245368ef6f437733f9dea3",
+        "smzdm-detail-image:72c8ecd087e769b84ffda413eaa8b754df54ea80b7b18baf9e047ce0228dc7fe"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.repair",
+      "decision": "map",
+      "fact_id": "reviewed:product:46:efficacy:repair-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "修护与保湿方向",
+      "review_rationale": "结构化参数明确列出修护和保湿；未采纳长图中的痘印、创口、医美后或疤痕表述。",
+      "sku_status": "exact_product_pack_variant",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:ce518cde1d1d96b862b68aeed2f024a04f8baf5e49245368ef6f437733f9dea3"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:46:usage:thin-or-local-thick-v1",
+      "field_key": "usage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "可少量乳化后薄涂；局部干燥处可厚涂后擦去",
+      "review_rationale": "第4张长图给出普通薄涂与局部厚涂方法；已删除印痕、创口、医美后和跨商品搭配内容。",
+      "sku_status": "exact_product_pack_variant",
+      "source_kind": "detail_image",
+      "source_ordinal": 4,
+      "source_refs": [
+        "smzdm-detail-image:37b7971a0bd9b8a4363198ac8bbadde8d03ed75d737c8441d8a8be6c96d4935c"
+      ]
+    }
+  ],
+  "canonical_identity": "理肤泉B5霜40ml修护舒缓泛红保湿面霜",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "40ml",
+  "captured_at": "2026-08-19T17:53:17.775Z",
+  "category_profile": "skincare",
+  "detail_image_count": 6,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 906,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/46/001_484a9db797af9872.jpg",
+      "ordinal": 1,
+      "sha256": "484a9db797af9872234c660a258e48f6ef05b8d17cade3e8ef1e0cdfcfff3f17",
+      "width": 600
+    },
+    {
+      "height": 958,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/46/002_72c8ecd087e769b8.jpg",
+      "ordinal": 2,
+      "sha256": "72c8ecd087e769b84ffda413eaa8b754df54ea80b7b18baf9e047ce0228dc7fe",
+      "width": 600
+    },
+    {
+      "height": 1112,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/46/003_eedde308ef70b206.jpg",
+      "ordinal": 3,
+      "sha256": "eedde308ef70b2068f733bcbc3094def11da6c011d2585d8bf0850df70e8a6bb",
+      "width": 600
+    },
+    {
+      "height": 1118,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/46/004_37b7971a0bd9b8a4.jpg",
+      "ordinal": 4,
+      "sha256": "37b7971a0bd9b8a4363198ac8bbadde8d03ed75d737c8441d8a8be6c96d4935c",
+      "width": 600
+    },
+    {
+      "height": 996,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/46/005_ca4e900ee9f66e26.jpg",
+      "ordinal": 5,
+      "sha256": "ca4e900ee9f66e26eaa837a1e4600724ffd63d13878cdd81b6b24d3caf760f65",
+      "width": 600
+    },
+    {
+      "height": 1352,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/46/006_7c31f523aec4a1c2.jpg",
+      "ordinal": 6,
+      "sha256": "7c31f523aec4a1c27fd258a17cc800bc631e85ffdc666a65a3c27b7b3b7a2fe2",
+      "width": 600
+    }
+  ],
+  "introduction_text": "La Roche Posay 理肤泉是和雅漾、薇姿、依泉齐名的法国四大药妆品牌，近年来在国内知名度也快速上升，旗下清痘净肤系列口碑一向不错，安全可靠。这款LA ROCHE-POSAY 理肤泉 B5痘痕舒缓修复霜，含有维生素原B5、羟基积雪草苷等成分。5％羟基积雪草苷配方，有利于恢复敏感皮肤修复，加速角细胞分化，提升表皮组织的修护质量。抑制抗菌，避免外部脏污附着于伤口上，预防疤痕产生。\n\nLa Roche Posay 理肤泉是和雅漾、薇姿、依泉齐名的法国四大药妆品牌，近年来在国内知名度也快速上升，旗下清痘净肤系列口碑一向不错，安全可靠。这款LA ROCHE-POSAY 理肤泉 B5痘痕舒缓修复霜，含有维生素原B5、羟基积雪草苷等成分。5％羟基积雪草苷配方，有利于恢复敏感皮肤修复，加速角细胞分化，提升表皮组织的修护速度。这款面霜的质地绵密厚重，像在肌肤上包裹了一层纱布，高度封闭的膜层可以避免外部脏污附着于伤口上，防止自由基氧化导致的色素沉积，预防疤痕产生。",
+  "missing_fields": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy"
+  ],
+  "parameter_text": "规格\n40ml*2\n是否为特殊用途化妆品\n否\n功效\n修复;保湿\n净含量（mL/g）\n51-100mL(g)\n适合肤质\n中性\n产品产地\n法国\n国产/进口\n进口\n适用人群\n成人\n类别\n面霜\n成分\n积雪草苷,维生素B5\n孕妇/哺乳期可用\n孕妇需遵医嘱使用\n规格类型\n正常规格\n保质期\n3年",
+  "portfolio_role": "entry_repair_cream",
+  "product_id": 46,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "40ml",
+    "display_specification": "40ml",
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "unresolved",
+    "source_sku": "40ml*2"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "ce518cde1d1d96b862b68aeed2f024a04f8baf5e49245368ef6f437733f9dea3",
+  "source_product_title": "LA ROCHE-POSAY 理肤泉 B5多效修复乳霜 40ml*2",
+  "source_title": "LA ROCHE-POSAY 理肤泉 B5多效修复乳霜 40ml*2【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/zm690ye/"
+}

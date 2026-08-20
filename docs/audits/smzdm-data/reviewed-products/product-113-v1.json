@@ -1,0 +1,103 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:113:finish:slight-tint-even-tone-v1",
+      "field_key": "finish",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "轻微润色、均匀肤色方向",
+      "review_rationale": "商品介绍明确写妆前乳有一定润色效果并可均匀肤色；来源未给出色号或遮盖程度，因此只保留单品知识。",
+      "sku_status": "exact_product_version_and_source_sku_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:d27730da3270b7651fa631b428aa5d7887879e5ec63c6631f04989d2cba254bc"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "longevity.longwear",
+      "decision": "map",
+      "fact_id": "reviewed:product:113:longevity:oil-control-base-extension-v1",
+      "field_key": "longevity",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "控油并延长后续底妆持妆方向",
+      "review_rationale": "商品介绍明确把该妆前定位为控油并延长后续底妆时间，可映射普通持妆方向；不保留具体时长或不斑驳保证。",
+      "sku_status": "exact_product_version_and_source_sku_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:d27730da3270b7651fa631b428aa5d7887879e5ec63c6631f04989d2cba254bc"
+      ]
+    }
+  ],
+  "canonical_identity": "苏菲娜映美焕采控油清透妆前乳",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "25ml",
+  "captured_at": "2026-08-19T21:56:09.280Z",
+  "category_profile": "base_makeup",
+  "detail_image_count": 2,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 487,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/113/001_91f49547f29864a2.jpg",
+      "ordinal": 1,
+      "sha256": "91f49547f29864a2e6f84a189954a5846b66c4499e2401946b6cb7690170e72f",
+      "width": 600
+    },
+    {
+      "height": 410,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/113/002_4ddea76de6b917b3.jpg",
+      "ordinal": 2,
+      "sha256": "4ddea76de6b917b3cc182f0f6be110e10eb0b2807c8fc9c64e75dd484dd7e864",
+      "width": 600
+    }
+  ],
+  "introduction_text": "SOFINA是日本花王旗下的主打化妆品牌，与Shiseido资生堂、Kanebo佳丽宝同级别。这款SOFINA 苏菲娜 映美焕采妆前乳口碑出众且多次获得过COSME大赏，是sofina家的明星产品之一。目前市面上分别有：日版、台湾版，2款；\n\nSOFINA 苏菲娜 控油妆前乳虽不是化妆必备，但不同的妆前乳均对均匀肤色、控油有不同的效果，能增强持妆时间和妆容的素净程度。而这款是一款主打控油的妆前，适合油性、混合偏油的朋友使用，能有效拉长后续持妆时间，有一定的润色效果，且不易致妆面斑驳。SPF20/PA++的防晒力适合日常室内防晒，夏季必备。建议：用前摇一摇～",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "finish",
+    "texture"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "oil_control_primer",
+  "product_id": 113,
+  "review_field_policy": [
+    "net_content",
+    "shade",
+    "finish",
+    "coverage",
+    "longevity",
+    "texture"
+  ],
+  "review_sources": [
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "25ml",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "25ml",
+    "source_sku": "Japan/Taiwan version unresolved"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "d27730da3270b7651fa631b428aa5d7887879e5ec63c6631f04989d2cba254bc",
+  "source_product_title": "SOFINA 苏菲娜 小粉瓶 Primavista系列 映美焕采控油清透妆前乳【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "SOFINA 苏菲娜 小粉瓶 Primavista系列 映美焕采控油清透妆前乳【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/435ygo8/"
+}

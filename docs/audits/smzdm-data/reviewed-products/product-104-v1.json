@@ -1,0 +1,84 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:104:texture:cleansing-balm-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "经典洁颜霜膏状质地",
+      "review_rationale": "商品标题和介绍一致确认经典洁颜霜/洁面膏剂型；来源无规格、参数或长图，因此只用于单品知识。",
+      "sku_status": "exact_product_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:c3f2dea9a056cadcc3c278071689c6a3db9c69d86292e4abcb69dbe944a08061"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "cleansing_power.removes_makeup",
+      "decision": "map",
+      "fact_id": "reviewed:product:104:cleansing-power:removes-heavy-makeup-v1",
+      "field_key": "cleansing_power",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "卸除厚重彩妆方向",
+      "review_rationale": "商品介绍明确非常厚重的彩妆也可去除，可映射卸妆清洁方向；不保留最佳产品或所有肤质适用结论。",
+      "sku_status": "exact_product_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:c3f2dea9a056cadcc3c278071689c6a3db9c69d86292e4abcb69dbe944a08061"
+      ]
+    }
+  ],
+  "canonical_identity": "EVE LOM经典洁颜霜",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T20:55:39.811Z",
+  "category_profile": "cleanser",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "detail_images": [],
+  "introduction_text": "EVE LOM是诞生于伦敦的品牌,在好莱坞拥有了一大票忠实的明星粉丝。其招牌产品即EVE LOM洁面膏，不但获得不少美妆大奖，还曾被时尚杂志《Vogue》形容为『全世界最好的洁面膏』，这款洁面膏由丁香油、尤加利油、埃及洋甘菊和可可脂做主原料，丁香油具有很好的抗菌功效，帮助洁净皮肤；埃及洋甘菊及可可脂能柔润及滋养皮肤。即使是非常厚重的彩妆，也能轻易去除，适合所有肤质使用。",
+  "missing_fields": [
+    "net_content",
+    "cleansing_power"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "cleansing_cream",
+  "product_id": 104,
+  "review_field_policy": [
+    "net_content",
+    "surfactant_type",
+    "cleansing_power",
+    "rinse_behavior",
+    "texture"
+  ],
+  "review_sources": [
+    "product_introduction"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "unresolved"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "c3f2dea9a056cadcc3c278071689c6a3db9c69d86292e4abcb69dbe944a08061",
+  "source_product_title": "EVE LOM 伊芙兰 经典洁颜霜",
+  "source_title": "EVE LOM 伊芙兰 经典洁颜霜【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/egxpn3/"
+}

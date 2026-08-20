@@ -1,0 +1,181 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:129:net-content:50ml-second-generation-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "第二代50ml来源变体",
+      "review_rationale": "来源标题和参数表都明确为第二代50ml；Canonical与参考价也是50ml，但代际关系未锁定，因此暂不把价格与规格组合。",
+      "sku_status": "second_generation_50ml_identity_version_unresolved",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:c8604d20ca6755e9bc9f616dd0f7e23a9d244043bc10f61af8213a0b8fc889df"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:129:ingredients:yeast-oligofructose-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "酵母提取物与低聚果糖",
+      "review_rationale": "参数表明确列出酵母提取物和低聚果糖；不保留10.7%、五种益生元或三千万二裂酵母等量化扩写。",
+      "sku_status": "second_generation_50ml_identity_version_unresolved",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:c8604d20ca6755e9bc9f616dd0f7e23a9d244043bc10f61af8213a0b8fc889df"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.barrier_repair",
+      "decision": "map",
+      "fact_id": "reviewed:product:129:efficacy:barrier-repair-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "屏障修护方向",
+      "review_rationale": "长图第3和第5张都围绕屏障修护展开；只保留方向，不保留微生态激活、渗透层级或77%加速数据。",
+      "sku_status": "second_generation_50ml_identity_version_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:0659f077965a9cb8f958a16c99a4521056c62d7be3c26a3c6be184b981ad9c86",
+        "smzdm-detail-image:2bfba1301d0e0664484183212639757952ec8d348edccf72485a92394ab1b3ec"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.hydration",
+      "decision": "map",
+      "fact_id": "reviewed:product:129:efficacy:hydration-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "补水保湿方向",
+      "review_rationale": "参数表明确列出补水、滋润和保湿；不扩写到任意肤质适用或后续护肤吸收提升。",
+      "sku_status": "second_generation_50ml_identity_version_unresolved",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:c8604d20ca6755e9bc9f616dd0f7e23a9d244043bc10f61af8213a0b8fc889df"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:129:efficacy:microbiome-quantified-fit-absorption-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "微生态激活、7天与77%量化、年龄肤质适配及后续吸收提升结论",
+      "review_rationale": "长图和介绍中的机制、量化、人群与跨步骤吸收说法缺少可独立审计依据，且代际关系未锁定，不进入公开事实。",
+      "sku_status": "second_generation_50ml_identity_version_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:446f611766cb3496f830469ef23258a227f84ed5ce249052e0380b50143a1816",
+        "smzdm-detail-image:0659f077965a9cb8f958a16c99a4521056c62d7be3c26a3c6be184b981ad9c86",
+        "smzdm-detail-image:2bfba1301d0e0664484183212639757952ec8d348edccf72485a92394ab1b3ec",
+        "smzdm-browser-body:c8604d20ca6755e9bc9f616dd0f7e23a9d244043bc10f61af8213a0b8fc889df"
+      ]
+    }
+  ],
+  "canonical_identity": "兰蔻肌底焕活修护精华液 50ml",
+  "canonical_sku_scope": "canonical_single_product_50ml",
+  "canonical_specification": "50ml",
+  "captured_at": "2026-08-19T18:59:41.646Z",
+  "category_profile": "skincare",
+  "detail_image_count": 5,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 984,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/129/001_446f611766cb3496.jpg",
+      "ordinal": 1,
+      "sha256": "446f611766cb3496f830469ef23258a227f84ed5ce249052e0380b50143a1816",
+      "width": 600
+    },
+    {
+      "height": 708,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/129/002_a378f5284c45abc0.jpg",
+      "ordinal": 2,
+      "sha256": "a378f5284c45abc08eda9e3992650962b94600d95e93b29657a7c9ac1894e4fb",
+      "width": 600
+    },
+    {
+      "height": 904,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/129/003_0659f077965a9cb8.jpg",
+      "ordinal": 3,
+      "sha256": "0659f077965a9cb8f958a16c99a4521056c62d7be3c26a3c6be184b981ad9c86",
+      "width": 600
+    },
+    {
+      "height": 1089,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/129/004_95417e9d59637fdc.jpg",
+      "ordinal": 4,
+      "sha256": "95417e9d59637fdccaeabf2c96722762a12ee721d8d897196cd80022e7891a29",
+      "width": 600
+    },
+    {
+      "height": 845,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/129/005_2bfba1301d0e0664.jpg",
+      "ordinal": 5,
+      "sha256": "2bfba1301d0e0664484183212639757952ec8d348edccf72485a92394ab1b3ec",
+      "width": 600
+    }
+  ],
+  "introduction_text": "LANCOME 兰蔻Genifique 精华肌底液，俗称“小黑瓶”，富含衡量肌肤年轻状态的“修护”蛋白质，并运用科技具有重新激活基因活性的功效，长期使用可使肌肤的触感越来越细腻柔滑，肤色变得纯净匀亮，肤质紧密而富有弹性，增强后续保养品的吸收能力，适合25岁以上皮肤暗哑无光、肤色不均、缺水的各式肌肤。\n\n\n和ESTEE LAUDER雅诗兰黛“小棕瓶”是精华液，两者相比较的话，很多人认为“小棕瓶”更滋润，其实两者功效不尽相同，各有优缺点；需要注意的是，虽然本品品名为精华肌底液，但并不能单纯作为精华使用，本品是在精华使用之前，促进精华更好吸收的保养品。在用面膜之前稍稍抹上一点，面膜的吸收效果会更好。",
+  "missing_fields": [
+    "net_content",
+    "texture"
+  ],
+  "parameter_text": "规格\n50ml\n产品产地\n法国\n分类\n精华液\n主打成分\n酵母提取物;低聚果糖\n主打功效\n修复;抗氧化;补水;滋润;保湿\n是否为特殊用途化妆品\n否\n国产/进口\n进口\n质地\n液体\n规格类型\n正常规格\n保质期\n3年\n适合肤质\n任何肤质\n适用人群\n成人",
+  "portfolio_role": "flagship_repair_serum_value",
+  "product_id": 129,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "50ml",
+    "display_specification": "50ml",
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "50ml",
+    "source_sku": "second_generation_50ml"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "c8604d20ca6755e9bc9f616dd0f7e23a9d244043bc10f61af8213a0b8fc889df",
+  "source_product_title": "LANCOME 兰蔻 Genifique小黑瓶系列 全新精华肌底液 第二代 50ml",
+  "source_title": "LANCOME 兰蔻 Genifique小黑瓶系列 全新精华肌底液 第二代 50ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/3qgrnro/"
+}

@@ -1,0 +1,220 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.refreshing",
+      "decision": "map",
+      "fact_id": "reviewed:product:57:texture:watery-light-non-sticky-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "水感轻薄、清爽不易黏",
+      "review_rationale": "长图第6和第7张明确描述水感、轻薄、清爽和不易黏，可映射清爽肤感方向。",
+      "sku_status": "bundle_source_and_canonical_specification_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 6,
+      "source_refs": [
+        "smzdm-detail-image:a1876f160ae85bd26d09aaabc6737a82037f628fcc9b0057e3439f53fadb1bd0",
+        "smzdm-detail-image:d7b911f031235d3da55c71eb03efb8d16f9c10af8cc6f3e1f12fee440da7f973"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "film_speed.fast",
+      "decision": "map",
+      "fact_id": "reviewed:product:57:film-speed:fast-v1",
+      "field_key": "film_speed",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "速干成膜",
+      "review_rationale": "长图第6和第7张都直接写明速干成膜，可映射快速成膜方向。",
+      "sku_status": "bundle_source_and_canonical_specification_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 6,
+      "source_refs": [
+        "smzdm-detail-image:a1876f160ae85bd26d09aaabc6737a82037f628fcc9b0057e3439f53fadb1bd0",
+        "smzdm-detail-image:d7b911f031235d3da55c71eb03efb8d16f9c10af8cc6f3e1f12fee440da7f973"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "water_resistance.high",
+      "decision": "map",
+      "fact_id": "reviewed:product:57:water-resistance:high-v1",
+      "field_key": "water_resistance",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "防水防汗方向",
+      "review_rationale": "长图第3和第5张明确标注高倍防水防汗，并展示浴前浴后防晒等级；不保留户外绝不晒黑保证。",
+      "sku_status": "bundle_source_and_canonical_specification_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:80d4b04f25aeddc0c73f0c930636964cd087bd98ab0fe0a9958d0f53f598fdc9",
+        "smzdm-detail-image:97969a0904149f173bb692961ee5a96f8296fe733c626309e779649a53989e4c"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:57:net-content:50g-bundle-vs-100g-canonical-v1",
+      "field_key": "net_content",
+      "promotion_status": "rejected",
+      "public_text": "50g套装来源规格",
+      "review_rationale": "来源是倍护与凝蜜套装并写50g，现有Canonical记录为100g，不能提升为展示规格或与价格组合。",
+      "sku_status": "bundle_source_and_canonical_specification_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:cf3182747ed7a7a047bb5f77a9bc7877fadad14843c2e902818ef84079e317b4"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:57:spf-pa:parameter-image-conflict-v1",
+      "field_key": "spf_pa",
+      "promotion_status": "rejected",
+      "public_text": "参数PA+++与长图PA++++的防晒等级组合",
+      "review_rationale": "参数表写PA+++，长图包装写PA++++，来源内部冲突，不能发布统一PA等级。",
+      "sku_status": "bundle_source_and_canonical_specification_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:912005f50cf6f9ced4db7f0f93423199bff01d727e3a25f43be3ea870c20336b",
+        "smzdm-browser-body:cf3182747ed7a7a047bb5f77a9bc7877fadad14843c2e902818ef84079e317b4"
+      ]
+    }
+  ],
+  "canonical_identity": "碧柔Biore水活防晒水润凝蜜",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "100g",
+  "captured_at": "2026-08-19T20:14:25.254Z",
+  "category_profile": "suncare",
+  "detail_image_count": 10,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/57/001_912005f50cf6f9ce.jpg",
+      "ordinal": 1,
+      "sha256": "912005f50cf6f9ced4db7f0f93423199bff01d727e3a25f43be3ea870c20336b",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/57/002_bcfd137bd7c56cc6.jpg",
+      "ordinal": 2,
+      "sha256": "bcfd137bd7c56cc6a828e68c4256e40415f000847189580e4b30e18c689e434c",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/57/003_80d4b04f25aeddc0.jpg",
+      "ordinal": 3,
+      "sha256": "80d4b04f25aeddc0c73f0c930636964cd087bd98ab0fe0a9958d0f53f598fdc9",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/57/004_a2befbf0b7d9a980.jpg",
+      "ordinal": 4,
+      "sha256": "a2befbf0b7d9a9803300532bdec0de0b40a18a9fa3b31d1347ab5a9f21042613",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/57/005_97969a0904149f17.jpg",
+      "ordinal": 5,
+      "sha256": "97969a0904149f173bb692961ee5a96f8296fe733c626309e779649a53989e4c",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/57/006_a1876f160ae85bd2.jpg",
+      "ordinal": 6,
+      "sha256": "a1876f160ae85bd26d09aaabc6737a82037f628fcc9b0057e3439f53fadb1bd0",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/57/007_d7b911f031235d3d.jpg",
+      "ordinal": 7,
+      "sha256": "d7b911f031235d3da55c71eb03efb8d16f9c10af8cc6f3e1f12fee440da7f973",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/57/008_691dc30cf807164e.jpg",
+      "ordinal": 8,
+      "sha256": "691dc30cf807164eed187aa2b4d49c9b7c3903c73664af877627a59a7cf58f65",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/57/009_26510b3c79a38b7f.jpg",
+      "ordinal": 9,
+      "sha256": "26510b3c79a38b7f4315e41bf320dcceda3021e54aea982c1e299beafb477ca6",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/57/010_66e220bb6286d2e6.jpg",
+      "ordinal": 10,
+      "sha256": "66e220bb6286d2e642fd1d51cdc04b612d16248070349b7e7c9a00fda30e43b3",
+      "width": 600
+    }
+  ],
+  "introduction_text": "碧柔Biore是著名的全球500强企业，日本最大的日用消费品制造商——花王企业旗下的肌肤护理品牌。这款多效水润防晒乳，是碧柔经典aqua rich系列的2019款，继承了历代如水般轻盈易涂抹的优点，加入了木糖醇、蜂皇浆、透明质酸来保持肌肤水润，桂皮酸盐+UV-T-150+Uvinul A Plus+Tinosorb S的纯化学防晒体系不仅覆盖了全波段，持续防晒里也足够应对长时间的普通户外活动需求，打破了碧柔不防晒黑的固有印象。19年版的碧柔蓝管首推了微米级防护的概念，使用0.2微米大小的防护颗粒，可以均匀覆盖皮肤的每个角落，令防护膜更加完整，提升全面防护表现。此外，新版蓝管改善了之前饱受诟病的氧化暗沉问题，早晨涂抹，到下午也不会出现暗沉泛油的困扰，清新的花香调也淡化了化学防晒分解易产生的焦油气味，适合油性皮肤日常通勤使用。",
+  "missing_fields": [
+    "net_content",
+    "texture",
+    "water_resistance"
+  ],
+  "parameter_text": "规格\n倍护+凝蜜套装\n防晒指数\nSPF50+\nPA值\nPA+++\n是否为特殊用途化妆品\n特殊化妆品\n国产/进口\n中国大陆\n净含量（mL/g）\n50g\n保质期\n3年\n商品名称\n碧柔（Biore）【范丞丞推荐】水活防晒霜水润凝蜜户外防水防汗SPF50+PA+++倍护+凝蜜套装\n商品产地\n中国大陆\n批准文号\n国妆特字G20191600\n适用部位\n全身\n功效\n防晒,滋润,保湿\n适合肤质\n多种肤质适用",
+  "portfolio_role": "entry_watery_sunscreen",
+  "product_id": 57,
+  "review_field_policy": [
+    "net_content",
+    "spf_pa",
+    "texture",
+    "film_speed",
+    "water_resistance",
+    "reapplication",
+    "cleansing_requirement"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "100g",
+    "display_specification": "100g",
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "unresolved",
+    "source_sku": "50g_bundle_variant"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "cf3182747ed7a7a047bb5f77a9bc7877fadad14843c2e902818ef84079e317b4",
+  "source_product_title": "碧柔（Biore）水活防晒霜水润凝蜜 户外防水防汗 SPF50+ PA+++ 倍护+凝蜜套装",
+  "source_title": "碧柔（Biore）水活防晒霜水润凝蜜 户外防水防汗 SPF50+ PA+++ 倍护+凝蜜套装【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/oey4wnx/"
+}

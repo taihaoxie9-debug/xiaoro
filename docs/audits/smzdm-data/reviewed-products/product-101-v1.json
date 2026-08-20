@@ -1,0 +1,147 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:101:net-content:30ml-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "30ml",
+      "review_rationale": "商品标题、参数、Canonical与参考价SKU均为30ml，规格价格完成同SKU对齐。",
+      "sku_status": "exact_product_exact_30ml_aligned",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:9c57d6166fe4d3edbbd37599d885685698132ee1fe0d5d6107c9ab1c16b1a102"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:101:spf-pa:spf50-pa-four-plus-v1",
+      "field_key": "spf_pa",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "SPF50 / PA++++",
+      "review_rationale": "商品标题、参数和长图包装一致标注SPF50与PA++++；不扩写防护时长或抗光老保证。",
+      "sku_status": "exact_product_exact_30ml_aligned",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:9c57d6166fe4d3edbbd37599d885685698132ee1fe0d5d6107c9ab1c16b1a102"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.refreshing",
+      "decision": "map",
+      "fact_id": "reviewed:product:101:texture:watery-light-non-sticky-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "水感轻盈、不黏腻、易延展",
+      "review_rationale": "长图第3张和商品介绍共同支持水感、轻盈、不黏腻和易延展，可映射清爽肤感方向。",
+      "sku_status": "exact_product_exact_30ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:beb7d2e20164fa80288e67a63600130ec479fe95e3c4b4381f31735c5cecbde8",
+        "smzdm-browser-body:9c57d6166fe4d3edbbd37599d885685698132ee1fe0d5d6107c9ab1c16b1a102"
+      ]
+    }
+  ],
+  "canonical_identity": "兰蔻轻透水漾防晒乳30ml小白管防晒霜隔离护肤品",
+  "canonical_sku_scope": "canonical_single_product_30ml",
+  "canonical_specification": "30ml",
+  "captured_at": "2026-08-19T20:15:47.854Z",
+  "category_profile": "suncare",
+  "detail_image_count": 5,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 1174,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/101/001_3693dd957ff2d4ba.jpg",
+      "ordinal": 1,
+      "sha256": "3693dd957ff2d4ba6de3141034f6c05566d8ad751998cbdbee50568165b8329d",
+      "width": 600
+    },
+    {
+      "height": 892,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/101/002_8ff44aaef7d3a3be.jpg",
+      "ordinal": 2,
+      "sha256": "8ff44aaef7d3a3be53614088a7ba8cac1bf059dce1b7df10dcde92a746b94666",
+      "width": 600
+    },
+    {
+      "height": 1038,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/101/003_beb7d2e20164fa80.jpg",
+      "ordinal": 3,
+      "sha256": "beb7d2e20164fa80288e67a63600130ec479fe95e3c4b4381f31735c5cecbde8",
+      "width": 600
+    },
+    {
+      "height": 1168,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/101/004_62187b542ed69cd2.jpg",
+      "ordinal": 4,
+      "sha256": "62187b542ed69cd2acd05ad636da3400051536c4c294029acebc1982beed5555",
+      "width": 600
+    },
+    {
+      "height": 1174,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/101/005_c21a163c4332c5de.jpg",
+      "ordinal": 5,
+      "sha256": "c21a163c4332c5de0c6a2edecc6f0e0eb99549081d601e0c18e62a197817b45e",
+      "width": 600
+    }
+  ],
+  "introduction_text": "兰蔻（LANCOME）推出的这款防晒乳，添加高山雪绒花、玫瑰花精粹等成分，在防晒的同时为肌肤补水保湿，舒缓皮肤敏感。带有SPF50/PA++++的防晒值，帮助肌肤抵御紫外线侵害，满足日常防晒需求。轻盈乳液质地，不黏腻且易涂抹。",
+  "missing_fields": [
+    "net_content",
+    "spf_pa",
+    "texture",
+    "water_resistance"
+  ],
+  "parameter_text": "规格\n30ml\n防晒指数\nSPF50\nPA值\nPA++++\n是否为特殊用途化妆品\n是\n国产/进口\n进口\n净含量（mL/g）\n30mL(g)及以下\n保质期\n3年\n类别\n防晒霜/乳\n商品名称\n轻透水漾防晒乳\n商品产地\n日本\n批准文号\n国妆特进字J20190246\n规格类型\n正常规格\n适用部位\n通用\n质地\n乳/霜\n功效\n防晒;滋润;保湿\n适合肤质\n任何肤质\n适用人群\n通用",
+  "portfolio_role": "premium_lightweight_sunscreen",
+  "product_id": 101,
+  "review_field_policy": [
+    "net_content",
+    "spf_pa",
+    "texture",
+    "film_speed",
+    "water_resistance",
+    "reapplication",
+    "cleansing_requirement"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "30ml",
+    "display_specification": "30ml",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "aligned",
+    "reference_price_sku": "30ml",
+    "source_sku": "30ml"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "9c57d6166fe4d3edbbd37599d885685698132ee1fe0d5d6107c9ab1c16b1a102",
+  "source_product_title": "LANCOME 兰蔻 轻透水漾防晒乳 SPF50 PA++++ 30ml",
+  "source_title": "LANCOME 兰蔻 轻透水漾防晒乳 SPF50 PA++++ 30ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/g8oxoxq/"
+}

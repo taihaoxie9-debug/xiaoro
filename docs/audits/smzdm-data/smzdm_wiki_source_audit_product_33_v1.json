@@ -1,0 +1,94 @@
+{
+  "schema_version": "smzdm-wiki-source-audit-v1",
+  "status": "manual_browser_observed_not_raw",
+  "canonical_product_id": 33,
+  "source_url": "https://wiki.smzdm.com/p/60q4dyz/",
+  "source_kind": "smzdm_wiki",
+  "observed_page_title": "ESTEE LAUDER 雅诗兰黛 小棕瓶修护系列 特润修护肌活精华露 第七代 50ml",
+  "current_canonical_identity": "雅诗兰黛特润修护肌活精华露",
+  "current_base_source_identity": "雅诗兰黛小棕瓶精华露50ml抗老紧致",
+  "observed_at": "2026-08-19",
+  "capture_status": {
+    "independent_headless": "capture_blocked",
+    "reason": "TCaptcha document returned before page body",
+    "raw_written": false,
+    "retry_performed": false
+  },
+  "browser_observations": {
+    "exact_50ml_title_present": true,
+    "variant_list_includes": [
+      "7ml",
+      "15ml",
+      "20ml",
+      "30ml",
+      "50ml",
+      "50ml*2",
+      "75ml",
+      "100ml"
+    ],
+    "structured_parameters": [
+      "规格 50ml",
+      "产品产地 比利时",
+      "分类 精华液",
+      "质地 液体",
+      "保质期 3年"
+    ],
+    "product_visual_nodes_observed": 14,
+    "page_content_count": 3035,
+    "page_review_count": 204,
+    "aigc_sections_present": [
+      "Powered by ZDM-AIGC Engine v0.3",
+      "优势",
+      "建议"
+    ]
+  },
+  "observed_candidate_topics": [
+    {
+      "kind": "exact_specification_candidate",
+      "summary": "50ml 与当前 base source 的 50ml 相符。",
+      "allowed_next_step": "Human review as a SKU-bound net_content candidate after auditable raw capture.",
+      "prohibited_next_step": "Automatic price adoption from the multi-variant page."
+    },
+    {
+      "kind": "structured_product_metadata_candidate",
+      "summary": "页面列出液体质地、比利时产地、精华液分类和3年保质期。",
+      "allowed_next_step": "Human review of each field against exact 50ml SKU.",
+      "prohibited_next_step": "Automatic promotion based on browser observation alone."
+    },
+    {
+      "kind": "merchant_claim_candidate",
+      "summary": "产品介绍提到第七代 Chronolux Power Signal 时钟修护科技和三肽-32。",
+      "allowed_next_step": "Attributed merchant-claim review after raw capture.",
+      "prohibited_next_step": "Verified-fact promotion or unqualified efficacy conclusion."
+    },
+    {
+      "kind": "numeric_claim_exclusion",
+      "summary": "页面介绍含198%保湿力和25%周期等数字化功效说法。",
+      "allowed_next_step": "Keep only as source transcript if a future review needs it.",
+      "prohibited_next_step": "Copywriting, ranking or fact promotion without the original study context."
+    },
+    {
+      "kind": "review_content_exclusion",
+      "summary": "页面存在3035条内容和204条口碑，其中含营销文章、主观肤感和医美术后表述。",
+      "allowed_next_step": "Selective, attributed consumer-report review only.",
+      "prohibited_next_step": "Treat all page content or aggregated viewpoints as product facts."
+    }
+  ],
+  "conclusion": {
+    "page_depth": "high",
+    "usable_after_review": [
+      "exact 50ml specification",
+      "product form and origin metadata",
+      "attributed technology positioning",
+      "selected texture and usage material from captured detail images"
+    ],
+    "must_be_excluded_or_deferred": [
+      "AIGC summary",
+      "multi-variant page price",
+      "numeric efficacy claims",
+      "unattributed user-review conclusions",
+      "medical or post-procedure language"
+    ],
+    "blocking_condition_for_batch_collection": "An auditable browser-session capture path is needed because independent headless crawling is challenge-blocked."
+  }
+}

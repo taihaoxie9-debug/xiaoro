@@ -1,0 +1,13 @@
+{
+  "pid": 36,
+  "images": [
+    {
+      "file": "ingredients.png",
+      "ocr_text": "配料表：烟酰胺、甘油"
+    },
+    {
+      "file": "claim.png",
+      "ocr_text": "品牌宣称14天提亮"
+    }
+  ]
+}

@@ -1,0 +1,689 @@
+{
+  "audit": {
+    "audit_key": "b874c83c4f79b594a80de475b9a353755b27a9b90e7dd03a743e392aad40d0da",
+    "audit_key_scheme": "sha256(profile_utf8 + LF + base_commit_ascii + LF + concat(path_utf8 + NUL + git_blob_oid_ascii + LF) for production paths sorted bytewise)",
+    "audit_profile": "guide-closure-full-file-v1",
+    "formal_full_file_audit_limit": 1,
+    "real_invocations": 0,
+    "status": "PLANNED"
+  },
+  "base_commit": "5762d327fc433513a0d0687a06406525df515a73",
+  "production_scope": {
+    "blob_manifest": [
+      {
+        "git_blob_oid": "4ff93546cd7012869348f6788b3f807d20d038e1",
+        "path": "Dockerfile"
+      },
+      {
+        "git_blob_oid": "15680984aa403407205489066509621f819c6c6b",
+        "path": "app/api/v1/chat.py"
+      },
+      {
+        "git_blob_oid": "8b137891791fe96927ad78e64b0aad7bded08bdc",
+        "path": "app/guide/adapters/__init__.py"
+      },
+      {
+        "git_blob_oid": "47918d92b2bf717d6744dd40e18ffae086e578bb",
+        "path": "app/guide/adapters/catalog/__init__.py"
+      },
+      {
+        "git_blob_oid": "448e2a13d270209f541749665f384b490a3f4ef3",
+        "path": "app/guide/adapters/catalog/canonical_guide_catalog.py"
+      },
+      {
+        "git_blob_oid": "43054efebb70d22acd20d0bfd8c7c300427342f2",
+        "path": "app/guide/adapters/catalog/canonical_identity_catalog.py"
+      },
+      {
+        "git_blob_oid": "a88d106c2fba4bfaf68d567a9c34f80bdaa9304e",
+        "path": "app/guide/adapters/catalog/canonical_product_reader.py"
+      },
+      {
+        "git_blob_oid": "7c915dc5796efaf2ad650dfec2cb7251612af3e4",
+        "path": "app/guide/adapters/catalog/seed_product_assets.py"
+      },
+      {
+        "git_blob_oid": "49da2ec6cb9735fcfbb696d61b26daaccd49556e",
+        "path": "app/guide/adapters/image/__init__.py"
+      },
+      {
+        "git_blob_oid": "bafeff5e2c75568598d4d1a75eae59d9bae1a481",
+        "path": "app/guide/adapters/image/index_build.py"
+      },
+      {
+        "git_blob_oid": "6e77786c6c4f189ae2ae80d3bc51ae05bdd45aa6",
+        "path": "app/guide/adapters/image/index_runtime.py"
+      },
+      {
+        "git_blob_oid": "c3b780820146de11f20449c7a38d90ab5b9654d4",
+        "path": "app/guide/adapters/image/index_source_preflight.py"
+      },
+      {
+        "git_blob_oid": "a2d037f3960cf764bdf1e41019fb2d324b6185da",
+        "path": "app/guide/adapters/image/inference_limiter.py"
+      },
+      {
+        "git_blob_oid": "298889d119c18eee09e6f44ad54a997bbc6e6a83",
+        "path": "app/guide/adapters/image/local_numpy_index.py"
+      },
+      {
+        "git_blob_oid": "9050834c77cb3b4f173ee2e9f4f675a496f0e0a6",
+        "path": "app/guide/adapters/image/ocr_observation.py"
+      },
+      {
+        "git_blob_oid": "ca61c34f9a9cfdfd5c8d6a237d4c057659d89a6f",
+        "path": "app/guide/adapters/image/openclip_adapter.py"
+      },
+      {
+        "git_blob_oid": "76132e5602aa07450956aeb32d2e5c386077a459",
+        "path": "app/guide/adapters/image/openclip_index.py"
+      },
+      {
+        "git_blob_oid": "410f26ae9f66a4cf5a97e19b3b65c1fabce4e883",
+        "path": "app/guide/adapters/image/safe_image_input.py"
+      },
+      {
+        "git_blob_oid": "6f2ebc5a8f3cdb759eefd508524cd432ad437c11",
+        "path": "app/guide/adapters/image/visual_observation.py"
+      },
+      {
+        "git_blob_oid": "8b137891791fe96927ad78e64b0aad7bded08bdc",
+        "path": "app/guide/adapters/llm/__init__.py"
+      },
+      {
+        "git_blob_oid": "5121601a68e74f86f4e5c0069126c6568ee12355",
+        "path": "app/guide/adapters/llm/contracts.py"
+      },
+      {
+        "git_blob_oid": "50bd1401746a0d696df4599cce61d1b298f535a9",
+        "path": "app/guide/adapters/state/__init__.py"
+      },
+      {
+        "git_blob_oid": "7552c26c79e2011978588348aed8634386029a35",
+        "path": "app/guide/adapters/state/feedback_reference_resolvers.py"
+      },
+      {
+        "git_blob_oid": "0e69dac375d33fd2f1beedea7333411e3edbf996",
+        "path": "app/guide/adapters/state/in_memory_conversation_state.py"
+      },
+      {
+        "git_blob_oid": "966e0ff247aeb7e208f71786aa469f5e6ed2e254",
+        "path": "app/guide/adapters/state/in_memory_image_bundle_state.py"
+      },
+      {
+        "git_blob_oid": "2dfd54a106fd75ddbdd35f350ec97f91b4103383",
+        "path": "app/guide/adapters/state/in_memory_session_locks.py"
+      },
+      {
+        "git_blob_oid": "93de0680eaad80dd26afd395d11fab0699ad2217",
+        "path": "app/guide/adapters/state/sqlite_conversation_state.py"
+      },
+      {
+        "git_blob_oid": "66efe40ea216fbbf1664cfd45d6e188e988eb3bb",
+        "path": "app/guide/adapters/state/sqlite_feedback_event_store.py"
+      },
+      {
+        "git_blob_oid": "4c36e25326bd12ca2bac61a6c6ad072494d77c05",
+        "path": "app/guide/adapters/state/sqlite_feedback_target_registry.py"
+      },
+      {
+        "git_blob_oid": "16ce1a91d0a618acfb9b0433f6cfba6204042169",
+        "path": "app/guide/adapters/state/sqlite_image_bundle_state.py"
+      },
+      {
+        "git_blob_oid": "c15750d4110240e8d2557456f4ae43238f2275e9",
+        "path": "app/guide/adapters/state/sqlite_profile_state.py"
+      },
+      {
+        "git_blob_oid": "1b8bdda933158c1c7972d385f59be4855fe71daf",
+        "path": "app/guide/application/__init__.py"
+      },
+      {
+        "git_blob_oid": "9203801f299cc9c92f4956c6452a317479b4dcbc",
+        "path": "app/guide/application/bounded_image_upload.py"
+      },
+      {
+        "git_blob_oid": "6597c6528e4e6496e1eedf94a7f165d0c317ad86",
+        "path": "app/guide/application/chat_api_adapter.py"
+      },
+      {
+        "git_blob_oid": "3b5660352fe5706484a2c49d48b27adb11229aa1",
+        "path": "app/guide/application/consultation_assessment.py"
+      },
+      {
+        "git_blob_oid": "4eaa5593be1dc2fa8a9e522e1e3fb14a29fb3a62",
+        "path": "app/guide/application/consultation_chat_flow.py"
+      },
+      {
+        "git_blob_oid": "209df5c4e62a8148c123c3d24b2c42e58bc31499",
+        "path": "app/guide/application/consultation_collection.py"
+      },
+      {
+        "git_blob_oid": "9a0d2648b7ad5aeffb8fc5412aa9c1fdcff8bf9d",
+        "path": "app/guide/application/consultation_confirmation.py"
+      },
+      {
+        "git_blob_oid": "5571fd47a659046892e41ca46efc220fc63d9da4",
+        "path": "app/guide/application/consultation_coordinator.py"
+      },
+      {
+        "git_blob_oid": "e9c178aa86551c7a0b6b018dbe71540426aa5b22",
+        "path": "app/guide/application/contracts.py"
+      },
+      {
+        "git_blob_oid": "0daf9fc0f10ce635f7ada223fb85933e4ca6d10d",
+        "path": "app/guide/application/image_bundle_service.py"
+      },
+      {
+        "git_blob_oid": "1035bb2b022f7d427c17702bd5a36e7cc5ab03fd",
+        "path": "app/guide/application/image_bundle_state.py"
+      },
+      {
+        "git_blob_oid": "b080b7dc6aab40f258feb847e7b1e1b49b454cb8",
+        "path": "app/guide/application/image_compare_gate.py"
+      },
+      {
+        "git_blob_oid": "07d5bfb2174d9f77771f489b277c0ddd8ea8cef7",
+        "path": "app/guide/application/image_recommendation_flow.py"
+      },
+      {
+        "git_blob_oid": "6fe7e78ff7ea3b0035b6dc51d178c3261683fad4",
+        "path": "app/guide/application/image_reference_resolution.py"
+      },
+      {
+        "git_blob_oid": "1e46f55fac4a55598d38358443264f0fc661a4b7",
+        "path": "app/guide/application/image_suitability_gate.py"
+      },
+      {
+        "git_blob_oid": "936e25c36b35be12df870d820dd1ff439ecf3ba8",
+        "path": "app/guide/application/multi_image_compare_gate.py"
+      },
+      {
+        "git_blob_oid": "c39bf27464877e1018d9f47f5ba23321e5060d75",
+        "path": "app/guide/application/orchestrator.py"
+      },
+      {
+        "git_blob_oid": "96233294c5dd2f374f1f43e3750c8de86d50c3d7",
+        "path": "app/guide/application/query_context.py"
+      },
+      {
+        "git_blob_oid": "12f03a4d2c7f0356fa378d671f28f4d8a9f021da",
+        "path": "app/guide/application/scenario_contracts.py"
+      },
+      {
+        "git_blob_oid": "02a4fbbc232875522d8ffe4a5697ac69dea7adf0",
+        "path": "app/guide/application/scenario_inputs.py"
+      },
+      {
+        "git_blob_oid": "2fdf74233027dc40b8abec24a2f526fc89285b88",
+        "path": "app/guide/application/text_recommendation_flow.py"
+      },
+      {
+        "git_blob_oid": "acba40fa8cfa025e00c6f21d96929be0f7853720",
+        "path": "app/guide/decision/__init__.py"
+      },
+      {
+        "git_blob_oid": "3cbac2c9238ba03ca06c85c61db1ca7541cef16f",
+        "path": "app/guide/decision/contracts.py"
+      },
+      {
+        "git_blob_oid": "c5900f9c3fe7a46613c7ccfab022fe6a28cf790b",
+        "path": "app/guide/decision/deterministic_ranking.py"
+      },
+      {
+        "git_blob_oid": "57749b155e62d18ca773784d3d5cdbdf4d9eb789",
+        "path": "app/guide/decision/followup.py"
+      },
+      {
+        "git_blob_oid": "f565a277e9f5abb7d29a6e196d633115946ba762",
+        "path": "app/guide/decision/image_compare.py"
+      },
+      {
+        "git_blob_oid": "1a3dfc252c85dcc292038b60bfeba538603904a1",
+        "path": "app/guide/decision/image_compare_contracts.py"
+      },
+      {
+        "git_blob_oid": "fe71866f6cbb31c550df5b903b014a33fd438b02",
+        "path": "app/guide/decision/image_suitability.py"
+      },
+      {
+        "git_blob_oid": "17530ee82c36732138b5559de2fe325ba1da8b13",
+        "path": "app/guide/decision/image_suitability_contracts.py"
+      },
+      {
+        "git_blob_oid": "3ce18433cd9f6a5ceecc624631f3a370bec56889",
+        "path": "app/guide/decision/multi_image_compare.py"
+      },
+      {
+        "git_blob_oid": "69b6a3620dfa9d48e5f4cd01c2e6571a068c108b",
+        "path": "app/guide/decision/multi_image_compare_contracts.py"
+      },
+      {
+        "git_blob_oid": "8f9e595b9efd7e106780d6b3fcac99ce19f0aa55",
+        "path": "app/guide/decision/ports.py"
+      },
+      {
+        "git_blob_oid": "85a2d4617c0b72954203a52f739524d70685d5d9",
+        "path": "app/guide/decision/recommendation.py"
+      },
+      {
+        "git_blob_oid": "c6d51e12970dc7e492a0aad6909b7a040bc0dc84",
+        "path": "app/guide/feedback/__init__.py"
+      },
+      {
+        "git_blob_oid": "c869c188db75231e9ef3bc572cf1d225b8a6a4c3",
+        "path": "app/guide/feedback/consultation_state.py"
+      },
+      {
+        "git_blob_oid": "4ecba8a3ff9b6aa96a6215e066e6158c49a0ae19",
+        "path": "app/guide/feedback/contracts.py"
+      },
+      {
+        "git_blob_oid": "26350e975a32db6ee3ae294eb41ccdc08d8f31c7",
+        "path": "app/guide/feedback/delivery.py"
+      },
+      {
+        "git_blob_oid": "d977b080fcb88b8eb0df0b1cf59947d4480d3379",
+        "path": "app/guide/feedback/event_contracts.py"
+      },
+      {
+        "git_blob_oid": "fcd989e26793c07de127c8f821afe142abf6e67c",
+        "path": "app/guide/feedback/event_ports.py"
+      },
+      {
+        "git_blob_oid": "40bcf5098efb9e712f868241e5005c856ee073cf",
+        "path": "app/guide/feedback/event_recorder.py"
+      },
+      {
+        "git_blob_oid": "c4d500cc02b3443459d6181d4607dc209d280234",
+        "path": "app/guide/feedback/ports.py"
+      },
+      {
+        "git_blob_oid": "c6c84341c668e14e24b25a350a8c9def2cdb0b7c",
+        "path": "app/guide/feedback/profile_contracts.py"
+      },
+      {
+        "git_blob_oid": "caa85ffac319c392392509ada08ee7b130cc9753",
+        "path": "app/guide/feedback/profile_policy.py"
+      },
+      {
+        "git_blob_oid": "44b32f16a96745daa6898eaa680f3955023ffc3a",
+        "path": "app/guide/feedback/profile_state.py"
+      },
+      {
+        "git_blob_oid": "a16cb9ce097ad51a08cbb190d8e7fbadac9129ef",
+        "path": "app/guide/feedback/target_contracts.py"
+      },
+      {
+        "git_blob_oid": "3155be7e1136b33c798bdb0e74cf651b3455dee4",
+        "path": "app/guide/feedback/target_ports.py"
+      },
+      {
+        "git_blob_oid": "d86acb35757d7fc05350cd4cd0bef0b506ea58ef",
+        "path": "app/guide/intent/__init__.py"
+      },
+      {
+        "git_blob_oid": "be5af57265aabf9d543f007302e739e25a8a2684",
+        "path": "app/guide/intent/budget_revision_planning.py"
+      },
+      {
+        "git_blob_oid": "804452007a6ee9cf6d2e991d59b6bcd1a31582c0",
+        "path": "app/guide/intent/consultation_planning.py"
+      },
+      {
+        "git_blob_oid": "23f16cb981dbaf34f6dd4a38d9e73a5021968d0a",
+        "path": "app/guide/intent/contracts.py"
+      },
+      {
+        "git_blob_oid": "3d01d1b21199eed2d7e5ce96c4bcd30a4e454094",
+        "path": "app/guide/intent/followup_planning.py"
+      },
+      {
+        "git_blob_oid": "6acb1dbc02fd40ae8963d9f77b1447836a3940be",
+        "path": "app/guide/intent/skin_revision_planning.py"
+      },
+      {
+        "git_blob_oid": "5f9ee79c5a15e89b2bff14dc702ebad11c36ec92",
+        "path": "app/guide/intent/task_planning.py"
+      },
+      {
+        "git_blob_oid": "a0292b86967b733414b0e8eaab14b61e28a563a7",
+        "path": "app/guide/presentation/__init__.py"
+      },
+      {
+        "git_blob_oid": "1781f2dd11dbc6f95e1bf7d6cc1db2cf3f78ecaf",
+        "path": "app/guide/presentation/budget_revision_response.py"
+      },
+      {
+        "git_blob_oid": "e843bb923e43c747542e3c25d637c2c866e8a240",
+        "path": "app/guide/presentation/card_display.py"
+      },
+      {
+        "git_blob_oid": "ae1cee669aedbee9608bf86f76371b68a9fae023",
+        "path": "app/guide/presentation/contracts.py"
+      },
+      {
+        "git_blob_oid": "47d43b579478b4ff24076fc25d0adc58e2b544bc",
+        "path": "app/guide/presentation/followup_response.py"
+      },
+      {
+        "git_blob_oid": "acd3971f7cbd944512ff36519ef58867dcd3f785",
+        "path": "app/guide/presentation/ports.py"
+      },
+      {
+        "git_blob_oid": "cd0adcd59d3d134cb95b592b0764837bcc5f545b",
+        "path": "app/guide/presentation/response_planning.py"
+      },
+      {
+        "git_blob_oid": "17ac8d2037358d1f7d3e1ea93e76ec6a14cf1018",
+        "path": "app/guide/presentation/skin_revision_response.py"
+      },
+      {
+        "git_blob_oid": "06184b276996d8b2c79bc606b4f60fc799958d14",
+        "path": "app/guide/presentation/sse_events.py"
+      },
+      {
+        "git_blob_oid": "3eca4168c6af53e7a93626283bc4bf5a7073b388",
+        "path": "app/guide/presentation/topic_labels.py"
+      },
+      {
+        "git_blob_oid": "8ae8ef119c680ebdbdec08464ae0323304bac9d5",
+        "path": "app/guide/retrieval/__init__.py"
+      },
+      {
+        "git_blob_oid": "daf937c99ad3cfc1deb038bc0f1281f045acce2c",
+        "path": "app/guide/retrieval/approved_review_assets.py"
+      },
+      {
+        "git_blob_oid": "14975d8467f41d70ab9fa0d08c29011535ee2374",
+        "path": "app/guide/retrieval/canonical_retrieval.py"
+      },
+      {
+        "git_blob_oid": "713c8f68c7c7753b117368b956af18151b0f69b8",
+        "path": "app/guide/retrieval/category_fact_assets.py"
+      },
+      {
+        "git_blob_oid": "4d586ed51e0bd881d52bda6e14ab1714fd9af0b6",
+        "path": "app/guide/retrieval/category_fact_contracts.py"
+      },
+      {
+        "git_blob_oid": "9f4b31a6dc8ed447ecf339e03f07a469153cb8d3",
+        "path": "app/guide/retrieval/category_fact_reader.py"
+      },
+      {
+        "git_blob_oid": "4d4fd6a4822458796f831f5f1291fa80862c8fc3",
+        "path": "app/guide/retrieval/category_profiles.py"
+      },
+      {
+        "git_blob_oid": "020cd42328abc0f312a2c0154e33c3c6c4d28707",
+        "path": "app/guide/retrieval/category_taxonomy.py"
+      },
+      {
+        "git_blob_oid": "eb1d98983a50e4fa93651812199cd87cfd0b2505",
+        "path": "app/guide/retrieval/contracts.py"
+      },
+      {
+        "git_blob_oid": "0ccb8872f58c06b8e4fb5ad44bafc9c10d0d68d9",
+        "path": "app/guide/retrieval/image_contracts.py"
+      },
+      {
+        "git_blob_oid": "5e16483816b7a94661c5476e7bb921d775fc267c",
+        "path": "app/guide/retrieval/pitfall_contracts.py"
+      },
+      {
+        "git_blob_oid": "b47f083ac8f769ddcad061a9c1a8ea65596ab5e9",
+        "path": "app/guide/retrieval/pitfall_evidence.py"
+      },
+      {
+        "git_blob_oid": "d164d16d45434009425fd9a6376f361015a7a863",
+        "path": "app/guide/retrieval/ports.py"
+      },
+      {
+        "git_blob_oid": "bb2df610ebf789f6f11c87fc3d03ec9948d807df",
+        "path": "app/guide/retrieval/review_contracts.py"
+      },
+      {
+        "git_blob_oid": "4db1174c053b3fcb33aa1b7f4da9122969433467",
+        "path": "app/guide/retrieval/review_reader.py"
+      },
+      {
+        "git_blob_oid": "c40ed83b8b29a646097d7326e13759e16d75af89",
+        "path": "app/guide/retrieval/review_summary.py"
+      },
+      {
+        "git_blob_oid": "68d2aebaf3a14b35a0096e3cfbb3919cfae680f2",
+        "path": "app/guide/retrieval/review_summary_contracts.py"
+      },
+      {
+        "git_blob_oid": "2e838b87129cd55dcea2b0c288e47fdb4f746a21",
+        "path": "app/guide/retrieval/scenario_contracts.py"
+      },
+      {
+        "git_blob_oid": "6c77a3aa860070939bdb7baab65a0b91c962ce98",
+        "path": "app/guide/retrieval/scenario_evidence.py"
+      },
+      {
+        "git_blob_oid": "8cde82a23b72741c3e82034c689d50440ef60522",
+        "path": "app/guide/retrieval/scenario_pitfalls.py"
+      },
+      {
+        "git_blob_oid": "96563befb0754fa89cbcf6b35bc964379621a44d",
+        "path": "app/guide/retrieval/scenario_rules.py"
+      },
+      {
+        "git_blob_oid": "e6f6b51db360dc8afcd282c53094b704df6adb9f",
+        "path": "app/guide/understanding/__init__.py"
+      },
+      {
+        "git_blob_oid": "39d9f839adbbc3818c3e6b1d05a72c834a0520f2",
+        "path": "app/guide/understanding/budget_revision_parsing.py"
+      },
+      {
+        "git_blob_oid": "2648e8bb178fae046d046bbb92c553a73a574a27",
+        "path": "app/guide/understanding/consultation_contracts.py"
+      },
+      {
+        "git_blob_oid": "46e478d00400aa7af7c74ad931c6cf6444bc23cd",
+        "path": "app/guide/understanding/consultation_escalation.py"
+      },
+      {
+        "git_blob_oid": "15a5451cc27e9257ed9f9cd4832891057f60ee66",
+        "path": "app/guide/understanding/consultation_parsing.py"
+      },
+      {
+        "git_blob_oid": "08e67348930a5a257deb2552b8fc91b1ddfca40a",
+        "path": "app/guide/understanding/consultation_questions.py"
+      },
+      {
+        "git_blob_oid": "a04cd8a13109ea40293d9eb84e86ea23d0f0d71e",
+        "path": "app/guide/understanding/contracts.py"
+      },
+      {
+        "git_blob_oid": "3b900733effa97194a223b682885dc4a54a10279",
+        "path": "app/guide/understanding/exact_parsing.py"
+      },
+      {
+        "git_blob_oid": "367d4e3615fa790d58a909a0c43b3c217d17f577",
+        "path": "app/guide/understanding/followup_parsing.py"
+      },
+      {
+        "git_blob_oid": "55a126538652fda4f4316c189400be2e58b4c184",
+        "path": "app/guide/understanding/image_contracts.py"
+      },
+      {
+        "git_blob_oid": "87ae4b71ccad637b32115f7e604b0d15931099a0",
+        "path": "app/guide/understanding/image_identity.py"
+      },
+      {
+        "git_blob_oid": "f1b31364f604da56ea7bd2930476ef1616e1411a",
+        "path": "app/guide/understanding/image_reference_parsing.py"
+      },
+      {
+        "git_blob_oid": "390c6d17211f6c7446c316caa2bfe51911db0bdf",
+        "path": "app/guide/understanding/multi_image_contracts.py"
+      },
+      {
+        "git_blob_oid": "e0ee33d2c12b0fa8cd6d98286f5784bd8d439943",
+        "path": "app/guide/understanding/ports.py"
+      },
+      {
+        "git_blob_oid": "e4d39ba75905c6b7daea5563c6a95a632347f09d",
+        "path": "app/guide/understanding/scenario_parsing.py"
+      },
+      {
+        "git_blob_oid": "9a463351b96293b4df3c450ef56dcff1b9e4ba10",
+        "path": "app/guide/understanding/skin_revision_parsing.py"
+      },
+      {
+        "git_blob_oid": "ced7522c3535c05ff016f9cdda7f904a0033a20a",
+        "path": "app/guide/understanding/text_understanding.py"
+      },
+      {
+        "git_blob_oid": "8b137891791fe96927ad78e64b0aad7bded08bdc",
+        "path": "app/guide_runtime/__init__.py"
+      },
+      {
+        "git_blob_oid": "13911b69479228b4195599e45c859dbb5b39320b",
+        "path": "app/guide_runtime/app.py"
+      },
+      {
+        "git_blob_oid": "cb2183d12161cddb4833b5ccefd56801e4617af2",
+        "path": "app/guide_runtime/composition.py"
+      },
+      {
+        "git_blob_oid": "84c8a0b2391ad3befe0e5081bb7a4f480aded134",
+        "path": "app/guide_runtime/contracts.py"
+      },
+      {
+        "git_blob_oid": "62439854d6bc2996cc55d20b811402390ef1dd0d",
+        "path": "app/guide_runtime/feedback_http.py"
+      },
+      {
+        "git_blob_oid": "a758a600492e27429b355a39fae3bd5b3a0315dc",
+        "path": "app/guide_runtime/image_http.py"
+      },
+      {
+        "git_blob_oid": "d3a54ac4a52ef06df24cc7895d180f83dade4c51",
+        "path": "app/guide_runtime/image_runtime.py"
+      },
+      {
+        "git_blob_oid": "cada413eb0fdc75261fbc20e130391e3fec721e4",
+        "path": "app/guide_runtime/request_limits.py"
+      },
+      {
+        "git_blob_oid": "670a2f048baf3752e58235947a52b09fbbe7bd17",
+        "path": "app/guide_runtime/sse.py"
+      },
+      {
+        "git_blob_oid": "d9fa87337e6e711a8340fd1f00af5f5be45aae71",
+        "path": "app/guide_runtime/upload_rate_limit.py"
+      },
+      {
+        "git_blob_oid": "471a7d2df22010c93aad72b3eaba16dd20843531",
+        "path": "docker-compose.prod.yml"
+      },
+      {
+        "git_blob_oid": "9998e0f1012e30180d74b3e3c24e3bdb6048585a",
+        "path": "docker-compose.yml"
+      },
+      {
+        "git_blob_oid": "82f3890015587716902bd60d967a62c1faf9743d",
+        "path": "requirements-guide-runtime-test.txt"
+      },
+      {
+        "git_blob_oid": "b2ff13f85146a7dc3336d7531e748d363163e728",
+        "path": "requirements-guide-runtime.txt"
+      },
+      {
+        "git_blob_oid": "d162f5d59f43584cecd40ef22de19c3e213abe04",
+        "path": "start.sh"
+      }
+    ],
+    "blob_manifest_scheme": "concat(path_utf8 + NUL + git_blob_oid_ascii + LF) for paths sorted bytewise",
+    "blob_manifest_sha256": "93c72acd79c3fb767eccf8b39293510b8726035ebed5526781a61845190ff03c",
+    "file_count": 147,
+    "path_manifest": "docs/audits/guide-closure/production_scope.txt",
+    "path_manifest_sha256": "ff43545b7c20950c01cd1d1a63675cca42686bd8e237dd77c6b333ba4a5d954d"
+  },
+  "protected_assets": {
+    "approved_reviews": {
+      "aggregate_scheme": "sha256(concat(path_utf8 + NUL + file_sha256_ascii + LF) for paths sorted bytewise)",
+      "aggregate_sha256": "4a370d27e64d1affa49c03c2ebc21d51f652cdca162626a75249dafc8ce438b7",
+      "approved_source_count": 6,
+      "files": [
+        {
+          "git_blob_oid": "c7414c2ce588515aa02a7de211e4ecde8df42770",
+          "path": "data/guide_review_sources/approved_tmall_feed_reviews_v1.jsonl",
+          "sha256": "22bac50e053a621826c831565b3a18e1df3592049ac35377298bac0ab0536171"
+        },
+        {
+          "git_blob_oid": "8db5074430a06f593360b4d1eedceceb4480a616",
+          "path": "data/guide_review_sources/approved_tmall_feed_reviews_v1_manifest.json",
+          "sha256": "2d4acdb1251e1b65d2b92fb2b052734f58b56cd4cd558e783c0391432c630460"
+        }
+      ]
+    },
+    "canonical": {
+      "aggregate_scheme": "sha256(concat(path_utf8 + NUL + file_sha256_ascii + LF) for paths sorted bytewise)",
+      "aggregate_sha256": "ef446aede0dcc0e92be1c8a1ff922154611eb0e11474e5e26d5dc57f2c768d0f",
+      "files": [
+        {
+          "git_blob_oid": "f9c3f3504ead7c6f9df3a4b39b6c3c2f2fa6242b",
+          "path": "data/canonical/core_products_v1.jsonl",
+          "sha256": "0ba95df8c38d39f5bc0d73a32c318b157903abb64778c3e7b0acebfb75e95734"
+        },
+        {
+          "git_blob_oid": "a7c1e1a45fe108d20b95194d651f182421f81a7d",
+          "path": "data/canonical/core_products_v1_manifest.json",
+          "sha256": "e0430a244af451a3fa73642295c4a79128e1622dfeed19ff8140eda9f2df0c69"
+        },
+        {
+          "git_blob_oid": "b5add2fe157f0891fc14313ceb427ad9153b7607",
+          "path": "data/canonical/seed_product_images_v1.jsonl",
+          "sha256": "5a5a0c40deb80050b59b52203339497c73c3df1adc37b90799b1a62b1e5d9ab0"
+        },
+        {
+          "git_blob_oid": "963d7b9fb78e95e9e541e95d4761155a079c918b",
+          "path": "data/canonical/seed_product_images_v1_manifest.json",
+          "sha256": "47e3680b6b6d5c497890ae320c61b8a8deea8cd5e5ff8baccd2b7c13d661fdd7"
+        },
+        {
+          "git_blob_oid": "932db48cdfdaee1e41443243f3879e34c80278a1",
+          "path": "data/canonical/shadow_review_v1/review_decisions.jsonl",
+          "sha256": "12b0e1f82df3509ad8886af68a04ddcc62b28f3d3a5c72f4496ea22708fe50e9"
+        },
+        {
+          "git_blob_oid": "115f47069ede612968e11ce99c27910662442500",
+          "path": "data/canonical/shadow_review_v1/review_decisions_manifest.json",
+          "sha256": "999be8b3238176ed57cab47d2fa7db30ed76a2840908bc9c2d52c06a3ec7f633"
+        }
+      ],
+      "product_count": 103
+    },
+    "category_facts": {
+      "aggregate_scheme": "sha256(concat(path_utf8 + NUL + file_sha256_ascii + LF) for paths sorted bytewise)",
+      "aggregate_sha256": "1a3640fe3c40337a5c87bb405a6e6116ae2fd77935ca86b3bf7f5d9e3dfff53c",
+      "fact_count": 0,
+      "files": [
+        {
+          "git_blob_oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+          "path": "data/guide_category_facts/category_facts_v1.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.jsonl",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "git_blob_oid": "930b0c4784fab1950c709a4f34fc93c6da04cc12",
+          "path": "data/guide_category_facts/category_facts_v1_manifest.json",
+          "sha256": "dc528a034779559e0ac9b6444f1b0365e3041478d71ebbc703da3aaaf0e6179c"
+        }
+      ]
+    },
+    "deterministic_ranking": {
+      "git_blob_oid": "c5900f9c3fe7a46613c7ccfab022fe6a28cf790b",
+      "path": "app/guide/decision/deterministic_ranking.py",
+      "sha256": "4737c18964f2be3502f036a87dd50e06965a214a87aa967c586d08e7c741f59f"
+    }
+  },
+  "push_deploy_traffic_switch": false,
+  "required_ancestor": "6d0f2d422f94ccf26f3132d54ac5080beb76ec80",
+  "schema_version": "guide-closure-baseline-v1"
+}

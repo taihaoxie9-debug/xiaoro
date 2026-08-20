@@ -1,0 +1,8 @@
+# Complete direct dependencies for the supervised browser matrix.
+# The runtime/test lock remains authoritative for FastAPI, Pillow, httpx,
+# numpy, torch, PyYAML, and pytest. Do not include the conflicting image lock.
+-r requirements-guide-runtime-test.txt
+open_clip_torch==3.3.0
+playwright==1.60.0
+rapidocr-onnxruntime==1.3.0
+torchvision==0.27.0

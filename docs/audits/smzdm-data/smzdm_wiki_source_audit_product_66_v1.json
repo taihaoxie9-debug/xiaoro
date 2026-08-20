@@ -1,0 +1,67 @@
+{
+  "schema_version": "smzdm-wiki-source-audit-v1",
+  "status": "manual_browser_observed_not_raw",
+  "canonical_product_id": 66,
+  "source_url": "https://wiki.smzdm.com/p/2j5jr7/",
+  "source_kind": "smzdm_wiki",
+  "observed_page_title": "Curel 珂润 润浸保湿洁颜泡沫 150ml",
+  "current_canonical_identity": "珂润润浸保湿洁颜泡沫",
+  "observed_at": "2026-08-19",
+  "capture_status": {
+    "independent_headless": "not_attempted_in_this_observation",
+    "raw_written": false,
+    "retry_performed": false
+  },
+  "browser_observations": {
+    "exact_150ml_title_present": true,
+    "variant_list_includes": [
+      "130ml",
+      "150ml",
+      "150ml*2",
+      "150ml+130ml"
+    ],
+    "page_content_includes": [
+      "150ml",
+      "按压式泡沫",
+      "氨基酸系洁面成分",
+      "神经酰胺"
+    ],
+    "product_visual_nodes_observed": 14,
+    "aigc_sections_present": [
+      "Powered by ZDM-AIGC Engine v0.3",
+      "优势",
+      "建议"
+    ]
+  },
+  "observed_candidate_topics": [
+    {
+      "kind": "exact_specification_candidate",
+      "summary": "页面标题与当前商品一致为150ml。",
+      "allowed_next_step": "Human review as a net_content candidate after auditable raw capture.",
+      "prohibited_next_step": "Automatic promotion or price adoption."
+    },
+    {
+      "kind": "product_form_candidate",
+      "summary": "页面标题和介绍都指向按压即出泡沫的洁面形态。",
+      "allowed_next_step": "Human review as an attributed product-form or texture fact.",
+      "prohibited_next_step": "Turn user reviews about cleansing strength into verified facts."
+    },
+    {
+      "kind": "merchant_claim_candidate",
+      "summary": "产品介绍提到温和的氨基酸系洁面成分和系列神经酰胺护理方向。",
+      "allowed_next_step": "Retain as attributed merchant-claim material after exact raw capture.",
+      "prohibited_next_step": "Guarantee no irritation, universal sensitive-skin suitability, or barrier-repair efficacy."
+    },
+    {
+      "kind": "review_content_exclusion",
+      "summary": "页面用户内容含一泵、晨间清水洗脸、无酒精无香料和不紧绷等主观或未经核对的说法。",
+      "allowed_next_step": "Selective consumer-report review with provenance.",
+      "prohibited_next_step": "Automatic usage steps, free-from claim or skin suitability promotion."
+    }
+  ],
+  "conclusion": {
+    "page_depth": "high",
+    "expected_presentation_gain": "Current missing fields can gain a confirmed size, product form and a short attributed texture/cleansing explanation.",
+    "next_required_step": "Capture raw page and image sequence through an authorized browser-session path before review candidate generation."
+  }
+}

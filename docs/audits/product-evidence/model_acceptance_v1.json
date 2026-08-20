@@ -1,0 +1,57 @@
+{
+  "schema_version": "product-evidence-model-acceptance-v1",
+  "case_overrides": {
+    "skincare-safety-post-procedure": {
+      "modes": ["knowledge", "suitability"],
+      "visible_product_ids": [[], [78]]
+    },
+    "suncare-direct-water-resistance": {
+      "modes": ["knowledge"],
+      "visible_product_ids": [[]],
+      "first_evidence_ids": [
+        "50ea4b2ab5160d20134340dc4715ce29903c50e530a00f62d8637df9776f12bc",
+        "b812793214e8a4ffadffbf259cf168a0cda9654f5166c40777e6ec6b49099fc5"
+      ]
+    },
+    "suncare-safety-sensitive-skin": {
+      "modes": ["knowledge", "suitability"],
+      "visible_product_ids": [[], [57]]
+    },
+    "base-makeup-faq-oily-skin": {
+      "modes": ["knowledge", "suitability"],
+      "visible_product_ids": [[], [113]]
+    },
+    "base-makeup-dry-skin-faq": {
+      "modes": ["knowledge", "suitability"],
+      "visible_product_ids": [[], [109]]
+    },
+    "color-makeup-bare-face-tone": {
+      "modes": ["knowledge"],
+      "visible_product_ids": [[]],
+      "first_evidence_ids": [
+        "a4b97a9f62f0074d696200bbedc37aacb9d0d4f7b277064d99a96463523954d2",
+        "dca5a9b3832899031bdf212227fe792e22db5136a8e8f3abb8e04c464d0723fb"
+      ]
+    },
+    "cleanser-adverse-reaction": {
+      "modes": ["knowledge", "suitability"],
+      "visible_product_ids": [[], [65]]
+    },
+    "mode-suitability-post-decision": {
+      "modes": ["knowledge", "suitability"],
+      "visible_product_ids": [[], [78]]
+    },
+    "multi-current-2-followup": {
+      "modes": ["followup"],
+      "visible_product_ids": [[]],
+      "first_evidence_ids": [
+        "840502486486a763a244dd01ee50c0164e9d9bdc29b8f8643bb4e30caf6d5856",
+        "00ee1331b3d68d0da732a6f6cc95c4746037f953b12926fbc5f309d1d38409e8"
+      ]
+    },
+    "multi-ordinal-2-followup": {
+      "modes": ["followup", "suitability"],
+      "visible_product_ids": [[], [51]]
+    }
+  }
+}

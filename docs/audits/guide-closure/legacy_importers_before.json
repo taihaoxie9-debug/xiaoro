@@ -1,0 +1,740 @@
+{
+  "counts": {
+    "background": 5,
+    "direct_imports": 87,
+    "dynamic_imports": 0,
+    "runtime": 33,
+    "script": 19,
+    "string_targets": 14,
+    "test": 44,
+    "total": 101
+  },
+  "entries": [
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 5,
+      "module": "app.api.v1.chat",
+      "path": "app/api/v1/__init__.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 31,
+      "module": "app.services.intent",
+      "path": "app/api/v1/chat.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 32,
+      "module": "app.services.conversation",
+      "path": "app/api/v1/chat.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 300,
+      "module": "app.api.v1.chat",
+      "path": "app/main.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 11,
+      "module": "app.prompts.intent_prompts",
+      "path": "app/prompts/__init__.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 18,
+      "module": "app.prompts.intent_prompts",
+      "path": "app/prompts/test_intent_classifier.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 128,
+      "module": "app.prompts.intent_prompts",
+      "path": "app/prompts/test_intent_classifier.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 9,
+      "module": "app.services.intent",
+      "path": "app/services/__init__.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 16,
+      "module": "app.services.intent",
+      "path": "app/services/agent.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 19,
+      "module": "app.services.conversation",
+      "path": "app/services/agent.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 13,
+      "module": "app.services.intent",
+      "path": "app/services/conversation.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 20,
+      "module": "app.prompts.intent_prompts",
+      "path": "app/services/intent.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 478,
+      "module": "app.prompts.test_intent_classifier",
+      "path": "app/services/intent.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 8,
+      "module": "app.services.v2.models",
+      "path": "app/services/v2/agent.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 9,
+      "module": "app.services.v2.turn_parser",
+      "path": "app/services/v2/agent.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 10,
+      "module": "app.services.v2.router",
+      "path": "app/services/v2/agent.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 11,
+      "module": "app.services.v2.retriever",
+      "path": "app/services/v2/agent.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 12,
+      "module": "app.services.v2.ranker",
+      "path": "app/services/v2/agent.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 13,
+      "module": "app.services.v2.presenter",
+      "path": "app/services/v2/agent.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 14,
+      "module": "app.services.v2.state",
+      "path": "app/services/v2/agent.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 3,
+      "module": "app.services.v2.models",
+      "path": "app/services/v2/intent_classifier.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 4,
+      "module": "app.services.v2.semantic_intent_retriever",
+      "path": "app/services/v2/intent_classifier.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 134,
+      "module": "app.services.v2.semantic_embedding_intent",
+      "path": "app/services/v2/intent_classifier.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 3,
+      "module": "app.services.v2.models",
+      "path": "app/services/v2/presenter.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 4,
+      "module": "app.services.v2.retriever",
+      "path": "app/services/v2/presenter.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 2,
+      "module": "app.services.v2.models",
+      "path": "app/services/v2/ranker.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 3,
+      "module": "app.services.v2.models",
+      "path": "app/services/v2/router.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 13,
+      "module": "app.services.v2.models",
+      "path": "app/services/v2/semantic_embedding_intent.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 14,
+      "module": "app.services.v2.semantic_intent_retriever",
+      "path": "app/services/v2/semantic_embedding_intent.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 6,
+      "module": "app.services.v2.models",
+      "path": "app/services/v2/semantic_intent_retriever.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 5,
+      "module": "app.services.v2.models",
+      "path": "app/services/v2/state.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 3,
+      "module": "app.services.v2.models",
+      "path": "app/services/v2/turn_parser.py"
+    },
+    {
+      "category": "runtime",
+      "kind": "direct_import",
+      "line": 4,
+      "module": "app.services.v2.intent_classifier",
+      "path": "app/services/v2/turn_parser.py"
+    },
+    {
+      "category": "background",
+      "kind": "direct_import",
+      "line": 47,
+      "module": "app.services.agent",
+      "path": "app/tasks/product/tasks.py"
+    },
+    {
+      "category": "background",
+      "kind": "string_target",
+      "line": 26,
+      "module": "app.tasks.product.tasks",
+      "path": "app/tasks/worker.py"
+    },
+    {
+      "category": "background",
+      "kind": "string_target",
+      "line": 52,
+      "module": "app.tasks.product.tasks.*",
+      "path": "app/tasks/worker.py"
+    },
+    {
+      "category": "background",
+      "kind": "string_target",
+      "line": 92,
+      "module": "tasks.product.recommend",
+      "path": "app/tasks/worker.py"
+    },
+    {
+      "category": "background",
+      "kind": "direct_import",
+      "line": 120,
+      "module": "app.services.agent",
+      "path": "app/tasks/worker.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 15,
+      "module": "app.services.v2.models",
+      "path": "scripts/batch_backend_test.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 16,
+      "module": "app.services.v2.turn_parser",
+      "path": "scripts/batch_backend_test.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 17,
+      "module": "app.services.v2.router",
+      "path": "scripts/batch_backend_test.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 18,
+      "module": "app.services.v2.retriever",
+      "path": "scripts/batch_backend_test.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 19,
+      "module": "app.services.v2.ranker",
+      "path": "scripts/batch_backend_test.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 20,
+      "module": "app.services.v2.presenter",
+      "path": "scripts/batch_backend_test.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 22,
+      "module": "app.services.v2.agent",
+      "path": "scripts/e2e_regression_test.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 210,
+      "module": "app.services.v2.models",
+      "path": "scripts/e2e_regression_test.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 43,
+      "module": "app.services.v2.turn_parser",
+      "path": "scripts/intent_baseline_probe.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 44,
+      "module": "app.services.v2.router",
+      "path": "scripts/intent_baseline_probe.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 45,
+      "module": "app.services.v2.retriever",
+      "path": "scripts/intent_baseline_probe.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 46,
+      "module": "app.services.v2.ranker",
+      "path": "scripts/intent_baseline_probe.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 21,
+      "module": "app.services.v2.agent",
+      "path": "scripts/layered_test_30.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 26,
+      "module": "app.services.v2.agent",
+      "path": "scripts/llm50_quality_test.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 22,
+      "module": "app.services.v2.agent",
+      "path": "scripts/llm_e2e_test.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 9,
+      "module": "app.services.v2.agent",
+      "path": "scripts/quick_regression.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 10,
+      "module": "app.services.v2.turn_parser",
+      "path": "scripts/quick_regression.py"
+    },
+    {
+      "category": "script",
+      "kind": "direct_import",
+      "line": 9,
+      "module": "app.services.v2.semantic_intent_retriever",
+      "path": "scripts/test_v2_semantic_matrix.py"
+    },
+    {
+      "category": "test",
+      "kind": "string_target",
+      "line": 347,
+      "module": "app.services.v2.agent",
+      "path": "tests/guide/application/test_chat_route_wiring.py"
+    },
+    {
+      "category": "test",
+      "kind": "string_target",
+      "line": 516,
+      "module": "app.services.intent",
+      "path": "tests/guide/application/test_formal_chat_router_http.py"
+    },
+    {
+      "category": "test",
+      "kind": "string_target",
+      "line": 517,
+      "module": "app.services.intent",
+      "path": "tests/guide/application/test_formal_chat_router_http.py"
+    },
+    {
+      "category": "test",
+      "kind": "string_target",
+      "line": 521,
+      "module": "app.services.agent",
+      "path": "tests/guide/application/test_formal_chat_router_http.py"
+    },
+    {
+      "category": "test",
+      "kind": "string_target",
+      "line": 522,
+      "module": "app.services.agent",
+      "path": "tests/guide/application/test_formal_chat_router_http.py"
+    },
+    {
+      "category": "test",
+      "kind": "string_target",
+      "line": 525,
+      "module": "app.services.conversation",
+      "path": "tests/guide/application/test_formal_chat_router_http.py"
+    },
+    {
+      "category": "test",
+      "kind": "string_target",
+      "line": 526,
+      "module": "app.services.conversation",
+      "path": "tests/guide/application/test_formal_chat_router_http.py"
+    },
+    {
+      "category": "test",
+      "kind": "string_target",
+      "line": 348,
+      "module": "app.api.v1.chat",
+      "path": "tests/guide/tools/test_guide_pipeline_evaluator.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 15,
+      "module": "app.services.intent",
+      "path": "tests/test_intent_integration.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 56,
+      "module": "app.services.intent",
+      "path": "tests/test_intent_integration.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 13,
+      "module": "app.services.agent",
+      "path": "tests/test_unified_chat_contract.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 14,
+      "module": "app.services.conversation",
+      "path": "tests/test_unified_chat_contract.py"
+    },
+    {
+      "category": "test",
+      "kind": "string_target",
+      "line": 29,
+      "module": "app.services.intent",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "string_target",
+      "line": 34,
+      "module": "app.services.intent",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 42,
+      "module": "app.services.v2.models",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 43,
+      "module": "app.services.v2.agent",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 44,
+      "module": "app.services.v2.presenter",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 45,
+      "module": "app.services.v2.retriever",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 46,
+      "module": "app.services.v2.turn_parser",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1713,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1721,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1722,
+      "module": "app.services.v2.models",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1733,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1750,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1765,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1780,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1788,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1797,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1813,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1838,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1849,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1870,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1888,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1910,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1943,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 2001,
+      "module": "app.services.v2.semantic_embedding_intent",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 2002,
+      "module": "app.services.v2.semantic_intent_retriever",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 2059,
+      "module": "app.services.v2.semantic_embedding_intent",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 2060,
+      "module": "app.services.v2.semantic_intent_retriever",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 2089,
+      "module": "app.services.v2.intent_classifier",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 2097,
+      "module": "app.services.v2.models",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 2115,
+      "module": "app.services.v2.models",
+      "path": "tests/test_v2_image_and_frontend_regressions.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 1,
+      "module": "app.services.v2.models",
+      "path": "tests/test_v2_state_machine.py"
+    },
+    {
+      "category": "test",
+      "kind": "direct_import",
+      "line": 2,
+      "module": "app.services.v2.state",
+      "path": "tests/test_v2_state_machine.py"
+    },
+    {
+      "category": "script",
+      "kind": "string_target",
+      "line": 59,
+      "module": "app.api.v1.chat",
+      "path": "tools/guide_gates/guide_pipeline_evaluator.py"
+    }
+  ],
+  "files_scanned": 463,
+  "roots": [
+    "app",
+    "tests",
+    "scripts",
+    "tools"
+  ],
+  "schema_version": "legacy-chat-importers-v1",
+  "targets": [
+    "app.services.agent",
+    "app.services.conversation",
+    "app.services.intent",
+    "app.services.v2",
+    "app.tasks.product.tasks",
+    "tasks.product.recommend",
+    "app.api.v1.chat",
+    "app.prompts.intent_prompts",
+    "app.prompts.test_intent_classifier"
+  ]
+}

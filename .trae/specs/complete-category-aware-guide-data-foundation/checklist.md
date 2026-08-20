@@ -1,0 +1,99 @@
+# Checklist
+
+- [x] 基线为 `rebuild@a29d727` 或其文档后继，开始时工作区干净
+- [x] opening audit 的 2 个 P1、1 个 P2 已登记
+- [x] CategoryProfile 恰好包含六个稳定画像
+- [x] 39 种 Canonical 原始品类全部映射
+- [x] 每种原始品类只映射一次
+- [x] 未知新品类 fail-closed，不默认 skincare
+- [x] sunscreen 和 serum 既有行为保持兼容
+- [x] 通用字段和专属字段键无重复
+- [x] 每个字段声明 value type、适用画像和来源政策
+- [x] 每个字段声明 evidence/display/compare/hard_filter/soft_rank capability
+- [x] unknown 来源不能获得 display/compare/filter/rank
+- [x] OCR packaging 只产生观察，未经批准不能升级事实
+- [x] OCR ingredient list 不推导功效、安全或 verified absence
+- [x] approved consumer review 不推导配方、安全或硬筛事实
+- [x] unknown/conflict/not_applicable 不产生 winner 或排序分
+- [x] `data/canonical/**` 无修改
+- [x] `app/services/**` 无修改
+- [x] `app/database/**` 无修改
+- [x] 排序内核无修改且 SHA 保持不变
+- [x] 六类 TopicCode 和别名解析通过
+- [x] 精华水和眼部精华不误归 serum
+- [x] 底妆、彩妆、洁面、香水正式进入 Guide task plan
+- [x] approved category fact loader 严格校验 hash 和 manifest
+- [x] approved category fact loader 严格校验产品与画像归属
+- [x] 生产 category fact asset 不含绝对路径或 raw HTML
+- [x] candidate builder 输出 pending/quarantine，不输出 approved
+- [x] candidate ID 对输入顺序稳定
+- [x] candidate、approved、quarantine 数量守恒
+- [x] promotion 要求 reviewer、时区时间、decision 和 reason
+- [x] promotion 失败不替换旧生产资产
+- [x] production asset 重复构建字节一致
+- [x] 12 个试点 ID 与 spec 完全一致
+- [x] 每个画像恰好两个试点
+- [x] 每个 known 试点字段都有 source refs
+- [x] 没有批准来源的试点字段保持 unknown
+- [x] 每个画像输出 approved/unknown/conflict 覆盖统计
+- [x] 没有新批准决定时 fact_count=0 资产可正常加载
+- [x] CategoryFactPort 不暴露未授权字段
+- [x] display 只消费 display-safe 字段
+- [x] compare 只消费 compare-safe 字段
+- [x] hard filter 只消费 hard-filter-safe 字段
+- [x] soft rank 只消费 soft-rank-safe 字段
+- [x] 未批准候选无法改变卡片、winner 或排序
+- [x] 评论 builder 在脱敏 fixture 上字节级确定
+- [x] 历史 336/111 在原 HTML 不可用时只标记 provenance
+- [x] 现有 6 条批准评论和 source ID 原样复验
+- [x] 评论自动化不会批准候选
+- [x] 评论 promotion 原子更新 JSONL、manifest 和审计机器块
+- [x] 六类正式 HTTP 响应通过
+- [x] 六类正式 SSE 事件顺序通过
+- [x] 六类请求使用 Guide owner
+- [x] Guide 内部错误不回退 legacy
+- [x] 商品卡数量和顺序由后端唯一决定
+- [x] 前端不从答案文本推断品类字段
+- [x] 前端不使用未转义动态 HTML sink
+- [x] category profile normal browser 通过
+- [x] category profile adversarial browser 通过
+- [x] 现有 consultation、image、review、feedback 浏览器不回归
+- [x] focused category/data/tooling 测试无失败
+- [x] Guide full 无失败
+- [x] runtime full 无失败
+- [x] `app/guide` boundary 为 0 violations
+- [x] `app/guide_runtime` boundary 为 0 violations
+- [x] compileall 通过
+- [x] `git diff --check` 通过
+- [x] normal browser 无 page/SSE/HTTP/image error
+- [x] adversarial browser 无跨会话、迟到事件或 XSS 回归
+- [x] 每个能力循环只有一次 opening full-file audit
+- [x] finding 修复采用 RED/GREEN 且不重复同 key 审计
+- [x] 唯一 `FINAL-CATEGORY-DATA-AUDIT` 无未解决 P0–P2
+- [x] tasks 全部勾选前未标记 COMPLETE
+- [x] checklist 全部勾选前未标记 COMPLETE
+- [x] final handoff 包含代码 SHA、数据 hash、测试和浏览器证据
+- [x] 最终工作区干净
+- [x] 未 push
+- [x] 未部署
+- [x] 未切换流量
+- [x] source hash 校验后替换源文件时，candidate builder 拒绝漂移内容或只解析已校验的同一份字节
+- [x] manifest swap 后目录 fsync 失败时，category fact promotion 不以失败返回并留下已变更的生产指针
+- [x] 带修饰语的并列否定不会把后一个已否定品类恢复为正向意图
+- [x] 非法 category fact payload 被拒绝后 conversation version 和 feedback target 均保持不变
+- [x] 追问、修订和图片卡片不会因 intent 缺少 category_profile 而丢失品类事实校验与展示
+- [x] `不考虑防晒以及后来还是想买高端香水` 恢复 fragrance 正向意图，且 `不考虑防晒以及平价香水` 仍保持双重否定；understanding、task planning 和 formal route RED/GREEN 通过
+- [x] 正式 runtime SSE consumer 取得 start 后取消或断连不会持久化 conversation state，合法完整消费只提交一次，conversation version 与 feedback target 始终绑定同一次已交付终态
+- [x] `后来还是要买`、`后来还是想要`、`我后来还是想买`、`后来改买` 在 understanding、task planning 和 formal route 恢复明确正向品类，同时平价香水双重否定保持
+- [x] public products 与 typed ProductCard 的确定性完整投影整体等价，`name`、`price`、`image_url` 等畸形类型不会通过事件校验或提交 conversation state
+- [x] `并且`、`并`、`且` 等常见并列连接词延续前置品类否定，不会把后一个带修饰语的品类恢复为正向意图或路由到 Guide
+- [x] `FINAL-CATEGORY-DATA-AUDIT` 的冻结范围包含运行时实际使用的 `app/guide/retrieval/review_reader.py`，不含不存在的替代路径，并有独立定向核验证明无未解决 P0–P2
+- [x] 新增 `并且`、`并`、`且` 连接词不得越过 `想买`、`推荐` 等明确正向谓词传播品类否定；至少覆盖 `不考虑防晒并想买平价香水`、`不考虑防晒并推荐平价香水`、`不考虑防晒且想买平价香水`、`不考虑防晒并且推荐平价香水` 的 understanding、task planning 和正式 HTTP/SSE RED/GREEN
+- [x] 并列连接词后的直接 `想买`、`想要`、`要买`、`推荐`、`改买` 恢复后一个正向品类，但 `并不想买`、`并非要买`、`想要避开的香水`、`推荐避雷香水`、`想买但不买香水` 不得恢复；`不考虑防晒并改买香水但不要香水` 以最后否定为准，且 understanding、task planning 和正式 HTTP/SSE RED/GREEN 全部覆盖
+- [x] 品类否定按语义作用域区分属性排除与品类排除：`避开甜腻的香水`、`不要太甜的香水`、`不想要太甜的香水` 保留 fragrance，`想要避开的香水`、`推荐避雷香水`、`想买但不买香水` 不恢复 fragrance，`推荐防晒但不推荐防晒` 与 `不考虑防晒并改买香水但最后不推荐香水` 以最后否定为准；understanding、task planning、owner 和正式 `/api/v1/chat/message`、`/api/v1/chat/stream` 代表性正负矩阵 RED/GREEN 全部覆盖
+- [x] 品类量词/指类词不误判为属性排除：`不要所有的香水`、`避开全部的香水`、`排除这类的香水`、`拒绝这种香水` 保持 fragrance 品类否定且不得进入 Guide，同时 `避开甜腻的香水`、`不要太甜的香水`、`不想要太甜的香水` 仍保留 fragrance；understanding、task planning 和 owner routing RED/GREEN 覆盖，并纳入稍后统一执行的正式 `/api/v1/chat/message` + `/api/v1/chat/stream` 矩阵
+- [x] `任意的`、`任何的`、`每一种的`、`每一款的`、`一切的` 在 `不要`、`避开`、`排除`、`拒绝` 下均与 Task 28 既有量词一致，保持 fragrance 品类否定且不得进入 Guide；understanding、task planning 和 owner routing RED/GREEN 覆盖
+- [x] Task 27 恢复属性排除路由后不得静默丢弃用户约束：`避开甜腻的香水`、`不想要太甜的香水` 在现有授权的结构化约束合同中保留排除语义；若合同不支持该属性，则返回明确 uncertainty/clarification，不能假装约束已应用；正式 `/api/v1/chat/message` 与 `/api/v1/chat/stream` 提供 typed RED/GREEN evidence
+- [x] category/unsupported-attribute 已消费 span 不再被 `_parse_exclusions` 二次消费：`避开不含酒精的香水`、`不要不含酒精的香水`、`不想要不含酒精的香水` 及同类 `无酒精`/`无香精` 表达不反向生成成分 exclusion，保持 Task 29 typed uncertainty/clarification；`不要所有香水` 及品类量词矩阵不生成 `所有` 等 Exclusion；`不要含酒精的香水` 仍生成酒精 Exclusion；understanding、task planning、owner routing 和正式 HTTP/SSE 代表矩阵 RED/GREEN 全部覆盖
+- [x] 普通成分排除归一化不保留存在谓词：`不要有酒精的香水`、`不要有香精的香水` 分别只生成值为 `酒精`、`香精` 的 `ExclusionDraft`/`ExclusionConstraint`，不得生成 `有酒精`、`有香精`；`不要含`、`不含`、`不能有`、`无` 回归及 understanding、task planning、owner routing、decision consumer RED/GREEN 全部覆盖，且正式 `/api/v1/chat/message`、`/api/v1/chat/stream` 有代表性验证
+- [x] 外层 `{避开, 不要, 不想要, 排除, 拒绝, 不要有}` × 内层 `{不含, 无}` × `{酒精, 香精}` × 明确品类（至少 `香水`）的完整笛卡尔矩阵均保留 typed uncertainty 并 clarify，不反向生成任何 `ExclusionDraft`/`ExclusionConstraint`；普通 `{不要有, 不要含, 不含, 不能有, 无}` + 成分 + 品类仍生成裸成分值的准确排除；understanding、task planning、owner routing、decision consumer RED/GREEN 和正式 HTTP/SSE typed 代表用例全部覆盖

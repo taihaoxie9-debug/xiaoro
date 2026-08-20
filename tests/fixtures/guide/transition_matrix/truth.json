@@ -1,0 +1,1 @@
+{"allowed_state_changes":["safety_escalation","new_image_bundle","explicit_constraint_change","explicit_reset"],"ordinary_path_independence":true,"schema_version":"guide-transition-truth-v1"}

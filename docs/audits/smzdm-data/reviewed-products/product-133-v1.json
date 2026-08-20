@@ -1,0 +1,156 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:133:net-content:75ml-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "75ml",
+      "review_rationale": "两张产品长图瓶身都明确标注75ml；参考价SKU仍未确认，因此规格不得与价格组合展示。",
+      "sku_status": "exact_75ml_reference_price_sku_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:f599ac556fb8e8b4193f416099f1c8d72ba7b50a1b7c4e065a8fe9f6f0636d3c",
+        "smzdm-detail-image:cfd62af2de9acae528aecd977f782ccfdc0167169bf370543ef548fd61db4c6a"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:133:ingredients:calendula-botanicals-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "金盏花、药蜀葵、牛蒡、常春藤与龙胆植物成分",
+      "review_rationale": "商品介绍明确列出金盏花及其他植物成分；不把植物来源扩写为祛痘、祛疤或安全保证。",
+      "sku_status": "exact_75ml_reference_price_sku_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:2c53b152d2f9de09c98cb1cf2c2edab6fb0767262f0a70170ef25674d304e3f0"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.lightweight",
+      "decision": "map",
+      "fact_id": "reviewed:product:133:texture:lightweight-absorbing-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "不黏稠、易吸收的爽肤水质地",
+      "review_rationale": "商品介绍直接描述不黏稠和易吸收，可映射轻盈肤感方向。",
+      "sku_status": "exact_75ml_reference_price_sku_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:2c53b152d2f9de09c98cb1cf2c2edab6fb0767262f0a70170ef25674d304e3f0"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.hydration",
+      "decision": "map",
+      "fact_id": "reviewed:product:133:efficacy:hydration-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "保湿方向",
+      "review_rationale": "商品介绍明确保湿方向；不保留长效保证或任意肤质适用结论。",
+      "sku_status": "exact_75ml_reference_price_sku_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:2c53b152d2f9de09c98cb1cf2c2edab6fb0767262f0a70170ef25674d304e3f0"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:133:efficacy:universal-fit-acne-scar-oil-balance-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "所有肤质与敏感肌适用、油脂调理及青春痘伤疤结论",
+      "review_rationale": "来源只有商品介绍，植物成分被扩大为普遍适配、油脂调理和痘疤效果，不进入公开事实。",
+      "sku_status": "exact_75ml_reference_price_sku_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:2c53b152d2f9de09c98cb1cf2c2edab6fb0767262f0a70170ef25674d304e3f0"
+      ]
+    }
+  ],
+  "canonical_identity": "科颜氏金盏花爽肤水",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "75ml",
+  "captured_at": "2026-08-19T19:00:44.982Z",
+  "category_profile": "skincare",
+  "detail_image_count": 2,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 600,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/133/001_f599ac556fb8e8b4.jpg",
+      "ordinal": 1,
+      "sha256": "f599ac556fb8e8b4193f416099f1c8d72ba7b50a1b7c4e065a8fe9f6f0636d3c",
+      "width": 600
+    },
+    {
+      "height": 600,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/133/002_cfd62af2de9acae5.jpg",
+      "ordinal": 2,
+      "sha256": "cfd62af2de9acae528aecd977f782ccfdc0167169bf370543ef548fd61db4c6a",
+      "width": 600
+    }
+  ],
+  "introduction_text": "Kiehl’s 科颜氏是有着150余年历史的美国品牌，其在护肤、制药、药草等领域的产品在用户群中有着良好的口碑。这款金盏花植物爽肤水主要成分取自金盏花卉及其它天然植物精华，如药蜀葵、牛蒡、常春藤粹取、龙胆粹取等，不含酒精，质地不粘稠，易吸收。可用于所有肤质，包括敏感型肌肤，坚持使用可做到清洁、均衡、活化、调理肌肤油脂分泌并且能帮助肌肤长效保湿，对青春痘伤疤的愈合也有一定作用。",
+  "missing_fields": [
+    "net_content",
+    "texture"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "calendula_toner",
+  "product_id": 133,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "75ml",
+    "display_specification": "75ml",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "75ml"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "2c53b152d2f9de09c98cb1cf2c2edab6fb0767262f0a70170ef25674d304e3f0",
+  "source_product_title": "Kiehl's 科颜氏 金盏花植萃爽肤水",
+  "source_title": "Kiehls 科颜氏 金盏花植萃爽肤水【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/ggryge/"
+}

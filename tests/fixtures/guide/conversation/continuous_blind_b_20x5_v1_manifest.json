@@ -1,0 +1,14 @@
+{
+  "schema_version": "guide-continuous-blind-fixture-manifest-v1",
+  "pool_file": "continuous_blind_pool_v1.jsonl",
+  "selected_file": "continuous_blind_b_20x5_v1.jsonl",
+  "selection_seed": 2026081801,
+  "blind_label": "B",
+  "pool_count": 40,
+  "selected_count": 20,
+  "selected_turn_count": 100,
+  "pool_sha256": "ac19bc533e89f24892d13cfb639dc942b4b53d45b78792c16a282d7112f43caa",
+  "selected_sha256": "9db78930c1dbfdfae9ea8a387a1395d2f7c5aed671992a29456348413e8f496c",
+  "selected_ids_sha256": "6942017583447b21291b39cc4623123d56ce5ce48c7fcfd4ab36bf4e1e434431",
+  "selected_messages_sha256": "30e441305c02bb1e54523d2b4d6ee99670ce11acde2ad0e43aea81add6d03a2a"
+}

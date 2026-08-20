@@ -1,0 +1,19 @@
+{
+  "schema_version": "guide-final-real-translation-failure-v1",
+  "batch": "real-translation-v2",
+  "earliest_failure_layer": "translation_gate_truth",
+  "trajectory_id": "translation-02",
+  "turn_id": "know-012-candidate-reference",
+  "input": "第二款提到的水感质地是什么意思",
+  "provider_output": {
+    "operation_hint": "followup",
+    "topic_hint": "sunscreen",
+    "reference_ordinal": 2,
+    "question_meaning": "询问第二款产品的水感质地是什么意思"
+  },
+  "diagnosis": "Production continuous truth already treats a referenced product-knowledge followup as a valid followup operation. The standalone translation gate only admitted knowledge and required the knowledge task mode.",
+  "repair_owner": "tools/guide_gates/turn_meaning_gate.py",
+  "shared_repair": "A referenced followup with question_meaning is accepted as the knowledge operation family and its product-knowledge task mode. The rule requires a typed reference or product mention; it is not a phrase exception.",
+  "provider_calls_before_stop": 6,
+  "remaining_calls_not_attempted": 42
+}

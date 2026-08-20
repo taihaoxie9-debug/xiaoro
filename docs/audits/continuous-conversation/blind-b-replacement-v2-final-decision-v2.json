@@ -1,0 +1,119 @@
+{
+  "schema_version": "guide-continuous-blind-b-replacement-final-decision-v2",
+  "decided_at": "2026-08-19",
+  "status": "backend_blind_qualification_failed_after_truth_correction",
+  "supersedes": "docs/audits/continuous-conversation/blind-b-replacement-v2-final-decision-v1.json",
+  "exam_policy": {
+    "paper": "replacement_for_invalid_blind_b",
+    "same_exam_resumes_only": true,
+    "blind_c_created": false,
+    "sealed_fixture_modified": false,
+    "sealed_manifest_modified": false,
+    "sealed_mechanical_truth_modified": false,
+    "provider_retry_count": 0,
+    "format_repair_attempts": 0
+  },
+  "sealed_sources": {
+    "fixture_sha256": "544d6c7a8b6e05a69d695261c68c14cb44710e4a4a41613a893ca960f42c0b76",
+    "manifest_sha256": "a6a36e56bdb992d312b0e2a8ef36f2e4864c1c849a979c6675da4cbda90727d5",
+    "mechanical_truth_sha256": "05f53fad5e95771b6336ae59f36af53d89754e7d6f78e9a513082036c1a7b27b"
+  },
+  "paid_capture": {
+    "file": "docs/audits/continuous-conversation/backend-blind-b-replacement-20x5-v2-final/result.json",
+    "sha256": "66b7f04f3c559a4e3a1504aae6b77199f0159c580928a95ed60b4537ac0ce5ed",
+    "logical_turn_count": 78,
+    "provider_attempt_count": 72,
+    "provider_invalid_output_count": 3,
+    "dependency_skipped_turn_count": 6,
+    "new_provider_attempts_during_truth_correction": 0
+  },
+  "truth_correction": {
+    "file": "docs/audits/continuous-conversation/blind-b-replacement-v2-truth-correction-v1.json",
+    "sha256": "ef5514f53a6a9af2e32a4efca1219cbf5a13fb852377c8053e70aa9f5afff58f",
+    "corrected_turn_count": 23,
+    "issue_code_count": 24,
+    "issue_code_counts": {
+      "clarification_forbids_presentation_packet": 9,
+      "suitability_requires_single_product": 1,
+      "explicit_comparison_requires_replace_task": 10,
+      "route_continuity_contract": 2,
+      "semantic_route_alternative": 1,
+      "pending_response_parent_contract": 1
+    },
+    "allowed_surfaces": [
+      "typed semantic expectation",
+      "typed route expectation or audited route alternative",
+      "presentation mode expectation"
+    ],
+    "forbidden_surfaces_unchanged": [
+      "question text",
+      "product identity",
+      "mechanical card truth",
+      "Canonical fact requirements",
+      "runtime behavior",
+      "provider output"
+    ]
+  },
+  "authoritative_zero_api_score": {
+    "file": "docs/audits/continuous-conversation/backend-blind-b-replacement-zero-api-final78-v13-semantic-truth-corrected.json",
+    "sha256": "4b6a39f908591ba1ee89b76ece0a28e64e3df49ad05bfadb1b9d824e714756e8",
+    "captured_turn_count": 78,
+    "replayed_turn_count": 78,
+    "passed_turn_count": 63,
+    "passed_trajectory_count": 6,
+    "provider_call_count": 0,
+    "failure_counts": {
+      "model_translation": 15,
+      "semantic_admission": 0,
+      "identity_binding": 0,
+      "route_selection": 0,
+      "state_transition": 0,
+      "decision_execution": 0,
+      "data_coverage": 0,
+      "public_presentation": 0
+    },
+    "model_translation_breakdown": {
+      "provider_invalid_output": 3,
+      "dependency_skipped_after_invalid_output": 6,
+      "valid_output_parent_contract_miss": 6
+    },
+    "valid_output_parent_contract_miss_counts": {
+      "explicit_return_emitted_continue": 1,
+      "bound_product_followup_emitted_new_task": 4,
+      "active_safety_followup_emitted_new_task": 1
+    },
+    "zero_tolerance_counters": {
+      "wrong_product_or_image_binding_count": 0,
+      "unauthorized_state_transition_count": 0,
+      "hard_condition_override_count": 0,
+      "unsafe_downgrade_count": 0,
+      "cross_session_or_subject_leak_count": 0,
+      "internal_public_language_count": 0,
+      "stale_focus_hijack_count": 0
+    }
+  },
+  "qualification_math": {
+    "remaining_uncaptured_turns": 22,
+    "maximum_possible_passed_turn_count": 85,
+    "required_passed_turn_count": 90,
+    "maximum_possible_passed_trajectory_count": 11,
+    "required_passed_trajectory_count": 18,
+    "qualification_reachable": false
+  },
+  "verification": {
+    "mechanical_truth_turn_count": 100,
+    "mechanical_fact_requirement_count": 345,
+    "mechanical_image_fixture_count": 2,
+    "mechanical_truth_passed_with_hash_bound_overlay": true,
+    "overlay_and_fixture_tests_passed": 19,
+    "provider_calls_during_final_replay": 0
+  },
+  "release_decision": {
+    "backend_qualified": false,
+    "independent_post_repair_qualification_present": false,
+    "real_chat_browser_3x5_allowed": false,
+    "release_allowed": false,
+    "commit_push_deploy_performed": false,
+    "new_qualification_policy_requires_user_decision": true
+  }
+}

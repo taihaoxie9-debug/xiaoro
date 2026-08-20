@@ -1,0 +1,225 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:30:net-content:150ml-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "150ml",
+      "review_rationale": "商品标题、参数、Canonical与参考价SKU均为150ml，规格价格完成同SKU对齐。",
+      "sku_status": "exact_product_exact_150ml_aligned",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:831bbd283ab2928fc740e71bef4f96c56c4abcd5f6ba4e5ee95d6c9c008c8e60"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.smooth",
+      "decision": "map",
+      "fact_id": "reviewed:product:30:texture:smooth-non-greasy-oil-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "流动油状质地，润而不油腻",
+      "review_rationale": "商品介绍明确描述洁颜油润而不油，长图也呈现流动油状质地，可映射顺滑质地方向。",
+      "sku_status": "exact_product_exact_150ml_aligned",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:831bbd283ab2928fc740e71bef4f96c56c4abcd5f6ba4e5ee95d6c9c008c8e60"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "cleansing_power.removes_makeup",
+      "decision": "map",
+      "fact_id": "reviewed:product:30:cleansing-power:removes-makeup-v1",
+      "field_key": "cleansing_power",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "卸除面部彩妆方向",
+      "review_rationale": "商品介绍和长图第2、3张都明确洁颜油用于溶解并卸除面部彩妆，可映射卸妆清洁方向。",
+      "sku_status": "exact_product_exact_150ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:4e8c46e4240deafb2623027e93e3b8fb4f942023ea8a9a07b83f3aaae6e09465",
+        "smzdm-detail-image:444e9ebc8f2a9a7c615b9db347a2417872c93714e5f77a71bc250b685d8debd4",
+        "smzdm-browser-body:831bbd283ab2928fc740e71bef4f96c56c4abcd5f6ba4e5ee95d6c9c008c8e60"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:30:rinse-behavior:fast-emulsification-no-second-cleanse-v1",
+      "field_key": "rinse_behavior",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "加水可快速乳化，冲洗后无需二次清洁",
+      "review_rationale": "长图第3、7、8张明确湿手湿脸可乳化、加水按摩约30秒并冲洗，且写明无需二次清洁。",
+      "sku_status": "exact_product_exact_150ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:444e9ebc8f2a9a7c615b9db347a2417872c93714e5f77a71bc250b685d8debd4",
+        "smzdm-detail-image:263897b070af2e6c4dc474f25ab5b33a7ead4e32b43daeb000318d6cda00ea17",
+        "smzdm-detail-image:bd43eacaa07f6c6af4fc67cb7ac838f9805ce017209a3d316941668a9cb04cab"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:30:cleansing-power:green-tea-cross-product-v1",
+      "field_key": "cleansing_power",
+      "promotion_status": "rejected",
+      "public_text": "绿茶新肌洁颜油的毛孔微尘与老化角质结论",
+      "review_rationale": "商品介绍第二段明确转到另一款绿茶新肌洁颜油，不能绑定到当前琥珀150ml产品。",
+      "sku_status": "exact_product_exact_150ml_aligned",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:831bbd283ab2928fc740e71bef4f96c56c4abcd5f6ba4e5ee95d6c9c008c8e60"
+      ]
+    }
+  ],
+  "canonical_identity": "植村秀琥珀卸妆油150ml护肤洁颜油 温和清洁 细致毛孔",
+  "canonical_sku_scope": "canonical_single_product_150ml",
+  "canonical_specification": "150ml",
+  "captured_at": "2026-08-19T20:49:27.051Z",
+  "category_profile": "cleanser",
+  "detail_image_count": 11,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 720,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/30/001_386801245ef822f9.jpg",
+      "ordinal": 1,
+      "sha256": "386801245ef822f9d88f3e9f7f48523db483f321b1b96cc70b3e9b166188fe28",
+      "width": 600
+    },
+    {
+      "height": 624,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/30/002_4e8c46e4240deafb.jpg",
+      "ordinal": 2,
+      "sha256": "4e8c46e4240deafb2623027e93e3b8fb4f942023ea8a9a07b83f3aaae6e09465",
+      "width": 600
+    },
+    {
+      "height": 560,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/30/003_444e9ebc8f2a9a7c.jpg",
+      "ordinal": 3,
+      "sha256": "444e9ebc8f2a9a7c615b9db347a2417872c93714e5f77a71bc250b685d8debd4",
+      "width": 600
+    },
+    {
+      "height": 816,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/30/004_c78eb8bbf8179594.jpg",
+      "ordinal": 4,
+      "sha256": "c78eb8bbf8179594320a28f1ed28a6d86d360994ddff11c1e1199d3efa241ef9",
+      "width": 600
+    },
+    {
+      "height": 768,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/30/005_853633f1c693595a.jpg",
+      "ordinal": 5,
+      "sha256": "853633f1c693595a5a13e6f4083f2f21387754a85cbd3209807970680f1ae6be",
+      "width": 600
+    },
+    {
+      "height": 672,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/30/006_1c5bd0fb0e2afff4.jpg",
+      "ordinal": 6,
+      "sha256": "1c5bd0fb0e2afff4b6b49771d1ec046e34c22ba365dc85422ecbec8bf9265ea5",
+      "width": 600
+    },
+    {
+      "height": 672,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/30/007_263897b070af2e6c.jpg",
+      "ordinal": 7,
+      "sha256": "263897b070af2e6c4dc474f25ab5b33a7ead4e32b43daeb000318d6cda00ea17",
+      "width": 600
+    },
+    {
+      "height": 672,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/30/008_bd43eacaa07f6c6a.jpg",
+      "ordinal": 8,
+      "sha256": "bd43eacaa07f6c6af4fc67cb7ac838f9805ce017209a3d316941668a9cb04cab",
+      "width": 600
+    },
+    {
+      "height": 560,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/30/009_d238774d1f9927de.jpg",
+      "ordinal": 9,
+      "sha256": "d238774d1f9927de49f0f553fad3c91a608ad997a3860d266fff1c66950e6fa3",
+      "width": 600
+    },
+    {
+      "height": 752,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/30/010_f249d300755c760f.jpg",
+      "ordinal": 10,
+      "sha256": "f249d300755c760f4db5d3b613272736171fd4392cf010c55c315b577f697f30",
+      "width": 600
+    },
+    {
+      "height": 720,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/30/011_2884594f4866d73a.jpg",
+      "ordinal": 11,
+      "sha256": "2884594f4866d73a51e5da815c6443bdc16aa8851a2c76bb6da2f6d5cc99706d",
+      "width": 600
+    }
+  ],
+  "introduction_text": "植村秀（shu uemura）推出的这款洁颜油，添加日本山茶花籽、人参根、龙头竹精粹等成分，帮助深层清洁面部彩妆的同时，改善肌肤肤质，滋养修护肌肤，令肌肤洁净平滑。质地润而不油，乳化速度快，使用后不紧绷、油腻。\n\n这款植村秀的绿茶新肌洁颜油，精选不同结构油分子，能够渗透到毛孔中，溶解彩妆和老化角质。调理肌肤状态，促进后续护肤品的吸收。",
+  "missing_fields": [
+    "net_content",
+    "ingredients_present",
+    "cleansing_power",
+    "texture"
+  ],
+  "parameter_text": "规格\n150ml",
+  "portfolio_role": "cleansing_oil",
+  "product_id": 30,
+  "review_field_policy": [
+    "net_content",
+    "surfactant_type",
+    "cleansing_power",
+    "rinse_behavior",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "150ml",
+    "display_specification": "150ml",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "aligned",
+    "reference_price_sku": "150ml",
+    "source_sku": "150ml"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "831bbd283ab2928fc740e71bef4f96c56c4abcd5f6ba4e5ee95d6c9c008c8e60",
+  "source_product_title": "shu uemura 植村秀 琥珀臻萃洁颜油 150ml",
+  "source_title": "shu uemura 植村秀 琥珀臻萃洁颜油 150ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/qr6mjyj/"
+}

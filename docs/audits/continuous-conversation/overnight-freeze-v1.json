@@ -1,0 +1,56 @@
+{
+  "schema_version": "guide-overnight-freeze-v1",
+  "frozen_at": "2026-08-19",
+  "repository": "/Users/bytedance/Desktop/xiaoro-fresh",
+  "branch": "rebuild",
+  "git_head": "16721edcc1afa4dbef51ef847b7c455a17ba4332",
+  "tracked_diff_sha256": "83394788a038152929ba1ded489a0b642f4d1a55250cd42f15b463ce154cdbf0",
+  "untracked_path_manifest_sha256": "ee06e28f177afc50c7212a461691628b9bbc4b9a33f8dd67257d1aac6a2adac6",
+  "untracked_path_count_before_freeze_record": 93,
+  "prompt_versions": {
+    "turn_meaning": "guide-turn-meaning-prompt-v27",
+    "presentation_copy": "guide-presentation-copy-prompt-v6"
+  },
+  "hashes": {
+    "turn_meaning_prompt_sha256": "f1490e46e92213398bdd9625b32398b0ab00f1102292fcc4cda0614dc6584e3d",
+    "presentation_copy_prompt_sha256": "7bd627b6efc971aee07d069c31f1ca224ddc10616ba4f02199af3e9d13cc4d1f",
+    "canonical_manifest_file_sha256": "e0430a244af451a3fa73642295c4a79128e1622dfeed19ff8140eda9f2df0c69",
+    "canonical_products_sha256": "0ba95df8c38d39f5bc0d73a32c318b157903abb64778c3e7b0acebfb75e95734",
+    "selection_concept_manifest_file_sha256": "216db6ee39e0a05d50483e1f38f90d723fca6eb9191bcbabe8c0cf73738af0df",
+    "image_index_manifest_file_sha256": "a1af55f193c37ed6b9aaa634ed82cd9993d5d688141235bae25e1dc6a0985ccd",
+    "image_index_sha256": "f61ba8ed45dc6f3d285e22016f7c643bfd01eec78ba65c84e75e5fabb843d340",
+    "presentation_mode_matrix_sha256": "165ba0a0bfcd1f801032bce8447cb9a913c30e9335882069f1cc6f5a39870699",
+    "frontend_mode_matrix_fixture_sha256": "5b11666df5300fdfea1c2a58067be83c251d963e469b8e05f965c64b93699c4d",
+    "real_image_ground_truth_sha256": "522976c630dd7e85e3a053cd5564bec58b8282a548efd926b1594215daa11c0d",
+    "seen_message_ledger_sha256": "eb892d5f4e6e273847b2caf80603e6448e9e0727593368ff6463d07bd70c19bc",
+    "copywriter_gate_fixture_sha256": "c60df62776647731ffc8d07d65346a298f5bf2e28e26a53d5a7ae361d4d18967",
+    "copywriter_decision_sha256": "b181f83fcb63b5b92d2dd49c1759d68a53077eb245b2a1f155427eca966a8e29",
+    "chat_html_sha256": "8d1cd373dbc7efbdf67175a65185f9479ee094956614fa577d75414c09ad0efc",
+    "guide_renderer_sha256": "0f3bef5e11bb3299525026ac05c09cae103d3ad721f4876f95ed1b76c571cac1"
+  },
+  "asset_counts": {
+    "canonical_products": 103,
+    "selection_parent_concepts": 48,
+    "seen_normalized_messages": 1106,
+    "real_image_ground_truth_images": 2
+  },
+  "verification": {
+    "focused_zero_api_test_count": 6220,
+    "focused_zero_api_passed": true,
+    "git_diff_check_passed": true,
+    "compileall_passed": true,
+    "node_check_passed": true,
+    "provider_action_parser_isolation_passed": true,
+    "new_open_language_action_regex_after_overnight_baseline": 0,
+    "closed_numeric_unit_regex_after_overnight_baseline": 1
+  },
+  "copywriter_qualification": {
+    "real_calls": 20,
+    "zero_api_rescore_passed_count": 19,
+    "fact_coverage_passed_count": 19,
+    "readability_passed_count": 20,
+    "hard_violation_count": 0,
+    "qualified": true
+  },
+  "edit_policy_after_freeze": "production, prompt, and data edits invalidate the blind seal; blind fixture creation is allowed only before publishing blind-v2-seal.json"
+}

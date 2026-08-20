@@ -1,0 +1,29 @@
+{
+  "v1": {
+    "id": 36,
+    "name": "V1 未审核名称",
+    "brand": "V1 冲突品牌",
+    "category": "V1 冲突品类"
+  },
+  "rag": {
+    "metadata": {
+      "product_id": 36
+    },
+    "name": "RAG 未审核名称",
+    "brand": "RAG 冲突品牌",
+    "category": "RAG 冲突品类"
+  },
+  "v2": {
+    "product": {
+      "id": 36
+    },
+    "decision_facets": {
+      "brand": "V2 冲突决策品牌",
+      "category": "V2 冲突决策品类"
+    },
+    "display_facets": {
+      "brand": "V2 冲突展示品牌",
+      "category": "V2 冲突展示品类"
+    }
+  }
+}

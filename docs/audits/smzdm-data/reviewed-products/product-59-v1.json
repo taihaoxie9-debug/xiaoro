@@ -1,0 +1,44 @@
+{
+  "candidate_facts": [],
+  "canonical_identity": "SK-II® 护肤精华露",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T19:02:44.802Z",
+  "category_profile": "skincare",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "detail_images": [],
+  "introduction_text": "待完善",
+  "missing_fields": [
+    "net_content",
+    "texture"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "fermented_essence",
+  "product_id": 59,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "product_introduction"
+  ],
+  "review_status": "no_promotion",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "230ml"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "9dbd49b461416b840a65b6f1783dfe23e7a610aa9fda3257cfadf127ae3778fd",
+  "source_product_title": "SK-II 神仙水精华液 230ml",
+  "source_title": "SK-II 神仙水精华液 230ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/81p6zxw/"
+}

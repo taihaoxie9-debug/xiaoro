@@ -1,0 +1,220 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:36:net_content:second-generation-60ml-v1",
+      "field_key": "net_content",
+      "promotion_status": "rejected",
+      "public_text": "第二代60ml",
+      "review_rationale": "来源明确为第二代60ml，但Canonical未锁定代际、规格和参考价SKU，不能覆盖展示规格或组合参考价。",
+      "sku_status": "generation_and_canonical_sku_unresolved",
+      "source_kind": "product_title_and_parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:b3469a8e57b27a6930de3b4af780afe9de8f16acbe669f0f80864336e2a33915"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:36:ingredients:niacinamide-ab5d-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "烟酰胺、尿囊素、泛醇、红没药醇与甘草酸二钾",
+      "review_rationale": "参数表、商品介绍和第4张长图共同支持这些成分；不采纳色淡林机制、舒缓倍数或细胞实验结论。",
+      "sku_status": "exact_product_generation_variant",
+      "source_kind": "parameter_introduction_and_detail_image",
+      "source_ordinal": 4,
+      "source_refs": [
+        "smzdm-browser-body:b3469a8e57b27a6930de3b4af780afe9de8f16acbe669f0f80864336e2a33915",
+        "smzdm-detail-image:b9474b7a372068cd11286856b97c537e976f9ef55cfed307a94314d3081b44ea"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.refreshing",
+      "decision": "map",
+      "fact_id": "reviewed:product:36:texture:liquid-absorbs-non-sticky-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "液体质地，易吸收且不黏腻",
+      "review_rationale": "参数表明确为液体质地，第5张长图明确易吸收、不黏腻；删除活性成分渗透倍数。",
+      "sku_status": "exact_product_generation_variant",
+      "source_kind": "parameter_table_and_detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-browser-body:b3469a8e57b27a6930de3b4af780afe9de8f16acbe669f0f80864336e2a33915",
+        "smzdm-detail-image:bf1699cd8cde582270f42de439f305e87ca63a421c8a0b476298b80bba22d5d0"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.brightening",
+      "decision": "map",
+      "fact_id": "reviewed:product:36:efficacy:brightening-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "淡斑与提亮方向",
+      "review_rationale": "产品名称和结构化参数明确淡斑、提亮与美白方向；不保留28天、根源抑制或痘印生成等扩大表述。",
+      "sku_status": "exact_product_generation_variant",
+      "source_kind": "product_title_and_parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:b3469a8e57b27a6930de3b4af780afe9de8f16acbe669f0f80864336e2a33915"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:36:usage:face-and-local-layer-v1",
+      "field_key": "usage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "每次1至2滴轻拍按压全脸，局部可叠涂",
+      "review_rationale": "第7张长图给出当前单品用量和全脸、局部使用步骤；不保留颈部提亮效果或跨商品搭配。",
+      "sku_status": "exact_product_generation_variant",
+      "source_kind": "detail_image",
+      "source_ordinal": 7,
+      "source_refs": [
+        "smzdm-detail-image:a25eeaf68fa4f86a2aae9fe1bda173749ed7241baa7ecab5d87e2b921e880232"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:36:efficacy:quantified-mechanisms-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "28天、根源抑制和倍数实验表述",
+      "review_rationale": "第2至5张长图包含时效、黑色素机制、抑制刺激倍数及渗透倍数，不进入公开事实。",
+      "sku_status": "exact_product_generation_variant",
+      "source_kind": "detail_images",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:c19dacaa736219aba87c8fa1b3437e7cee0e4432ca0b15195ea4002429bb6224",
+        "smzdm-detail-image:dfb60136fe86b04939c04c32b5f502ca74c454eded3dbcdda6a43cb46cf595a4",
+        "smzdm-detail-image:b9474b7a372068cd11286856b97c537e976f9ef55cfed307a94314d3081b44ea",
+        "smzdm-detail-image:bf1699cd8cde582270f42de439f305e87ca63a421c8a0b476298b80bba22d5d0"
+      ]
+    }
+  ],
+  "canonical_identity": "PRO X BY OLAY专研祛斑净白精华液",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T18:10:55.925Z",
+  "category_profile": "skincare",
+  "detail_image_count": 8,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 65,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/36/001_39ddc4079b4c75e5.webp",
+      "ordinal": 1,
+      "sha256": "39ddc4079b4c75e50dc762f1d12d9d1396853ec5a54b4ba503582d6db85972e2",
+      "width": 600
+    },
+    {
+      "height": 1395,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/36/002_c19dacaa736219ab.webp",
+      "ordinal": 2,
+      "sha256": "c19dacaa736219aba87c8fa1b3437e7cee0e4432ca0b15195ea4002429bb6224",
+      "width": 600
+    },
+    {
+      "height": 1342,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/36/003_dfb60136fe86b049.webp",
+      "ordinal": 3,
+      "sha256": "dfb60136fe86b04939c04c32b5f502ca74c454eded3dbcdda6a43cb46cf595a4",
+      "width": 600
+    },
+    {
+      "height": 1158,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/36/004_b9474b7a372068cd.webp",
+      "ordinal": 4,
+      "sha256": "b9474b7a372068cd11286856b97c537e976f9ef55cfed307a94314d3081b44ea",
+      "width": 600
+    },
+    {
+      "height": 879,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/36/005_bf1699cd8cde5822.webp",
+      "ordinal": 5,
+      "sha256": "bf1699cd8cde582270f42de439f305e87ca63a421c8a0b476298b80bba22d5d0",
+      "width": 600
+    },
+    {
+      "height": 735,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/36/006_a6e58bc0bec203d1.webp",
+      "ordinal": 6,
+      "sha256": "a6e58bc0bec203d1a2eecdcde6d153bf9226e4aded25ec9ee1b3aa7af00f83d7",
+      "width": 600
+    },
+    {
+      "height": 862,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/36/007_a25eeaf68fa4f86a.webp",
+      "ordinal": 7,
+      "sha256": "a25eeaf68fa4f86a2aae9fe1bda173749ed7241baa7ecab5d87e2b921e880232",
+      "width": 600
+    },
+    {
+      "height": 1268,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/36/008_725e772c321ba2fa.webp",
+      "ordinal": 8,
+      "sha256": "725e772c321ba2fafefaf0468bb21712570c9836614f4b68084e682c90bbaecc",
+      "width": 600
+    }
+  ],
+  "introduction_text": "这款斑小白瓶第二代有革新淡斑科技SDL色淡林，抑制黑色素扩散，根源预防斑点痘印生成，精研四重舒缓成分AB5D（即尿囊素、泛醇、红没药醇、甘草酸二钾）改善肌肤干燥导致的泛红，酒精香精0添加。",
+  "missing_fields": [
+    "net_content",
+    "ingredients_present",
+    "texture"
+  ],
+  "parameter_text": "规格\n60ml\n产品产地\n中国大陆\n分类\n精华液\n主打成分\n植物提取物;烟酰胺\n主打功效\n淡斑;舒缓镇静;修复;清爽;提亮肤色;美白\n是否为特殊用途化妆品\n是\n国产/进口\n进口\n质地\n液体\n规格类型\n正常规格\n保质期\n3年\n适合肤质\n任何肤质\n适用人群\n成人",
+  "portfolio_role": "brightening_serum",
+  "product_id": 36,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "unresolved",
+    "source_sku": "second_generation_60ml"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "b3469a8e57b27a6930de3b4af780afe9de8f16acbe669f0f80864336e2a33915",
+  "source_product_title": "OLAY 玉兰油 亮洁皙颜祛斑精华液 第二代 60ml",
+  "source_title": "OLAY 玉兰油 亮洁皙颜祛斑精华液 第二代 60ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/70o9gg3/"
+}

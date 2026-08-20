@@ -1,0 +1,63 @@
+{
+  "schema_version": "guide-alias-comparison-final-v1",
+  "date": "2026-08-16",
+  "runtime": {
+    "url": "http://127.0.0.1:8011",
+    "semantic_provider": "deepseek_official",
+    "semantic_model": "deepseek-v4-pro",
+    "copy_provider": "deepseek_official",
+    "copy_model": "deepseek-v4-pro",
+    "production_deployment": false
+  },
+  "input": "帮我对比兰蔻小黑瓶和小棕瓶",
+  "request": {
+    "method": "POST",
+    "path": "/api/v1/chat/message",
+    "body": {
+      "message": "帮我对比兰蔻小黑瓶和小棕瓶",
+      "session_id": "real-alias-comparison-final-raw",
+      "conversation_version": 0
+    }
+  },
+  "http_result": {
+    "intent": "comparison",
+    "scenario_intent": "comparison",
+    "product_ids": [
+      129,
+      33
+    ],
+    "card_display_mode": "comparison",
+    "visible_product_ids": [
+      129,
+      33
+    ],
+    "conversation_version": 1,
+    "clarification": null
+  },
+  "products": [
+    {
+      "product_id": 129,
+      "canonical_name": "兰蔻肌底焕活修护精华液 50ml",
+      "reference_price": "519.0",
+      "image_url": "/static/images/products/jd_v3_100142789506.png",
+      "browser_image_width": 800,
+      "browser_image_height": 800
+    },
+    {
+      "product_id": 33,
+      "canonical_name": "雅诗兰黛特润修护肌活精华露",
+      "reference_price": "968.0",
+      "image_url": "/static/images/products/jd_v3_100022610146.png",
+      "browser_image_width": 800,
+      "browser_image_height": 800
+    }
+  ],
+  "browser_result": {
+    "both_canonical_names_visible": true,
+    "inline_image_count": 2,
+    "terminal_card_count": 2,
+    "thinking_panel_count_after_first_character": 0,
+    "forbidden_terminal_panels": [],
+    "screenshot": "docs/audits/semantic-transitions/screenshots/alias-comparison-final.png"
+  }
+}
