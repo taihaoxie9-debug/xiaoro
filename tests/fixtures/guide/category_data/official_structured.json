@@ -1,0 +1,74 @@
+{
+  "schema_version": "guide-category-official-v1",
+  "facts": [
+    {
+      "field_key": "finish",
+      "source_locator": "official:finish",
+      "value": [
+        "柔焦哑光"
+      ]
+    },
+    {
+      "field_key": "coverage",
+      "source_locator": "official:coverage",
+      "value": "  中高遮瑕  "
+    },
+    {
+      "field_key": "safety",
+      "source_locator": "/Users/alice/private/category-source.json",
+      "value": [
+        "避免入眼"
+      ]
+    },
+    {
+      "field_key": "double_cleanse",
+      "source_locator": "official:not-applicable",
+      "value": true
+    },
+    {
+      "field_key": "brand",
+      "source_locator": "official:protected-core",
+      "value": "不应覆盖 Canonical"
+    },
+    {
+      "field_key": "safety",
+      "source_class": "approved_consumer_review",
+      "source_locator": "official:unauthorized-review",
+      "value": [
+        "消费者声称绝对安全"
+      ]
+    },
+    {
+      "product_id": 79,
+      "category_profile": "fragrance",
+      "field_key": "top_notes",
+      "source_locator": "official:misbound-profile",
+      "value": [
+        "梨"
+      ]
+    },
+    {
+      "category_profile": "haircare",
+      "field_key": "coverage",
+      "source_locator": "official:unknown-profile",
+      "value": "高遮瑕"
+    },
+    {
+      "field_key": "coverage",
+      "source_class": "unknown",
+      "source_locator": "official:unknown-source",
+      "value": "未知来源值"
+    },
+    {
+      "field_key": "coverage",
+      "source_locator": "official:raw-markup",
+      "value": "<b>不应输出的原始标签</b>"
+    },
+    {
+      "product_id": 999,
+      "field_key": "coverage",
+      "source_locator": "official:missing-product",
+      "value": "高遮瑕"
+    }
+  ]
+}

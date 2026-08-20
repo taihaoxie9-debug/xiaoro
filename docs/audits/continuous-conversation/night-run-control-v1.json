@@ -1,0 +1,17 @@
+{
+  "blind_trajectory_pass_minimum": 18,
+  "blind_turn_pass_minimum": 90,
+  "branch": "rebuild",
+  "browser_trajectory_count": 3,
+  "browser_turn_count": 15,
+  "copywriter_call_cap": 35,
+  "copywriter_case_count": 20,
+  "estimated_cost_stop_cny": "18.00",
+  "fixed_trajectory_count": 20,
+  "format_repair_attempts": 0,
+  "provider_retry_count": 0,
+  "repository": "/Users/bytedance/Desktop/xiaoro-fresh",
+  "schema_version": "guide-night-run-control-v1",
+  "semantic_call_cap": 325,
+  "turns_per_trajectory": 5
+}

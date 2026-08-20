@@ -1,0 +1,43 @@
+{
+  "schema_version": "guide-self-only-scope-amendment-v4",
+  "authorized_at": "2026-08-18",
+  "authorization_source": "explicit_user_message",
+  "acceptance_subject_scope": "self",
+  "excluded_from_final_qualification": [
+    "friend",
+    "roommate",
+    "colleague",
+    "partner",
+    "sibling",
+    "parent",
+    "gift_recipient",
+    "other_person_profile",
+    "other_to_self_subject_switch"
+  ],
+  "existing_third_person_evidence": {
+    "retention": "immutable_diagnostic_only",
+    "provider_calls_remain_counted": true,
+    "counts_toward_final_score": false
+  },
+  "fixed_fixture": {
+    "trajectory_count": 20,
+    "turn_count": 100,
+    "all_subject_scope_self": true,
+    "selected_sha256": "aee5244c41d26f1a5ab4017eb5019fed5b2a69e6ce773c5398bc76922a41202a",
+    "manifest_file_sha256": "71b2126786acaf376bb157acbd9fcb7258c6e314d1b8d5f8a4d92a444c898eab"
+  },
+  "blind_fixture": {
+    "pool_count": 40,
+    "all_subject_scope_self": true,
+    "pool_sha256": "de4a670d266c99fd508d180237cfb8c66bc67756ab7b3b7c2860f18f5b425383",
+    "blind_a_sha256": "78c377431393d704f5830857479b429abf501d2ecd1435672bb86cb77be268e6",
+    "blind_b_sha256": "69fffdfe6b409a63478ba8bc37e6bf58077330764be2467ff2dfa27486b7f5a9"
+  },
+  "unchanged_limits": {
+    "estimated_cost_stop_cny": "18.00",
+    "semantic_call_cap": 325,
+    "copywriter_call_cap": 55,
+    "provider_retry_count": 0,
+    "format_repair_attempts": 0
+  }
+}

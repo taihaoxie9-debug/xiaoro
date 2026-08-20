@@ -1,0 +1,27 @@
+{
+  "schema_version": "guide-category-ocr-v1",
+  "observations": [
+    {
+      "field_key": "finish",
+      "source_locator": "ocr:block-0001",
+      "value": [
+        "自然哑光"
+      ]
+    },
+    {
+      "field_key": "shade",
+      "source_locator": "ocr:block-0002",
+      "value": [
+        "2W0",
+        "2C0"
+      ]
+    },
+    {
+      "field_key": "verified_absences",
+      "source_locator": "ocr:block-0003",
+      "value": [
+        "香精"
+      ]
+    }
+  ]
+}

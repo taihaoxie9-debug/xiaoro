@@ -1,0 +1,43 @@
+{
+  "schema_version": "smzdm-browser-raw-capture-v1",
+  "capture_method": "authorized_browser_session",
+  "source_kind": "smzdm_wiki",
+  "canonical_product_id": 73,
+  "page_url": "https://wiki.smzdm.com/p/q9mzwdd/",
+  "captured_at": "2026-08-19T18:08:00.368Z",
+  "capture_status": "captured",
+  "page_title": "巴黎欧莱雅 紫熨斗眼霜【报价 价格 评测 怎么样】 -什么值得买",
+  "product_title": "巴黎欧莱雅 紫熨斗眼霜",
+  "parameter_text": "",
+  "product_introduction": "待完善",
+  "excluded_sections": [
+    "Powered by ZDM-AIGC Engine v0.3",
+    "优势",
+    "建议"
+  ],
+  "script_urls": [
+    "https://res.smzdm.com/resources/public/js/sensors/sensorsdata.min.js",
+    "https://pos.baidu.com/auto_dup?di=0&uuid=4e88d62df9582b62&dri=0&dis=0&dai=0&ps=0x0&enu=encoding&exps=110011&ant=0&psi=44d56f759efb526d&dcb=___baidu_union_callback&dtm=AUTO_JSONP&dvi=0.0&dci=-1&dpt=none&tpr=1787162615156&ti=%E5%B7%B4%E9%BB%8E%E6%AC%A7%E8%8E%B1%E9%9B%85%20%E7%B4%AB%E7%86%A8%E6%96%97%E7%9C%BC%E9%9C%9C%E3%80%90%E6%8A%A5%E4%BB%B7%20%E4%BB%B7%E6%A0%BC%20%E8%AF%84%E6%B5%8B%20%E6%80%8E%E4%B9%88%E6%A0%B7%E3%80%91%20-%E4%BB%80%E4%B9%88%E5%80%BC%E5%BE%97%E4%B9%B0&ari=2&ver=0830&kws=L%27OREAL%20PARIS%2F%E5%B7%B4%E9%BB%8E%E6%AC%A7%E8%8E%B1%E9%9B%85%E7%9C%BC%E9%9C%9C%E6%8A%A5%E4%BB%B7%2CL%27OREA&dps=%E6%9C%AC%E9%A1%B5%E9%9D%A2%E5%91%88%E7%8E%B0%E5%B7%B4%E9%BB%8E%E6%AC%A7%E8%8E%B1%E9%9B%85%20%E7%B4%AB%E7%86%A8%E6%96%97%E7%9C%BC%E9%9C%9C%E7%BD%91%E8%B4%AD%E6%8C%87%E5%8D%97%2C%E5%8C%85%E6%8B%AC%E5%85%A8%E7%BD%91%E6%AF%94%E4%BB%B7%E3%80%81%E8%A7%84%E6%A0%BC%E5%8F%82%E6%95%B0%E3%80%81%E5%A5%BD%E4%BB%B7%E7%88%86%E6%96%99%EF%BC%8C%E5%85%A8%E7%BD%91%E5%8F%A3%E7%A2%91%E7%AD%89%EF%BC%9B%E4%BB%80%E4%B9%88%E5%80%BC%E5%BE%97%E4%B9%B0%E4%B8%BA%E6%82%A8%E8%B4%AD%E4%B9%B0%E5%B7%B4%E9%BB%8E%E6%AC%A7%E8%8E%B1%E9%9B%85%20%E7%B4%AB&dbv=2&drs=1&pcs=556x612&pss=1200x1440&cfv=0&cpl=5&chi=2&cce=true&cec=UTF-8&tlm=1787162615&prot=2&rw=556&ltu=https%3A%2F%2Fwiki.smzdm.com%2Fp%2Fq9mzwdd%2F&ecd=1&dft=0&uc=1470x842&pis=-1x-1&sr=1470x956&tcn=1787162615&dc=4&aa=1",
+    "https://s3a.pstatp.com/toutiao/push.js?cafe719890a3c186aea5b0d93dd6e3704cd55e9b1a89e82a44564a5977706710b401330bc43e63eb3f37e9a4088d7437771d23d085472d969d75011cb8184f26",
+    "https://wiki.smzdm.com/C2WF946J0/probev3.js",
+    "https://res.smzdm.com/pc/pc_library/dist/js/vendors.8e4a6bd.js",
+    "https://res.smzdm.com/pc/pc_library/dist/js/manifest.8d2ec21.js",
+    "https://res.smzdm.com/pc/pc_library/dist/js/framework.c8e00f4.js",
+    "https://res.smzdm.com/resources/public/js/cpro/cm.js",
+    "https://res.smzdm.com/resources/public/js/sensors/init-sdk.min.js?v=20250723",
+    "https://res.smzdm.com/pc/pc_library/dist/js/baike/goods_detail.c07b3a1.js",
+    "https://res.smzdm.com/resources/public/js/customer-service.js",
+    "https://smzdm.soboten.com/chat/frame/v6/entrance.js?sysnum=b00a7712533142fe89f4dcb5ef606f8b",
+    "https://res.smzdm.com/resources/public/js/sensors/collect/dist/index.min.js"
+  ],
+  "raw_page_text_sha256": "3b45b850632345aa6cc909d8caf067d05c214241e8724d4aee2403d546b95e11",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "review_sources": [
+    "product_introduction"
+  ],
+  "detail_images": [],
+  "candidate_facts": [],
+  "review_status": "human_review_required",
+  "source_match_status": "pending_human_review"
+}

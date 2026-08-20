@@ -1,0 +1,38 @@
+{
+  "schema_version": "guide-execution-stop-policy-amendment-v3",
+  "authorized_at": "2026-08-18",
+  "authorization_source": "explicit_user_message",
+  "serious_failure_scope": "current_paid_run",
+  "goal_status_after_serious_failure": "active",
+  "automatic_actions": [
+    "freeze_partial_evidence",
+    "report_current_run_stop",
+    "diagnose_at_zero_api",
+    "repair_public_rule_under_tdd",
+    "replay_frozen_evidence_at_zero_api",
+    "restart_relevant_qualification_after_green_replay"
+  ],
+  "repeat_user_authorization_required": false,
+  "user_input_required_only_for": [
+    "estimated_cost_stop_change",
+    "provider_call_cap_change",
+    "unprovable_product_or_fixture_truth",
+    "credentials_or_provider_availability",
+    "new_product_decision_outside_approved_contract"
+  ],
+  "unchanged_zero_tolerance_failures": [
+    "wrong_product_or_image_binding",
+    "unauthorized_state_transition",
+    "hard_condition_override",
+    "unsafe_downgrade",
+    "cross_session_or_subject_leakage",
+    "state_corruption_or_version_drift"
+  ],
+  "unchanged_limits": {
+    "estimated_cost_stop_cny": "18.00",
+    "provider_retry_count": 0,
+    "format_repair_attempts": 0,
+    "semantic_call_cap": 325,
+    "copywriter_call_cap": 55
+  }
+}

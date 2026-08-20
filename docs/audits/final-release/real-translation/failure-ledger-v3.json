@@ -1,0 +1,20 @@
+{
+  "schema_version": "guide-final-real-translation-failure-v1",
+  "batch": "real-translation-v3",
+  "earliest_failure_layer": "translation_gate_truth",
+  "trajectory_id": "translation-04",
+  "turn_id": "follow-009-budget-revision",
+  "input": "预算改成三百以内，而且还是不要含酒精的呢",
+  "provider_output": {
+    "operation_hint": "recommendation",
+    "topic_hint": "sunscreen",
+    "continuity_hint": "continue",
+    "budget_maximum": "300",
+    "ingredient_exclusion": "酒精"
+  },
+  "diagnosis": "A budget or constraint revision can legitimately compile as a recommendation operation. The production continuous truth accepts recommendation and followup for this transition, while the standalone gate only admitted followup.",
+  "repair_owner": "tools/guide_gates/turn_meaning_gate.py",
+  "shared_repair": "A followup expectation accepts recommendation when the typed meaning carries a budget candidate or constraint change. This is a transition contract, not a wording exception.",
+  "provider_calls_before_stop": 14,
+  "remaining_calls_not_attempted": 34
+}

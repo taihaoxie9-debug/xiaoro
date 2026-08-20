@@ -1,0 +1,100 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:35:ingredients:proxylane-purple-rice-ha-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "波色因、紫米提取物、甘草酸二钾与三重透明质酸",
+      "review_rationale": "商品介绍明确列出这些成分；无参数表或长图交叉支持，因此只用于单品知识，不保留合成促进机制。",
+      "sku_status": "same_product_name_variant_spec_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:501435b9b99308db09b948facf4d1c3e8619f64bd2d95f91ab7ea0a276953e08"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.hydration",
+      "decision": "map",
+      "fact_id": "reviewed:product:35:efficacy:hydration-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "保湿润泽方向",
+      "review_rationale": "商品介绍稳定支持透明质酸相关的保湿润泽方向；不保留紧致轮廓、减少皱纹或明显光泽等结论。",
+      "sku_status": "same_product_name_variant_spec_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:501435b9b99308db09b948facf4d1c3e8619f64bd2d95f91ab7ea0a276953e08"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:35:efficacy:anti-aging-mechanisms-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "透明质酸合成机制、紧致轮廓与减少皱纹结论",
+      "review_rationale": "来源仅有商品介绍，数值配方被延伸为深层合成、轮廓和皱纹效果，不进入公开事实。",
+      "sku_status": "same_product_name_variant_spec_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:501435b9b99308db09b948facf4d1c3e8619f64bd2d95f91ab7ea0a276953e08"
+      ]
+    }
+  ],
+  "canonical_identity": "修丽可聚糖多重丰盈精华液",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T19:03:29.796Z",
+  "category_profile": "skincare",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "detail_images": [],
+  "introduction_text": "SKINCEUTICALS是一家私有公司，创立于1994年，总部在美国得克萨斯州达拉斯市。SKINCEUTICALS也是美国专业高档护肤市场上发展最快的品牌之一，主要通过分销网络，将产品销售给皮肤科专家、整形医生以及高端SPA（休闲美容馆）。\n\n这款赋颜丰盈精华液，又称为紫米精华，蕴含10%经典抗老成分波色因，能够激活深层肌肤透明质酸的合成，同时改善肌底环境，促进透明质酸的利用，除此之外，还特别添加了甘草酸二钾以及0.2%蕴含特定花青素的紫米精华，3重透明质酸联袂润泽肌肤，大分子透明质酸能够改善肌肤含水量，透明质酸分子片段平复粗糙以及改善肤质，微囊化透明质酸保湿加维持肌肤水润，从而达到改善粗糙肤质，紧致轮廓以及减少皱纹的功效，坚持使用，肌肤会有明显紧致和光泽感。",
+  "missing_fields": [
+    "net_content",
+    "texture"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "plumping_serum",
+  "product_id": 35,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "product_introduction"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "unresolved"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "501435b9b99308db09b948facf4d1c3e8619f64bd2d95f91ab7ea0a276953e08",
+  "source_product_title": "SKINCEUTICALS 修丽可 紫米丰盈精华液",
+  "source_title": "SKINCEUTICALS 修丽可 紫米丰盈精华液【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/4ygqor4/"
+}

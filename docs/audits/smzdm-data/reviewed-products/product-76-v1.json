@@ -1,0 +1,99 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:76:net_content:ten-sheet-pack-v1",
+      "field_key": "net_content",
+      "promotion_status": "rejected",
+      "public_text": "10片",
+      "review_rationale": "百科页是护肤面膜家族页，没有证明当前10片包装，不能据此绑定规格或价格。",
+      "sku_status": "family_page_pack_unresolved",
+      "source_kind": "product_title",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:4b478cca63e87a18323571f319ed8a6f777e32817d80579a11a998a6c59de39d"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:76:ingredients:pitera-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "PITERA（覆膜酵母菌发酵产物滤液）",
+      "review_rationale": "商品介绍明确给出PITERA及其中文成分名称；未采纳渗入真皮、促进代谢等功效扩写。",
+      "sku_status": "exact_product_family_pack_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:4b478cca63e87a18323571f319ed8a6f777e32817d80579a11a998a6c59de39d"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:76:usage:fifteen-to-twenty-minutes-v1",
+      "field_key": "usage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "洁面后敷15至20分钟，再取下面膜",
+      "review_rationale": "保留普通使用时长；不保留无需清洗、继续渗透等未经说明的效果表述。",
+      "sku_status": "exact_product_family_pack_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:4b478cca63e87a18323571f319ed8a6f777e32817d80579a11a998a6c59de39d"
+      ]
+    }
+  ],
+  "canonical_identity": "SK-II前男友面膜10片补水保湿紧致sk2",
+  "canonical_sku_scope": "catalogued_mask_pack_pending_source",
+  "canonical_specification": "10片",
+  "captured_at": "2026-08-19T18:08:38.542Z",
+  "category_profile": "skincare",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "detail_images": [],
+  "introduction_text": "SK-II诞生于日本，拥有专利成分Pitera，于1998年进入中国大陆，其神仙水被大家熟知。这款SK-II青春敷面膜每片含有30ml神仙水配方的Pitera精华（覆膜酵母菌发酵产物滤液），由一种酵母在发酵过程中产生的溶胞液，含有大量对皮肤有益的氨基酸、矿物质，还具有类似果酸的轻微剥脱效果，可渗入真皮层，促进皮肤的新陈代谢，调整皮肤油脂平衡，并帮助平滑角质、改善粗糙暗沉。使用前彻底清洁面部，把面膜敷于面部十五至二十分钟，去掉面膜后可以先不清洗，让养分继续渗透。",
+  "missing_fields": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "premium_mask",
+  "product_id": 76,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "product_introduction"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "10片",
+    "display_specification": "10片",
+    "identity_status": "family",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "family_page_pack_unresolved"
+  },
+  "source_match": "family",
+  "source_page_text_sha256": "4b478cca63e87a18323571f319ed8a6f777e32817d80579a11a998a6c59de39d",
+  "source_product_title": "SK-II PITERA精华系列 护肤面膜",
+  "source_title": "SK-II PITERA精华系列 护肤面膜【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/4vxx6m/"
+}

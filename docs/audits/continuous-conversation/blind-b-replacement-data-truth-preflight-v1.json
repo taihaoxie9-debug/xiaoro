@@ -1,0 +1,97 @@
+{
+  "schema_version": "guide-blind-b-replacement-data-truth-preflight-v1",
+  "generated_at": "2026-08-19",
+  "status": "ready_for_isolated_authoring",
+  "replacement_policy": {
+    "replaces_invalid_blind_b": true,
+    "blind_c_created": false,
+    "question_bodies_visible_to_main_agent": false,
+    "qualification_threshold": {
+      "turns": ">=90/100",
+      "complete_trajectories": ">=18/20",
+      "zero_tolerance_counters": 0
+    }
+  },
+  "canonical_products": {
+    "manifest_file": "data/canonical/core_products_v1_manifest.json",
+    "manifest_file_sha256": "e0430a244af451a3fa73642295c4a79128e1622dfeed19ff8140eda9f2df0c69",
+    "products_file": "data/canonical/core_products_v1.jsonl",
+    "products_sha256": "0ba95df8c38d39f5bc0d73a32c318b157903abb64778c3e7b0acebfb75e95734",
+    "product_count": 103,
+    "unique_product_id_count": 103,
+    "price_minimum_cny": 43.0,
+    "price_maximum_cny": 2892.0,
+    "required_identity_fields": {
+      "product_identity_known_with_source": 103,
+      "brand_known_with_source": 103,
+      "category_known_with_source": 103,
+      "price_known_with_source": 103
+    },
+    "known_optional_field_counts": {
+      "efficacy": 41,
+      "ingredients_present": 37,
+      "suitable_skin": 37,
+      "texture": 26,
+      "usage": 15,
+      "safety": 73,
+      "spf_pa": 10
+    },
+    "products_with_at_least_four_known_nonidentity_fields": 28
+  },
+  "presentation_fact_output": {
+    "audit_file": "docs/audits/continuous-conversation/presentation-fact-admission-v1.json",
+    "audit_sha256": "3e2dbd4ad3cf872f4a066ecf0a684775afd34d961b33ed5ad627baa4cb269d25",
+    "fresh_regeneration_sha256": "3e2dbd4ad3cf872f4a066ecf0a684775afd34d961b33ed5ad627baa4cb269d25",
+    "claim_count": 1129,
+    "claim_product_count": 98,
+    "positioning_count": 762,
+    "direct_fact_count": 23,
+    "caution_count": 103,
+    "question_only_count": 240,
+    "excluded_count": 1,
+    "known_category_fact_count": 546,
+    "missing_source_ref_count": 0,
+    "known_category_fact_missing_source_count": 0,
+    "direct_fact_unresolved_count": 0,
+    "field_whitelist_only_drop_count": 0,
+    "unexplained_drop_count": 0
+  },
+  "old_blind_b_truth_defects": {
+    "subject_scope": "all 100 turns accepted only self even though inherited self-only turns may legitimately emit unknown",
+    "ordinary_recommendation": "soft ranking top-k membership was fixed as exact expected product IDs",
+    "fact_requirements": "questions did not declare which Canonical fields had to be known",
+    "runtime_images": "fixture names did not carry an explicit typed product identity"
+  },
+  "mechanical_truth_gate": {
+    "module": "tools/guide_gates/continuous_conversation_mechanical_truth.py",
+    "test_file": "tests/guide/tools/test_continuous_conversation_mechanical_truth.py",
+    "runner": "tools/guide_gates/run_real_continuous_conversation_gate.py",
+    "policies": [
+      "all referenced product IDs must exist in Canonical",
+      "every required field must be known and have source_refs",
+      "ordinary recommendations use eligible_subset and forbid fixed top-k IDs",
+      "explicit product, image, and comparison duties use exact_identity",
+      "inherited self-only turns accept self and unknown but never other",
+      "every image fixture binds fixture_id, product_id, path, media type, and file SHA-256"
+    ],
+    "focused_gate_and_runtime_tests": {
+      "passed": 45,
+      "failed": 0
+    },
+    "shared_category_and_reference_regression": {
+      "passed": 3230,
+      "failed": 0
+    }
+  },
+  "authoring_acceptance": {
+    "trajectories": 20,
+    "turns": 100,
+    "natural_difficulty_distribution_required": true,
+    "unsupported_product_count": 0,
+    "unknown_required_field_count": 0,
+    "fixed_soft_ranking_turn_count": 0,
+    "mechanical_truth_gate_failures": 0,
+    "seen_message_collisions": 0,
+    "independent_question_reasonableness_review_required": true
+  }
+}

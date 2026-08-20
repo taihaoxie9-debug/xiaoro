@@ -1,0 +1,107 @@
+{
+  "schema_version": "guide-continuous-blind-exam-decision-v2",
+  "decided_at": "2026-08-19",
+  "blind_a": {
+    "status": "invalidated_to_exercise",
+    "exam_opened": true,
+    "attempted_turns": 30,
+    "provider_call_count": 30,
+    "retry_count": 0,
+    "format_repair_attempts": 0,
+    "prompt_tokens": 103145,
+    "completion_tokens": 7529,
+    "total_tokens": 110674,
+    "raw_passed_turn_count": 8,
+    "raw_failure_counts": {
+      "model_translation": 3,
+      "semantic_admission": 0,
+      "identity_binding": 7,
+      "route_selection": 5,
+      "state_transition": 0,
+      "decision_execution": 4,
+      "data_coverage": 2,
+      "public_presentation": 1
+    },
+    "paid_command_stop_reason": "raw zero-tolerance counters became nonzero",
+    "invalidation_class": "exam_truth_invalid",
+    "invalidation_reasons": [
+      "recommendation truth guessed exact soft-ranking product IDs instead of mechanically validating current deterministic candidates",
+      "constraint reductions were labeled as supplement rather than correction",
+      "downstream ordinal and focus expectations depended on incorrect preceding candidate batches",
+      "the scorer incorrectly promoted ordinary recommendation-card differences and downstream expectation drift into serious counters"
+    ],
+    "question_bodies_previewed_after_invalidation": true,
+    "may_certify_backend": false
+  },
+  "zero_api_replay": {
+    "provider_call_count": 0,
+    "captured_turn_count": 30,
+    "replayed_turn_count": 30,
+    "passed_turn_count": 8,
+    "failure_counts": {
+      "model_translation": 3,
+      "semantic_admission": 0,
+      "identity_binding": 5,
+      "route_selection": 4,
+      "state_transition": 0,
+      "decision_execution": 8,
+      "data_coverage": 2,
+      "public_presentation": 0
+    },
+    "wrong_product_or_image_binding_count": 0,
+    "unauthorized_state_transition_count": 0,
+    "hard_condition_override_count": 0,
+    "unsafe_downgrade_count": 0,
+    "cross_session_or_subject_leak_count": 0,
+    "internal_public_language_count": 0,
+    "stale_focus_hijack_count": 0,
+    "serious_counter_reclassification": "all raw serious counters were scorer false positives"
+  },
+  "shared_runner_repair": {
+    "status": "green",
+    "policy": [
+      "recommendation candidate variation remains an ordinary data-coverage miss and is not automatically wrong binding",
+      "state expectation drift is serious only when state_transition is the unique earliest failure",
+      "return-to-focus mismatch is stale hijack only when an unexpected product or image identity is actually selected"
+    ],
+    "focused_test_count": 4621,
+    "focused_tests_passed": true,
+    "post_scorer_runner_test_count": 33,
+    "post_scorer_runner_tests_passed": true,
+    "additional_public_repairs": [
+      "Canonical identity surfaces derive safe brand and version forms without product-ID branches",
+      "failed product surfaces may fall back to admitted typed current references",
+      "read-only dynamic consultation turns advance CAS version exactly once",
+      "serious failures stop the paid runner immediately"
+    ],
+    "runner_sha256": "bfae3652eb0d8b681c5bbd373ae248f5dee90bdf1accdab9f5dc61083c5b2801"
+  },
+  "blind_b": {
+    "status": "failed_checkpoint",
+    "opened": true,
+    "attempted_turns": 30,
+    "provider_call_count": 30,
+    "passed_turn_count": 4,
+    "passed_trajectory_count": 0,
+    "exam_truth_invalid": true,
+    "stale_focus_hijack_count": 1,
+    "question_bodies_previewed_after_failure": true,
+    "allowed_attempts": 1,
+    "remaining_attempts": 0,
+    "replacement_requires_user_decision": true
+  },
+  "blind_c_allowed": false,
+  "artifacts": {
+    "blind_a_capture": "docs/audits/continuous-conversation/backend-blind-a-20x5-v2/result.json",
+    "blind_a_capture_sha256": "b28b16d630dd6dea8e9565bcaf83ea5d772c13f1f6d7dc538a9c16dcfc639ef8",
+    "blind_a_zero_api_replay": "docs/audits/continuous-conversation/backend-blind-a-zero-api-replay-v2.json",
+    "blind_a_zero_api_replay_sha256": "4362372fcc6a40c138d32ae30c37688f2b06a9b0c93c7028cfd28d8dfe440dab",
+    "blind_a_final_zero_api_replay": "docs/audits/continuous-conversation/backend-blind-a-zero-api-replay-v5-final-public-fixes.json",
+    "blind_a_final_zero_api_replay_sha256": "6b0c890f54d86f5a2b00dab7e809824f10d14d3c3acdf0baf903fc472b84d907",
+    "blind_b_capture": "docs/audits/continuous-conversation/backend-blind-b-20x5-v2/result.json",
+    "blind_b_capture_sha256": "fbfb03fa7f84ba9afcc9a2e3a257b9f77e42824c93bc78843fcde64a3f632323",
+    "blind_b_classification": "docs/audits/continuous-conversation/backend-blind-b-classification-v2.json",
+    "blind_b_classification_sha256": "54096e845661d9b860ff44cd1af031342f8b8f24203c42f32c952a83b86deba9"
+  },
+  "next_action": "stop before browser acceptance and discuss whether the broadly invalid Blind B justifies one replacement paper after the two shared defects are repaired"
+}

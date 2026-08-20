@@ -1,0 +1,107 @@
+{
+  "schema_version": "guide-product-alias-audit-v1",
+  "generated_at": "2026-08-16",
+  "inputs": {
+    "canonical_file": "data/canonical/core_products_v1.jsonl",
+    "canonical_sha256": "0ba95df8c38d39f5bc0d73a32c318b157903abb64778c3e7b0acebfb75e95734",
+    "evidence_file": "data/guide_product_evidence/product_evidence_v1.f3872a84388c7d5abfe73f8512d327f8294988daa46ed97823f961122370cb04.jsonl",
+    "evidence_sha256": "f3872a84388c7d5abfe73f8512d327f8294988daa46ed97823f961122370cb04",
+    "review_file": "data/canonical/product_alias_reviews_v1.jsonl",
+    "legacy_sources": [
+      "xiaoro-shopping-master/app/services/intent.py",
+      "xiaoro-shopping-master/app/services/agent.py",
+      "xiaoro-shopping-master/app/services/v2/turn_parser.py"
+    ]
+  },
+  "coverage": {
+    "canonical_product_count": 103,
+    "evidence_alias_block_count": 30,
+    "legacy_alias_count": 95,
+    "reviewed_alias_count": 155,
+    "missing_evidence_reviews": 0,
+    "missing_legacy_reviews": 0,
+    "unknown_product_bindings": 0,
+    "invalid_variant_bindings": 0,
+    "invalid_reviews": 0,
+    "duplicate_reviews": 0,
+    "unknown_evidence_refs": 0,
+    "clean": true
+  },
+  "dispositions": {
+    "approved_exact_product": 80,
+    "approved_exact_variant": 17,
+    "ambiguous_family": 21,
+    "ingredient_nickname": 7,
+    "marketing_phrase": 1,
+    "unavailable_product": 16,
+    "unresolved_candidate": 13,
+    "runtime_alias_count": 118
+  },
+  "always_clarify": {
+    "B5": [38, 46, 77],
+    "菁纯": [48, 52, 92, 109],
+    "粉水": [70, 134],
+    "琥珀": [30, 69, 103],
+    "小白管": [101, 130],
+    "金盏花水": [61, 133],
+    "菌菇水": [60, 131],
+    "子弹头": [86, 114],
+    "五号香水": [121, 143]
+  },
+  "excluded_identity_terms": {
+    "marketing_phrase": ["油皮救星"],
+    "ingredient_nickname": [
+      "冰川蛋白",
+      "律波肽",
+      "时钟信源科技",
+      "法国蔷薇花提取物",
+      "玻色因",
+      "神经酰胺功能物质",
+      "酵母益生精粹"
+    ]
+  },
+  "unresolved_not_published": [
+    "377",
+    "ANR",
+    "CE",
+    "DW",
+    "DW持妆",
+    "DW粉底",
+    "Orgasm",
+    "大哥大",
+    "大哥大防晒",
+    "安耐晒",
+    "理肤泉大哥大",
+    "红气垫",
+    "黑气垫"
+  ],
+  "unavailable_not_published": [
+    "AI乳",
+    "DUO+",
+    "K乳",
+    "兰蔻粉水",
+    "净痘",
+    "大师",
+    "大师粉底",
+    "大师粉底液",
+    "大粉水",
+    "大红瓶",
+    "安心霜",
+    "特安霜",
+    "白泥",
+    "白泥面膜",
+    "蓝朋友",
+    "金盏花面膜"
+  ],
+  "runtime_asset": {
+    "file": "data/canonical/controlled_product_aliases_v1.jsonl",
+    "manifest": "data/canonical/controlled_product_aliases_v1_manifest.json",
+    "record_count": 118,
+    "sha256": "6726fdcb372f47f677143a5bc6c841ea9b56d02186148882ffac1ca579f2bcdd"
+  },
+  "verification": {
+    "audit_resolver_tests": "52 passed",
+    "composition_application_tests": "3 passed",
+    "policy": "Only exact product, exact variant, and always-clarify family records are published."
+  }
+}

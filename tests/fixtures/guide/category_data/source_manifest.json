@@ -1,0 +1,32 @@
+{
+  "schema_version": "guide-category-source-manifest-v1",
+  "sources": [
+    {
+      "category_profile": "base_makeup",
+      "path": "official_product.html",
+      "product_id": 79,
+      "sha256": "f7c5cc5aa1909793cc95f4e12ad8f6c9e3cda6797c7bed64946a7aa717990669",
+      "source_class": "official_description",
+      "source_id": "official-html-product-79",
+      "source_type": "html"
+    },
+    {
+      "category_profile": "base_makeup",
+      "path": "ocr_observation.json",
+      "product_id": 79,
+      "sha256": "527c76487786247aff1fb3a62b655a770fd36c80729f50b4ae99873acd98b9d2",
+      "source_class": "ocr_packaging",
+      "source_id": "packaging-ocr-product-79",
+      "source_type": "ocr_json"
+    },
+    {
+      "category_profile": "base_makeup",
+      "path": "official_structured.json",
+      "product_id": 79,
+      "sha256": "9c6b2a9d02220d33f94713a4ab45c4c7ba55705a3f9fc16fa48f82c971ad5346",
+      "source_class": "structured_official",
+      "source_id": "official-structured-product-79",
+      "source_type": "structured_json"
+    }
+  ]
+}

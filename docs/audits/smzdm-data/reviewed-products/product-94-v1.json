@@ -1,0 +1,98 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:94:ingredients:caffeine-egcg-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "5%咖啡因与EGCG",
+      "review_rationale": "套装介绍明确标出眼部精华含5%咖啡因与EGCG；来源是组合装且Canonical规格未对齐，因此只用于单品知识。",
+      "sku_status": "kit_eye_serum_variant_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:93e3603d0e812fa887f52353d0b061f0c9d4d27dbe6d249a58e1b8c847a62ec2"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:94:efficacy:eye-puffiness-dark-circle-direction-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "眼周浮肿与黑眼圈护理方向",
+      "review_rationale": "来源把咖啡因和EGCG的独立研究概括为眼周护理方向；只保留方向性单品知识，不作为产品临床效果或推荐依据。",
+      "sku_status": "kit_eye_serum_variant_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:93e3603d0e812fa887f52353d0b061f0c9d4d27dbe6d249a58e1b8c847a62ec2"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:94:efficacy:kit-cross-product-cellulite-study-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "套装内烟酰胺精华、橘皮组织与独立研究效果延伸",
+      "review_rationale": "烟酰胺段落属于组合装中的另一款商品；橘皮组织和独立研究描述不能提升为当前眼部精华的公开效果。",
+      "sku_status": "kit_eye_serum_variant_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:93e3603d0e812fa887f52353d0b061f0c9d4d27dbe6d249a58e1b8c847a62ec2"
+      ]
+    }
+  ],
+  "canonical_identity": "研度公式咖啡因与茶多酚眼部精华",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T19:03:40.960Z",
+  "category_profile": "skincare",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "detail_images": [],
+  "introduction_text": "The Ordinary 10%烟酰胺+1%锌 美白精华 30ml比较适合油性肌肤，痘痘肌，针对肌肤过度出油和毛孔堵塞，因为烟酰胺成分较高，所以肌肤不耐受的要谨慎使用，脸颊比较敏感的话，也可以使用在T区，可有效改善肌肤瑕疵和毛孔粗大，平衡油脂分泌，减少面部油光，使皮肤细腻光滑。\n\nThe Ordinary 5%咖啡因+EGCG 眼部精华含有5％的极高浓度咖啡因，辅以绿茶抗氧化剂（EGCG）。独立研究表明，使用咖啡因和EGCG的任一种可以帮助减少眼部轮廓浮肿和黑眼圈。另外的研究表明，咖啡因也可减少橘皮组织的出现。 因为EGCG对光较敏感，特提供紫外线防护包装。",
+  "missing_fields": [
+    "net_content",
+    "ingredients_present",
+    "texture"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "caffeine_eye_serum",
+  "product_id": 94,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "product_introduction"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "unresolved",
+    "source_sku": "eye_serum_30ml_in_kit"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "93e3603d0e812fa887f52353d0b061f0c9d4d27dbe6d249a58e1b8c847a62ec2",
+  "source_product_title": "The Ordinary 护肤精华套装 (10%烟酰胺+1%锌精华原液30ml+5%咖啡因+茶多酚眼部精华30ml)",
+  "source_title": "The Ordinary 护肤精华套装 (10%烟酰胺+1%锌精华原液30ml+5%咖啡因+茶多酚眼部精华30ml)【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/zj8dew3/"
+}

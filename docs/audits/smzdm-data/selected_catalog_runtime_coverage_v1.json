@@ -1,0 +1,1164 @@
+{
+  "by_field": {
+    "base_notes": {
+      "missing": 3
+    },
+    "cleansing_power": {
+      "merchant_claim": 5,
+      "missing": 5
+    },
+    "color_family": {
+      "merchant_claim": 4,
+      "missing": 2
+    },
+    "concentration": {
+      "merchant_claim": 2,
+      "missing": 1
+    },
+    "efficacy": {
+      "canonical": 29,
+      "merchant_claim": 5
+    },
+    "finish": {
+      "approved_category_fact": 2,
+      "merchant_claim": 17,
+      "missing": 2
+    },
+    "heart_notes": {
+      "merchant_claim": 1,
+      "missing": 2
+    },
+    "ingredients_present": {
+      "canonical": 23,
+      "missing": 21
+    },
+    "net_content": {
+      "approved_category_fact": 10,
+      "missing": 38,
+      "reviewed_specification": 31
+    },
+    "shade": {
+      "approved_category_fact": 12,
+      "missing": 9
+    },
+    "spf_pa": {
+      "canonical": 9,
+      "merchant_claim": 2
+    },
+    "texture": {
+      "canonical": 16,
+      "merchant_claim": 34,
+      "missing": 20
+    },
+    "top_notes": {
+      "merchant_claim": 1,
+      "missing": 2
+    },
+    "water_resistance": {
+      "merchant_claim": 4,
+      "missing": 7
+    }
+  },
+  "by_profile": {
+    "base_makeup": {
+      "approved_category_fact": 9,
+      "canonical": 1,
+      "merchant_claim": 23,
+      "missing": 24,
+      "reviewed_specification": 3
+    },
+    "cleanser": {
+      "approved_category_fact": 2,
+      "canonical": 14,
+      "merchant_claim": 7,
+      "missing": 11,
+      "reviewed_specification": 6
+    },
+    "color_makeup": {
+      "approved_category_fact": 5,
+      "merchant_claim": 8,
+      "missing": 10,
+      "reviewed_specification": 1
+    },
+    "fragrance": {
+      "approved_category_fact": 1,
+      "merchant_claim": 4,
+      "missing": 9,
+      "reviewed_specification": 1
+    },
+    "skincare": {
+      "approved_category_fact": 3,
+      "canonical": 53,
+      "merchant_claim": 17,
+      "missing": 46,
+      "reviewed_specification": 17
+    },
+    "suncare": {
+      "approved_category_fact": 4,
+      "canonical": 9,
+      "merchant_claim": 16,
+      "missing": 12,
+      "reviewed_specification": 3
+    }
+  },
+  "coverage_counts": {
+    "approved_category_fact": 24,
+    "canonical": 77,
+    "merchant_claim": 75,
+    "missing": 112,
+    "reviewed_specification": 31
+  },
+  "field_slot_count": 319,
+  "products": [
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "missing",
+        "net_content": "reviewed_specification",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "ingredients_present",
+        "texture"
+      ],
+      "product_id": 24
+    },
+    {
+      "category_profile": "cleanser",
+      "field_sources": {
+        "cleansing_power": "missing",
+        "ingredients_present": "missing",
+        "net_content": "missing",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "cleansing_power"
+      ],
+      "product_id": 30
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "missing",
+        "net_content": "reviewed_specification",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "ingredients_present"
+      ],
+      "product_id": 33
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "reviewed_specification",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "texture"
+      ],
+      "product_id": 34
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "reviewed_specification",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "texture"
+      ],
+      "product_id": 35
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "missing",
+        "net_content": "reviewed_specification",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "ingredients_present",
+        "texture"
+      ],
+      "product_id": 36
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "missing",
+        "net_content": "missing",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "product_id": 37
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "reviewed_specification",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "texture"
+      ],
+      "product_id": 38
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "missing",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content"
+      ],
+      "product_id": 39
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "missing",
+        "net_content": "missing",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "product_id": 41
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "missing",
+        "net_content": "reviewed_specification",
+        "texture": "canonical"
+      },
+      "missing_fields": [
+        "ingredients_present"
+      ],
+      "product_id": 42
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "approved_category_fact",
+        "texture": "canonical"
+      },
+      "missing_fields": [],
+      "product_id": 45
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "merchant_claim",
+        "ingredients_present": "missing",
+        "net_content": "missing",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "product_id": 46
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "approved_category_fact",
+        "texture": "canonical"
+      },
+      "missing_fields": [],
+      "product_id": 47
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "missing",
+        "net_content": "reviewed_specification",
+        "texture": "canonical"
+      },
+      "missing_fields": [
+        "ingredients_present"
+      ],
+      "product_id": 48
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "approved_category_fact",
+        "texture": "canonical"
+      },
+      "missing_fields": [],
+      "product_id": 49
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "reviewed_specification",
+        "texture": "canonical"
+      },
+      "missing_fields": [],
+      "product_id": 50
+    },
+    {
+      "category_profile": "suncare",
+      "field_sources": {
+        "net_content": "reviewed_specification",
+        "spf_pa": "canonical",
+        "texture": "merchant_claim",
+        "water_resistance": "missing"
+      },
+      "missing_fields": [
+        "water_resistance"
+      ],
+      "product_id": 51
+    },
+    {
+      "category_profile": "suncare",
+      "field_sources": {
+        "net_content": "reviewed_specification",
+        "spf_pa": "canonical",
+        "texture": "merchant_claim",
+        "water_resistance": "missing"
+      },
+      "missing_fields": [
+        "water_resistance"
+      ],
+      "product_id": 52
+    },
+    {
+      "category_profile": "suncare",
+      "field_sources": {
+        "net_content": "missing",
+        "spf_pa": "canonical",
+        "texture": "missing",
+        "water_resistance": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "texture",
+        "water_resistance"
+      ],
+      "product_id": 53
+    },
+    {
+      "category_profile": "suncare",
+      "field_sources": {
+        "net_content": "approved_category_fact",
+        "spf_pa": "canonical",
+        "texture": "merchant_claim",
+        "water_resistance": "missing"
+      },
+      "missing_fields": [
+        "water_resistance"
+      ],
+      "product_id": 54
+    },
+    {
+      "category_profile": "suncare",
+      "field_sources": {
+        "net_content": "missing",
+        "spf_pa": "merchant_claim",
+        "texture": "merchant_claim",
+        "water_resistance": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "water_resistance"
+      ],
+      "product_id": 55
+    },
+    {
+      "category_profile": "suncare",
+      "field_sources": {
+        "net_content": "missing",
+        "spf_pa": "canonical",
+        "texture": "merchant_claim",
+        "water_resistance": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content"
+      ],
+      "product_id": 56
+    },
+    {
+      "category_profile": "suncare",
+      "field_sources": {
+        "net_content": "approved_category_fact",
+        "spf_pa": "canonical",
+        "texture": "merchant_claim",
+        "water_resistance": "merchant_claim"
+      },
+      "missing_fields": [],
+      "product_id": 57
+    },
+    {
+      "category_profile": "suncare",
+      "field_sources": {
+        "net_content": "approved_category_fact",
+        "spf_pa": "canonical",
+        "texture": "merchant_claim",
+        "water_resistance": "merchant_claim"
+      },
+      "missing_fields": [],
+      "product_id": 58
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "missing",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "texture"
+      ],
+      "product_id": 59
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "missing",
+        "net_content": "reviewed_specification",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "ingredients_present"
+      ],
+      "product_id": 64
+    },
+    {
+      "category_profile": "cleanser",
+      "field_sources": {
+        "cleansing_power": "merchant_claim",
+        "ingredients_present": "canonical",
+        "net_content": "reviewed_specification",
+        "texture": "canonical"
+      },
+      "missing_fields": [],
+      "product_id": 65
+    },
+    {
+      "category_profile": "cleanser",
+      "field_sources": {
+        "cleansing_power": "missing",
+        "ingredients_present": "canonical",
+        "net_content": "reviewed_specification",
+        "texture": "canonical"
+      },
+      "missing_fields": [
+        "cleansing_power"
+      ],
+      "product_id": 66
+    },
+    {
+      "category_profile": "cleanser",
+      "field_sources": {
+        "cleansing_power": "merchant_claim",
+        "ingredients_present": "canonical",
+        "net_content": "reviewed_specification",
+        "texture": "canonical"
+      },
+      "missing_fields": [],
+      "product_id": 67
+    },
+    {
+      "category_profile": "cleanser",
+      "field_sources": {
+        "cleansing_power": "merchant_claim",
+        "ingredients_present": "canonical",
+        "net_content": "approved_category_fact",
+        "texture": "canonical"
+      },
+      "missing_fields": [],
+      "product_id": 68
+    },
+    {
+      "category_profile": "cleanser",
+      "field_sources": {
+        "cleansing_power": "merchant_claim",
+        "ingredients_present": "missing",
+        "net_content": "reviewed_specification",
+        "texture": "canonical"
+      },
+      "missing_fields": [
+        "ingredients_present"
+      ],
+      "product_id": 71
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "merchant_claim",
+        "ingredients_present": "missing",
+        "net_content": "reviewed_specification",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "ingredients_present",
+        "texture"
+      ],
+      "product_id": 73
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "merchant_claim",
+        "ingredients_present": "missing",
+        "net_content": "missing",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "product_id": 76
+    },
+    {
+      "category_profile": "base_makeup",
+      "field_sources": {
+        "finish": "merchant_claim",
+        "net_content": "missing",
+        "shade": "approved_category_fact",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content"
+      ],
+      "product_id": 79
+    },
+    {
+      "category_profile": "base_makeup",
+      "field_sources": {
+        "finish": "merchant_claim",
+        "net_content": "missing",
+        "shade": "approved_category_fact",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content"
+      ],
+      "product_id": 80
+    },
+    {
+      "category_profile": "base_makeup",
+      "field_sources": {
+        "finish": "merchant_claim",
+        "net_content": "reviewed_specification",
+        "shade": "missing",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "shade",
+        "texture"
+      ],
+      "product_id": 81
+    },
+    {
+      "category_profile": "base_makeup",
+      "field_sources": {
+        "finish": "merchant_claim",
+        "net_content": "reviewed_specification",
+        "shade": "approved_category_fact",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [],
+      "product_id": 82
+    },
+    {
+      "category_profile": "base_makeup",
+      "field_sources": {
+        "finish": "missing",
+        "net_content": "missing",
+        "shade": "approved_category_fact",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "finish",
+        "texture"
+      ],
+      "product_id": 83
+    },
+    {
+      "category_profile": "base_makeup",
+      "field_sources": {
+        "finish": "merchant_claim",
+        "net_content": "missing",
+        "shade": "missing",
+        "texture": "canonical"
+      },
+      "missing_fields": [
+        "net_content",
+        "shade"
+      ],
+      "product_id": 84
+    },
+    {
+      "category_profile": "color_makeup",
+      "field_sources": {
+        "color_family": "merchant_claim",
+        "finish": "merchant_claim",
+        "net_content": "missing",
+        "shade": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "shade"
+      ],
+      "product_id": 86
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "missing",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content"
+      ],
+      "product_id": 89
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "missing",
+        "net_content": "missing",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content",
+        "ingredients_present"
+      ],
+      "product_id": 91
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "missing",
+        "net_content": "missing",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content",
+        "ingredients_present"
+      ],
+      "product_id": 92
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "missing",
+        "net_content": "missing",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content",
+        "ingredients_present"
+      ],
+      "product_id": 94
+    },
+    {
+      "category_profile": "cleanser",
+      "field_sources": {
+        "cleansing_power": "merchant_claim",
+        "ingredients_present": "canonical",
+        "net_content": "reviewed_specification",
+        "texture": "canonical"
+      },
+      "missing_fields": [],
+      "product_id": 97
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "missing",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "texture"
+      ],
+      "product_id": 98
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "reviewed_specification",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [],
+      "product_id": 99
+    },
+    {
+      "category_profile": "suncare",
+      "field_sources": {
+        "net_content": "missing",
+        "spf_pa": "merchant_claim",
+        "texture": "merchant_claim",
+        "water_resistance": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "water_resistance"
+      ],
+      "product_id": 101
+    },
+    {
+      "category_profile": "suncare",
+      "field_sources": {
+        "net_content": "approved_category_fact",
+        "spf_pa": "canonical",
+        "texture": "merchant_claim",
+        "water_resistance": "merchant_claim"
+      },
+      "missing_fields": [],
+      "product_id": 102
+    },
+    {
+      "category_profile": "cleanser",
+      "field_sources": {
+        "cleansing_power": "missing",
+        "ingredients_present": "missing",
+        "net_content": "missing",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "cleansing_power"
+      ],
+      "product_id": 103
+    },
+    {
+      "category_profile": "cleanser",
+      "field_sources": {
+        "cleansing_power": "missing",
+        "ingredients_present": "canonical",
+        "net_content": "approved_category_fact",
+        "texture": "canonical"
+      },
+      "missing_fields": [
+        "cleansing_power"
+      ],
+      "product_id": 104
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "missing",
+        "net_content": "missing",
+        "texture": "canonical"
+      },
+      "missing_fields": [
+        "net_content",
+        "ingredients_present"
+      ],
+      "product_id": 106
+    },
+    {
+      "category_profile": "base_makeup",
+      "field_sources": {
+        "finish": "merchant_claim",
+        "net_content": "missing",
+        "shade": "missing",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content",
+        "shade"
+      ],
+      "product_id": 109
+    },
+    {
+      "category_profile": "base_makeup",
+      "field_sources": {
+        "finish": "missing",
+        "net_content": "missing",
+        "shade": "missing",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content",
+        "shade",
+        "finish"
+      ],
+      "product_id": 110
+    },
+    {
+      "category_profile": "base_makeup",
+      "field_sources": {
+        "finish": "merchant_claim",
+        "net_content": "missing",
+        "shade": "missing",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content",
+        "shade"
+      ],
+      "product_id": 112
+    },
+    {
+      "category_profile": "base_makeup",
+      "field_sources": {
+        "finish": "merchant_claim",
+        "net_content": "reviewed_specification",
+        "shade": "missing",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "shade"
+      ],
+      "product_id": 113
+    },
+    {
+      "category_profile": "color_makeup",
+      "field_sources": {
+        "color_family": "missing",
+        "finish": "merchant_claim",
+        "net_content": "missing",
+        "shade": "approved_category_fact"
+      },
+      "missing_fields": [
+        "net_content",
+        "color_family"
+      ],
+      "product_id": 114
+    },
+    {
+      "category_profile": "color_makeup",
+      "field_sources": {
+        "color_family": "merchant_claim",
+        "finish": "merchant_claim",
+        "net_content": "missing",
+        "shade": "approved_category_fact"
+      },
+      "missing_fields": [
+        "net_content"
+      ],
+      "product_id": 115
+    },
+    {
+      "category_profile": "color_makeup",
+      "field_sources": {
+        "color_family": "merchant_claim",
+        "finish": "approved_category_fact",
+        "net_content": "missing",
+        "shade": "approved_category_fact"
+      },
+      "missing_fields": [
+        "net_content"
+      ],
+      "product_id": 116
+    },
+    {
+      "category_profile": "color_makeup",
+      "field_sources": {
+        "color_family": "merchant_claim",
+        "finish": "merchant_claim",
+        "net_content": "reviewed_specification",
+        "shade": "missing"
+      },
+      "missing_fields": [
+        "shade"
+      ],
+      "product_id": 117
+    },
+    {
+      "category_profile": "color_makeup",
+      "field_sources": {
+        "color_family": "missing",
+        "finish": "approved_category_fact",
+        "net_content": "missing",
+        "shade": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "shade",
+        "color_family"
+      ],
+      "product_id": 118
+    },
+    {
+      "category_profile": "fragrance",
+      "field_sources": {
+        "base_notes": "missing",
+        "concentration": "merchant_claim",
+        "heart_notes": "missing",
+        "net_content": "reviewed_specification",
+        "top_notes": "missing"
+      },
+      "missing_fields": [
+        "top_notes",
+        "heart_notes",
+        "base_notes"
+      ],
+      "product_id": 120
+    },
+    {
+      "category_profile": "fragrance",
+      "field_sources": {
+        "base_notes": "missing",
+        "concentration": "missing",
+        "heart_notes": "missing",
+        "net_content": "missing",
+        "top_notes": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "concentration",
+        "top_notes",
+        "heart_notes",
+        "base_notes"
+      ],
+      "product_id": 121
+    },
+    {
+      "category_profile": "base_makeup",
+      "field_sources": {
+        "finish": "merchant_claim",
+        "net_content": "missing",
+        "shade": "approved_category_fact",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "texture"
+      ],
+      "product_id": 122
+    },
+    {
+      "category_profile": "base_makeup",
+      "field_sources": {
+        "finish": "merchant_claim",
+        "net_content": "missing",
+        "shade": "approved_category_fact",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "texture"
+      ],
+      "product_id": 123
+    },
+    {
+      "category_profile": "base_makeup",
+      "field_sources": {
+        "finish": "merchant_claim",
+        "net_content": "missing",
+        "shade": "approved_category_fact",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content"
+      ],
+      "product_id": 125
+    },
+    {
+      "category_profile": "base_makeup",
+      "field_sources": {
+        "finish": "merchant_claim",
+        "net_content": "missing",
+        "shade": "approved_category_fact",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content"
+      ],
+      "product_id": 126
+    },
+    {
+      "category_profile": "base_makeup",
+      "field_sources": {
+        "finish": "merchant_claim",
+        "net_content": "missing",
+        "shade": "approved_category_fact",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content"
+      ],
+      "product_id": 127
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "reviewed_specification",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [],
+      "product_id": 129
+    },
+    {
+      "category_profile": "suncare",
+      "field_sources": {
+        "net_content": "reviewed_specification",
+        "spf_pa": "canonical",
+        "texture": "merchant_claim",
+        "water_resistance": "missing"
+      },
+      "missing_fields": [
+        "water_resistance"
+      ],
+      "product_id": 130
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "reviewed_specification",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [],
+      "product_id": 131
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "reviewed_specification",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [],
+      "product_id": 132
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "reviewed_specification",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "texture"
+      ],
+      "product_id": 133
+    },
+    {
+      "category_profile": "cleanser",
+      "field_sources": {
+        "cleansing_power": "missing",
+        "ingredients_present": "missing",
+        "net_content": "reviewed_specification",
+        "texture": "canonical"
+      },
+      "missing_fields": [
+        "ingredients_present",
+        "cleansing_power"
+      ],
+      "product_id": 134
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "canonical",
+        "ingredients_present": "canonical",
+        "net_content": "reviewed_specification",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "texture"
+      ],
+      "product_id": 135
+    },
+    {
+      "category_profile": "fragrance",
+      "field_sources": {
+        "base_notes": "missing",
+        "concentration": "merchant_claim",
+        "heart_notes": "merchant_claim",
+        "net_content": "approved_category_fact",
+        "top_notes": "merchant_claim"
+      },
+      "missing_fields": [
+        "base_notes"
+      ],
+      "product_id": 143
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "merchant_claim",
+        "ingredients_present": "missing",
+        "net_content": "missing",
+        "texture": "missing"
+      },
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "product_id": 144
+    },
+    {
+      "category_profile": "skincare",
+      "field_sources": {
+        "efficacy": "merchant_claim",
+        "ingredients_present": "missing",
+        "net_content": "missing",
+        "texture": "merchant_claim"
+      },
+      "missing_fields": [
+        "net_content",
+        "ingredients_present"
+      ],
+      "product_id": 146
+    }
+  ],
+  "schema_version": "selected-catalog-runtime-coverage-v1",
+  "scope_sha256": "3cbd60461196f79f8e1527f20c668eec2538beae6648db8cd75e293161b6db4b",
+  "selected_product_count": 79
+}

@@ -1,0 +1,58 @@
+[
+  {
+    "case_id": "slice1_full",
+    "message": "500 内适合油敏肌的防晒",
+    "terminal_event": "end",
+    "winner_status": "INSUFFICIENT_FOR_WINNER",
+    "product_ids": [101, 26, 52]
+  },
+  {
+    "case_id": "slice1_decimal_budget",
+    "message": "预算 100.5 元以内的防晒",
+    "terminal_event": "end",
+    "winner_status": "SELECTED",
+    "product_ids": [51, 54, 57]
+  },
+  {
+    "case_id": "slice1_zero_budget",
+    "message": "0 元以内的防晒",
+    "terminal_event": "end",
+    "winner_status": null,
+    "product_ids": []
+  },
+  {
+    "case_id": "slice1_negative_budget",
+    "message": "-100 内的防晒",
+    "terminal_event": "end",
+    "winner_status": null,
+    "product_ids": []
+  },
+  {
+    "case_id": "slice1_exclusion_unknown",
+    "message": "500 内不要酒精的防晒",
+    "terminal_event": "end",
+    "winner_status": "NO_CANDIDATE",
+    "product_ids": []
+  },
+  {
+    "case_id": "slice1_repair_serum",
+    "message": "500 元内敏感肌修护精华",
+    "terminal_event": "end",
+    "winner_status": "INSUFFICIENT_FOR_WINNER",
+    "product_ids": [38, 91]
+  },
+  {
+    "case_id": "slice1_repair_serum_exclusion_unknown",
+    "message": "500 元内敏感肌不要酒精的修护精华",
+    "terminal_event": "end",
+    "winner_status": "NO_CANDIDATE",
+    "product_ids": []
+  },
+  {
+    "case_id": "slice1_brightening_serum",
+    "message": "500 元内敏感肌美白精华",
+    "terminal_event": "end",
+    "winner_status": "INSUFFICIENT_FOR_WINNER",
+    "product_ids": [41]
+  }
+]

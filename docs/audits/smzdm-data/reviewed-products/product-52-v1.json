@@ -1,0 +1,160 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:52:net-content:30ml-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "30ml",
+      "review_rationale": "商品标题、参数和Canonical记录均为30ml，参考价SKU也同为30ml，规格价格完成同SKU对齐。",
+      "sku_status": "exact_product_exact_30ml_aligned",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:4d36920331504826cc933cac8d78c0a9fc7a4eec876e6666560105784aaae0f6"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:52:spf-pa:spf50-plus-pa-four-plus-v1",
+      "field_key": "spf_pa",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "SPF50+ / PA++++",
+      "review_rationale": "商品标题、参数与长图包装均明确标注SPF50+和PA++++；不扩写为时长或绝对防护保证。",
+      "sku_status": "exact_product_exact_30ml_aligned",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:4d36920331504826cc933cac8d78c0a9fc7a4eec876e6666560105784aaae0f6"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.lightweight",
+      "decision": "map",
+      "fact_id": "reviewed:product:52:texture:lightweight-essence-emulsion-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "轻盈精华乳质地，易推开，跟妆不易搓泥",
+      "review_rationale": "长图第5张明确描述轻盈精华乳质地和跟妆不搓泥，商品介绍也支持易推开，可映射轻盈肤感方向。",
+      "sku_status": "exact_product_exact_30ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-detail-image:6e87011c4757d8874ff98a4363620dd73c74ca659f832f70a4dace0405d71457",
+        "smzdm-browser-body:4d36920331504826cc933cac8d78c0a9fc7a4eec876e6666560105784aaae0f6"
+      ]
+    }
+  ],
+  "canonical_identity": "兰蔻菁纯臻颜防晒隔离乳",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "30ml",
+  "captured_at": "2026-08-19T20:07:43.104Z",
+  "category_profile": "suncare",
+  "detail_image_count": 7,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 695,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/52/001_667162f04d1b21fb.jpg",
+      "ordinal": 1,
+      "sha256": "667162f04d1b21fb7e9a7b0595be80fe027a2a11dc0a72320a8a3e460cc6fc2a",
+      "width": 600
+    },
+    {
+      "height": 792,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/52/002_9c48a7b068d70c46.jpg",
+      "ordinal": 2,
+      "sha256": "9c48a7b068d70c46c59b3f4e8861f3ee47c18a5e72dde8adacdaf03ba375adc0",
+      "width": 600
+    },
+    {
+      "height": 581,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/52/003_4c4a499380cd6d3b.jpg",
+      "ordinal": 3,
+      "sha256": "4c4a499380cd6d3ba25d90a2e598b53f034f995e8f7abb4dad17b7ae932ae57a",
+      "width": 600
+    },
+    {
+      "height": 454,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/52/004_992b7d331816bbc5.jpg",
+      "ordinal": 4,
+      "sha256": "992b7d331816bbc562ecb28e7a9679c3ea1f031a4709cc5625957da739926cb7",
+      "width": 600
+    },
+    {
+      "height": 468,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/52/005_6e87011c4757d887.jpg",
+      "ordinal": 5,
+      "sha256": "6e87011c4757d8874ff98a4363620dd73c74ca659f832f70a4dace0405d71457",
+      "width": 600
+    },
+    {
+      "height": 523,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/52/006_663016bff987b9ed.jpg",
+      "ordinal": 6,
+      "sha256": "663016bff987b9eda87fd69b076ca5ce0a6b29e3f44420007e929b9c7574d614",
+      "width": 600
+    },
+    {
+      "height": 858,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/52/007_d571ef96175ed549.jpg",
+      "ordinal": 7,
+      "sha256": "d571ef96175ed549ab5fbb5621b069a4600bb2c86f3f09bc5e0d045ef9fc3dcd",
+      "width": 600
+    }
+  ],
+  "introduction_text": "LANCOME 兰蔻是来自法国的高端化妆品品牌。菁纯臻颜是兰蔻护肤线的高端系列，主打抗氧化、抗皱修复的功效，全线产品佐以高端技术的玫瑰萃取，肤感舒适，香味清雅。这款兰蔻菁纯臻颜防晒乳，采用了物化结合的防晒形式，核心防晒成分有：Mexoryl SX、、Mexoryl XL、OMC、二氧化钛、CI 77891，防护力较为全面和可靠，日常出行使用无压力。Pro-xylane、维生素E、核糖核酸、能够很好地滋润肌肤，防止水分流失，促进胶原蛋白生成，维持肌肤的弹性，另外还有多种植物萃取，带来了抗氧化功效。乳液呈淡米色，好推开，保湿力好，有轻微提亮、修饰肤色的效果，为肌肤增加透亮度。规格：30ml。",
+  "missing_fields": [
+    "net_content",
+    "texture",
+    "water_resistance"
+  ],
+  "parameter_text": "规格\n30ml\n防晒指数\nSPF50+\nPA值\nPA++++\n是否为特殊用途化妆品\n是\n国产/进口\n进口\n净含量（mL/g）\n30ml\n类别\n防晒霜/乳\n商品名称\n菁纯臻颜防晒隔离乳\n批准文号\n国妆特进字J20140117\n规格类型\n正常规格\n适用部位\n面部\n质地\n乳/霜\n功效\n防晒;隔离;提亮;修饰肤色\n适合肤质\n任何肤质\n适用人群\n成人",
+  "portfolio_role": "luxury_uv_primer",
+  "product_id": 52,
+  "review_field_policy": [
+    "net_content",
+    "spf_pa",
+    "texture",
+    "film_speed",
+    "water_resistance",
+    "reapplication",
+    "cleansing_requirement"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "30ml",
+    "display_specification": "30ml",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "aligned",
+    "reference_price_sku": "30ml",
+    "source_sku": "30ml"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "4d36920331504826cc933cac8d78c0a9fc7a4eec876e6666560105784aaae0f6",
+  "source_product_title": "LANCOME 兰蔻 菁纯臻颜防晒隔离乳 SPF50 PA++++ 30ml",
+  "source_title": "LANCOME 兰蔻 菁纯臻颜防晒隔离乳 SPF50 PA++++ 30ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/8wwd4np/"
+}

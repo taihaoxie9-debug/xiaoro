@@ -1,0 +1,204 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:67:net-content:207ml-source-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "207ml来源规格",
+      "review_rationale": "商品标题、参数和介绍均为207ml；现有Canonical资产同时出现207ml与100ml，参考价SKU未确认，因此不与价格组合。",
+      "sku_status": "source_207ml_canonical_multi_spec_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:544bc614bc80f68c7edefff3116216e8849a382d20eb97d08e09631d060720e4"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:67:surfactant-type:multiple-amino-acid-v1",
+      "field_key": "surfactant_type",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "椰油酰基苹果氨基酸钠、椰油酰甘氨酸钠等多重氨基酸表活",
+      "review_rationale": "长图第3张明确列出多类氨基酸表活；不保留温和护敏或无负担保证。",
+      "sku_status": "source_207ml_canonical_multi_spec_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:9f5da27030826b83b6a5b33a13feaa36c08a3398d009c01c0ac84330136c723a"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.dense_foam",
+      "decision": "map",
+      "fact_id": "reviewed:product:67:texture:self-foaming-dense-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "约30秒自发泡，泡沫绵密丰富",
+      "review_rationale": "长图第4和第5张明确自发泡时间及绵密泡沫，可映射绵密泡沫方向。",
+      "sku_status": "source_207ml_canonical_multi_spec_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 4,
+      "source_refs": [
+        "smzdm-detail-image:31017b284c47611982e8104a13db9a99aa21876da0e3346b8bbeb064bdf91490",
+        "smzdm-detail-image:04f1feebf7fca96c8a90f85d890dab53adbc1b1b60411180e37f29ae60e7ef88"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "cleansing_power.removes_makeup",
+      "decision": "map",
+      "fact_id": "reviewed:product:67:cleansing-power:makeup-sunscreen-pore-dirt-v1",
+      "field_key": "cleansing_power",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "清洁毛孔污垢，也可卸除底妆、防晒和隔离",
+      "review_rationale": "商品介绍明确写到毛孔污垢、多余油脂，以及底妆、防晒和隔离的卸除边界，可映射卸妆清洁方向。",
+      "sku_status": "source_207ml_canonical_multi_spec_conflict",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:544bc614bc80f68c7edefff3116216e8849a382d20eb97d08e09631d060720e4"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "rinse_behavior.non_stripping",
+      "decision": "map",
+      "fact_id": "reviewed:product:67:rinse-behavior:non-stripping-v1",
+      "field_key": "rinse_behavior",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "洗后不易紧绷，不易带走过多水分",
+      "review_rationale": "商品介绍明确洗后不紧绷且不易带走过多水分，可映射非拔干冲洗表现。",
+      "sku_status": "source_207ml_canonical_multi_spec_conflict",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:544bc614bc80f68c7edefff3116216e8849a382d20eb97d08e09631d060720e4"
+      ]
+    }
+  ],
+  "canonical_identity": "Elta MD 氨基酸泡沫洁面乳 / 安妍科泡沫洁面乳",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T20:53:44.314Z",
+  "category_profile": "cleanser",
+  "detail_image_count": 8,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 393,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/67/001_c3bf03b40e9effca.jpg",
+      "ordinal": 1,
+      "sha256": "c3bf03b40e9effca7c94ae3f0e78f9e5aef98487faba3c237aaa61cac297b497",
+      "width": 600
+    },
+    {
+      "height": 626,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/67/002_ae3b2377187f274d.jpg",
+      "ordinal": 2,
+      "sha256": "ae3b2377187f274d1b2ca532be2b81ffd21dbb2e87af5252f9603a142357ee62",
+      "width": 600
+    },
+    {
+      "height": 842,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/67/003_9f5da27030826b83.jpg",
+      "ordinal": 3,
+      "sha256": "9f5da27030826b83b6a5b33a13feaa36c08a3398d009c01c0ac84330136c723a",
+      "width": 600
+    },
+    {
+      "height": 778,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/67/004_31017b284c476119.jpg",
+      "ordinal": 4,
+      "sha256": "31017b284c47611982e8104a13db9a99aa21876da0e3346b8bbeb064bdf91490",
+      "width": 600
+    },
+    {
+      "height": 602,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/67/005_04f1feebf7fca96c.jpg",
+      "ordinal": 5,
+      "sha256": "04f1feebf7fca96c8a90f85d890dab53adbc1b1b60411180e37f29ae60e7ef88",
+      "width": 600
+    },
+    {
+      "height": 605,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/67/006_440b626219d7ab0d.jpg",
+      "ordinal": 6,
+      "sha256": "440b626219d7ab0d7233b0b2505e882a9d694d27598e1b817dfc3a52b21b53db",
+      "width": 600
+    },
+    {
+      "height": 384,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/67/007_01b7fd2704e5cfec.jpg",
+      "ordinal": 7,
+      "sha256": "01b7fd2704e5cfec62feef8f50f3a3e37d21dab7c20c9bbb5b4bc2b2dd79ddbc",
+      "width": 600
+    },
+    {
+      "height": 556,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/67/008_78ca062548c861de.jpg",
+      "ordinal": 8,
+      "sha256": "78ca062548c861de5b2f21c9a8bbe69b3ff8319524485739c5aefbd3a3381065",
+      "width": 600
+    }
+  ],
+  "introduction_text": "Elta MD氨基酸泡沫洗面奶，不含果酸、添加剂、防腐剂和皂基，弱酸性均衡PH值配方对肌肤无负担。泡沫丰富绵密，不带走皮肤多余的水分，洗后不紧绷、不伤害肌肤皮脂。洁面的同时可以卸妆、防晒霜和隔离霜等。洁净毛孔中的污垢和多余的油脂、温和亲肤，痘痘肌、敏感肌同样适用。规格：207ml。",
+  "missing_fields": [
+    "net_content",
+    "cleansing_power"
+  ],
+  "parameter_text": "规格\n207ml\n分类\n泡沫/摩丝\n主打成分\n氨基酸\n国产/进口\n进口\n商品名称\n氨基酸泡沫洁面乳\n产品产地\n美国\n规格类型\n正常规格\n批准文号\n国妆网备进字（沪）2020009992\n净含量\n200ML以上\n保质期\n3年\n质地\n泡沫/慕斯\n适合肤质\n干皮适用，油皮适用，混合性，敏感肌适用\n适用人群\n通用",
+  "portfolio_role": "enzyme_foam_cleanser",
+  "product_id": 67,
+  "review_field_policy": [
+    "net_content",
+    "surfactant_type",
+    "cleansing_power",
+    "rinse_behavior",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "unresolved",
+    "source_sku": "207ml"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "544bc614bc80f68c7edefff3116216e8849a382d20eb97d08e09631d060720e4",
+  "source_product_title": "EltaMD 安妍科 氨基酸泡沫洁面乳 207ml",
+  "source_title": "EltaMD 安妍科 氨基酸泡沫洁面乳 207ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/0q1xyq4/"
+}

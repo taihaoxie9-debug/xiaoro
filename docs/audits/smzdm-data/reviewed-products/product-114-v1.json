@@ -1,0 +1,309 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:114:shade:602-chili-v1",
+      "field_key": "shade",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "602 CHILI 大辣椒",
+      "review_rationale": "来源标题、参数和长图第15张色卡均明确602为CHILI大辣椒，可保留为单品选色知识。",
+      "sku_status": "exact_shade_internal_net_content_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 15,
+      "source_refs": [
+        "smzdm-detail-image:357159059a7ae231b60e0840a0fbeba0e607c1730282d84ee001c389fe278159",
+        "smzdm-browser-body:3b01f0745430b47d043684a770c16403566e0795139abcdd929518436498c222"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:114:color-family:fiery-orange-red-v1",
+      "field_key": "color_family",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "烈焰橘调红",
+      "review_rationale": "参数表归为红色系，长图第15张将602 CHILI放在烈焰橘调红分组，可作为当前色号的颜色家族知识。",
+      "sku_status": "exact_shade_internal_net_content_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 15,
+      "source_refs": [
+        "smzdm-detail-image:357159059a7ae231b60e0840a0fbeba0e607c1730282d84ee001c389fe278159",
+        "smzdm-browser-body:3b01f0745430b47d043684a770c16403566e0795139abcdd929518436498c222"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:114:finish:matte-v1",
+      "field_key": "finish",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "哑光雾面妆效",
+      "review_rationale": "参数表明确质地与妆效均为哑光/雾面，长图也属于新经典哑光大子弹头家族；当前尚无发布后的彩妆父概念，保留为单品知识。",
+      "sku_status": "exact_shade_internal_net_content_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:3b01f0745430b47d043684a770c16403566e0795139abcdd929518436498c222"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:114:color-payoff:silky-pigmented-v1",
+      "field_key": "color_payoff",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "丝滑显色方向",
+      "review_rationale": "长图第1张将大子弹头家族定位为丝滑显色，参数也写易上色，可保留为显色表现知识。",
+      "sku_status": "exact_shade_internal_net_content_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:4a208c24c75e2f7659f70dcccbc8015d17d93f6ab5e552faf26363016438d86d",
+        "smzdm-browser-body:3b01f0745430b47d043684a770c16403566e0795139abcdd929518436498c222"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:114:longevity:lasting-color-direction-v1",
+      "field_key": "longevity",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "持色方向",
+      "review_rationale": "长图第5张明确写显色更持久，可保留普通持色方向；不采用8H或12H量化值。",
+      "sku_status": "exact_shade_internal_net_content_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-detail-image:2865fc3a43af5e0fbd3afaf45aa6bcb2e0e5f2a5809e7cc29fe61e99ae32ee2d"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:114:longevity:8h-12h-without-method-v1",
+      "field_key": "longevity",
+      "promotion_status": "rejected",
+      "public_text": "8小时轻盈不紧绷与12小时浓郁持色",
+      "review_rationale": "长图第4、5张出现8H和12H宣传，但没有对应样本、环境、方法或脚注，不能发布量化时长。",
+      "sku_status": "exact_shade_unverified_quantified_claim",
+      "source_kind": "detail_image",
+      "source_ordinal": 4,
+      "source_refs": [
+        "smzdm-detail-image:b5940d1e208ae30053969c1e278bfc8b136a46dca1a4f90b8752d22f5fccad17",
+        "smzdm-detail-image:2865fc3a43af5e0fbd3afaf45aa6bcb2e0e5f2a5809e7cc29fe61e99ae32ee2d"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:114:shade:other-family-shades-v1",
+      "field_key": "shade",
+      "promotion_status": "rejected",
+      "public_text": "669、688、668、617、606及其他大子弹头家族色号表现",
+      "review_rationale": "长图第8至14及16、17张展示多个其他色号和唇妆家族对比，不能把其颜色与上唇表现提升给602 CHILI。",
+      "sku_status": "cross_shade_or_family_images_outside_602",
+      "source_kind": "detail_image",
+      "source_ordinal": 8,
+      "source_refs": [
+        "smzdm-detail-image:71f6dd4360db793218b26f18a25287bf16ce837ce9f6bff8510df7454e1de8dc",
+        "smzdm-detail-image:993d6495f9c34d5e1e2bb51e002d598a175577a62dd3341b5b655bf47be21b11",
+        "smzdm-detail-image:e63bcc89075ffc0ccc63aaa1544491f1a3174529f43f77a4ac8751d91b527d15",
+        "smzdm-detail-image:046469a736e78037504ad3f49628010a557b26de2ba7180ab99dbffdefa99ad3",
+        "smzdm-detail-image:2dcc9425e6ec27b4981b347874c1238fee51d438b096d4ec981e666366f25f2c",
+        "smzdm-detail-image:f3d220002691519356db0cf251f01437a8dbd189d1bd2b6d06cb8f0ccce31f79",
+        "smzdm-detail-image:8ddde84060c584da61269e0c76a21f8c8f1f3b47d5f22190c4c5fba63e4b85d2",
+        "smzdm-detail-image:8486d950b615019e4bc6e9a48103cbf7d23664fbbbd7151c2f0f5f5908040bfb",
+        "smzdm-detail-image:31a75baabfc1c78fa80d8928f1ae18aba758c369c08abedb1425c457ac9d1f03"
+      ]
+    }
+  ],
+  "canonical_identity": "M.A.C魅可大子弹头口红哑光高级显白#602大辣椒",
+  "canonical_sku_scope": "canonical_single_shade_pending_source",
+  "canonical_specification": "602 CHILI 3.5g",
+  "captured_at": "2026-08-19T22:01:18.260Z",
+  "category_profile": "color_makeup",
+  "detail_image_count": 18,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 1066,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/001_4a208c24c75e2f76.jpg",
+      "ordinal": 1,
+      "sha256": "4a208c24c75e2f7659f70dcccbc8015d17d93f6ab5e552faf26363016438d86d",
+      "width": 600
+    },
+    {
+      "height": 499,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/002_4ec4d7bc331cb8a9.jpg",
+      "ordinal": 2,
+      "sha256": "4ec4d7bc331cb8a96fdeba627e9c4b7d88383bb471ce2c6ea524be468e030ef7",
+      "width": 600
+    },
+    {
+      "height": 639,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/003_1b557da23afe1f3e.jpg",
+      "ordinal": 3,
+      "sha256": "1b557da23afe1f3edea55c5df9fe2398ea641d5ab370f99563b3033ac86386fb",
+      "width": 600
+    },
+    {
+      "height": 1178,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/004_b5940d1e208ae300.jpg",
+      "ordinal": 4,
+      "sha256": "b5940d1e208ae30053969c1e278bfc8b136a46dca1a4f90b8752d22f5fccad17",
+      "width": 600
+    },
+    {
+      "height": 509,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/005_2865fc3a43af5e0f.jpg",
+      "ordinal": 5,
+      "sha256": "2865fc3a43af5e0fbd3afaf45aa6bcb2e0e5f2a5809e7cc29fe61e99ae32ee2d",
+      "width": 600
+    },
+    {
+      "height": 640,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/006_486e14fcce151a6e.jpg",
+      "ordinal": 6,
+      "sha256": "486e14fcce151a6e9f2b27b7b22598b2e515f570ea3932de9e1f0c52d54c6769",
+      "width": 600
+    },
+    {
+      "height": 660,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/007_045c62f23c2ad6e4.jpg",
+      "ordinal": 7,
+      "sha256": "045c62f23c2ad6e48b5630cd7000315868e36d843373fcba704c625a1aeae1d4",
+      "width": 600
+    },
+    {
+      "height": 1027,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/008_71f6dd4360db7932.jpg",
+      "ordinal": 8,
+      "sha256": "71f6dd4360db793218b26f18a25287bf16ce837ce9f6bff8510df7454e1de8dc",
+      "width": 600
+    },
+    {
+      "height": 1001,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/009_993d6495f9c34d5e.jpg",
+      "ordinal": 9,
+      "sha256": "993d6495f9c34d5e1e2bb51e002d598a175577a62dd3341b5b655bf47be21b11",
+      "width": 600
+    },
+    {
+      "height": 1011,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/010_e63bcc89075ffc0c.jpg",
+      "ordinal": 10,
+      "sha256": "e63bcc89075ffc0ccc63aaa1544491f1a3174529f43f77a4ac8751d91b527d15",
+      "width": 600
+    },
+    {
+      "height": 1038,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/011_046469a736e78037.jpg",
+      "ordinal": 11,
+      "sha256": "046469a736e78037504ad3f49628010a557b26de2ba7180ab99dbffdefa99ad3",
+      "width": 600
+    },
+    {
+      "height": 329,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/012_2dcc9425e6ec27b4.jpg",
+      "ordinal": 12,
+      "sha256": "2dcc9425e6ec27b4981b347874c1238fee51d438b096d4ec981e666366f25f2c",
+      "width": 600
+    },
+    {
+      "height": 707,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/013_f3d2200026915193.jpg",
+      "ordinal": 13,
+      "sha256": "f3d220002691519356db0cf251f01437a8dbd189d1bd2b6d06cb8f0ccce31f79",
+      "width": 600
+    },
+    {
+      "height": 528,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/014_8ddde84060c584da.jpg",
+      "ordinal": 14,
+      "sha256": "8ddde84060c584da61269e0c76a21f8c8f1f3b47d5f22190c4c5fba63e4b85d2",
+      "width": 600
+    },
+    {
+      "height": 512,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/015_357159059a7ae231.jpg",
+      "ordinal": 15,
+      "sha256": "357159059a7ae231b60e0840a0fbeba0e607c1730282d84ee001c389fe278159",
+      "width": 600
+    },
+    {
+      "height": 537,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/016_8486d950b615019e.jpg",
+      "ordinal": 16,
+      "sha256": "8486d950b615019e4bc6e9a48103cbf7d23664fbbbd7151c2f0f5f5908040bfb",
+      "width": 600
+    },
+    {
+      "height": 1301,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/017_31a75baabfc1c78f.jpg",
+      "ordinal": 17,
+      "sha256": "31a75baabfc1c78fa80d8928f1ae18aba758c369c08abedb1425c457ac9d1f03",
+      "width": 600
+    },
+    {
+      "height": 187,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/114/018_bdb5b222cdd20fe0.jpg",
+      "ordinal": 18,
+      "sha256": "bdb5b222cdd20fe0765ccab329ae4e8615d8bc0bd0d2b0edda59a636486da602",
+      "width": 600
+    }
+  ],
+  "introduction_text": "",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "color_family",
+    "finish"
+  ],
+  "parameter_text": "色号颜色\n602CHILI\n规格\n1.7g\n色系\n红色系\n国产/进口\n进口\n商品名称\n新经典哑光唇膏\n产品产地\n加拿大\n是否为特殊用途化妆品\n否\n规格类型\n正常规格\n批准文号\n国妆网备进字（沪）2023007493\n质地\n哑光\n保质期\n3年\n妆效\n哑光/雾面\n适用人群\n通用\n功效\n勾勒唇形;修饰肤色;提升气色",
+  "portfolio_role": "matte_lipstick",
+  "product_id": 114,
+  "review_field_policy": [
+    "shade",
+    "color_family",
+    "finish",
+    "color_payoff",
+    "longevity"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "602 CHILI 3.5g",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "602 CHILI 3.5g",
+    "source_sku": "602 CHILI size conflict 1.7g/3.5g"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "3b01f0745430b47d043684a770c16403566e0795139abcdd929518436498c222",
+  "source_product_title": "M·A·C 魅可 大子弹头 新经典哑光唇膏 #602大辣椒CHILI 3.5g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "M·A·C 魅可 大子弹头 新经典哑光唇膏 #602大辣椒CHILI 3.5g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/gyxoqon/"
+}

@@ -1,0 +1,121 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:135:ingredients:bifida-ferment-lysate-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "二裂酵母发酵产物溶胞物",
+      "review_rationale": "商品介绍明确列出该成分；不保留浓度升级倍数或专利机理扩写。",
+      "sku_status": "fifth_generation_variant_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:0eaf7d166306f5a43c9d7ee046fb61854ef728bc09fe12565d9a46dbf5a57ef0"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.refreshing",
+      "decision": "map",
+      "fact_id": "reviewed:product:135:texture:refreshing-gel-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "清爽啫喱质地，易推开吸收、不油腻",
+      "review_rationale": "商品介绍直接描述清爽啫喱、易推开吸收和无油腻感，可映射清爽肤感父概念。",
+      "sku_status": "fifth_generation_variant_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:0eaf7d166306f5a43c9d7ee046fb61854ef728bc09fe12565d9a46dbf5a57ef0"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.hydration",
+      "decision": "map",
+      "fact_id": "reviewed:product:135:efficacy:hydration-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "保湿补水方向",
+      "review_rationale": "商品介绍稳定支持保湿补水方向；不保留量化时长或多问题改善保证。",
+      "sku_status": "fifth_generation_variant_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:0eaf7d166306f5a43c9d7ee046fb61854ef728bc09fe12565d9a46dbf5a57ef0"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:135:efficacy:quantified-blue-light-age-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "两周淡黑眼圈、六类眼周问题、十倍浓度、24小时保湿、8小时抗氧、蓝光损伤与年龄适用结论",
+      "review_rationale": "量化效果、蓝光损伤和年龄适用均缺少可审计依据，且第五代变体规格未对齐，不进入公开事实。",
+      "sku_status": "fifth_generation_variant_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:0eaf7d166306f5a43c9d7ee046fb61854ef728bc09fe12565d9a46dbf5a57ef0"
+      ]
+    }
+  ],
+  "canonical_identity": "雅诗兰黛特润修护肌活精华眼霜",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T19:01:40.722Z",
+  "category_profile": "skincare",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "detail_images": [],
+  "introduction_text": "ESTEE LAUDER 雅诗兰黛即时修护眼部精华霜是雅诗兰黛旗下明星级眼部护理产品，全新第五代小棕瓶眼霜，2周速淡黑眼圈。主打“一瓶改善细纹、黑眼圈、浮肿、皱纹、干纹及肤色不均6大眼部问题”。系列核心的二裂酵母发酵产物溶胞物浓度升级10倍，并采用专利配方ChronoluxCB™；直达肌底，对抗蓝光造成的眼周肌肤损伤，强效修护，24小时持久保湿，有效抗氧长达8小时，使眼周肌肤更加水润细嫩。清爽啫喱的质地易涂抹、推开，能很好的被眼部肌肤所吸收，在保湿补水的同时又无油腻感。该眼霜适用于所有肤质，尤其是有20岁以上，出现细纹需要初期抗老保护的肌肤。",
+  "missing_fields": [
+    "net_content",
+    "texture"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "repair_eye_cream",
+  "product_id": 135,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "product_introduction"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "fifth_generation_spec_unresolved"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "0eaf7d166306f5a43c9d7ee046fb61854ef728bc09fe12565d9a46dbf5a57ef0",
+  "source_product_title": "ESTEE LAUDER 雅诗兰黛 小棕瓶眼霜 特润修护肌活精华眼霜 第五代",
+  "source_title": "ESTEE LAUDER 雅诗兰黛 小棕瓶眼霜 特润修护肌活精华眼霜 第五代【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/nzgrw9y/"
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": "guide-copywriter-v3-preflight-v1",
+  "run_id": "copywriter-20-v3",
+  "repository": "/Users/bytedance/Desktop/xiaoro-fresh",
+  "branch": "rebuild",
+  "git_head": "16721edcc1afa4dbef51ef847b7c455a17ba4332",
+  "dirty_diff_sha256": "975798a1cdb0b5e380965e4a18880bda753680526dab75073857f8261ed60c03",
+  "prompt_version": "guide-presentation-copy-prompt-v6",
+  "provider_retry_count": 0,
+  "format_repair_attempts": 0,
+  "max_tokens_per_call": 1536,
+  "prior_copywriter_calls": 40,
+  "requested_copywriter_calls": 20,
+  "reserved_browser_copywriter_calls": 15,
+  "copywriter_call_cap": 75,
+  "projected_copywriter_calls": 75,
+  "hard_cost_stop_cny": "28.00",
+  "estimated_phase_cost_reserve_cny": "2.00",
+  "estimated_phase_cost_basis": "conservative reserve using 20 bounded calls, production max tokens, and the historical v2 token envelope",
+  "provider_reported_prior_cost_cny": null,
+  "key_precheck": {
+    "path": "/Users/bytedance/Desktop/deepseek-key.txt",
+    "mode": "0600",
+    "strict_parser_valid": true,
+    "key_content_recorded": false
+  },
+  "hashes": {
+    "fixture_sha256": "c60df62776647731ffc8d07d65346a298f5bf2e28e26a53d5a7ae361d4d18967",
+    "fixture_manifest_sha256": "07d24fa79aae32de4e23bb0df80ef418ec57be9938d73f45e911296cd243fa82",
+    "prompt_sha256": "7bd627b6efc971aee07d069c31f1ca224ddc10616ba4f02199af3e9d13cc4d1f",
+    "validator_sha256": "e18aed86001367a85fd8edd421fb4c3ef48f104a2fc0fafb3cf9011972ea0efc",
+    "gate_sha256": "72e00ee781964c8979d32c50615b676d0bfe3ed2b907101e12cf6c0031ecdceb",
+    "runner_sha256": "8fdef9b446bb533a8eb43dc85a91da84d638e88513dfb8332e0c8d4de0fc42ec",
+    "control_sha256": "3d9f16fdba61d50f4e734654526eec8c7db51b76048eb0f7964e41980a934a0d"
+  },
+  "zero_api_gate": {
+    "passed": true,
+    "test_count": 268
+  }
+}
