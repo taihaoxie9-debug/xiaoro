@@ -1,0 +1,75 @@
+{
+  "schema_version": "guide-continuous-blind-preflight-v2",
+  "run_id": "backend-blind-a-20x5-v2",
+  "prepared_at_utc": "2026-08-18T19:49:38Z",
+  "repository": "/Users/bytedance/Desktop/xiaoro-fresh",
+  "branch": "rebuild",
+  "git_head": "16721edcc1afa4dbef51ef847b7c455a17ba4332",
+  "tracked_diff_sha256": "1717defe20927fed018055ddf5cd6a12d5d5f87824aa0d986fa9ef36dd667b1f",
+  "prompt_version": "guide-turn-meaning-prompt-v27",
+  "model": "deepseek-v4-pro",
+  "provider_retry_count": 0,
+  "format_repair_attempts": 0,
+  "max_tokens_per_call": 1024,
+  "copywriter_enabled": false,
+  "prior_unique_semantic_attempts": 537,
+  "prior_prompt_tokens": 1579600,
+  "prior_completion_tokens": 135810,
+  "prior_total_tokens": 1715410,
+  "requested_blind_a_semantic_calls": 100,
+  "projected_calls_after_blind_a": 637,
+  "reserved_blind_b_semantic_calls": 100,
+  "reserved_browser_semantic_calls": 15,
+  "semantic_call_cap": 752,
+  "projected_semantic_calls_maximum": 752,
+  "hard_cost_stop_cny": "28.00",
+  "blind_a_phase_budget_cny": "3.00",
+  "provider_reported_cumulative_cost_cny": null,
+  "budget_decision": "allowed within the user-authorized CNY 28 hard stop and the CNY 3 per-exam limiter",
+  "key_precheck": {
+    "path": "/Users/bytedance/Desktop/deepseek-key.txt",
+    "mode": "0600",
+    "strict_parser_valid": true,
+    "key_content_recorded": false
+  },
+  "invalid_start_attempts": [
+    {
+      "started_at_utc": "2026-08-18T19:50:11Z",
+      "returncode": 5,
+      "failure_code": "key_unavailable",
+      "cause": "the bounded command omitted the explicit key path and used the runner security default",
+      "provider_call_count": 0,
+      "result_file_created": false,
+      "exam_opened": false,
+      "correction": "restart the unchanged sealed paper with --key-path /Users/bytedance/Desktop/deepseek-key.txt"
+    }
+  ],
+  "seal_recheck": {
+    "blind_a_trajectory_count": 20,
+    "blind_a_turn_count": 100,
+    "blind_a_unique_normalized_messages": 100,
+    "blind_a_seen_collision_count": 0,
+    "blind_b_seen_collision_count": 0,
+    "a_b_normalized_message_collision_count": 0,
+    "a_b_trajectory_id_collision_count": 0,
+    "noncanonical_product_reference_count": 0,
+    "runtime_image_fixture_ids": [
+      "product-53-front",
+      "product-55-front"
+    ],
+    "fresh_question_bodies_previewed_by_main_agent": false,
+    "focused_loader_and_runner_test_count": 29,
+    "focused_loader_and_runner_tests_passed": true
+  },
+  "hashes": {
+    "fixture_sha256": "3f382b07216a7497d246141949c4a9078e29a5367b0bceba5bd22c3889a57c90",
+    "fixture_manifest_sha256": "eb2752e34c101c1af42497507138ffaf62dba323366ea0c15a8a1716768af7e8",
+    "prompt_sha256": "f1490e46e92213398bdd9625b32398b0ab00f1102292fcc4cda0614dc6584e3d",
+    "fixture_loader_sha256": "fd027f95e87cfbcd2e5ee80abce24ff52ba6fbaa4273bfd74bb5f449a1518e8c",
+    "runner_sha256": "9194315496e3d579b4b59638b00bce76e3a6f4594692f3ae9e42351e5268b806",
+    "system_freeze_sha256": "3d6e9887279a80d4f0dca35963b6cf9dc2a2cbd81506bc9149438cbee1ac3e23",
+    "blind_seal_sha256": "01e2a2f0d8e47a2a76b748ae0bde9a70b4d5c5c132f76230241a182a15c34bfe",
+    "run_control_sha256": "524978571da30652015af6158839eb97939264c7a66810823e583efc927f20bd"
+  },
+  "ready_to_open_blind_a": true
+}

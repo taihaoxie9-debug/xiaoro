@@ -1,0 +1,56 @@
+{
+  "schema_version": "guide-overnight-acceptance-baseline-v1",
+  "captured_at": "2026-08-19",
+  "repository": "/Users/bytedance/Desktop/xiaoro-fresh",
+  "branch": "rebuild",
+  "git_head": "16721edcc1afa4dbef51ef847b7c455a17ba4332",
+  "dirty_diff_sha256": "ce71180b7759bd73334f9b13802b20ec28cffce8a36039d922a273f7a2824713",
+  "untracked_manifest_sha256": "e4588954be9717de7b0f53a56272d52e6b058aaedc2ec7ab625dc8c2f6d1e37d",
+  "plan": {
+    "path": "docs/superpowers/plans/2026-08-19-overnight-final-acceptance.md",
+    "sha256": "58601f5e12c22b2c22e04362734659c63e31bbec33ce8b6808b32c5c82f77170"
+  },
+  "control": {
+    "path": "docs/audits/continuous-conversation/night-run-control-amendment-v4.json",
+    "sha256": "3d9f16fdba61d50f4e734654526eec8c7db51b76048eb0f7964e41980a934a0d",
+    "hard_cost_stop_cny": "28.00",
+    "provider_retry_count": 0,
+    "format_repair_attempts": 0
+  },
+  "prompt_versions": {
+    "turn_meaning": "guide-turn-meaning-prompt-v27",
+    "presentation_copy": "guide-presentation-copy-prompt-v6"
+  },
+  "file_hashes": {
+    "app/guide/adapters/llm/turn_meaning_prompt.py": "f1490e46e92213398bdd9625b32398b0ab00f1102292fcc4cda0614dc6584e3d",
+    "app/guide/presentation/copywriter_prompt.py": "7bd627b6efc971aee07d069c31f1ca224ddc10616ba4f02199af3e9d13cc4d1f",
+    "app/guide/understanding/turn_meaning_contracts.py": "d489aea3420928fb49205a6de91cdc27fbab672c0e046be69714c8a8c0d4ddb6",
+    "app/guide/intent/unified_turn_router.py": "868bc8fb110b223cc117f506977717eb39145ac7f130eddb7e10dd21c1220582",
+    "app/guide/presentation/presentation_packet.py": "075ffb66e65df509c5439c972f2e0f120ed50ecfaa3e23e0968434935e989c88",
+    "app/guide/presentation/presentation_compiler.py": "29a2ce7d97bcfd513ae01102f9fa4cd1975c6468c5c7b50083da2329ebe74616",
+    "app/static/guide-presentation.js": "0fed7b41ccc004d421c0fc580d75c9439dac9bd147f0630c0e9b7231f3431d36",
+    "app/static/chat.html": "d4edfe6691760816ae042d83321af23eb4b5e6501ef814bd5881eae2aa4eb8e8",
+    "docs/audits/continuous-conversation/seen-message-ledger-v1.json": "eb892d5f4e6e273847b2caf80603e6448e9e0727593368ff6463d07bd70c19bc"
+  },
+  "seen_message_ledger": {
+    "total_unique_normalized_count": 1106,
+    "seen_messages_sha256": "701b25f64cac0ea081c44bb8b42ffcd0723340db83236a0b6e51a39d7779b2fc",
+    "contaminated_blind_files": [
+      "tests/fixtures/guide/conversation/continuous_blind_a_20x5_v1.jsonl",
+      "tests/fixtures/guide/conversation/continuous_blind_b_20x5_v1.jsonl",
+      "tests/fixtures/guide/conversation/continuous_blind_pool_v1.jsonl"
+    ]
+  },
+  "key_precheck": {
+    "path": "/Users/bytedance/Desktop/deepseek-key.txt",
+    "exists": true,
+    "mode_0600": true,
+    "strict_parser_valid": true,
+    "content_recorded": false
+  },
+  "planning_phase_code_edit_check": {
+    "test_image_presentation_integration_diff": false,
+    "test_text_presentation_integration_diff": false,
+    "git_diff_check_passed": true
+  }
+}

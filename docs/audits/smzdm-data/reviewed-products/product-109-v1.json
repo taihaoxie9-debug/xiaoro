@@ -1,0 +1,256 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:109:net-content:13g-cross-shade-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "13g",
+      "review_rationale": "来源130色号、Canonical 100色号与参考价SKU容量均为13g，可保留净含量单品知识；色号不一致，因此不得与参考价组合展示。",
+      "sku_status": "same_product_13g_cross_shade_price_display_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:8d33317843a59ab6b8da85281604a0591ecb0bfa1092d2ef637f2a1e906d74c4"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:109:finish:soft-gold-highlight-v1",
+      "field_key": "finish",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "柔金高光妆效",
+      "review_rationale": "长图第2张明确写以妆养肤、透出柔金高光；现有底妆父概念没有准确覆盖该光泽收尾，因此保留为单品知识。",
+      "sku_status": "same_product_wrong_shade_non_sku_finish",
+      "source_kind": "detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:86ef9601a4bccffe405416a614421dfed21845155b573668830a04491aa75d9e"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.skin_fit",
+      "decision": "map",
+      "fact_id": "reviewed:product:109:texture:fine-skin-fit-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "细腻服帖",
+      "review_rationale": "长图第3和4张分别写真金入妆、细腻服帖与玫瑰凝萃妆感细腻服帖，可映射贴肤服帖方向。",
+      "sku_status": "same_product_wrong_shade_non_sku_texture",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:7d9075dffa3a61cd5efcd7d69d24fa734e1dc04d404305d90b8509d6dc45d721",
+        "smzdm-detail-image:2818c8dc769290ae1fc306ac397d8b2b53d75fddecd832fca9f814a0eee4cb83"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:109:coverage:concealing-direction-v1",
+      "field_key": "coverage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "遮瑕方向",
+      "review_rationale": "参数表明确标注属性为遮瑕，但没有遮瑕等级、对象或测试方法，因此只保留普通单品知识，不映射高遮瑕概念。",
+      "sku_status": "same_product_wrong_shade_non_sku_coverage",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:8d33317843a59ab6b8da85281604a0591ecb0bfa1092d2ef637f2a1e906d74c4"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:109:longevity:powder-setting-advice-v1",
+      "field_key": "longevity",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "混干至油性肤质使用时可配合散粉定妆",
+      "review_rationale": "长图第11张的气垫问答明确建议混干至油性肤质配合粉饼定妆以延长妆效；这是使用边界，不提升为气垫自身持妆时长。",
+      "sku_status": "same_product_wrong_shade_usage_boundary",
+      "source_kind": "detail_image",
+      "source_ordinal": 11,
+      "source_refs": [
+        "smzdm-detail-image:b423f6b9bbfe274159cf8337915d74caa5beb8b1634445b48619c77dec690766"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:109:shade:130-vs-canonical-100-v1",
+      "field_key": "shade",
+      "promotion_status": "rejected",
+      "public_text": "来源130色号绑定到Canonical 100色号",
+      "review_rationale": "参数表明确来源为130色号，Canonical和参考价SKU为100色号；色卡同时展示多个色号不能证明当前来源是100，不能完成精确SKU绑定。",
+      "sku_status": "source_shade_130_canonical_reference_shade_100_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:8d33317843a59ab6b8da85281604a0591ecb0bfa1092d2ef637f2a1e906d74c4",
+        "smzdm-detail-image:b14c36703fbca5b18b05e321a0a563f49dd3c87eec46d81549aee9fd7d7dedca"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:109:longevity:cross-product-family-images-v1",
+      "field_key": "longevity",
+      "promotion_status": "rejected",
+      "public_text": "妆前隔离乳、散粉和菁纯底妆家族的持妆信息",
+      "review_rationale": "长图第8至10张分别展示妆前隔离乳、散粉和完整底妆家族，相关持妆与定妆表述不能提升给当前气垫。",
+      "sku_status": "cross_product_images_outside_cushion",
+      "source_kind": "detail_image",
+      "source_ordinal": 8,
+      "source_refs": [
+        "smzdm-detail-image:8ee8a266dc4d4f712d2caa91e1b3d3826218ef17f1fffbd5f2f5a65776b8f2b2",
+        "smzdm-detail-image:3809dddac7f70864c304dcce150679bc415336bc240f21d799065009b5a685d4",
+        "smzdm-detail-image:f190710c233cb309e8bff256ea6670d666b93c8e5dc5932335ccc6070be83532"
+      ]
+    }
+  ],
+  "canonical_identity": "兰蔻菁纯气垫粉底液100新版13g",
+  "canonical_sku_scope": "canonical_single_product_13g",
+  "canonical_specification": "#100 13g",
+  "captured_at": "2026-08-19T21:53:08.092Z",
+  "category_profile": "base_makeup",
+  "detail_image_count": 11,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 921,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/109/001_9e96e3192f6cc2ae.jpg",
+      "ordinal": 1,
+      "sha256": "9e96e3192f6cc2ae860c2296bd7802a82ef311a660cc96095dc64de9c91f4400",
+      "width": 600
+    },
+    {
+      "height": 955,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/109/002_86ef9601a4bccffe.jpg",
+      "ordinal": 2,
+      "sha256": "86ef9601a4bccffe405416a614421dfed21845155b573668830a04491aa75d9e",
+      "width": 600
+    },
+    {
+      "height": 583,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/109/003_7d9075dffa3a61cd.jpg",
+      "ordinal": 3,
+      "sha256": "7d9075dffa3a61cd5efcd7d69d24fa734e1dc04d404305d90b8509d6dc45d721",
+      "width": 600
+    },
+    {
+      "height": 658,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/109/004_2818c8dc769290ae.jpg",
+      "ordinal": 4,
+      "sha256": "2818c8dc769290ae1fc306ac397d8b2b53d75fddecd832fca9f814a0eee4cb83",
+      "width": 600
+    },
+    {
+      "height": 690,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/109/005_3d376a6cfe3c15e1.jpg",
+      "ordinal": 5,
+      "sha256": "3d376a6cfe3c15e13e22142e890c241b92479a20e9e88498bc92b7dd4bf16093",
+      "width": 600
+    },
+    {
+      "height": 875,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/109/006_c27869698ce98a76.jpg",
+      "ordinal": 6,
+      "sha256": "c27869698ce98a76a3a01cad781faf3e76e6d1f3af609d71482cf8d51c9d55fc",
+      "width": 600
+    },
+    {
+      "height": 835,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/109/007_b14c36703fbca5b1.jpg",
+      "ordinal": 7,
+      "sha256": "b14c36703fbca5b18b05e321a0a563f49dd3c87eec46d81549aee9fd7d7dedca",
+      "width": 600
+    },
+    {
+      "height": 605,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/109/008_8ee8a266dc4d4f71.jpg",
+      "ordinal": 8,
+      "sha256": "8ee8a266dc4d4f712d2caa91e1b3d3826218ef17f1fffbd5f2f5a65776b8f2b2",
+      "width": 600
+    },
+    {
+      "height": 631,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/109/009_3809dddac7f70864.jpg",
+      "ordinal": 9,
+      "sha256": "3809dddac7f70864c304dcce150679bc415336bc240f21d799065009b5a685d4",
+      "width": 600
+    },
+    {
+      "height": 674,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/109/010_f190710c233cb309.jpg",
+      "ordinal": 10,
+      "sha256": "f190710c233cb309e8bff256ea6670d666b93c8e5dc5932335ccc6070be83532",
+      "width": 600
+    },
+    {
+      "height": 560,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/109/011_b423f6b9bbfe2741.jpg",
+      "ordinal": 11,
+      "sha256": "b423f6b9bbfe274159cf8337915d74caa5beb8b1634445b48619c77dec690766",
+      "width": 600
+    }
+  ],
+  "introduction_text": "",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "finish",
+    "texture"
+  ],
+  "parameter_text": "规格\n13g\n保质期\n3年\n产品产地\n欧美\n商品名称\n兰蔻新空气轻垫菁纯粉底液 130 13g\n是否为特殊用途化妆品\n特殊化妆品\n包装类型\n正装\n批准文号\n国妆特进字J20191000\n类别\n正装\n属性\n遮瑕",
+  "portfolio_role": "premium_cushion",
+  "product_id": 109,
+  "review_field_policy": [
+    "net_content",
+    "shade",
+    "finish",
+    "coverage",
+    "longevity",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "#100 13g",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "#100 13g",
+    "source_sku": "#130 13g"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "8d33317843a59ab6b8da85281604a0591ecb0bfa1092d2ef637f2a1e906d74c4",
+  "source_product_title": "兰蔻菁纯气垫 13g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "兰蔻菁纯气垫 13g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/ey7jm93/"
+}

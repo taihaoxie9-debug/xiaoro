@@ -1,0 +1,209 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:48:ingredients:proxylane-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "波色因",
+      "review_rationale": "参数表与商品介绍都明确出现波色因；详情图混入多个菁纯家族产品，因此只保留文本源支持的单品知识。",
+      "sku_status": "rich_cream_60ml_canonical_source_unit_and_family_conflict",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:09bef115837c9c2d445db5a74e28a5593fe1ce1bc857c5928d0663e5d7990267"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:48:texture:cream-silky-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "乳霜质地，触感丝滑",
+      "review_rationale": "商品介绍明确描述乳霜剂型和丝滑触感；因详情图包含Soft Cream与White Aura等其他变体，不进入全局比较概念。",
+      "sku_status": "rich_cream_60ml_canonical_source_unit_and_family_conflict",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:09bef115837c9c2d445db5a74e28a5593fe1ce1bc857c5928d0663e5d7990267"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.hydration",
+      "decision": "map",
+      "fact_id": "reviewed:product:48:efficacy:hydration-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "保湿滋润方向",
+      "review_rationale": "参数表明确标注保湿，商品介绍支持滋润方向；不保留抗老、再生或量化光泽结论。",
+      "sku_status": "rich_cream_60ml_canonical_source_unit_and_family_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:09bef115837c9c2d445db5a74e28a5593fe1ce1bc857c5928d0663e5d7990267"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:48:net-content:60g-ml-conflict-v1",
+      "field_key": "net_content",
+      "promotion_status": "rejected",
+      "public_text": "来源60g/mL与Canonical 60ml的规格组合",
+      "review_rationale": "来源单位写为60g/mL，Canonical和参考价记录为60ml，不能视为同一已对齐SKU，也不能与价格组合展示。",
+      "sku_status": "rich_cream_60ml_canonical_source_unit_and_family_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:09bef115837c9c2d445db5a74e28a5593fe1ce1bc857c5928d0663e5d7990267"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:48:efficacy:mixed-family-quantified-regeneration-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "家族变体图片、细胞再生机制与量化光泽抗老结论",
+      "review_rationale": "长图同时出现Soft Cream、White Aura和家族产品，且效果包含量化与细胞再生扩写，均不能绑定到当前奢护霜变体。",
+      "sku_status": "rich_cream_60ml_canonical_source_unit_and_family_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:8e793c46e8d4067e74ed40cb4c61186fc4c83c57d4016e4c5e87f136507166ac",
+        "smzdm-detail-image:d733b21145a98e4ff9bb4d7d40d39766c8e0f138cfd8d916305ecd9148d6e22c",
+        "smzdm-detail-image:b7611bd565d0aff88fbf4a56d26e272d2d5fb5c7a4605e69e5b664aad3e80623"
+      ]
+    }
+  ],
+  "canonical_identity": "兰蔻菁纯面霜奢护霜60ml抗皱滋润",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "60ml",
+  "captured_at": "2026-08-19T18:57:36.294Z",
+  "category_profile": "skincare",
+  "detail_image_count": 10,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 686,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/48/001_8e793c46e8d4067e.jpg",
+      "ordinal": 1,
+      "sha256": "8e793c46e8d4067e74ed40cb4c61186fc4c83c57d4016e4c5e87f136507166ac",
+      "width": 600
+    },
+    {
+      "height": 1082,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/48/002_3139e07534cd9fbf.jpg",
+      "ordinal": 2,
+      "sha256": "3139e07534cd9fbf7b88c620d29a03e87ed8a8b6db455477ee24f0b1fc92eed1",
+      "width": 600
+    },
+    {
+      "height": 924,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/48/003_33d5efccf1f19d67.jpg",
+      "ordinal": 3,
+      "sha256": "33d5efccf1f19d67059bdaf7c904ace60bec2748cd867ee94644db33767cdd58",
+      "width": 600
+    },
+    {
+      "height": 882,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/48/004_0639fc16d7393caa.jpg",
+      "ordinal": 4,
+      "sha256": "0639fc16d7393caa6d43c8842d393927618665fb5ff6380e0bda4246933c2ba7",
+      "width": 600
+    },
+    {
+      "height": 703,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/48/005_a06ed5f34a56d603.jpg",
+      "ordinal": 5,
+      "sha256": "a06ed5f34a56d6035155aa4e68c9ebc943137c57c6eef639be4117ce2bf93581",
+      "width": 600
+    },
+    {
+      "height": 946,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/48/006_4f8d7cb31192328b.jpg",
+      "ordinal": 6,
+      "sha256": "4f8d7cb31192328b70d0ab0f14544cc6873cbe0b72430f4702e3fcf025401b0b",
+      "width": 600
+    },
+    {
+      "height": 715,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/48/007_c53df0dd430ce5c7.jpg",
+      "ordinal": 7,
+      "sha256": "c53df0dd430ce5c71c539033e328e58785fc8c7b9c0e1b991723ad3fa3c09294",
+      "width": 600
+    },
+    {
+      "height": 862,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/48/008_828deb2cb063efea.jpg",
+      "ordinal": 8,
+      "sha256": "828deb2cb063efeafcd85bf714b0d715c4223dad85d9854c08496d0993c3a3d1",
+      "width": 600
+    },
+    {
+      "height": 846,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/48/009_d733b21145a98e4f.jpg",
+      "ordinal": 9,
+      "sha256": "d733b21145a98e4ff9bb4d7d40d39766c8e0f138cfd8d916305ecd9148d6e22c",
+      "width": 600
+    },
+    {
+      "height": 811,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/48/010_b7611bd565d0aff8.jpg",
+      "ordinal": 10,
+      "sha256": "b7611bd565d0aff88fbf4a56d26e272d2d5fb5c7a4605e69e5b664aad3e80623",
+      "width": 600
+    }
+  ],
+  "introduction_text": "菁纯臻颜是 LANCOME兰蔻的高端护肤系列主要功效为抵抗衰老，主打轻熟肌肤。这款面霜蕴含 Pro-Xylane™ 专利抗衰老因子，重建基底层复合物：修复干细胞生长环境，激活细胞自我再生能力。 质地奢华的乳霜瞬间融化于肌肤之中，赋予肌肤如丝般柔滑的舒适触感。 肌肤尽现亮泽、柔滑、有弹性，展现年轻光采。",
+  "missing_fields": [
+    "net_content",
+    "ingredients_present"
+  ],
+  "parameter_text": "规格\n60g/mL\n是否为特殊用途化妆品\n否\n功效\n保湿\n净含量（mL/g）\n51-100mL(g)\n适合肤质\n任何肤质\n产品产地\n法国\n国产/进口\n进口\n适用人群\n女士\n类别\n面霜\n成分\n玻色因\n孕妇/哺乳期可用\n孕妇需遵医嘱使用\n规格类型\n正常规格\n保质期\n3年",
+  "portfolio_role": "luxury_nourishing_cream",
+  "product_id": 48,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "60ml",
+    "display_specification": "60ml",
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "60ml",
+    "source_sku": "60g_or_ml_with_mixed_family_images"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "09bef115837c9c2d445db5a74e28a5593fe1ce1bc857c5928d0663e5d7990267",
+  "source_product_title": "LANCOME/兰蔻 Absolue菁纯系列 滋润版 菁纯面霜  60g/mL",
+  "source_title": "LANCOME/兰蔻 Absolue菁纯系列 滋润版 菁纯面霜 60g/mL【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/o04x8g6/"
+}

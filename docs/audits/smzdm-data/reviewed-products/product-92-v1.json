@@ -1,0 +1,166 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:92:net-content:20ml-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "20ml",
+      "review_rationale": "商品标题和参数表均明确为20ml；参考价SKU仍未确认，因此规格不得与价格组合展示。",
+      "sku_status": "exact_20ml_reference_price_sku_unresolved",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:a82d41af90bc39bf9a8df198eac7df701063d84870525628c69b80fac7a9518a"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:92:ingredients:proxylane-rose-complex-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "波色因、永盛玫瑰凝萃与大马士革玫瑰油",
+      "review_rationale": "长图第2和第3张分别明确列出波色因、永盛玫瑰凝萃与大马士革玫瑰油；不扩写激活AMPK或抗纹机理。",
+      "sku_status": "exact_20ml_reference_price_sku_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:4c6576d8eeac91d11b00dd000891176c8b9febbfba83b3e4120178b5cf474698",
+        "smzdm-detail-image:d11543a27ad32f052089a7340c9914220c0a8dcacd6126306f959b258ccc39f2"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.rich_cream",
+      "decision": "map",
+      "fact_id": "reviewed:product:92:texture:rich-satin-cream-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "柔缎乳霜质地，肤感奢润",
+      "review_rationale": "长图第3张直接呈现乳霜剂型并描述柔缎和奢润，可映射丰润乳霜方向。",
+      "sku_status": "exact_20ml_reference_price_sku_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:d11543a27ad32f052089a7340c9914220c0a8dcacd6126306f959b258ccc39f2"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.anti_aging",
+      "decision": "map",
+      "fact_id": "reviewed:product:92:efficacy:line-firming-direction-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "淡纹与紧致方向",
+      "review_rationale": "长图明确围绕眼纹和紧致展开；只保留非量化方向，不保留各部位百分比或认可率。",
+      "sku_status": "exact_20ml_reference_price_sku_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:8ef5937f883ef903ffd825f12d97071caf80441b19c6d9991224d73e0b8baa89"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:92:efficacy:percentages-universal-fit-broad-claims-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "眼周各部位百分比、认可率、敏感肌适用及去角质控油等宽泛结论",
+      "review_rationale": "量化结果缺少可独立审计的完整试验依据；敏感肌及参数中的去角质、控油等宽泛条目不进入公开事实。",
+      "sku_status": "exact_20ml_reference_price_sku_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:8ef5937f883ef903ffd825f12d97071caf80441b19c6d9991224d73e0b8baa89",
+        "smzdm-detail-image:d11543a27ad32f052089a7340c9914220c0a8dcacd6126306f959b258ccc39f2",
+        "smzdm-browser-body:a82d41af90bc39bf9a8df198eac7df701063d84870525628c69b80fac7a9518a"
+      ]
+    }
+  ],
+  "canonical_identity": "兰蔻全新菁纯眼霜",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "20ml",
+  "captured_at": "2026-08-19T19:05:19.861Z",
+  "category_profile": "skincare",
+  "detail_image_count": 3,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 1052,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/92/001_8ef5937f883ef903.jpg",
+      "ordinal": 1,
+      "sha256": "8ef5937f883ef903ffd825f12d97071caf80441b19c6d9991224d73e0b8baa89",
+      "width": 600
+    },
+    {
+      "height": 766,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/92/002_4c6576d8eeac91d1.jpg",
+      "ordinal": 2,
+      "sha256": "4c6576d8eeac91d11b00dd000891176c8b9febbfba83b3e4120178b5cf474698",
+      "width": 600
+    },
+    {
+      "height": 722,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/92/003_d11543a27ad32f05.jpg",
+      "ordinal": 3,
+      "sha256": "d11543a27ad32f052089a7340c9914220c0a8dcacd6126306f959b258ccc39f2",
+      "width": 600
+    }
+  ],
+  "introduction_text": "",
+  "missing_fields": [
+    "net_content",
+    "ingredients_present",
+    "texture"
+  ],
+  "parameter_text": "规格\n20ml\n净含量（mL/g）\n20ml\n产品产地\n法国\n适合肤质\n任何肤质\n商品名称\n兰蔻全新菁纯眼霜\n国产/进口\n进口\n适用人群\n成人\n类别\n眼霜\n规格类型\n正常规格\n批准文号\n国妆网备进字（沪）2023009362\n保质期\n1095天\n是否为特殊用途化妆品\n否\n功效\n去角质,淡化眼袋,抗皱,提拉紧致,保湿,控油,淡化细纹,修护",
+  "portfolio_role": "premium_eye_cream",
+  "product_id": 92,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "20ml",
+    "display_specification": "20ml",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "20ml"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "a82d41af90bc39bf9a8df198eac7df701063d84870525628c69b80fac7a9518a",
+  "source_product_title": "兰蔻菁纯眼霜 20ml",
+  "source_title": "兰蔻菁纯眼霜 20ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/xpdv6y3/"
+}

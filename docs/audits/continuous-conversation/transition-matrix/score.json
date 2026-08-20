@@ -1,0 +1,3222 @@
+{
+  "schema_version": "guide-transition-matrix-score-v1",
+  "fixture_manifest": {
+    "files": {
+      "long_walks.jsonl": "7f63b318a8649c0ca5d87d49989d0a0f1d7d776c5f6ea6187a17f16e2f1981d0",
+      "pairwise_edges.jsonl": "6e9e1f15fc354e000056032087b6ee0202b6260a9091b6332f97bd33cdee6da8",
+      "states.json": "8eff64bd7e4e5d682a9129110a5fa55fdbaefaf91b18bfab9c61d9fbbfed2361",
+      "triple_paths.jsonl": "bdd7374e9c34db406f20cbdad7bcf5c5af8fc8464832b62372686b5a26e3c151"
+    },
+    "long_walk_count": 8,
+    "pairwise_count": 36,
+    "schema_version": "guide-transition-matrix-v1",
+    "state_count": 6,
+    "triple_count": 216
+  },
+  "typed_router": {
+    "schema_version": "guide-typed-router-transition-matrix-v1",
+    "pairwise_edges": 36,
+    "triple_paths": 216,
+    "ordinary_path_pollution": 0,
+    "expected_state_changes": 0,
+    "serious_failures": 0,
+    "edge_outcomes": {
+      "recommendation_batch->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      }
+    },
+    "triple_outcomes": {
+      "recommendation_batch->recommendation_batch->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->recommendation_batch->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->recommendation_batch->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->recommendation_batch->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->recommendation_batch->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->recommendation_batch->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->single_product_focus->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->single_product_focus->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->single_product_focus->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->single_product_focus->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->single_product_focus->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->single_product_focus->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->comparison_batch->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->comparison_batch->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->comparison_batch->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->comparison_batch->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->comparison_batch->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->comparison_batch->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->consultation->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->consultation->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->consultation->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->consultation->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->consultation->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->consultation->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->general_knowledge->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->general_knowledge->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->general_knowledge->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->general_knowledge->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->general_knowledge->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->general_knowledge->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->confirmed_image_product->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->confirmed_image_product->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->confirmed_image_product->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->confirmed_image_product->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->confirmed_image_product->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "recommendation_batch->confirmed_image_product->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->recommendation_batch->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->recommendation_batch->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->recommendation_batch->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->recommendation_batch->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->recommendation_batch->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->recommendation_batch->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->single_product_focus->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->single_product_focus->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->single_product_focus->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->single_product_focus->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->single_product_focus->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->single_product_focus->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->comparison_batch->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->comparison_batch->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->comparison_batch->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->comparison_batch->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->comparison_batch->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->comparison_batch->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->consultation->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->consultation->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->consultation->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->consultation->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->consultation->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->consultation->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->general_knowledge->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->general_knowledge->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->general_knowledge->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->general_knowledge->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->general_knowledge->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->general_knowledge->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->confirmed_image_product->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->confirmed_image_product->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->confirmed_image_product->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->confirmed_image_product->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->confirmed_image_product->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "single_product_focus->confirmed_image_product->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->recommendation_batch->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->recommendation_batch->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->recommendation_batch->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->recommendation_batch->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->recommendation_batch->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->recommendation_batch->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->single_product_focus->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->single_product_focus->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->single_product_focus->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->single_product_focus->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->single_product_focus->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->single_product_focus->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->comparison_batch->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->comparison_batch->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->comparison_batch->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->comparison_batch->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->comparison_batch->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->comparison_batch->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->consultation->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->consultation->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->consultation->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->consultation->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->consultation->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->consultation->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->general_knowledge->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->general_knowledge->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->general_knowledge->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->general_knowledge->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->general_knowledge->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->general_knowledge->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->confirmed_image_product->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->confirmed_image_product->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->confirmed_image_product->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->confirmed_image_product->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->confirmed_image_product->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "comparison_batch->confirmed_image_product->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->recommendation_batch->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->recommendation_batch->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->recommendation_batch->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->recommendation_batch->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->recommendation_batch->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->recommendation_batch->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->single_product_focus->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->single_product_focus->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->single_product_focus->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->single_product_focus->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->single_product_focus->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->single_product_focus->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->comparison_batch->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->comparison_batch->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->comparison_batch->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->comparison_batch->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->comparison_batch->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->comparison_batch->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->consultation->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->consultation->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->consultation->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->consultation->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->consultation->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->consultation->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->general_knowledge->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->general_knowledge->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->general_knowledge->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->general_knowledge->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->general_knowledge->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->general_knowledge->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->confirmed_image_product->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->confirmed_image_product->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->confirmed_image_product->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->confirmed_image_product->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->confirmed_image_product->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "consultation->confirmed_image_product->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->recommendation_batch->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->recommendation_batch->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->recommendation_batch->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->recommendation_batch->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->recommendation_batch->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->recommendation_batch->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->single_product_focus->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->single_product_focus->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->single_product_focus->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->single_product_focus->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->single_product_focus->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->single_product_focus->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->comparison_batch->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->comparison_batch->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->comparison_batch->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->comparison_batch->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->comparison_batch->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->comparison_batch->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->consultation->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->consultation->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->consultation->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->consultation->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->consultation->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->consultation->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->general_knowledge->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->general_knowledge->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->general_knowledge->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->general_knowledge->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->general_knowledge->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->general_knowledge->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->confirmed_image_product->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->confirmed_image_product->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->confirmed_image_product->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->confirmed_image_product->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->confirmed_image_product->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "general_knowledge->confirmed_image_product->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->recommendation_batch->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->recommendation_batch->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->recommendation_batch->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->recommendation_batch->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->recommendation_batch->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->recommendation_batch->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->single_product_focus->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->single_product_focus->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->single_product_focus->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->single_product_focus->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->single_product_focus->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->single_product_focus->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->comparison_batch->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->comparison_batch->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->comparison_batch->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->comparison_batch->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->comparison_batch->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->comparison_batch->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->consultation->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->consultation->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->consultation->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->consultation->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->consultation->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->consultation->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->general_knowledge->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->general_knowledge->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->general_knowledge->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->general_knowledge->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->general_knowledge->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->general_knowledge->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->confirmed_image_product->recommendation_batch": {
+        "processor_family": "recommendation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "recommendation",
+        "card_product_ids": [],
+        "active_state": "recommendation_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->confirmed_image_product->single_product_focus": {
+        "processor_family": "product_knowledge",
+        "product_ids": [
+          38
+        ],
+        "image_ordinals": [],
+        "card_type": "product_knowledge",
+        "card_product_ids": [
+          38
+        ],
+        "active_state": "single_product_focus",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->confirmed_image_product->comparison_batch": {
+        "processor_family": "comparison",
+        "product_ids": [
+          38,
+          91
+        ],
+        "image_ordinals": [],
+        "card_type": "comparison",
+        "card_product_ids": [
+          38,
+          91
+        ],
+        "active_state": "comparison_batch",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->confirmed_image_product->consultation": {
+        "processor_family": "consultation",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "consultation",
+        "card_product_ids": [],
+        "active_state": "consultation",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->confirmed_image_product->general_knowledge": {
+        "processor_family": "general_knowledge",
+        "product_ids": [],
+        "image_ordinals": [],
+        "card_type": "general_knowledge",
+        "card_product_ids": [],
+        "active_state": "general_knowledge",
+        "safety_state": null,
+        "expected_state_change": false
+      },
+      "confirmed_image_product->confirmed_image_product->confirmed_image_product": {
+        "processor_family": "image_identity",
+        "product_ids": [
+          53
+        ],
+        "image_ordinals": [
+          1
+        ],
+        "card_type": "image_identity",
+        "card_product_ids": [
+          53
+        ],
+        "active_state": "confirmed_image_product",
+        "safety_state": null,
+        "expected_state_change": false
+      }
+    },
+    "passed": true
+  },
+  "passed": true
+}

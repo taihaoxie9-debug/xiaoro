@@ -1,0 +1,44 @@
+# Slice 1.6 验收清单
+
+- [x] 当前分支为 `rebuild`，计划提交 `7661ab4` 是 HEAD 祖先
+- [x] 旧仓库 HEAD、363 行状态和状态指纹未变化
+- [x] 排序内核 SHA 保持 `4737c18964f2be3502f036a87dd50e06965a214a87aa967c586d08e7c741f59f`
+- [x] boundary checker 拦截真实 application 评分和非字面量动态导入
+- [x] `app/guide` 与 `app/guide_runtime` 双 boundary 通过
+- [x] application 业务编排不导入具体 adapter
+- [x] 页面和 DTO 不再包含无来源的 `match_score` 或 `% 契合`
+- [x] Guide runtime 不显示未执行的知识检索或综合评分步骤
+- [x] 六种肤质的“多种肤质适用”均映射为 `unknown`
+- [x] 明确其他肤质证据映射为 `mismatch`
+- [x] `500元内干性修护精华` 返回 `[91, 38]` 且为 `INSUFFICIENT_FOR_WINNER`
+- [x] decision `evidence_refs` 包含规范化 skin
+- [x] 同一 session 的并发请求被有界锁串行
+- [x] 仅收到 `start` 后关闭生成器不会保存新快照
+- [x] 首个 post-start 成功事件公开前已原子提交完整状态与版本
+- [x] 正式 API 接收并透传 `conversation_version`
+- [x] `第二款呢`、`哪个更便宜`、`预算降到100元呢` 均进入干净链
+- [x] SSE `error` 在浏览器显示脱敏 message
+- [x] SSE 业务错误不再被记录为 JSON 解析失败
+- [x] 切换或删除 session 会取消旧请求
+- [x] 旧 session 响应不会写入新 session DOM、版本或 localStorage
+- [x] 图片 manifest 自摘要漂移导致 runtime 构建失败
+- [x] 图片缺失、字节数或 SHA 漂移导致 runtime 构建失败
+- [x] 103 张当前真实图片仍通过完整性校验
+- [x] 正式与 runtime HTTP 多轮 case matrix 通过
+- [x] 正常 Playwright smoke 通过且无 page error/failed image
+- [x] 对抗 Playwright error/session-switch 门禁通过
+- [x] Guide 全量测试零失败
+- [x] Runtime 全量测试零失败
+- [x] `compileall` 通过
+- [x] backend CSV gate 从 `/tmp` 运行成功
+- [x] full-file code review 无未解决 P0-P2
+- [x] Task10 发布审查修复通过：锁不跨公开 yield、首个 post-start 事件前原子提交、Guide owner 不劫持 version 0 旧会话、当前 session reactivation 不重建 DOM
+- [x] 会话历史读取和删除强制认证并以 `session_id + user_id` 约束
+- [x] 会话历史不存在返回 404，存储失败返回脱敏 503，删除不再伪成功
+- [x] 非流式和 SSE 内部异常不向客户端泄露原始异常文本
+- [x] chat 请求体、消息、历史和图片集合存在可执行上限并应用专用 rate limit
+- [x] Task11 生产文件复审无未解决 P0-P2
+- [x] `docs/audits/slice1.6/test_evidence.csv` 记录真实命令和结果
+- [x] `docs/audits/slice1.6/morning_handoff.md` 记录提交、测试、审查和保护值
+- [x] 新仓库工作区干净，无残留 Uvicorn/pytest/Playwright 进程
+- [x] 未 push、发布、部署或开始 Slice 1.7

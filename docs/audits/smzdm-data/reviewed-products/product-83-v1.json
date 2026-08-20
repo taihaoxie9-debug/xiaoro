@@ -1,0 +1,101 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:83:shade:584-v1",
+      "field_key": "shade",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "#584",
+      "review_rationale": "来源标题和参数都明确套组中的小方瓶为#584，可作为粉底液组件的单品选色知识。",
+      "sku_status": "exact_foundation_component_in_bundle_price_display_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:2c85aeb227b87a9b63d4f281c81213e8a9a910e01fe0d8c12c423cedd49be06e"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:83:net-content:35ml-component-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "35ml",
+      "review_rationale": "来源标题明确套组中的小方瓶粉底液为35ml，且与Canonical和参考价SKU容量一致；由于来源仍是套组，只作单品知识，不与价格组合展示。",
+      "sku_status": "exact_35ml_foundation_component_in_bundle_price_display_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:2c85aeb227b87a9b63d4f281c81213e8a9a910e01fe0d8c12c423cedd49be06e"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:83:net-content:cleansing-oil-cross-product-v1",
+      "field_key": "net_content",
+      "promotion_status": "rejected",
+      "public_text": "琥珀洁颜油150ml套组规格",
+      "review_rationale": "150ml属于套组中的琥珀洁颜油，不属于Canonical小方瓶粉底液，不能进入粉底液规格、价格或事实。",
+      "sku_status": "cross_product_bundle_component",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:2c85aeb227b87a9b63d4f281c81213e8a9a910e01fe0d8c12c423cedd49be06e"
+      ]
+    }
+  ],
+  "canonical_identity": "植村秀小方瓶粉底液 #584",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "#584 35ml",
+  "captured_at": "2026-08-19T21:52:34.525Z",
+  "category_profile": "base_makeup",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "detail_images": [],
+  "introduction_text": "待完善",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "finish",
+    "texture"
+  ],
+  "parameter_text": "色号颜色\n小方瓶584+琥珀油150ml\n规格类型\n正常规格\n是否为特殊用途化妆品\n否\n商品名称\n小方瓶+琥珀洁颜小油\n商品产地\n日本",
+  "portfolio_role": "oil_control_foundation",
+  "product_id": 83,
+  "review_field_policy": [
+    "net_content",
+    "shade",
+    "finish",
+    "coverage",
+    "longevity",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "#584 35ml",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "#584 35ml",
+    "source_sku": "#584 35ml foundation + 150ml cleansing oil set"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "2c85aeb227b87a9b63d4f281c81213e8a9a910e01fe0d8c12c423cedd49be06e",
+  "source_product_title": "植村秀琥珀洁颜油150ml+羽纱持妆小方瓶粉底液35ml洁颜粉底套组（小方瓶584+琥珀油150ml）【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "植村秀琥珀洁颜油150ml+羽纱持妆小方瓶粉底液35ml洁颜粉底套组（小方瓶584+琥珀油150ml）【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/nzm1x4d/"
+}

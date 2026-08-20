@@ -1,0 +1,101 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:125:net-content:30ml-cross-finish-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "30ml",
+      "review_rationale": "来源亮泽版、Canonical柔雾版与参考价SKU容量均为30ml，可保留净含量单品知识；妆效版本不一致，不得与价格组合展示。",
+      "sku_status": "same_product_30ml_cross_finish_variant_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:9792d74c84f80bbbcb519cae51984daef24fdef2c4736dbab2b80be016ef4426"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:125:shade:1n-neutral-fair-v1",
+      "field_key": "shade",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "1N 白皙肤色中性调",
+      "review_rationale": "来源标题与参数都明确为1N白皙肤色中性调，且与Canonical色号一致；只作选色知识，不解决亮泽与柔雾版本冲突。",
+      "sku_status": "same_product_1n_cross_finish_variant_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:9792d74c84f80bbbcb519cae51984daef24fdef2c4736dbab2b80be016ef4426"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:125:finish:luminous-vs-soft-matte-v1",
+      "field_key": "finish",
+      "promotion_status": "rejected",
+      "public_text": "柔润亮泽妆效绑定到Canonical柔雾哑光款",
+      "review_rationale": "来源参数明确是柔润亮泽1N，Canonical和参考价SKU是柔雾哑光1N；妆效版本冲突，不能提升为Canonical事实。",
+      "sku_status": "source_luminous_canonical_soft_matte_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:9792d74c84f80bbbcb519cae51984daef24fdef2c4736dbab2b80be016ef4426"
+      ]
+    }
+  ],
+  "canonical_identity": "迪奥锁妆无瑕粉底液柔雾哑光1N 30ml",
+  "canonical_sku_scope": "canonical_single_product_30ml",
+  "canonical_specification": "1N 30ml soft matte",
+  "captured_at": "2026-08-19T21:58:17.473Z",
+  "category_profile": "base_makeup",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "detail_images": [],
+  "introduction_text": "待完善",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "finish",
+    "texture"
+  ],
+  "parameter_text": "色号颜色\n【明星色号】柔润亮泽 1N号（白皙肤色中性调）\n规格\n30ml\n是否防晒\n是\n规格类型\n正常规格\n是否为特殊用途化妆品\n否\n类别\n粉底液\n适合肤质\n多种肤质",
+  "portfolio_role": "soft_matte_foundation",
+  "product_id": 125,
+  "review_field_policy": [
+    "net_content",
+    "shade",
+    "finish",
+    "coverage",
+    "longevity",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "1N 30ml soft matte",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "1N 30ml soft matte",
+    "source_sku": "1N 30ml luminous finish"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "9792d74c84f80bbbcb519cae51984daef24fdef2c4736dbab2b80be016ef4426",
+  "source_product_title": "日潮跑腿Dior迪奥锁妆凝脂粉底液SPF20PA+++30ml #1N【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "日潮跑腿Dior迪奥锁妆凝脂粉底液SPF20PA+++30ml #1N【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/6193v8v/"
+}

@@ -1,0 +1,77 @@
+{
+  "schema_version": "guide-copywriter-acceptance-decision-v2",
+  "run_id": "copywriter-20-v3",
+  "provider": "deepseek_official",
+  "model": "deepseek-v4-pro",
+  "prompt_version": "guide-presentation-copy-prompt-v6",
+  "qualified_on_current_code": true,
+  "qualification_source": "real_outputs_zero_api_rescore",
+  "real_provider_call_count": 20,
+  "cumulative_copywriter_call_count": 60,
+  "reserved_browser_copywriter_calls": 15,
+  "copywriter_call_cap": 75,
+  "provider_retry_count": 0,
+  "format_repair_attempts": 0,
+  "provider_failure_count": 0,
+  "real_output_count": 20,
+  "real_run_initial": {
+    "passed_count": 18,
+    "readability_passed_count": 20,
+    "fact_coverage_passed_count": 19,
+    "internal_language_passed_count": 20,
+    "reported_hard_violation_count": 2,
+    "passed": false
+  },
+  "zero_api_rescore": {
+    "provider_call_count": 0,
+    "passed_count": 19,
+    "readability_passed_count": 20,
+    "fact_coverage_passed_count": 19,
+    "internal_language_passed_count": 20,
+    "hard_violation_count": 0,
+    "passed": true
+  },
+  "shared_repairs": [
+    {
+      "layer": "public_presentation",
+      "classification": "validator_overreach",
+      "observed": "approved 16H merchant duration was rewritten as equivalent 16 hours",
+      "repair": "normalize closed ASCII hour units to the typed hour unit while preserving the exact numeric value",
+      "negative_case": "18 hours remains rejected when only 16H is approved"
+    },
+    {
+      "layer": "public_presentation",
+      "classification": "gate_scoring_contract",
+      "observed": "one 75 percent fact-coverage miss was counted as a hard fact violation and the runner required 20 of 20",
+      "repair": "keep the packet failed, classify coverage separately, and apply the approved 18 of 20 batch threshold with true hard violations at zero",
+      "negative_case": "17 of 20 remains unqualified"
+    }
+  ],
+  "remaining_ordinary_misses": [
+    {
+      "case_id": "copy-009-image-recommendation",
+      "classification": "ordinary_fact_coverage_miss",
+      "minimum_fact_coverage": 0.75,
+      "hard_violation": false,
+      "prompt_tuned": false
+    }
+  ],
+  "real_usage": {
+    "prompt_tokens": 31476,
+    "completion_tokens": 5894,
+    "total_tokens": 37370,
+    "provider_reported_cost_cny": null,
+    "estimated_phase_cost_reserve_cny": "2.00"
+  },
+  "hashes": {
+    "fixture_sha256": "c60df62776647731ffc8d07d65346a298f5bf2e28e26a53d5a7ae361d4d18967",
+    "fixture_manifest_sha256": "07d24fa79aae32de4e23bb0df80ef418ec57be9938d73f45e911296cd243fa82",
+    "prompt_sha256": "7bd627b6efc971aee07d069c31f1ca224ddc10616ba4f02199af3e9d13cc4d1f",
+    "validator_sha256": "6d7c6da14a4ef288787a57ee2be1090a4666b69cd14c6d275b0b30cf7d708bfc",
+    "gate_sha256": "6cd75c043adffc5b42b81b42c59b3f7232f562155d641070e6cd23ef365d42d0",
+    "runner_sha256": "85b737aa83c80e21da89498aa264bbff64a7b46e1a6360c9125680c187fe6751",
+    "real_results_sha256": "5fae20c612b020ddbd540b1b895174cc4aec403ab4c17a8aa0cdd0b84f49c7ee",
+    "real_summary_sha256": "d2dafe1ea57b957794b52044ff16d235a44d2cc56aa96b655d1818953dca7dbc",
+    "zero_api_replay_sha256": "735c7265e70e7fed1802d7aef99e913b3a7aa9c51cde03787b0f0e454bcdf32b"
+  }
+}

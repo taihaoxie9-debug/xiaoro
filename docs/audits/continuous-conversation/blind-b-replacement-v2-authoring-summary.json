@@ -1,0 +1,201 @@
+{
+  "asset_locks": {
+    "canonical_products_manifest_sha256": "e0430a244af451a3fa73642295c4a79128e1622dfeed19ff8140eda9f2df0c69",
+    "canonical_products_sha256": "0ba95df8c38d39f5bc0d73a32c318b157903abb64778c3e7b0acebfb75e95734",
+    "presentation_mode_matrix_sha256": "165ba0a0bfcd1f801032bce8447cb9a913c30e9335882069f1cc6f5a39870699",
+    "real_image_ground_truth_sha256": "522976c630dd7e85e3a053cd5564bec58b8282a548efd926b1594215daa11c0d",
+    "seen_message_ledger_sha256": "eb892d5f4e6e273847b2caf80603e6448e9e0727593368ff6463d07bd70c19bc"
+  },
+  "card_policy_counts": {
+    "eligible_subset": 16,
+    "exact_identity": 44,
+    "none": 40
+  },
+  "coverage_counts": {
+    "family_ambiguous_reference": 2,
+    "family_batch_size_mismatch": 3,
+    "family_clarification_recovery": 7,
+    "family_comparison": 9,
+    "family_consultation_correction": 5,
+    "family_consultation_profile": 5,
+    "family_consultation_return": 1,
+    "family_explicit_reference": 13,
+    "family_general_knowledge_return": 7,
+    "family_image_comparison": 2,
+    "family_image_identity": 5,
+    "family_image_recommendation": 3,
+    "family_image_similarity": 3,
+    "family_image_suitability": 5,
+    "family_pending_confirmation": 1,
+    "family_pending_correction": 1,
+    "family_pending_rejection": 1,
+    "family_pending_turn": 3,
+    "family_product_followup": 15,
+    "family_recommendation_revision": 8,
+    "family_safety_escalation": 2,
+    "presentation_clarification_turns": 9,
+    "presentation_comparison_turns": 13,
+    "presentation_consultation_turns": 23,
+    "presentation_general_knowledge_turns": 8,
+    "presentation_image_identity_turns": 5,
+    "presentation_image_recommendation_turns": 3,
+    "presentation_product_knowledge_turns": 21,
+    "presentation_recommendation_turns": 9,
+    "presentation_revision_turns": 4,
+    "presentation_single_product_turns": 5,
+    "processor_clarification_turns": 9,
+    "processor_comparison_turns": 13,
+    "processor_consultation_turns": 18,
+    "processor_general_knowledge_turns": 8,
+    "processor_image_identity_turns": 5,
+    "processor_product_knowledge_turns": 26,
+    "processor_recommendation_turns": 16,
+    "processor_safety_escalation_turns": 5,
+    "seen_ledger_collisions": 0,
+    "self_only_trajectories": 20,
+    "trajectories_total": 20,
+    "turns_total": 100,
+    "unique_normalized_messages": 100
+  },
+  "difficulty_counts": {
+    "complex": 2,
+    "moderate": 4,
+    "ordinary": 14
+  },
+  "disjointness": {
+    "historical_conversation_fixture_collision_count": 0,
+    "historical_conversation_fixture_file_count": 8,
+    "old_a_collision_count": 0,
+    "old_b_collision_count": 0,
+    "result": "pass",
+    "seen_ledger_collision_count": 0,
+    "within_replacement_duplicate_count": 0
+  },
+  "field_closure": {
+    "fact_requirement_entry_count": 108,
+    "fact_requirement_field_assertion_count": 345,
+    "required_field_counts": {
+      "category": 52,
+      "efficacy": 28,
+      "ingredients_present": 4,
+      "price": 91,
+      "product_identity": 108,
+      "safety": 5,
+      "spf_pa": 54,
+      "suitable_skin": 3
+    },
+    "required_field_missing_source_ref_count": 0,
+    "truth_turns_declaring_fact_requirements": 100,
+    "turns_with_explicit_empty_fact_requirements": 40,
+    "turns_with_nonempty_fact_requirements": 60,
+    "unique_product_field_pair_count": 57,
+    "unknown_required_field_count": 0
+  },
+  "files": {
+    "fixture": {
+      "path": "tests/fixtures/guide/conversation/continuous_blind_b_replacement_20x5_v2.jsonl",
+      "sha256": "544d6c7a8b6e05a69d695261c68c14cb44710e4a4a41613a893ca960f42c0b76"
+    },
+    "manifest": {
+      "path": "tests/fixtures/guide/conversation/continuous_blind_b_replacement_20x5_v2_manifest.json",
+      "sha256": "a6a36e56bdb992d312b0e2a8ef36f2e4864c1c849a979c6675da4cbda90727d5"
+    },
+    "summary": {
+      "path": "docs/audits/continuous-conversation/blind-b-replacement-v2-authoring-summary.json"
+    },
+    "truth": {
+      "path": "tests/fixtures/guide/conversation/continuous_blind_b_replacement_20x5_v2_truth.json",
+      "sha256": "05f53fad5e95771b6336ae59f36af53d89754e7d6f78e9a513082036c1a7b27b"
+    }
+  },
+  "generated_at": "2026-08-19",
+  "image_fixture_closure": {
+    "fixture_count": 2,
+    "fixtures": [
+      {
+        "fixture_id": "product-53-front",
+        "media_type": "image/png",
+        "product_id": 53,
+        "relative_path": "app/static/images/products/taobao_v3_572910260362.png",
+        "sha256": "56c5c1dd36143968b2781eac3582dc99b7b4754b599077c527797c85d508adb9"
+      },
+      {
+        "fixture_id": "product-55-front",
+        "media_type": "image/png",
+        "product_id": 55,
+        "relative_path": "app/static/images/products/tmall_v3_746513552108.png",
+        "sha256": "57815189e409d32162879ea4e98ce1e8b683457fdcc1403ede7dc58a4d3725b2"
+      }
+    ]
+  },
+  "independent_review": {
+    "issue_code_counts": {
+      "ELIGIBLE_SUBSET_BUDGET_MISMATCH": 0,
+      "PENDING_ACCEPT_WITHOUT_PROPOSAL": 0,
+      "PENDING_REJECTION_WITHOUT_PROPOSAL": 0,
+      "PENDING_STATE_UNREACHABLE": 0,
+      "UNSUPPORTED_REALTIME_PRICE": 0
+    },
+    "status": "pass"
+  },
+  "mechanical_truth_report": {
+    "canonical_product_count": 103,
+    "fact_requirement_count": 345,
+    "image_fixture_count": 2,
+    "schema_version": "guide-continuous-mechanical-truth-report-v1",
+    "turn_count": 100,
+    "variable_recommendation_turn_count": 16
+  },
+  "product_closure": {
+    "combined_product_count": 13,
+    "fixture_referenced_product_count": 9,
+    "truth_product_count": 13,
+    "unsupported_product_count": 0
+  },
+  "replacement_policy": {
+    "blind_c_created": false,
+    "question_bodies_in_summary": false,
+    "replaces_invalid_blind_b": true
+  },
+  "schema_version": "guide-blind-b-replacement-v2-authoring-summary-v1",
+  "shape": {
+    "self_only_trajectory_count": 20,
+    "trajectory_count": 20,
+    "turn_count": 100,
+    "turns_per_trajectory": 5,
+    "unique_normalized_message_count": 100
+  },
+  "status": "sealed_and_mechanically_valid",
+  "subject_scope_policy_counts": {
+    "explicit_self": 20,
+    "inherited_self": 80
+  },
+  "test_results": {
+    "focused_pytest": {
+      "failed": 0,
+      "passed": 109,
+      "status": "pass"
+    },
+    "independent_acceptance_recompute": {
+      "coverage_matches_manifest": true,
+      "eligible_subset_matches_canonical_hard_conditions": true,
+      "historical_fixture_collisions": 0,
+      "issue_code_failures": 0,
+      "seen_ledger_collisions": 0,
+      "status": "pass"
+    }
+  },
+  "validation_results": {
+    "audit_mechanical_truth_runtime_images": "pass",
+    "canonical_jsonl_model_order": "pass",
+    "eligible_subset_budget_recompute": "pass",
+    "explicit_product_resolver_26_turns": "pass",
+    "independent_issue_code_recompute": "pass",
+    "load_frozen_trajectories": "pass",
+    "mechanical_truth_spec_strict_load": "pass",
+    "no_simple_paraphrase_pairs": "pass",
+    "normalized_message_disjointness": "pass",
+    "pending_proposal_reachability": "pass",
+    "unsupported_realtime_price_scan": "pass"
+  }
+}

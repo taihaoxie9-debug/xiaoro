@@ -1,0 +1,137 @@
+{
+  "schema_version": "smzdm-wiki-gap-pilot-v1",
+  "status": "source_resolution_in_progress",
+  "selection_rule": "Largest presentation data gaps first; price is out of scope.",
+  "invariant": {
+    "allowed_writes": [
+      "approved_soft_facts",
+      "answer_only_facts",
+      "attributed_merchant_claims"
+    ],
+    "forbidden_writes": [
+      "product_identity",
+      "category",
+      "decision_profile",
+      "retrieval_index",
+      "reference_price"
+    ],
+    "expected_effect": "Presentation and factual Q&A become richer without changing intent routing, parent/child category handling, or product recall."
+  },
+  "products": [
+    {
+      "product_id": 46,
+      "identity": "理肤泉B5霜40ml修护舒缓泛红保湿面霜",
+      "source_url": "https://wiki.smzdm.com/p/zm690ye/",
+      "source_match": "base_product_in_40ml_x2_bundle",
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ]
+    },
+    {
+      "product_id": 73,
+      "identity": "欧莱雅紫熨斗眼霜30ml全脸淡化细纹保湿",
+      "source_url": "https://wiki.smzdm.com/p/q9mzwdd/",
+      "source_match": "product_family_page_size_to_verify",
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ]
+    },
+    {
+      "product_id": 76,
+      "identity": "SK-II前男友面膜10片补水保湿紧致sk2",
+      "source_url": "https://wiki.smzdm.com/p/4vxx6m/",
+      "source_match": "exact_10_sheet_candidate",
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ]
+    },
+    {
+      "product_id": 144,
+      "identity": "玉泽皮肤屏障修护神经酰胺调理乳100ml",
+      "source_url": "https://wiki.smzdm.com/p/15md59o/",
+      "source_match": "product_page_lists_100ml_but_default_variant_is_15ml",
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ]
+    },
+    {
+      "product_id": 146,
+      "identity": "珂润润浸保湿柔和乳液120ml",
+      "source_url": "https://wiki.smzdm.com/p/nmdjgy/",
+      "source_match": "exact_120ml_candidate",
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ]
+    },
+    {
+      "product_id": 24,
+      "identity": "海蓝之谜轻盈型精华乳霜",
+      "source_url": "https://wiki.smzdm.com/p/mzqge3x/",
+      "source_match": "product_family_exact_lightweight_cream_size_to_confirm",
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ]
+    },
+    {
+      "product_id": 36,
+      "identity": "PRO X BY OLAY专研祛斑净白精华液",
+      "source_url": "https://wiki.smzdm.com/p/70o9gg3/",
+      "source_match": "same_brand_brightening_serum_generation_to_verify",
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ]
+    },
+    {
+      "product_id": 37,
+      "identity": "资生堂红腰子面部精华75ml",
+      "source_url": "https://wiki.smzdm.com/p/60d14rd/",
+      "source_match": "exact_75ml_candidate_generation_to_verify",
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ]
+    },
+    {
+      "product_id": 41,
+      "identity": "珀莱雅双抗焕白净亮精华液",
+      "source_url": "https://wiki.smzdm.com/p/wyvx6d8/",
+      "source_match": "same_product_family_bundle_generation_to_verify",
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ]
+    },
+    {
+      "product_id": 64,
+      "identity": "茵芙莎流金岁月凝润美肤水",
+      "source_url": "https://wiki.smzdm.com/p/y5rwgje/",
+      "source_match": "exact_200ml_candidate",
+      "missing_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ]
+    }
+  ]
+}

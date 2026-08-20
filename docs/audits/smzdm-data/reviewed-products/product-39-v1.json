@@ -1,0 +1,118 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:39:ingredients:algae-sea-fennel-oils-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "藻类与海茴香提取物、霍霍巴籽油和向日葵籽油",
+      "review_rationale": "商品介绍明确列出这些成分；来源为产品家族页且无参数或长图，因此不扩写益生菌防御和浓度效果。",
+      "sku_status": "product_family_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:676752756c58da44f0d0fb148780d9571c40261304413047e038f188a4d4fc50"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:39:texture:moist-fine-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "滋润亲肤、肤感细腻",
+      "review_rationale": "商品介绍直接描述配方调整后的滋润、亲肤和细腻肤感；缺少长图，不映射更具体的轻盈或厚重概念。",
+      "sku_status": "product_family_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:676752756c58da44f0d0fb148780d9571c40261304413047e038f188a4d4fc50"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.repair",
+      "decision": "map",
+      "fact_id": "reviewed:product:39:efficacy:repair-hydration-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "修护与保湿方向",
+      "review_rationale": "商品介绍明确补水、保湿和修护方向；不保留修护力提升、刺激过敏降低等比较结论。",
+      "sku_status": "product_family_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:676752756c58da44f0d0fb148780d9571c40261304413047e038f188a4d4fc50"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:39:efficacy:quantified-upgrade-allergy-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "浓度提升、修护力增强与降低刺激过敏表述",
+      "review_rationale": "产品家族介绍中的升级比例、修护力和过敏风险比较缺少可审计依据，不进入公开事实。",
+      "sku_status": "product_family_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:676752756c58da44f0d0fb148780d9571c40261304413047e038f188a4d4fc50"
+      ]
+    }
+  ],
+  "canonical_identity": "赫莲娜悦颜焕活精华露",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T19:02:40.061Z",
+  "category_profile": "skincare",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "detail_images": [],
+  "introduction_text": "HELENA RUBINSTEIN（赫莲娜）是法国欧莱雅集团旗下化妆品品牌，由赫莲娜·鲁宾斯坦女士 (Helena Rubinstein) 在澳大利亚创立于1902年，其明星产品有睫毛膏、白绷带面霜、绿宝瓶等。这款强韧修护精华露，是经典悦活新生肌源修复精华的全面升级版，提取藻类植物精华，助于皮肤缺水，及时补水，抗氧修护；核心成分海茴香提取物和益生菌防御复合因子，浓度提升了15%，修护力更加强大，同时配方精简至22种成分，用更加滋润和亲肤的霍霍巴籽油与向日葵籽油替代了合成酯，肤感更加细腻，保湿力提升，仅1种温和防腐剂，大幅减少了刺激过敏的可能性，更好地修护受损肌肤。",
+  "missing_fields": [
+    "net_content",
+    "texture"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "luxury_repair_serum",
+  "product_id": 39,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "product_introduction"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "family",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "unresolved"
+  },
+  "source_match": "family",
+  "source_page_text_sha256": "676752756c58da44f0d0fb148780d9571c40261304413047e038f188a4d4fc50",
+  "source_product_title": "HELENA RUBINSTEIN 赫莲娜 绿宝瓶悦活强韧青春精华露",
+  "source_title": "HELENA RUBINSTEIN 赫莲娜 绿宝瓶悦活强韧青春精华露【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/rn5319d/"
+}

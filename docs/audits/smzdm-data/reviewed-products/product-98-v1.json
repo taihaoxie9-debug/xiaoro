@@ -1,0 +1,118 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:98:ingredients:ha-algae-dipotassium-glycyrrhizate-xylitol-aloe-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "低分子透明质酸、海藻提取物、甘草酸二钾、木糖醇与库拉索芦荟叶提取物",
+      "review_rationale": "商品介绍明确列出这些成分；来源为家族页且规格未对齐，因此只用于单品知识。",
+      "sku_status": "product_family_pack_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:04bf3fce89d3f28f786fafe1d35a72ba40c9b82d7424b97b81c2f9c913ee4996"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:98:texture:thin-transparent-mask-sheet-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "轻薄透明、高贴合度的面膜材质",
+      "review_rationale": "商品介绍直接描述面膜材质轻薄透明且贴合度高；这是膜布属性，不映射精华液清爽或轻盈父概念。",
+      "sku_status": "product_family_pack_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:04bf3fce89d3f28f786fafe1d35a72ba40c9b82d7424b97b81c2f9c913ee4996"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.hydration",
+      "decision": "map",
+      "fact_id": "reviewed:product:98:efficacy:hydration-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "保湿补水方向",
+      "review_rationale": "商品介绍稳定支持保湿补水方向；不保留泛红、水油平衡或特定肤质适用结论。",
+      "sku_status": "product_family_pack_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:04bf3fce89d3f28f786fafe1d35a72ba40c9b82d7424b97b81c2f9c913ee4996"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:98:efficacy:redness-oil-balance-skin-fit-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "泛红舒缓、水油平衡与敏感肌或油性肌适用结论",
+      "review_rationale": "来源仅有家族商品介绍，成分方向被扩大为泛红、水油状态和肤质适用保证，不进入公开事实。",
+      "sku_status": "product_family_pack_specification_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:04bf3fce89d3f28f786fafe1d35a72ba40c9b82d7424b97b81c2f9c913ee4996"
+      ]
+    }
+  ],
+  "canonical_identity": "蒂佳婷水动力活力水润面膜",
+  "canonical_sku_scope": "catalogued_mask_pack_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T19:00:33.361Z",
+  "category_profile": "skincare",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "detail_images": [],
+  "introduction_text": "Dr.Jart+蒂佳婷作为韩国第一药妆品牌，近年来通过研究消费者护肤需求，不断研发出真正改善肌肤问题的创新产品，并致力于让更多消费者真正体验到肌肤改善而带来的喜悦。这款水动力活力水润面膜，采用低分子透明质酸、海藻提取物、甘草酸二钾、木糖醇，可以帮助舒缓换季、干燥的泛红肌肤，具有良好的保湿力，防止水分流失；富有库拉索芦荟叶提取物，帮助肌肤改善内油外干，平衡水油。缓和调整肌肤水油状态，清爽润肤，赶走油脸；采用高贴合度面膜材质，轻薄透明，有效改善肌肤干燥问题，令肌肤水润光采。适合敏感肌、油性肌肤使用。",
+  "missing_fields": [
+    "net_content",
+    "texture"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "hydrating_mask",
+  "product_id": 98,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "product_introduction"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "family",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "family_pack_unresolved"
+  },
+  "source_match": "family",
+  "source_page_text_sha256": "04bf3fce89d3f28f786fafe1d35a72ba40c9b82d7424b97b81c2f9c913ee4996",
+  "source_product_title": "+ 蒂佳婷 Dr.Jart+ Dermask系列 水动力活力水润面膜",
+  "source_title": "+ 蒂佳婷 Dr.Jart+ Dermask系列 水动力活力水润面膜【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/pnny537/"
+}

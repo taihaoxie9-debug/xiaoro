@@ -1,0 +1,1576 @@
+{
+  "canonical_products_sha256": "0ba95df8c38d39f5bc0d73a32c318b157903abb64778c3e7b0acebfb75e95734",
+  "product_count": 103,
+  "products": [
+    {
+      "brand_key": "海蓝之谜",
+      "canonical_identity": "海蓝之谜轻盈型精华乳霜",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "price_band": "1000+",
+      "product_id": 24,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "兰蔻",
+      "canonical_identity": "无",
+      "category_profile": "suncare",
+      "missing_data_fields": [],
+      "price_band": "300-599",
+      "product_id": 26,
+      "review_reasons": [
+        "canonical_product_identity_unusable"
+      ],
+      "selection_lane": "identity_review_required"
+    },
+    {
+      "brand_key": "植村秀",
+      "canonical_identity": "植村秀琥珀卸妆油150ml护肤洁颜油 温和清洁 细致毛孔",
+      "category_profile": "cleanser",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "cleansing_power",
+        "texture"
+      ],
+      "price_band": "300-599",
+      "product_id": 30,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "兰蔻",
+      "canonical_identity": "肌底焕活修护精华液 50ml",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "1000+",
+      "product_id": 32,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "雅诗兰黛",
+      "canonical_identity": "雅诗兰黛特润修护肌活精华露",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "price_band": "600-999",
+      "product_id": 33,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "修丽可",
+      "canonical_identity": "修丽可维生素CE复合修护紧致修颜精华液30ml",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "1000+",
+      "product_id": 34,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "修丽可",
+      "canonical_identity": "修丽可聚糖多重丰盈精华液",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "1000+",
+      "product_id": 35,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "玉兰油",
+      "canonical_identity": "PRO X BY OLAY专研祛斑净白精华液",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "price_band": "300-599",
+      "product_id": 36,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "资生堂",
+      "canonical_identity": "资生堂红腰子面部精华75ml",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 37,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "理肤泉",
+      "canonical_identity": "理肤泉新B5多效修护精华",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 38,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "赫莲娜",
+      "canonical_identity": "赫莲娜悦颜焕活精华露",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "1000+",
+      "product_id": 39,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "迪奥",
+      "canonical_identity": "克丽丝汀迪奥花秘瑰萃玫瑰微凝珠焕活精华",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "1000+",
+      "product_id": 40,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "珀莱雅",
+      "canonical_identity": "珀莱雅双抗焕白净亮精华液",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "price_band": "0-99",
+      "product_id": 41,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "夸迪",
+      "canonical_identity": "稳肌轻龄悬油次抛精华",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present"
+      ],
+      "price_band": "300-599",
+      "product_id": 42,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "科颜氏",
+      "canonical_identity": "科颜氏高保湿面霜",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "300-599",
+      "product_id": 43,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "珂润",
+      "canonical_identity": "润浸保湿滋润乳霜",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content"
+      ],
+      "price_band": "100-299",
+      "product_id": 45,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "理肤泉",
+      "canonical_identity": "理肤泉B5霜40ml修护舒缓泛红保湿面霜",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "price_band": "100-299",
+      "product_id": 46,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "雅诗兰黛",
+      "canonical_identity": "雅诗兰黛智妍紧塑精华丝绒晚霜",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content"
+      ],
+      "price_band": "1000+",
+      "product_id": 47,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "兰蔻",
+      "canonical_identity": "兰蔻菁纯面霜奢护霜60ml抗皱滋润",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present"
+      ],
+      "price_band": "1000+",
+      "product_id": 48,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "玉泽",
+      "canonical_identity": "玉泽皮肤屏障修护保湿霜",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content"
+      ],
+      "price_band": "100-299",
+      "product_id": 49,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "薇诺娜",
+      "canonical_identity": "第二代特护霜",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content"
+      ],
+      "price_band": "100-299",
+      "product_id": 50,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "安热沙",
+      "canonical_identity": "安热沙智感倍护防晒乳液GB",
+      "category_profile": "suncare",
+      "missing_data_fields": [
+        "net_content",
+        "texture",
+        "water_resistance"
+      ],
+      "price_band": "0-99",
+      "product_id": 51,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "兰蔻",
+      "canonical_identity": "兰蔻菁纯臻颜防晒隔离乳",
+      "category_profile": "suncare",
+      "missing_data_fields": [
+        "net_content",
+        "texture",
+        "water_resistance"
+      ],
+      "price_band": "100-299",
+      "product_id": 52,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "理肤泉",
+      "canonical_identity": "理肤泉特护清盈防晒乳 SPF50 PA++++",
+      "category_profile": "suncare",
+      "missing_data_fields": [
+        "net_content",
+        "texture",
+        "water_resistance"
+      ],
+      "price_band": "100-299",
+      "product_id": 53,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "isdin",
+      "canonical_identity": "怡思丁小蓝瓶防晒水",
+      "category_profile": "suncare",
+      "missing_data_fields": [
+        "net_content",
+        "texture",
+        "water_resistance"
+      ],
+      "price_band": "0-99",
+      "product_id": 54,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "薇诺娜",
+      "canonical_identity": "清透防晒乳",
+      "category_profile": "suncare",
+      "missing_data_fields": [
+        "net_content",
+        "spf_pa",
+        "texture",
+        "water_resistance"
+      ],
+      "price_band": "0-99",
+      "product_id": 55,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "资生堂",
+      "canonical_identity": "蓝胖子防晒霜50ml",
+      "category_profile": "suncare",
+      "missing_data_fields": [
+        "net_content",
+        "texture",
+        "water_resistance"
+      ],
+      "price_band": "100-299",
+      "product_id": 56,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "碧柔",
+      "canonical_identity": "碧柔Biore水活防晒水润凝蜜",
+      "category_profile": "suncare",
+      "missing_data_fields": [
+        "net_content",
+        "texture",
+        "water_resistance"
+      ],
+      "price_band": "0-99",
+      "product_id": 57,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "珀莱雅",
+      "canonical_identity": "珀莱雅超膜盾护防晒霜",
+      "category_profile": "suncare",
+      "missing_data_fields": [
+        "net_content",
+        "texture",
+        "water_resistance"
+      ],
+      "price_band": "100-299",
+      "product_id": 58,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "skii",
+      "canonical_identity": "SK-II® 护肤精华露",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "1000+",
+      "product_id": 59,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "悦木之源",
+      "canonical_identity": "灵芝焕能强韧精华水",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 60,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "科颜氏",
+      "canonical_identity": "科颜氏金盏花植物精萃水",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "300-599",
+      "product_id": 61,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "雅诗兰黛",
+      "canonical_identity": "雅诗兰黛樱花版微精华露",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present"
+      ],
+      "price_band": "1000+",
+      "product_id": 62,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "兰蔻",
+      "canonical_identity": "兰蔻净澈焕肤双重精华水",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present"
+      ],
+      "price_band": "600-999",
+      "product_id": 63,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "茵芙莎",
+      "canonical_identity": "茵芙莎流金岁月凝润美肤水",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "price_band": "300-599",
+      "product_id": 64,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "芙丽芳丝",
+      "canonical_identity": "芙丽芳丝净润洗面霜",
+      "category_profile": "cleanser",
+      "missing_data_fields": [
+        "net_content",
+        "cleansing_power"
+      ],
+      "price_band": "100-299",
+      "product_id": 65,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "珂润",
+      "canonical_identity": "珂润润浸保湿洁颜泡沫",
+      "category_profile": "cleanser",
+      "missing_data_fields": [
+        "net_content",
+        "cleansing_power"
+      ],
+      "price_band": "0-99",
+      "product_id": 66,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "eltamd",
+      "canonical_identity": "Elta MD 氨基酸泡沫洁面乳 / 安妍科泡沫洁面乳",
+      "category_profile": "cleanser",
+      "missing_data_fields": [
+        "net_content",
+        "cleansing_power"
+      ],
+      "price_band": "100-299",
+      "product_id": 67,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "理肤泉",
+      "canonical_identity": "理肤泉特安洁面泡沫",
+      "category_profile": "cleanser",
+      "missing_data_fields": [
+        "net_content",
+        "cleansing_power"
+      ],
+      "price_band": "0-99",
+      "product_id": 68,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "植村秀",
+      "canonical_identity": "植村秀臻萃养肤洁颜油 450ML*1",
+      "category_profile": "cleanser",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "cleansing_power"
+      ],
+      "price_band": "600-999",
+      "product_id": 69,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "贝德玛",
+      "canonical_identity": "贝德玛卸妆水粉水500ml",
+      "category_profile": "cleanser",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "cleansing_power"
+      ],
+      "price_band": "0-99",
+      "product_id": 70,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "芭妮兰",
+      "canonical_identity": "芭妮兰净柔经典卸妆膏100ml*1",
+      "category_profile": "cleanser",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "cleansing_power"
+      ],
+      "price_band": "0-99",
+      "product_id": 71,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "雅诗兰黛",
+      "canonical_identity": "雅诗兰黛特润修护肌活精华眼霜15ml",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "300-599",
+      "product_id": 72,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "欧莱雅",
+      "canonical_identity": "欧莱雅紫熨斗眼霜30ml全脸淡化细纹保湿",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "price_band": "100-299",
+      "product_id": 73,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "可复美",
+      "canonical_identity": "可复美重组胶原蛋白敷料2盒10贴面部项目创面愈合痤疮皮炎",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "price_band": "100-299",
+      "product_id": 74,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "敷尔佳",
+      "canonical_identity": "敷尔佳白膜透明质酸钠修复贴5片",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "price_band": "100-299",
+      "product_id": 75,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "skii",
+      "canonical_identity": "SK-II前男友面膜10片补水保湿紧致sk2",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "price_band": "1000+",
+      "product_id": 76,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "理肤泉",
+      "canonical_identity": "理肤泉B5面膜PRO5片积雪草补水保湿修护舒缓",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "price_band": "100-299",
+      "product_id": 77,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "薇诺娜",
+      "canonical_identity": "薇诺娜（WINONA）特护面膜舒敏保湿丝滑面贴膜6片舒缓修护补水保湿",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "price_band": "0-99",
+      "product_id": 78,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "雅诗兰黛",
+      "canonical_identity": "雅诗兰黛轻透持妆粉底液 2C0",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "300-599",
+      "product_id": 79,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "阿玛尼",
+      "canonical_identity": "阿玛尼（ARMANI）权力持妆PRO粉底液#2 暖调白皙30ml遮瑕控油",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 80,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "nars",
+      "canonical_identity": "NARS纳斯/娜斯 定妆大白饼粉饼不卡粉10g 细腻持透",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 81,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "cpb",
+      "canonical_identity": "肌肤之钥CPB光柔水凝气垫精华粉底膏I10象牙白 钻光方气垫+外壳 持妆遮瑕",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "300-599",
+      "product_id": 82,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "植村秀",
+      "canonical_identity": "植村秀小方瓶粉底液 #584",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "300-599",
+      "product_id": 83,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "花西子",
+      "canonical_identity": "花西子玉女桃花轻蜜粉（玉养款 香粉盒版）03妆似雾（商品编号100039849504）",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish"
+      ],
+      "price_band": "100-299",
+      "product_id": 84,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "mac",
+      "canonical_identity": "魅可（M.A.C）口红子弹头 See Sheer 520（商品编号4564136）",
+      "category_profile": "color_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "color_family",
+        "finish"
+      ],
+      "price_band": "100-299",
+      "product_id": 86,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "倩碧",
+      "canonical_identity": "倩碧卓越润肤乳液",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 89,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "理肤泉",
+      "canonical_identity": "理肤泉",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "price_band": "0-99",
+      "product_id": 90,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "玉泽",
+      "canonical_identity": "玉泽皮肤屏障修护精华乳50ml",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "price_band": "0-99",
+      "product_id": 91,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "兰蔻",
+      "canonical_identity": "兰蔻全新菁纯眼霜",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "price_band": "1000+",
+      "product_id": 92,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "怡丽丝尔",
+      "canonical_identity": "怡丽丝尔优悦活颜眼唇抚纹精华霜15g",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 93,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "theordinary",
+      "canonical_identity": "研度公式咖啡因与茶多酚眼部精华",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "price_band": "0-99",
+      "product_id": 94,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "skii",
+      "canonical_identity": "SK-II护肤洁面霜",
+      "category_profile": "cleanser",
+      "missing_data_fields": [
+        "net_content",
+        "cleansing_power"
+      ],
+      "price_band": "100-299",
+      "product_id": 97,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "蒂佳婷",
+      "canonical_identity": "蒂佳婷水动力活力水润面膜",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "0-99",
+      "product_id": 98,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "馥蕾诗",
+      "canonical_identity": "红茶凝时焕颜面膜",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "600-999",
+      "product_id": 99,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "科颜氏",
+      "canonical_identity": "000",
+      "category_profile": "skincare",
+      "missing_data_fields": [],
+      "price_band": "300-599",
+      "product_id": 100,
+      "review_reasons": [
+        "canonical_product_identity_unusable"
+      ],
+      "selection_lane": "identity_review_required"
+    },
+    {
+      "brand_key": "兰蔻",
+      "canonical_identity": "兰蔻轻透水漾防晒乳30ml小白管防晒霜隔离护肤品",
+      "category_profile": "suncare",
+      "missing_data_fields": [
+        "net_content",
+        "spf_pa",
+        "texture",
+        "water_resistance"
+      ],
+      "price_band": "300-599",
+      "product_id": 101,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "资生堂",
+      "canonical_identity": "新艳阳夏臻效水动力防护乳",
+      "category_profile": "suncare",
+      "missing_data_fields": [
+        "net_content",
+        "texture",
+        "water_resistance"
+      ],
+      "price_band": "100-299",
+      "product_id": 102,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "植村秀",
+      "canonical_identity": "植村秀（shu uemura）琥珀绿茶卸妆油深层清洁温和不刺激养肤洁颜油大容量",
+      "category_profile": "cleanser",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "cleansing_power",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 103,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "evelom",
+      "canonical_identity": "EVE LOM经典洁颜霜",
+      "category_profile": "cleanser",
+      "missing_data_fields": [
+        "net_content",
+        "cleansing_power"
+      ],
+      "price_band": "600-999",
+      "product_id": 104,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "海蓝之谜",
+      "canonical_identity": "精萃水",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present"
+      ],
+      "price_band": "600-999",
+      "product_id": 105,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "澳尔滨",
+      "canonical_identity": "奥尔滨健康水330ml",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present"
+      ],
+      "price_band": "300-599",
+      "product_id": 106,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "阿玛尼",
+      "canonical_identity": "阿玛尼轻垫精华粉底液 15g",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "300-599",
+      "product_id": 107,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "圣罗兰",
+      "canonical_identity": "YSL恒久完美气垫替换芯 B20",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 108,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "兰蔻",
+      "canonical_identity": "兰蔻菁纯气垫粉底液100新版13g",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "300-599",
+      "product_id": 109,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "娜斯",
+      "canonical_identity": "NARS亮采柔滑遮瑕膏",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 110,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "茵芙莎",
+      "canonical_identity": "茵芙莎光透无瑕修饰遮瑕膏e",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 111,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "肌肤之钥",
+      "canonical_identity": "CPB肌肤之钥长管隔离",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 112,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "苏菲娜",
+      "canonical_identity": "苏菲娜映美焕采控油清透妆前乳",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 113,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "mac",
+      "canonical_identity": "M.A.C魅可大子弹头口红哑光高级显白#602大辣椒",
+      "category_profile": "color_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "color_family",
+        "finish"
+      ],
+      "price_band": "100-299",
+      "product_id": 114,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "迪奥",
+      "canonical_identity": "克丽丝汀迪奥迪奥烈艳蓝金唇膏 丝绒 999（商品编号100056057296）",
+      "category_profile": "color_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "color_family",
+        "finish"
+      ],
+      "price_band": "300-599",
+      "product_id": 115,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "圣罗兰",
+      "canonical_identity": "圣罗兰细管纯口红 小金条 1966# 2.2g（商品编号100052491701）",
+      "category_profile": "color_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "color_family",
+        "finish"
+      ],
+      "price_band": "100-299",
+      "product_id": 116,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "urbandecay",
+      "canonical_identity": "URBAN DECAY MOONDUST月耀星眸单色眼影 坠落银河（昵称：茶牛郎）",
+      "category_profile": "color_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "color_family",
+        "finish"
+      ],
+      "price_band": "100-299",
+      "product_id": 117,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "娜斯",
+      "canonical_identity": "NARS/娜斯 腮红 #4013",
+      "category_profile": "color_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "color_family",
+        "finish"
+      ],
+      "price_band": "100-299",
+      "product_id": 118,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "祖玛珑",
+      "canonical_identity": "祖玛珑英国梨与小苍兰",
+      "category_profile": "fragrance",
+      "missing_data_fields": [
+        "net_content",
+        "concentration",
+        "top_notes",
+        "heart_notes",
+        "base_notes"
+      ],
+      "price_band": "300-599",
+      "product_id": 120,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "香奈儿",
+      "canonical_identity": "香奈儿五号之水套装",
+      "category_profile": "fragrance",
+      "missing_data_fields": [
+        "net_content",
+        "concentration",
+        "top_notes",
+        "heart_notes",
+        "base_notes"
+      ],
+      "price_band": "1000+",
+      "product_id": 121,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "mac",
+      "canonical_identity": "MAC Studio Fix Fluid 粉底液",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "300-599",
+      "product_id": 122,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "圣罗兰",
+      "canonical_identity": "YSL恒久粉底液 LC2",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "600-999",
+      "product_id": 123,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "兰蔻",
+      "canonical_identity": "兰蔻持妆粉底液 PO-01",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "300-599",
+      "product_id": 124,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "迪奥",
+      "canonical_identity": "迪奥锁妆无瑕粉底液柔雾哑光1N 30ml",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "600-999",
+      "product_id": 125,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "纪梵希",
+      "canonical_identity": "纪梵希明星柔雾粉底液N95 30ml油皮服帖遮瑕",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "600-999",
+      "product_id": 126,
+      "review_reasons": [],
+      "selection_lane": "candidate_for_retention"
+    },
+    {
+      "brand_key": "nars",
+      "canonical_identity": "NARS亮采持妆粉底液L1 30ml遮瑕持妆",
+      "category_profile": "base_makeup",
+      "missing_data_fields": [
+        "net_content",
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 127,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "兰蔻",
+      "canonical_identity": "兰蔻肌底焕活修护精华液 50ml",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "300-599",
+      "product_id": 129,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "兰蔻",
+      "canonical_identity": "兰蔻轻透水漾防晒乳50ml",
+      "category_profile": "suncare",
+      "missing_data_fields": [
+        "net_content",
+        "texture",
+        "water_resistance"
+      ],
+      "price_band": "600-999",
+      "product_id": 130,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "悦木之源",
+      "canonical_identity": "悦木之源灵芝水200ml",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 131,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "科颜氏",
+      "canonical_identity": "科颜氏高保湿面霜",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 132,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "科颜氏",
+      "canonical_identity": "科颜氏金盏花爽肤水",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 133,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "贝德玛",
+      "canonical_identity": "贝德玛舒妍卸妆洁肤液500ml*1",
+      "category_profile": "cleanser",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "cleansing_power"
+      ],
+      "price_band": "0-99",
+      "product_id": 134,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "雅诗兰黛",
+      "canonical_identity": "雅诗兰黛特润修护肌活精华眼霜",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "texture"
+      ],
+      "price_band": "100-299",
+      "product_id": 135,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "香奈儿",
+      "canonical_identity": "香奈儿五号香水（经典）",
+      "category_profile": "fragrance",
+      "missing_data_fields": [
+        "net_content",
+        "concentration",
+        "top_notes",
+        "heart_notes",
+        "base_notes"
+      ],
+      "price_band": "1000+",
+      "product_id": 143,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "玉泽",
+      "canonical_identity": "玉泽皮肤屏障修护神经酰胺调理乳100ml",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "price_band": "100-299",
+      "product_id": 144,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "理肤泉",
+      "canonical_identity": "理肤泉特安舒缓水乳两件套 安心水200ml+安心乳40ml",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "price_band": "300-599",
+      "product_id": 145,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    },
+    {
+      "brand_key": "珂润",
+      "canonical_identity": "珂润润浸保湿柔和乳液120ml",
+      "category_profile": "skincare",
+      "missing_data_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "price_band": "100-299",
+      "product_id": 146,
+      "review_reasons": [
+        "same_brand_profile_multiple_products"
+      ],
+      "selection_lane": "series_or_variant_review"
+    }
+  ],
+  "profile_counts": {
+    "base_makeup": 19,
+    "cleanser": 12,
+    "color_makeup": 6,
+    "fragrance": 3,
+    "skincare": 51,
+    "suncare": 12
+  },
+  "schema_version": "catalog-selection-inventory-v1",
+  "selection_lane_counts": {
+    "candidate_for_retention": 45,
+    "identity_review_required": 2,
+    "series_or_variant_review": 56
+  }
+}

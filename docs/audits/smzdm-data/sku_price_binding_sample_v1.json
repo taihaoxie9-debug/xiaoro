@@ -1,0 +1,82 @@
+{
+  "schema_version": "sku-price-binding-sample-v1",
+  "status": "audit_only_not_promoted",
+  "observed_at": "2026-08-19",
+  "purpose": "Check whether canonical product identity, source SKU and displayed reference price can be safely treated as one product.",
+  "samples": [
+    {
+      "product_id": 33,
+      "canonical_identity": "雅诗兰黛特润修护肌活精华露",
+      "current_reference_price": "¥968",
+      "base_source_title": "雅诗兰黛小棕瓶精华露50ml抗老紧致",
+      "base_source_price": "¥968",
+      "wiki_title": "雅诗兰黛 小棕瓶修护系列 特润修护肌活精华露 第七代 100ml*2",
+      "wiki_observed_price": "not used",
+      "status": "sku_mismatch",
+      "price_decision": "Do not compare or overwrite the 50ml source price with the 100ml*2 wiki page."
+    },
+    {
+      "product_id": 34,
+      "canonical_identity": "修丽可维生素CE复合修护紧致修颜精华液30ml",
+      "current_reference_price": "¥1630",
+      "base_source_title": "修丽可CE精华30ml维生素C+E阿魏酸抗氧精华",
+      "base_source_price": "¥1630",
+      "wiki_title": "修丽可 CE复合修护精华液 30ml",
+      "wiki_observed_price": "¥797.05",
+      "status": "same_sku_different_price_source",
+      "price_decision": "Treat the wiki value as a dated offer observation only; do not overwrite the current reference price."
+    },
+    {
+      "product_id": 38,
+      "canonical_identity": "理肤泉新B5多效修护精华",
+      "current_reference_price": "¥294",
+      "base_source_title": "理肤泉超级B5精华30ml舒缓紧致保湿修护",
+      "base_source_price": "¥294",
+      "wiki_title": null,
+      "wiki_observed_price": null,
+      "status": "exact_wiki_sku_not_resolved",
+      "price_decision": "Do not attach any wiki price until an exact B5 30ml page is resolved."
+    },
+    {
+      "product_id": 53,
+      "canonical_identity": "理肤泉大哥大UVMUNE400轻盈防晒乳无香SPF50+ 50ml黄标",
+      "current_reference_price": "¥125",
+      "base_source_title": "理肤泉大哥大UVMUNE400轻盈防晒乳无香SPF50+ 50ml黄标",
+      "base_source_price": "¥125",
+      "wiki_title": "理肤泉 特护清盈防晒乳 50ml SPF50+ PA++++",
+      "wiki_observed_price": "¥39.37",
+      "status": "same_size_but_variant_unresolved",
+      "price_decision": "Do not use the wiki price or promote its page facts before UVMUNE400, fragrance and yellow-label variant identity are confirmed."
+    },
+    {
+      "product_id": 57,
+      "canonical_identity": "碧柔Biore水活防晒水润凝蜜",
+      "current_reference_price": "¥92.02",
+      "base_source_title": "Biore碧柔水活防晒水润凝蜜50g*2隔离防晒乳防水汗高倍防晒",
+      "base_source_price": "¥92.02",
+      "wiki_title": "碧柔 水活防晒水感凝蜜 SPF50+ PA+++ 50g 倍护+凝蜜套装",
+      "wiki_observed_price": "not listed",
+      "status": "set_variant_not_normalized",
+      "price_decision": "Treat as a product-family match only until the current card is bound to one exact set or single-unit SKU."
+    },
+    {
+      "product_id": 91,
+      "canonical_identity": "玉泽皮肤屏障修护精华乳50ml",
+      "current_reference_price": "¥88",
+      "base_source_title": "玉泽皮肤屏障修护精华乳25ml",
+      "base_source_price": "¥88",
+      "wiki_title": "玉泽 皮肤屏障修护精华乳 25ml",
+      "wiki_observed_price": "¥139",
+      "status": "confirmed_spec_price_misbinding",
+      "price_decision": "Current 50ml identity and ¥88 price are sourced from different SKUs. Suppress or correct the displayed size-price pairing before treating it as a trustworthy card fact."
+    }
+  ],
+  "summary": {
+    "sample_count": 6,
+    "safe_exact_sku_price_matches": 0,
+    "same_sku_different_price_sources": 1,
+    "unresolved_or_mismatched_sku_sources": 5,
+    "confirmed_existing_spec_price_misbindings": 1
+  },
+  "required_rule": "A displayed price is valid only when product identity, exact variant, net content, source and observation time are bound together."
+}

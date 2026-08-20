@@ -1,0 +1,129 @@
+{
+  "branch": "rebuild",
+  "captured_at_utc": "2026-08-17T17:15:02Z",
+  "files": [
+    {
+      "path": "app/guide/adapters/llm/turn_meaning_prompt.py",
+      "sha256": "61febe0f823f7cf644a648bf07a85e25b54a04f2c9fa4d87cb9aabcf8ded2d9a"
+    },
+    {
+      "path": "app/guide/application/chat_api_adapter.py",
+      "sha256": "27316c376ad09ee5db7aec254a69b99eaf1210655809e4ba9e5ade7f07adfb5c"
+    },
+    {
+      "path": "app/guide/application/consultation_coordinator.py",
+      "sha256": "19c906ef752d5407025c811038bb147144d5b9706b1208a75ed7b682866b6177"
+    },
+    {
+      "path": "app/guide/application/dynamic_consultation.py",
+      "sha256": "3eeb06037b150ee94309852bc9c1ecdd7f3f2743be49476ccf16672a65b0a658"
+    },
+    {
+      "path": "app/guide/application/image_recommendation_flow.py",
+      "sha256": "12a729ae4d7f63ffbd603ad3e914359a5f1d4e96005695b23456ec0e21258aa2"
+    },
+    {
+      "path": "app/guide/application/text_recommendation_flow.py",
+      "sha256": "cd5891511486938a4a02d949cf3129355f5663d9826598dd90e38d6ee0891046"
+    },
+    {
+      "path": "app/guide/application/unified_guide_flow.py",
+      "sha256": "f5d808d20c3690aae06ba0c70198a14bc4144a09820d4d32051b956296327c5b"
+    },
+    {
+      "path": "app/guide/decision/concept_ranking.py",
+      "sha256": "8aa19665f7b4db5f4f9e60e78c35f14de54d7f476471b9b415370558c7ee0902"
+    },
+    {
+      "path": "app/guide/feedback/contracts.py",
+      "sha256": "c5d6d69b2e9d690c65ff26bfd2206ba70e695e9a0313704690d67de29ce3dd4b"
+    },
+    {
+      "path": "app/guide/feedback/focus_state.py",
+      "sha256": "9a9dd10af128656e25e17a45bef47c9d747100b27700b17356c606f8847abaed"
+    },
+    {
+      "path": "app/guide/intent/executable_intent_compiler.py",
+      "sha256": "b69a8d40ac39fa2cc17484b7bd4e79b911e3abec3e1c1369aac86df9f76ef73c"
+    },
+    {
+      "path": "app/guide/intent/semantic_admission.py",
+      "sha256": "de3d1f9af42626849513f33829a4ee6f3f105cee83d554bfb01e6807dcb9e945"
+    },
+    {
+      "path": "app/guide/intent/task_planning.py",
+      "sha256": "0c05a1ad824fcab0806dbbf2676d284f47365c77100dba12b1e83afda5f96619"
+    },
+    {
+      "path": "app/guide/intent/unified_turn_router.py",
+      "sha256": "001b0ab9e0f54f9ab05160e01db5037f3092e2b82337e23b8be458183db41bb5"
+    },
+    {
+      "path": "app/guide/presentation/copywriter_prompt.py",
+      "sha256": "ead7e6447f966336863dc7dce23ad29ee41615f310404ee0dc7a6482c59e7a59"
+    },
+    {
+      "path": "app/guide/presentation/copywriter_validation.py",
+      "sha256": "ab0d6a15c9e5fd86f86bd63ebfe35937c888566c33fd33249b502400c51eb7b9"
+    },
+    {
+      "path": "app/guide/presentation/presentation_compiler.py",
+      "sha256": "5090dd290b640102de647cc2fc77fc970cd883a15a483811f4a3b6cc882565ba"
+    },
+    {
+      "path": "app/guide/retrieval/selection_fact_reader.py",
+      "sha256": "bf05c7a4ffbeffc65016ed7a74a6a33934fb8df8577540b9540526d5b5063131"
+    },
+    {
+      "path": "app/guide/understanding/context_resolver.py",
+      "sha256": "c2b4265634f31d2521f033a4e071e036201d1ab30eeaeba7834488b84b771e7b"
+    },
+    {
+      "path": "app/guide/understanding/semantic_contracts.py",
+      "sha256": "d52574653b9e6d030bf281b6e20335d3968f9d593a8f248dcbfab97bccb1af92"
+    },
+    {
+      "path": "app/guide/understanding/turn_meaning_contracts.py",
+      "sha256": "3094be9dca3ed84caf16ba1de941c343aa6654abc2eceba8725eb211ef578caa"
+    },
+    {
+      "path": "app/static/chat.html",
+      "sha256": "f90e153cd624b5b9b4aa359bafe4f77ab77d9823c970611ac6fcdece360d157d"
+    },
+    {
+      "path": "app/static/guide-presentation.js",
+      "sha256": "48274ce9d42826ea8d54ac7795fc246610a8a73c7cecc77cf737e68b4af387bb"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-08-18-continuous-conversation-final-acceptance.md",
+      "sha256": "2b382f24bca4793f2a31a380289e7fe4dba6d0e7171cc5e61537791568ab6f31"
+    },
+    {
+      "path": "tools/guide_gates/continuous_conversation_fixture.py",
+      "sha256": "eb6547ad59f89f86558d2b65fbd8f3e48789592cb7207b18cdf1b25bb3d48927"
+    },
+    {
+      "path": "tools/guide_gates/continuous_conversation_gate.py",
+      "sha256": "7d998fafb73754ce63fb8ae358735c3dcd0929157d3f6336dffe57f746f8040b"
+    },
+    {
+      "path": "tools/guide_gates/continuous_conversation_runtime.py",
+      "sha256": "35bdeb81064be2e3e7a18d76d1b8550cebb95e56703b63fc34034c6020d15429"
+    },
+    {
+      "path": "tools/guide_gates/presentation_copy_gate.py",
+      "sha256": "6b3f73cbb9266d63cdb5606a6ab4fe7ba4c47bbf7c3c9509509b03d2826a6e7b"
+    },
+    {
+      "path": "tools/guide_gates/run_real_continuous_conversation_gate.py",
+      "sha256": "685767b245ea97c07b1543638ebf91833069ee8039139be0b3672e96258253af"
+    },
+    {
+      "path": "tools/guide_gates/run_real_presentation_copy_gate.py",
+      "sha256": "12ebbb3e87c11cec0fc29b85ebf3c0522fac5ae13b4074882403d5284158ac84"
+    }
+  ],
+  "repository": "/Users/bytedance/Desktop/xiaoro-fresh",
+  "schema_version": "guide-night-run-baseline-v1",
+  "worktree_dirty": true
+}

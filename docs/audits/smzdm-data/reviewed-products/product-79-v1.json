@@ -1,0 +1,254 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:79:net-content:30ml-cross-generation-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "30ml",
+      "review_rationale": "来源标题、参数和商品介绍均为30ml，容量与Canonical及参考价SKU一致；来源代际未锁定且备案偏旧，不能与第二代参考价组合展示。",
+      "sku_status": "same_product_30ml_generation_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:f9146b94ed9fbc9df1bab072c0cf37241d8bfd9df8929b81a61300149ac37e9d"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:79:shade:2c0-cool-natural-fair-v1",
+      "field_key": "shade",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "2C0#62 自然偏白冷调",
+      "review_rationale": "来源标题、参数与长图第4张选色表都明确2C0#62为自然偏白冷调，可作为跨代际选色知识。",
+      "sku_status": "same_product_2c0_generation_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 4,
+      "source_refs": [
+        "smzdm-detail-image:8060f6f608c57b4309440c7e266991aef2aaf2ec1c6ef3ae3041c32e03ec6ca4",
+        "smzdm-browser-body:f9146b94ed9fbc9df1bab072c0cf37241d8bfd9df8929b81a61300149ac37e9d"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "finish.matte",
+      "decision": "map",
+      "fact_id": "reviewed:product:79:finish:matte-v1",
+      "field_key": "finish",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "哑光雾面妆效",
+      "review_rationale": "参数表明确写哑光/雾面，长图第1张也描述轻透无瑕的哑光肌，可映射哑光妆效方向。",
+      "sku_status": "same_product_generation_unresolved_non_sku_finish",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:1faa9b42f280de3be0d520fb43154594897e995e4354cd795f7232a9caab7240",
+        "smzdm-browser-body:f9146b94ed9fbc9df1bab072c0cf37241d8bfd9df8929b81a61300149ac37e9d"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "coverage.coverage",
+      "decision": "map",
+      "fact_id": "reviewed:product:79:coverage:medium-multi-concern-v1",
+      "field_key": "coverage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "中度遮瑕，可修饰痘印、暗沉、泛红、毛孔和肤色不均",
+      "review_rationale": "商品介绍明确为中度遮瑕，长图第2张列出多类瑕疵修饰对象，可映射基础遮瑕方向，不提升为高遮瑕。",
+      "sku_status": "same_product_generation_unresolved_non_sku_coverage",
+      "source_kind": "detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:6a5bea3f9f346db6e16ad9b9fb6ee46fe512a9980c11cfaeaaf5319df1d74612",
+        "smzdm-browser-body:f9146b94ed9fbc9df1bab072c0cf37241d8bfd9df8929b81a61300149ac37e9d"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.lightweight",
+      "decision": "map",
+      "fact_id": "reviewed:product:79:texture:light-skin-fit-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "轻透贴肤",
+      "review_rationale": "长图第1张明确描述轻透，长图第3张展示薄涂、按压和快速贴肤的上妆方法，可映射轻薄质地方向。",
+      "sku_status": "same_product_generation_unresolved_non_sku_texture",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:1faa9b42f280de3be0d520fb43154594897e995e4354cd795f7232a9caab7240",
+        "smzdm-detail-image:379438ef5e096d2fde0fa26fd7f9586d7a5730bf495ec0908b878ec5d050cdf2"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:79:longevity:15h-vs-24h-conflict-v1",
+      "field_key": "longevity",
+      "promotion_status": "rejected",
+      "public_text": "15小时与24小时持妆结论",
+      "review_rationale": "商品介绍写15h，长图第2张写24H，来源内部时长冲突且没有统一测试方法，不能发布量化持妆结论。",
+      "sku_status": "same_product_generation_unresolved_internal_duration_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:6a5bea3f9f346db6e16ad9b9fb6ee46fe512a9980c11cfaeaaf5319df1d74612",
+        "smzdm-browser-body:f9146b94ed9fbc9df1bab072c0cf37241d8bfd9df8929b81a61300149ac37e9d"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:79:finish:futurist-cross-product-v1",
+      "field_key": "finish",
+      "promotion_status": "rejected",
+      "public_text": "沁水粉底液的水光奶油肌、焕亮和保湿信息",
+      "review_rationale": "长图第5至9张全部切换为Futurist Aqua Brilliance沁水粉底液，不属于当前Double Wear持妆粉底，相关事实不能提升。",
+      "sku_status": "cross_product_images_outside_double_wear",
+      "source_kind": "detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-detail-image:be353b16f30202a3e795fd75aa0b46b41355853d6600734846db2d7e5bab3531",
+        "smzdm-detail-image:f1c645a110caf7028abc27419ad8594a31b1dd25184624bc9a15d7d5dce3163f",
+        "smzdm-detail-image:b47e7f2561ce6602601a2a65405c1a09baea5226673cea7449b4d4e6756d9124",
+        "smzdm-detail-image:46c77ac8f8981f7bf03e08f4a496d1f3890cdf3b865be3b1075a37772b0c6a2e",
+        "smzdm-detail-image:e9db84c352cb8ec3139d15bf4b017213360e46f44a93484d4205eb3fdd619f8b"
+      ]
+    }
+  ],
+  "canonical_identity": "雅诗兰黛轻透持妆粉底液 2C0",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "second-generation 2C0 30ml",
+  "captured_at": "2026-08-19T22:37:27.296Z",
+  "category_profile": "base_makeup",
+  "detail_image_count": 9,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 1015,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/79/001_1faa9b42f280de3b.jpg",
+      "ordinal": 1,
+      "sha256": "1faa9b42f280de3be0d520fb43154594897e995e4354cd795f7232a9caab7240",
+      "width": 600
+    },
+    {
+      "height": 824,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/79/002_6a5bea3f9f346db6.jpg",
+      "ordinal": 2,
+      "sha256": "6a5bea3f9f346db6e16ad9b9fb6ee46fe512a9980c11cfaeaaf5319df1d74612",
+      "width": 600
+    },
+    {
+      "height": 801,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/79/003_379438ef5e096d2f.jpg",
+      "ordinal": 3,
+      "sha256": "379438ef5e096d2fde0fa26fd7f9586d7a5730bf495ec0908b878ec5d050cdf2",
+      "width": 600
+    },
+    {
+      "height": 896,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/79/004_8060f6f608c57b43.jpg",
+      "ordinal": 4,
+      "sha256": "8060f6f608c57b4309440c7e266991aef2aaf2ec1c6ef3ae3041c32e03ec6ca4",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/79/005_be353b16f30202a3.jpg",
+      "ordinal": 5,
+      "sha256": "be353b16f30202a3e795fd75aa0b46b41355853d6600734846db2d7e5bab3531",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/79/006_f1c645a110caf702.jpg",
+      "ordinal": 6,
+      "sha256": "f1c645a110caf7028abc27419ad8594a31b1dd25184624bc9a15d7d5dce3163f",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/79/007_b47e7f2561ce6602.jpg",
+      "ordinal": 7,
+      "sha256": "b47e7f2561ce6602601a2a65405c1a09baea5226673cea7449b4d4e6756d9124",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/79/008_46c77ac8f8981f7b.jpg",
+      "ordinal": 8,
+      "sha256": "46c77ac8f8981f7bf03e08f4a496d1f3890cdf3b865be3b1075a37772b0c6a2e",
+      "width": 600
+    },
+    {
+      "height": 330,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/79/009_e9db84c352cb8ec3.jpg",
+      "ordinal": 9,
+      "sha256": "e9db84c352cb8ec3139d15bf4b017213360e46f44a93484d4205eb3fdd619f8b",
+      "width": 600
+    }
+  ],
+  "introduction_text": "ESTEE LAUDER 雅诗兰黛 Double Wear 无瑕亲肤持妆粉中度遮瑕，着妆持久，可达15h，同时有SPF10的防晒指数，可以日常防晒，无油配方，不含香料，适合所有肌肤。Double Wear粉底色号是“数字字母数字”的形式，字母w代表黄调，n代表中性，c代表粉调；前面的数字表示色调的浓度，数字越大浓度越大，比如1c是最淡的粉 6c是最浓的粉；后面的数字表示颜色的深浅，数字越大颜色越深，c1是最但的粉调，c6是最深的粉调。使用方法：先摇匀，点数滴于前额，鼻尖，两颊和下颚。利用指尖或海绵按由上往下，由内往外的方向抹匀。如要达到最佳效果，建议使用后先等待2分钟再上彩妆。规格：30ml。",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "finish",
+    "texture"
+  ],
+  "parameter_text": "色号颜色\n62#自然偏白(2C0)\n规格\n30ml\n国产/进口\n进口\n商品名称\n持妆粉底液\n商品产地\n欧美\n是否防晒\n是\n批准文号\n国妆特进字J20170583\n规格类型\n正常规格\n是否为特殊用途化妆品\n是\n保质期\n3年\n类别\n粉底液\n功效\n遮瑕/遮盖;遮瑕;控油\n妆效\n哑光/雾面\n适合肤质\n任何肤质",
+  "portfolio_role": "longwear_foundation",
+  "product_id": 79,
+  "review_field_policy": [
+    "net_content",
+    "shade",
+    "finish",
+    "coverage",
+    "longevity",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "second-generation 2C0 30ml",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "second-generation 2C0 30ml",
+    "source_sku": "2C0 30ml generation unresolved; legacy registration"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "f9146b94ed9fbc9df1bab072c0cf37241d8bfd9df8929b81a61300149ac37e9d",
+  "source_product_title": "ESTEE LAUDER 雅诗兰黛 持久无瑕系列 持妆粉底液 2C0#62 30ml",
+  "source_title": "ESTEE LAUDER 雅诗兰黛 持久无瑕系列 持妆粉底液 2C0#62 30ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/1wexjv3/"
+}

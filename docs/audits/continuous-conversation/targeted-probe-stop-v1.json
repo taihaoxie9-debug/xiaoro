@@ -1,0 +1,75 @@
+{
+  "schema_version": "guide-targeted-probe-stop-v1",
+  "status": "stopped_on_zero_tolerance_failure",
+  "run_id": "backend-targeted-2x5-real-v1",
+  "provider": "deepseek_official",
+  "model": "deepseek-v4-pro",
+  "prompt_version": "guide-turn-meaning-prompt-v13",
+  "trajectory_count": 2,
+  "turn_count": 10,
+  "provider_call_count": 10,
+  "copywriter_call_count": 0,
+  "retry_count": 0,
+  "passed_turn_count": 7,
+  "passed_trajectory_count": 0,
+  "prompt_tokens": 25967,
+  "completion_tokens": 2344,
+  "total_tokens": 28311,
+  "provider_reported_cost_cny": null,
+  "zero_tolerance_counters": {
+    "wrong_product_or_image_binding_count": 0,
+    "unauthorized_state_transition_count": 1,
+    "hard_condition_override_count": 0,
+    "unsafe_downgrade_count": 0,
+    "cross_session_or_subject_leak_count": 0
+  },
+  "stop_turn": {
+    "trajectory_id": "image-clarify-and-recover",
+    "turn_id": "image-clarify-and-recover-t2",
+    "message": "看那张图，帮我继续判断",
+    "earliest_failure_layer": "model_translation",
+    "model_operation_hint": "image_identity",
+    "expected_operation_hints": [
+      "clarification",
+      "knowledge",
+      "recommendation"
+    ],
+    "actual_route": {
+      "processor": "clarification",
+      "continuity": "continue",
+      "focus_source": "none"
+    },
+    "expected_route": {
+      "processor": "clarification",
+      "continuity": "replace_task",
+      "focus_source": "none"
+    },
+    "actual_active_processor": "image_identity",
+    "expected_active_processor": "clarification",
+    "public_behavior": "clarification",
+    "wrong_product_or_image_binding_count": 0
+  },
+  "ordinary_failures": [
+    {
+      "trajectory_id": "consult-safety-pivot",
+      "turn_id": "consult-safety-pivot-t3",
+      "earliest_failure_layer": "route_selection",
+      "actual_continuity": "continue",
+      "expected_continuity": "replace_task"
+    },
+    {
+      "trajectory_id": "consult-safety-pivot",
+      "turn_id": "consult-safety-pivot-t4",
+      "earliest_failure_layer": "route_selection",
+      "actual_continuity": "replace_task",
+      "expected_continuity": "continue"
+    }
+  ],
+  "hashes": {
+    "capture_sha256": "3f8c5c85628929add767261e23ef64d77b6c12c785c6cae6154739326e888d6c",
+    "fixed_fixture_sha256": "c78a7dcb047545df0468b6ac37e0f14f35f6e8430fde98de88951fb0ed1407b5",
+    "prompt_sha256": "54fe9b37e4621d920aaf6cfc0195acfabe3123a07904d5abc1ed70439f128e37",
+    "runner_sha256": "a5a3111b3d161fd45e95503cc4c3dcc3593d8ab9fdbeb060ba647c6bd48cada6"
+  },
+  "further_provider_calls_after_stop": 0
+}

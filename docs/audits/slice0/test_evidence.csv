@@ -1,0 +1,5 @@
+run_id,scope,command_class,passed,failed,status,notes
+slice0_decision_evidence,decision_and_evidence,offline_pytest,300,0,pass,asset_classification_only
+slice0_session_transport,session_ocr_transport_security,offline_pytest,112,0,pass,combined_selected_suite
+slice0_data_intent_frontend,data_intent_frontend,offline_pytest,165,0,pass,combined_selected_suite
+slice0_llm_cache,llm_cache_contract,offline_pytest,4,7,known_failure,do_not_fix_overnight
