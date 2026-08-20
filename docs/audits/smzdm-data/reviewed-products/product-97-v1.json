@@ -1,0 +1,158 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:97:net-content:long-tube-120g-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "长管120g来源变体",
+      "review_rationale": "商品标题和参数均为长管120g；Canonical与参考价也是120g，但长管/短管版本未锁定，因此暂不把价格与规格组合。",
+      "sku_status": "long_tube_120g_identity_version_unresolved",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:bd49b2326d4663c9211313b25264022a55f0318126a72c28e1e43c6ced84d283"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:97:surfactant-type:amino-acid-v1",
+      "field_key": "surfactant_type",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "氨基酸洁面体系",
+      "review_rationale": "商品介绍明确为氨基酸洁面和弱酸性配方；不保留敏感肌、痘痘肌适用保证。",
+      "sku_status": "long_tube_120g_identity_version_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:bd49b2326d4663c9211313b25264022a55f0318126a72c28e1e43c6ced84d283"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:97:texture:thick-low-foam-cream-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "较稠的低泡洁面霜质地，泡沫细腻",
+      "review_rationale": "商品介绍明确较稠洁面膏、低泡且泡沫细腻；不映射绵密高泡概念。",
+      "sku_status": "long_tube_120g_identity_version_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:bd49b2326d4663c9211313b25264022a55f0318126a72c28e1e43c6ced84d283"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "cleansing_power.pore_cleansing",
+      "decision": "map",
+      "fact_id": "reviewed:product:97:cleansing-power:pore-cleansing-v1",
+      "field_key": "cleansing_power",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "清洁毛孔污垢方向",
+      "review_rationale": "长图第2张明确泡沫深入包裹并带走毛孔污垢，可映射毛孔清洁方向。",
+      "sku_status": "long_tube_120g_identity_version_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:bf9b63a318642fbc72eba1f7dc71c046e63fd9fb52af1f2e3fe3f7347ab0e9a0"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "rinse_behavior.non_stripping",
+      "decision": "map",
+      "fact_id": "reviewed:product:97:rinse-behavior:non-stripping-v1",
+      "field_key": "rinse_behavior",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "冲洗后不易假滑，也不易紧绷",
+      "review_rationale": "商品介绍明确按摩后冲洗干净，不假滑且洗后不紧绷，可映射非拔干冲洗表现。",
+      "sku_status": "long_tube_120g_identity_version_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:bd49b2326d4663c9211313b25264022a55f0318126a72c28e1e43c6ced84d283"
+      ]
+    }
+  ],
+  "canonical_identity": "SK-II护肤洁面霜",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "120g",
+  "captured_at": "2026-08-19T20:55:00.513Z",
+  "category_profile": "cleanser",
+  "detail_image_count": 2,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 470,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/97/001_e75a3389d6c2cb2e.jpg",
+      "ordinal": 1,
+      "sha256": "e75a3389d6c2cb2efe0fa609af02b25da40c443f19a1a7fca120301bd01c27e3",
+      "width": 600
+    },
+    {
+      "height": 790,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/97/002_bf9b63a318642fbc.jpg",
+      "ordinal": 2,
+      "sha256": "bf9b63a318642fbc72eba1f7dc71c046e63fd9fb52af1f2e3fe3f7347ab0e9a0",
+      "width": 600
+    }
+  ],
+  "introduction_text": "SK-II 护肤洁面霜是功效要高于洁面乳的清洁皮肤产品，也是是氨基酸界的代表。与皂基洁面相比，氨基酸起泡剂没有那种像厚厚气垫般的起泡力，泡沫比价细腻，洗脸干净舒服。洗脸后皮肤不会有紧绷感，质地温和不刺激，痘痘肌也可以用，味道为淡玫瑰香。\n\n此款氨基酸洁面含有与肌肤成分相似的PITERA，弱酸性配方，低刺激；富含丰富的有机酸、矿物质及氨基酸等有助于调节肌肤代谢，令肌肤更加水嫩。内含水解亚麻籽提取物，可改善肌肤油脂平衡，使肌肤更幼嫩，柔滑有光泽。保湿成分在洁净同时包住肌肤水分，令肌肤时刻都滋润。温和深层清洁，补水保湿，洗出晶莹剔透肌。\n\n这是一款非常温和的洁面产品，弱酸性，具有一定的清洁能力，还能调理肌肤。里面包含丁二醇、半乳糖酵母样菌发酵产物滤液、PCA钠等保湿剂，有很好的保湿效果。味道不香，因为它不含酒精和香精，敏感肌也可以用的。洁面膏质地比较稠，可以在手里先打好泡沫，然后再上脸清洁，按摩后冲洗干净，不会假滑，洗完脸不紧绷，使用感还是很棒的。",
+  "missing_fields": [
+    "net_content",
+    "cleansing_power"
+  ],
+  "parameter_text": "规格\n120g\n分类\n洁面乳\n主打成分\n酵母提取物\n国产/进口\n进口\n商品名称\n舒透护肤洁面霜\n产品产地\n日本\n规格类型\n正常规格\n批准文号\n国妆网备进字（沪）2021000103\n净含量\n101ML-150ML\n保质期\n3年\n质地\n乳状\n适用人群\n成人",
+  "portfolio_role": "luxury_cleanser",
+  "product_id": 97,
+  "review_field_policy": [
+    "net_content",
+    "surfactant_type",
+    "cleansing_power",
+    "rinse_behavior",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "120g",
+    "display_specification": "120g",
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "120g",
+    "source_sku": "long_tube_120g"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "bd49b2326d4663c9211313b25264022a55f0318126a72c28e1e43c6ced84d283",
+  "source_product_title": "SK-II 舒透护肤洁面霜 长管 120g",
+  "source_title": "SK-II 舒透护肤洁面霜 长管 120g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/706ge76/"
+}

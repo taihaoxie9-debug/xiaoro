@@ -1,0 +1,192 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:71:net-content:100ml-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "100ml",
+      "review_rationale": "商品标题、参数、Canonical与参考价SKU均为100ml，规格价格完成同SKU对齐。",
+      "sku_status": "exact_product_exact_100ml_aligned",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:1a3b31a2401a1836897ffb9a15190842603c30d5de05ba06842f5f2dc4f54ee9"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.smooth",
+      "decision": "map",
+      "fact_id": "reviewed:product:71:texture:sherbet-balm-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "雪葩冰淇淋般的顺滑膏状质地",
+      "review_rationale": "长图第7张直接展示雪葩冰淇淋质地，并说明触肤油化，可映射顺滑质地方向。",
+      "sku_status": "exact_product_exact_100ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 7,
+      "source_refs": [
+        "smzdm-detail-image:a42dc039d1d6e9f1f0f7811bc5316a9120ae7accceb6863f86cbacd2bb256a40"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "cleansing_power.removes_makeup",
+      "decision": "map",
+      "fact_id": "reviewed:product:71:cleansing-power:removes-makeup-v1",
+      "field_key": "cleansing_power",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "卸除日常与浓妆方向",
+      "review_rationale": "商品介绍和长图第7、8张明确卸除彩妆，并给出眼唇妆、日常淡妆和浓妆用量，可映射卸妆方向。",
+      "sku_status": "exact_product_exact_100ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 7,
+      "source_refs": [
+        "smzdm-detail-image:a42dc039d1d6e9f1f0f7811bc5316a9120ae7accceb6863f86cbacd2bb256a40",
+        "smzdm-detail-image:4404e948494dc645a7688bf9f3f61d1aad3a544ddc166242e29810df6fcf2707",
+        "smzdm-browser-body:1a3b31a2401a1836897ffb9a15190842603c30d5de05ba06842f5f2dc4f54ee9"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:71:rinse-behavior:warm-water-emulsification-v1",
+      "field_key": "rinse_behavior",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "加少量温水按摩至乳白后冲洗，无需二次清洁",
+      "review_rationale": "长图第8张明确干脸使用、打圈油化、加温水乳化至乳白并冲洗，且写明无需二次清洁。",
+      "sku_status": "exact_product_exact_100ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 8,
+      "source_refs": [
+        "smzdm-detail-image:4404e948494dc645a7688bf9f3f61d1aad3a544ddc166242e29810df6fcf2707"
+      ]
+    }
+  ],
+  "canonical_identity": "芭妮兰净柔经典卸妆膏100ml*1",
+  "canonical_sku_scope": "canonical_single_product_100ml",
+  "canonical_specification": "100ml",
+  "captured_at": "2026-08-19T20:50:42.827Z",
+  "category_profile": "cleanser",
+  "detail_image_count": 9,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 910,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/71/001_bf3a91c2190afe7a.jpg",
+      "ordinal": 1,
+      "sha256": "bf3a91c2190afe7a0c5589381931160a8d6b53eb314d6c41ecb10d1c3e985bbd",
+      "width": 600
+    },
+    {
+      "height": 949,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/71/002_262591d43e66ed6d.jpg",
+      "ordinal": 2,
+      "sha256": "262591d43e66ed6d2185cc4f65d574c477e5f554531d3d7fd11769e793a6b9bb",
+      "width": 600
+    },
+    {
+      "height": 831,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/71/003_8206a802d2823483.jpg",
+      "ordinal": 3,
+      "sha256": "8206a802d28234830f991147dc74b509c206268a4e88f6658f97e6e6960a0b01",
+      "width": 600
+    },
+    {
+      "height": 969,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/71/004_c9a43a09dcdf1b2a.jpg",
+      "ordinal": 4,
+      "sha256": "c9a43a09dcdf1b2a26a522630b382864417121d61b8756661dea64e9985c5a2d",
+      "width": 600
+    },
+    {
+      "height": 951,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/71/005_f02e83921263517b.jpg",
+      "ordinal": 5,
+      "sha256": "f02e83921263517b73d8bc569922550695c6694b636f539e8b2216ffb8a11dfa",
+      "width": 600
+    },
+    {
+      "height": 1058,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/71/006_8fdb6b884e8123ef.jpg",
+      "ordinal": 6,
+      "sha256": "8fdb6b884e8123ef2b10d4da661b5331439f8ff27c6407853c193adc8ef32382",
+      "width": 600
+    },
+    {
+      "height": 653,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/71/007_a42dc039d1d6e9f1.jpg",
+      "ordinal": 7,
+      "sha256": "a42dc039d1d6e9f1f0f7811bc5316a9120ae7accceb6863f86cbacd2bb256a40",
+      "width": 600
+    },
+    {
+      "height": 825,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/71/008_4404e948494dc645.jpg",
+      "ordinal": 8,
+      "sha256": "4404e948494dc645a7688bf9f3f61d1aad3a544ddc166242e29810df6fcf2707",
+      "width": 600
+    },
+    {
+      "height": 746,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/71/009_3fb90a2393c18cd0.jpg",
+      "ordinal": 9,
+      "sha256": "3fb90a2393c18cd09d8b3c9c15c4d517f26dc99851e375294273d13af3f404fc",
+      "width": 600
+    }
+  ],
+  "introduction_text": "banila co是韩国成立2005年的韩国美妆品牌，以20-35岁的都市女性为目标群体，帮助打造自信和有独特风格的妆容。这款banila co. 芭妮兰卸妆膏，采用香草萃取成分，可清热解毒，清洁皮肤，木瓜本身味道香甜，其还含有各种醇元素、维生素和矿物质，具有美容功效，樱桃的提取成分更是富含维生素C，温和卸妆，干净不干绷，也可用于卸彩妆，规格100ml。",
+  "missing_fields": [
+    "net_content",
+    "ingredients_present",
+    "cleansing_power"
+  ],
+  "parameter_text": "规格\n100ml",
+  "portfolio_role": "cleansing_balm",
+  "product_id": 71,
+  "review_field_policy": [
+    "net_content",
+    "surfactant_type",
+    "cleansing_power",
+    "rinse_behavior",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "100ml",
+    "display_specification": "100ml",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "aligned",
+    "reference_price_sku": "100ml",
+    "source_sku": "100ml"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "1a3b31a2401a1836897ffb9a15190842603c30d5de05ba06842f5f2dc4f54ee9",
+  "source_product_title": "BANILA CO 芭妮兰 Zero系列 净柔卸妆膏 经典款 100ml",
+  "source_title": "BANILA CO 芭妮兰 Zero系列 净柔卸妆膏 经典款 100ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/5966e57/"
+}

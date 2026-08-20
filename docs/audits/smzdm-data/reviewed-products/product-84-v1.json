@@ -1,0 +1,280 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:84:net-content:8-5g-cross-package-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "8.5g",
+      "review_rationale": "来源标题和参数均为8.5g，容量与Canonical一致；来源长图是晴空限定包装，不能与香粉盒版参考价组合展示。",
+      "sku_status": "same_formula_8_5g_cross_package_price_display_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:86739e7057e93e8e47d5f1b11ffcd50614b6b6fad486684d11aab2b83ad48a1e"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:84:shade:03-mist-v1",
+      "field_key": "shade",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "03 妆似雾",
+      "review_rationale": "来源标题、参数与长图第10张均明确为03妆似雾，可作为跨包装选色知识。",
+      "sku_status": "same_formula_03_cross_package_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 10,
+      "source_refs": [
+        "smzdm-detail-image:a09f98600f6fa312af118551cacb3d35a6e249e47f598462f96507361c7640ea",
+        "smzdm-browser-body:86739e7057e93e8e47d5f1b11ffcd50614b6b6fad486684d11aab2b83ad48a1e"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "finish.matte",
+      "decision": "map",
+      "fact_id": "reviewed:product:84:finish:matte-mist-v1",
+      "field_key": "finish",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "哑光雾面妆效",
+      "review_rationale": "参数表明确写哑光/雾面，长图第10张对03妆似雾也描述雾面柔焦，可映射哑光妆效方向。",
+      "sku_status": "same_formula_cross_package_non_sku_finish",
+      "source_kind": "detail_image",
+      "source_ordinal": 10,
+      "source_refs": [
+        "smzdm-detail-image:a09f98600f6fa312af118551cacb3d35a6e249e47f598462f96507361c7640ea",
+        "smzdm-browser-body:86739e7057e93e8e47d5f1b11ffcd50614b6b6fad486684d11aab2b83ad48a1e"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.lightweight",
+      "decision": "map",
+      "fact_id": "reviewed:product:84:texture:fine-lightweight-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "细腻轻盈、定格无感",
+      "review_rationale": "长图第7、8张明确描述升级空气粉质、细腻轻盈、定格无感和贴肤不易闷，可映射轻薄质地方向。",
+      "sku_status": "same_formula_cross_package_non_sku_texture",
+      "source_kind": "detail_image",
+      "source_ordinal": 7,
+      "source_refs": [
+        "smzdm-detail-image:bb98fc4795dce600fbf5fbc6bd6286d898cf735c894ed802c1fff7f224a11c19",
+        "smzdm-detail-image:f1e87478aba3a0c8303c7e43acefdff20240efa0e83ea32efca6bd49b4267559"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "longevity.longwear",
+      "decision": "map",
+      "fact_id": "reviewed:product:84:longevity:oil-control-setting-v1",
+      "field_key": "longevity",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "控油定妆方向",
+      "review_rationale": "参数表明确功效为定妆，长图第2张也写控油定妆，可映射普通持妆方向；不采用24小时量化值。",
+      "sku_status": "same_formula_cross_package_non_sku_longevity",
+      "source_kind": "detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:005b76dbec4ba09d53b60039fbe5f87376235f05cfd3a75fe33a587b66bb9a01",
+        "smzdm-browser-body:86739e7057e93e8e47d5f1b11ffcd50614b6b6fad486684d11aab2b83ad48a1e"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:84:longevity:24h-without-method-v1",
+      "field_key": "longevity",
+      "promotion_status": "rejected",
+      "public_text": "24小时全天持妆",
+      "review_rationale": "长图第6张出现24H宣传，但本页未提供对应样本、环境、方法或脚注，不能发布量化持妆结论。",
+      "sku_status": "same_formula_cross_package_unverified_quantified_claim",
+      "source_kind": "detail_image",
+      "source_ordinal": 6,
+      "source_refs": [
+        "smzdm-detail-image:66d4d1e963de2098d2cbf46be83e47c55fb2a3bca36a6a06f4d9e9000313cb00"
+      ]
+    }
+  ],
+  "canonical_identity": "花西子玉女桃花轻蜜粉（玉养款 香粉盒版）03妆似雾（商品编号100039849504）",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "03 8.5g incense-box package",
+  "captured_at": "2026-08-19T22:00:14.475Z",
+  "category_profile": "base_makeup",
+  "detail_image_count": 16,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 438,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/001_0f118f50ecb351cd.jpg",
+      "ordinal": 1,
+      "sha256": "0f118f50ecb351cd20cff693e67d33107f095382d97056d3dd7c9bcc874d7748",
+      "width": 600
+    },
+    {
+      "height": 1178,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/002_005b76dbec4ba09d.jpg",
+      "ordinal": 2,
+      "sha256": "005b76dbec4ba09d53b60039fbe5f87376235f05cfd3a75fe33a587b66bb9a01",
+      "width": 600
+    },
+    {
+      "height": 553,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/003_0f9e0345dbc043f3.jpg",
+      "ordinal": 3,
+      "sha256": "0f9e0345dbc043f37073d65694b7f73bddd7f678928cef80c75d4698cbd1a1b7",
+      "width": 600
+    },
+    {
+      "height": 498,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/004_72b65e63584ef597.jpg",
+      "ordinal": 4,
+      "sha256": "72b65e63584ef5979575cd154381eb6bc667b2a90a120ad9e1b8814944cd5969",
+      "width": 600
+    },
+    {
+      "height": 1197,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/005_e75f395d0a329501.jpg",
+      "ordinal": 5,
+      "sha256": "e75f395d0a32950148d5919396b92516a010fed4f90080530b5d71f3f08f07f2",
+      "width": 600
+    },
+    {
+      "height": 1015,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/006_66d4d1e963de2098.jpg",
+      "ordinal": 6,
+      "sha256": "66d4d1e963de2098d2cbf46be83e47c55fb2a3bca36a6a06f4d9e9000313cb00",
+      "width": 600
+    },
+    {
+      "height": 901,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/007_bb98fc4795dce600.jpg",
+      "ordinal": 7,
+      "sha256": "bb98fc4795dce600fbf5fbc6bd6286d898cf735c894ed802c1fff7f224a11c19",
+      "width": 600
+    },
+    {
+      "height": 1192,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/008_f1e87478aba3a0c8.jpg",
+      "ordinal": 8,
+      "sha256": "f1e87478aba3a0c8303c7e43acefdff20240efa0e83ea32efca6bd49b4267559",
+      "width": 600
+    },
+    {
+      "height": 936,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/009_3404b63e03cc410b.jpg",
+      "ordinal": 9,
+      "sha256": "3404b63e03cc410b24c30387c9852870499d2286cb9dde8332fd0b341c9d15f4",
+      "width": 600
+    },
+    {
+      "height": 728,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/010_a09f98600f6fa312.jpg",
+      "ordinal": 10,
+      "sha256": "a09f98600f6fa312af118551cacb3d35a6e249e47f598462f96507361c7640ea",
+      "width": 600
+    },
+    {
+      "height": 873,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/011_2d750eaa4f24b395.jpg",
+      "ordinal": 11,
+      "sha256": "2d750eaa4f24b395d602c87a3c877056e57674aa71e8d046551c294d84f2449b",
+      "width": 600
+    },
+    {
+      "height": 902,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/012_15026b16d68f9b87.jpg",
+      "ordinal": 12,
+      "sha256": "15026b16d68f9b8754203470124a75401f364651158abfadaf5d497871fb76bf",
+      "width": 600
+    },
+    {
+      "height": 1050,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/013_73e700d970e10802.jpg",
+      "ordinal": 13,
+      "sha256": "73e700d970e1080250d2398b355425e0f8ff7dd84654cbb4b63782e451bd38da",
+      "width": 600
+    },
+    {
+      "height": 1006,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/014_04f385ccff25523d.jpg",
+      "ordinal": 14,
+      "sha256": "04f385ccff25523dd9df1c9d75b5875e5f3911f5c730a47f60abbe0e8b748de3",
+      "width": 600
+    },
+    {
+      "height": 1048,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/015_fe608cd536a66e46.jpg",
+      "ordinal": 15,
+      "sha256": "fe608cd536a66e463b05f60d07dafdedcdcb440a607aa753b2a5a9cb52e54059",
+      "width": 600
+    },
+    {
+      "height": 529,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/84/016_9f82df2f4251f501.jpg",
+      "ordinal": 16,
+      "sha256": "9f82df2f4251f5011bb9e385d6e00c2b11ebd8261636753a264de9c316e851c9",
+      "width": 600
+    }
+  ],
+  "introduction_text": "",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "finish"
+  ],
+  "parameter_text": "色号颜色\n03妆似雾\n规格\n8.5g\n国产/进口\n国产\n商品名称\n玉女桃花轻蜜粉 玉养款\n商品产地\n中国大陆\n规格类型\n正常规格\n是否为特殊用途化妆品\n否\n批准文号\n沪G妆网备字2024014139\n保质期\n3年\n类别\n蜜粉\n适合肤质\n中性肤质适用\n功效\n定妆\n妆效\n哑光/雾面",
+  "portfolio_role": "loose_powder",
+  "product_id": 84,
+  "review_field_policy": [
+    "net_content",
+    "shade",
+    "finish",
+    "coverage",
+    "longevity",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "03 8.5g incense-box package",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "03 8.5g incense-box package",
+    "source_sku": "03 8.5g Qingkong limited package"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "86739e7057e93e8e47d5f1b11ffcd50614b6b6fad486684d11aab2b83ad48a1e",
+  "source_product_title": "Florasis 花西子 好气色 玉女桃花轻蜜粉 玉养款 #03妆似雾 8.5g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "Florasis 花西子 好气色 玉女桃花轻蜜粉 玉养款 #03妆似雾 8.5g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/rer7ye1/"
+}

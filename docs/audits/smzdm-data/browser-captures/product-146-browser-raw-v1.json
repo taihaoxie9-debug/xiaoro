@@ -1,0 +1,43 @@
+{
+  "schema_version": "smzdm-browser-raw-capture-v1",
+  "capture_method": "authorized_browser_session",
+  "source_kind": "smzdm_wiki",
+  "canonical_product_id": 146,
+  "page_url": "https://wiki.smzdm.com/p/nmdjgy/",
+  "captured_at": "2026-08-19T18:09:50.621Z",
+  "capture_status": "captured",
+  "page_title": "Curel 珂润 润浸保湿柔和乳液【报价 价格 评测 怎么样】 -什么值得买",
+  "product_title": "Curel 珂润 润浸保湿柔和乳液",
+  "parameter_text": "",
+  "product_introduction": "Curel珂润是花王旗下干燥敏感肌针对性护肤品牌，这款润浸保湿柔和乳液，采用系列主打的神经酰胺和蓝桉叶提取物，能够深入滋润角质层内部，填补细胞间质损伤，增强肌肤细胞自身抵抗力，使其不易受外界刺激影响，保持润泽弹亮。无香料、无色素、无酒精、弱酸性，使用感水润不油腻，干燥性敏感肌肤也可以长期使用。",
+  "excluded_sections": [
+    "Powered by ZDM-AIGC Engine v0.3",
+    "优势",
+    "建议"
+  ],
+  "script_urls": [
+    "https://res.smzdm.com/resources/public/js/sensors/sensorsdata.min.js",
+    "https://pos.baidu.com/auto_dup?di=0&uuid=b927e2f7376b3211&dri=0&dis=0&dai=0&ps=0x0&enu=encoding&exps=110011&ant=0&psi=51d21751af37abeb&dcb=___baidu_union_callback&dtm=AUTO_JSONP&dvi=0.0&dci=-1&dpt=none&tpr=1787162954001&ti=Curel%20%E7%8F%82%E6%B6%A6%20%E6%B6%A6%E6%B5%B8%E4%BF%9D%E6%B9%BF%E6%9F%94%E5%92%8C%E4%B9%B3%E6%B6%B2%E3%80%90%E6%8A%A5%E4%BB%B7%20%E4%BB%B7%E6%A0%BC%20%E8%AF%84%E6%B5%8B%20%E6%80%8E%E4%B9%88%E6%A0%B7%E3%80%91%20-%E4%BB%80%E4%B9%88%E5%80%BC%E5%BE%97%E4%B9%B0&ari=2&ver=0830&kws=Cur%C3%A9l%2F%E7%8F%82%E6%B6%A6%E4%B9%B3%E6%B6%B2%E6%8A%A5%E4%BB%B7%2CCur%C3%A9l%2F%E7%8F%82%E6%B6%A6%E4%B9%B3%E6%B6%B2%E8%AF%84%E6%B5%8B%2CCur%C3%A9&dps=Curel%E7%8F%82%E6%B6%A6%E6%98%AF%E8%8A%B1%E7%8E%8B%E6%97%97%E4%B8%8B%E5%B9%B2%E7%87%A5%E6%95%8F%E6%84%9F%E8%82%8C%E9%92%88%E5%AF%B9%E6%80%A7%E6%8A%A4%E8%82%A4%E5%93%81%E7%89%8C%EF%BC%8C%E8%BF%99%E6%AC%BE%E6%B6%A6%E6%B5%B8%E4%BF%9D%E6%B9%BF%E6%9F%94%E5%92%8C%E4%B9%B3%E6%B6%B2%EF%BC%8C%E9%87%87%E7%94%A8%E7%B3%BB%E5%88%97%E4%B8%BB%E6%89%93%E7%9A%84%E7%A5%9E%E7%BB%8F%E9%85%B0%E8%83%BA%E5%92%8C%E8%93%9D%E6%A1%89%E5%8F%B6%E6%8F%90%E5%8F%96%E7%89%A9%EF%BC%8C%E8%83%BD%E5%A4%9F%E6%B7%B1%E5%85%A5%E6%BB%8B&dbv=2&drs=1&pcs=556x612&pss=1204x5894&cfv=0&cpl=5&chi=5&cce=true&cec=UTF-8&tlm=1787162954&prot=2&rw=556&ltu=https%3A%2F%2Fwiki.smzdm.com%2Fp%2Fnmdjgy%2F&ecd=1&dft=0&uc=1470x842&pis=-1x-1&sr=1470x956&tcn=1787162954&dc=4&aa=1",
+    "https://s3a.pstatp.com/toutiao/push.js?cafe719890a3c186aea5b0d93dd6e3704cd55e9b1a89e82a44564a5977706710b401330bc43e63eb3f37e9a4088d7437771d23d085472d969d75011cb8184f26",
+    "https://wiki.smzdm.com/C2WF946J0/probev3.js",
+    "https://res.smzdm.com/pc/pc_library/dist/js/vendors.8e4a6bd.js",
+    "https://res.smzdm.com/pc/pc_library/dist/js/manifest.8d2ec21.js",
+    "https://res.smzdm.com/pc/pc_library/dist/js/framework.c8e00f4.js",
+    "https://res.smzdm.com/resources/public/js/cpro/cm.js",
+    "https://res.smzdm.com/resources/public/js/sensors/init-sdk.min.js?v=20250723",
+    "https://res.smzdm.com/pc/pc_library/dist/js/baike/goods_detail.c07b3a1.js",
+    "https://res.smzdm.com/resources/public/js/customer-service.js",
+    "https://smzdm.soboten.com/chat/frame/v6/entrance.js?sysnum=b00a7712533142fe89f4dcb5ef606f8b",
+    "https://res.smzdm.com/resources/public/js/sensors/collect/dist/index.min.js"
+  ],
+  "raw_page_text_sha256": "ce2a2d66dbdd58aa227721c90d35365269891b84cb954b00995c25fe75703db4",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "review_sources": [
+    "product_introduction"
+  ],
+  "detail_images": [],
+  "candidate_facts": [],
+  "review_status": "human_review_required",
+  "source_match_status": "pending_human_review"
+}

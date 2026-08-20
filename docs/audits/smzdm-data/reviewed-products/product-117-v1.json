@@ -1,0 +1,243 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:117:shade:crushin-hard-tea-cowboy-v1",
+      "field_key": "shade",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "坠落银河，昵称茶牛郎（CRUSHIN' HARD）",
+      "review_rationale": "参数产品名为坠落银河、色号为茶牛郎，长图第3张明确写茶牛郎CRUSHIN' HARD，可确认同一精确色号别名。",
+      "sku_status": "exact_product_exact_alias_1_8g_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:7d2f5a6609703a5efc59ca6c77fb4d9034890744d7f432bed89a5efd8dc41212",
+        "smzdm-browser-body:9dfcd4ba840306f0dce6cf1cc584975c9c56b8042db43f2f4ed7d78e6e554911"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:117:color-family:warm-chestnut-pink-sparkle-v1",
+      "field_key": "color_family",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "暖栗红茶底配粉色碎闪",
+      "review_rationale": "长图第3张直接描述暖栗红茶底与粉色碎闪，可作为茶牛郎的颜色家族知识。",
+      "sku_status": "exact_product_exact_alias_1_8g_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:7d2f5a6609703a5efc59ca6c77fb4d9034890744d7f432bed89a5efd8dc41212"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:117:finish:sparkle-pearl-v1",
+      "field_key": "finish",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "闪光珠光、碎钻感妆效",
+      "review_rationale": "参数明确妆效为闪光/珠光，长图第3张进一步描述碎钻感；当前尚无发布后的彩妆父概念，保留为单品知识。",
+      "sku_status": "exact_product_exact_alias_1_8g_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:7d2f5a6609703a5efc59ca6c77fb4d9034890744d7f432bed89a5efd8dc41212",
+        "smzdm-browser-body:9dfcd4ba840306f0dce6cf1cc584975c9c56b8042db43f2f4ed7d78e6e554911"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:117:shade:other-moondust-shades-v1",
+      "field_key": "shade",
+      "promotion_status": "rejected",
+      "public_text": "钻石狗、牛郎色及其他MOONDUST单色色号表现",
+      "review_rationale": "长图第2、5及7至11张展示其他单色色号和试色，不能把其底色、闪片或上眼效果提升给茶牛郎。",
+      "sku_status": "cross_shade_images_outside_crushin_hard",
+      "source_kind": "detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:7709221c77534ce20fe84123c4c1f1be353c10433c773d3900c9afd825ac68aa",
+        "smzdm-detail-image:6adad068fcace62e8e8c3c33ca0ba43503edd516ad4c7716c123d3df001f5fa5",
+        "smzdm-detail-image:5fb31a4e7dc1f33202aaf8747dddb808b82c213e388dc7b9747a14e862b2ea8c",
+        "smzdm-detail-image:a04e619d43a1e015b3a0bda19bcbcbd51d21367b99f473363908d25dc46eb858",
+        "smzdm-detail-image:5850525a6b3ca7e6f49f45a87bb04a55d335cddbd20ef2781c558de34c39cf51",
+        "smzdm-detail-image:93f9d455373000d34f07e622a76fbe9a4daa31773dec171bcb7b959e05177614",
+        "smzdm-detail-image:9a188628c49f062266da4247313f81e7e3bad26ffdd7974eb0508b8ee00d1e31"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:117:finish:cross-product-family-images-v1",
+      "field_key": "finish",
+      "promotion_status": "rejected",
+      "public_text": "液体眼影、定妆喷雾和眼影盘的妆效与持久信息",
+      "review_rationale": "长图第12至14张展示MOONDUST液体眼影、All Nighter定妆喷雾和眼影盘，不属于当前茶牛郎单色眼影。",
+      "sku_status": "cross_product_images_outside_single_eyeshadow",
+      "source_kind": "detail_image",
+      "source_ordinal": 12,
+      "source_refs": [
+        "smzdm-detail-image:a6fdaa88de2956f09f6e2315d0fa60c16e754ec17fb1e0838c74b160f648b31a",
+        "smzdm-detail-image:762b95466b00f10f76530d25d940b0b96b24716b63a32b7865932d5603d46a57",
+        "smzdm-detail-image:7772939ef34953392481883f4e21bf3ab503fdf01bf79b7811ce56ccb7f3c949"
+      ]
+    }
+  ],
+  "canonical_identity": "URBAN DECAY MOONDUST月耀星眸单色眼影 坠落银河（昵称：茶牛郎）",
+  "canonical_sku_scope": "canonical_single_shade_pending_source",
+  "canonical_specification": "Falling Galaxy (Crushin Hard/茶牛郎) 1.8g",
+  "captured_at": "2026-08-19T22:03:18.128Z",
+  "category_profile": "color_makeup",
+  "detail_image_count": 14,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 149,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/117/001_ae631f5a3a9737f5.jpg",
+      "ordinal": 1,
+      "sha256": "ae631f5a3a9737f5bf27c77aaf8bad81ff3a0780c0d5a88db6bc28ee142a09a3",
+      "width": 600
+    },
+    {
+      "height": 1166,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/117/002_7709221c77534ce2.jpg",
+      "ordinal": 2,
+      "sha256": "7709221c77534ce20fe84123c4c1f1be353c10433c773d3900c9afd825ac68aa",
+      "width": 600
+    },
+    {
+      "height": 850,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/117/003_7d2f5a6609703a5e.jpg",
+      "ordinal": 3,
+      "sha256": "7d2f5a6609703a5efc59ca6c77fb4d9034890744d7f432bed89a5efd8dc41212",
+      "width": 600
+    },
+    {
+      "height": 1018,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/117/004_b54d1cf351f78640.jpg",
+      "ordinal": 4,
+      "sha256": "b54d1cf351f786406be9c5210324f32c3a8d9d3ad4002fa4c2e5b79cab7486c5",
+      "width": 600
+    },
+    {
+      "height": 812,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/117/005_6adad068fcace62e.jpg",
+      "ordinal": 5,
+      "sha256": "6adad068fcace62e8e8c3c33ca0ba43503edd516ad4c7716c123d3df001f5fa5",
+      "width": 600
+    },
+    {
+      "height": 1034,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/117/006_741f4826662a0a4d.jpg",
+      "ordinal": 6,
+      "sha256": "741f4826662a0a4d70be6a6e7d96a198e56fb956a950639f53018fd868157ab8",
+      "width": 600
+    },
+    {
+      "height": 938,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/117/007_5fb31a4e7dc1f332.jpg",
+      "ordinal": 7,
+      "sha256": "5fb31a4e7dc1f33202aaf8747dddb808b82c213e388dc7b9747a14e862b2ea8c",
+      "width": 600
+    },
+    {
+      "height": 1060,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/117/008_a04e619d43a1e015.jpg",
+      "ordinal": 8,
+      "sha256": "a04e619d43a1e015b3a0bda19bcbcbd51d21367b99f473363908d25dc46eb858",
+      "width": 600
+    },
+    {
+      "height": 833,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/117/009_5850525a6b3ca7e6.jpg",
+      "ordinal": 9,
+      "sha256": "5850525a6b3ca7e6f49f45a87bb04a55d335cddbd20ef2781c558de34c39cf51",
+      "width": 600
+    },
+    {
+      "height": 694,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/117/010_93f9d455373000d3.jpg",
+      "ordinal": 10,
+      "sha256": "93f9d455373000d34f07e622a76fbe9a4daa31773dec171bcb7b959e05177614",
+      "width": 600
+    },
+    {
+      "height": 961,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/117/011_9a188628c49f0622.jpg",
+      "ordinal": 11,
+      "sha256": "9a188628c49f062266da4247313f81e7e3bad26ffdd7974eb0508b8ee00d1e31",
+      "width": 600
+    },
+    {
+      "height": 681,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/117/012_a6fdaa88de2956f0.jpg",
+      "ordinal": 12,
+      "sha256": "a6fdaa88de2956f09f6e2315d0fa60c16e754ec17fb1e0838c74b160f648b31a",
+      "width": 600
+    },
+    {
+      "height": 508,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/117/013_762b95466b00f10f.jpg",
+      "ordinal": 13,
+      "sha256": "762b95466b00f10f76530d25d940b0b96b24716b63a32b7865932d5603d46a57",
+      "width": 600
+    },
+    {
+      "height": 985,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/117/014_7772939ef3495339.jpg",
+      "ordinal": 14,
+      "sha256": "7772939ef34953392481883f4e21bf3ab503fdf01bf79b7811ce56ccb7f3c949",
+      "width": 600
+    }
+  ],
+  "introduction_text": "",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "color_family",
+    "finish"
+  ],
+  "parameter_text": "色号颜色\n茶牛郎\n规格\n1.8g\n颜色数\n单色\n色系\n粉色系\n保质期\n3年\n批准文号\nMOONDUST月耀星眸单色眼影 坠落银河\n分类\n单色眼影\n商品名称\nUrbanDecayMOONDUST月耀星眸单色眼影坠落银河\n商品产地\n加拿大\n是否为特殊用途化妆品\n非特殊化妆品\n质地\n粉状\n妆效\n闪光/珠光",
+  "portfolio_role": "single_eyeshadow",
+  "product_id": 117,
+  "review_field_policy": [
+    "shade",
+    "color_family",
+    "finish",
+    "color_payoff",
+    "longevity"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "Falling Galaxy (Crushin Hard/茶牛郎) 1.8g",
+    "display_specification": "Falling Galaxy (Crushin Hard/茶牛郎) 1.8g",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "aligned",
+    "reference_price_sku": "Falling Galaxy (Crushin Hard/茶牛郎) 1.8g",
+    "source_sku": "Falling Galaxy (Crushin Hard/茶牛郎) 1.8g"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "9dfcd4ba840306f0dce6cf1cc584975c9c56b8042db43f2f4ed7d78e6e554911",
+  "source_product_title": "Urban Decay/衰败城市 闪片 眼影 茶牛郎 1.8g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "Urban Decay/衰败城市 闪片 眼影 茶牛郎 1.8g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/61o4jzd/"
+}

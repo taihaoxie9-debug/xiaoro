@@ -1,0 +1,209 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:116:shade:1966-warm-brown-red-v1",
+      "field_key": "shade",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "1966 暖红棕",
+      "review_rationale": "来源标题、参数与长图第3至5张均明确1966暖红棕，可作为精确SKU选色知识。",
+      "sku_status": "exact_product_exact_1966_2_2g_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-detail-image:5a8bbacda3678099aba4d710829fb00ae9ec4f3eea0e889fe3c1d25421fa1fa2",
+        "smzdm-browser-body:23117c4d52b9dbd28af45a5590fdb718f06f02a1be38c52a3924c59649e4175d"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:116:color-family:warm-red-brown-v1",
+      "field_key": "color_family",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "暖调红棕色系",
+      "review_rationale": "参数归为红色系，标题与长图第5张进一步明确为暖红棕，可保留为当前色号的颜色家族知识。",
+      "sku_status": "exact_product_exact_1966_2_2g_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-detail-image:5a8bbacda3678099aba4d710829fb00ae9ec4f3eea0e889fe3c1d25421fa1fa2",
+        "smzdm-browser-body:23117c4d52b9dbd28af45a5590fdb718f06f02a1be38c52a3924c59649e4175d"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:116:finish:matte-v1",
+      "field_key": "finish",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "哑光雾面妆效",
+      "review_rationale": "参数明确质地和妆效为哑光/雾面，商品介绍也说明这是小金条哑光唇膏；当前尚无发布后的彩妆父概念，保留为单品知识。",
+      "sku_status": "exact_product_exact_1966_2_2g_aligned",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:23117c4d52b9dbd28af45a5590fdb718f06f02a1be38c52a3924c59649e4175d"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:116:color-payoff:rich-saturated-v1",
+      "field_key": "color_payoff",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "浓郁饱和、易上色",
+      "review_rationale": "参数写易上色，商品介绍明确极雾显色配方带来更浓郁饱和的色泽，可保留为显色表现知识。",
+      "sku_status": "exact_product_exact_1966_2_2g_aligned",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:23117c4d52b9dbd28af45a5590fdb718f06f02a1be38c52a3924c59649e4175d"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:116:longevity:lasting-direction-v1",
+      "field_key": "longevity",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "持色方向",
+      "review_rationale": "商品介绍明确妆效轻盈薄透且持久，可保留普通持色方向；不采用8小时滋润量化值。",
+      "sku_status": "exact_product_exact_1966_2_2g_aligned",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:23117c4d52b9dbd28af45a5590fdb718f06f02a1be38c52a3924c59649e4175d"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:116:longevity:8h-moisture-without-method-v1",
+      "field_key": "longevity",
+      "promotion_status": "rejected",
+      "public_text": "8小时滋润",
+      "review_rationale": "商品介绍出现8小时滋润，但没有对应样本、环境、方法或脚注，不能发布量化时长。",
+      "sku_status": "exact_product_unverified_quantified_claim",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:23117c4d52b9dbd28af45a5590fdb718f06f02a1be38c52a3924c59649e4175d"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:116:shade:other-family-shades-v1",
+      "field_key": "shade",
+      "promotion_status": "rejected",
+      "public_text": "小金条28、12等其他家族色号表现",
+      "review_rationale": "长图第2张展示其他小金条色号，不能把其颜色或上唇表现提升给1966。",
+      "sku_status": "cross_shade_family_image_outside_1966",
+      "source_kind": "detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:f53fc1610a1a7588a9e05a79e398700ad7c9f31c6abb888a9d6604a9717532d0"
+      ]
+    }
+  ],
+  "canonical_identity": "圣罗兰细管纯口红 小金条 1966# 2.2g（商品编号100052491701）",
+  "canonical_sku_scope": "canonical_single_shade_pending_source",
+  "canonical_specification": "1966 2.2g",
+  "captured_at": "2026-08-19T22:02:37.019Z",
+  "category_profile": "color_makeup",
+  "detail_image_count": 5,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 600,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/116/001_c651edce1a867670.jpg",
+      "ordinal": 1,
+      "sha256": "c651edce1a8676700ab557133929cee3409a359ac655c7a9c51df484788d738d",
+      "width": 600
+    },
+    {
+      "height": 367,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/116/002_f53fc1610a1a7588.jpg",
+      "ordinal": 2,
+      "sha256": "f53fc1610a1a7588a9e05a79e398700ad7c9f31c6abb888a9d6604a9717532d0",
+      "width": 600
+    },
+    {
+      "height": 1150,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/116/003_dcb0f96280253b3e.jpg",
+      "ordinal": 3,
+      "sha256": "dcb0f96280253b3e02fd15ff21e52d3fbe1979bfe9bcfd17eb4c90cd256d5a49",
+      "width": 600
+    },
+    {
+      "height": 826,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/116/004_51a916ea66db3ab8.jpg",
+      "ordinal": 4,
+      "sha256": "51a916ea66db3ab83cb3057207573f455bcc72551f91cfd4833d477e9c8dd899",
+      "width": 600
+    },
+    {
+      "height": 1199,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/116/005_5a8bbacda3678099.jpg",
+      "ordinal": 5,
+      "sha256": "5a8bbacda3678099aba4d710829fb00ae9ec4f3eea0e889fe3c1d25421fa1fa2",
+      "width": 600
+    }
+  ],
+  "introduction_text": "伊夫圣罗兰经典的YSL方管系列，妆感偏雾面但不拔干，上色饱和，能保持双唇8小时的滋润，配合正式场合的优雅晚装，还是日常通勤的时尚便服等，这几款颜色配合不同形象，搭出独到时尚感～\n\nROUGE PUR COUTURE THE SLIM MATTE LIPSTICK，是2018年YSL的哑光唇膏，中文官方译名“细管纯口红”，坊间流传的昵称是“小金条”。\n\n一如它的外形，黑金配色的长方体造型，精致优雅，膏体有着丝绒般柔滑的质地、轻盈薄透又持久的妆效，搭配极雾显色配方打造的更浓郁饱和的色泽，加上独特订制斜角科技，勾勒出精致的嘴唇形状，提升唇妆的质感。",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "color_family",
+    "finish"
+  ],
+  "parameter_text": "色号颜色\n1966\n规格\n2.2g\n色系\n红色系\n国产/进口\n进口\n商品名称\n细管纯口红\n产品产地\n法国\n是否为特殊用途化妆品\n否\n规格类型\n正常规格\n批准文号\n国妆网备进字(沪)2018001583\n质地\n哑光\n保质期\n3年\n妆效\n哑光/雾面\n适用人群\n女士\n功效\n易上色",
+  "portfolio_role": "slim_matte_lipstick",
+  "product_id": 116,
+  "review_field_policy": [
+    "shade",
+    "color_family",
+    "finish",
+    "color_payoff",
+    "longevity"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "1966 2.2g",
+    "display_specification": "1966 2.2g",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "aligned",
+    "reference_price_sku": "1966 2.2g",
+    "source_sku": "1966 2.2g"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "23117c4d52b9dbd28af45a5590fdb718f06f02a1be38c52a3924c59649e4175d",
+  "source_product_title": "圣罗兰 YSL /圣罗兰 YSL 小金条 细管纯口红 #N°1966暖棕红 2.2g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "圣罗兰 YSL /圣罗兰 YSL 小金条 细管纯口红 #N°1966暖棕红 2.2g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/e5gmje0/"
+}

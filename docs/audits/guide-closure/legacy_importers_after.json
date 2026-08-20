@@ -1,0 +1,32 @@
+{
+  "counts": {
+    "background": 0,
+    "direct_imports": 0,
+    "dynamic_imports": 0,
+    "runtime": 0,
+    "script": 0,
+    "string_targets": 0,
+    "test": 0,
+    "total": 0
+  },
+  "entries": [],
+  "files_scanned": 426,
+  "roots": [
+    "app",
+    "tests",
+    "scripts",
+    "tools"
+  ],
+  "schema_version": "legacy-chat-importers-v1",
+  "targets": [
+    "app.services.agent",
+    "app.services.conversation",
+    "app.services.intent",
+    "app.services.v2",
+    "app.tasks.product.tasks",
+    "tasks.product.recommend",
+    "app.api.v1.chat",
+    "app.prompts.intent_prompts",
+    "app.prompts.test_intent_classifier"
+  ]
+}

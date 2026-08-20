@@ -1,0 +1,73 @@
+{
+  "schema_version": "guide-overnight-freeze-v4-replacement-b-sealed",
+  "frozen_at": "2026-08-19",
+  "status": "replacement_b_ready_for_paid_qualification",
+  "git_head": "16721edcc1afa4dbef51ef847b7c455a17ba4332",
+  "app_and_gate_diff_sha256": "44013c54e3042441ff876eef50992190bd6fbae06c54a084f4ff443f0ee40cf7",
+  "prompt": {
+    "version": "guide-turn-meaning-prompt-v27",
+    "sha256": "f1490e46e92213398bdd9625b32398b0ab00f1102292fcc4cda0614dc6584e3d",
+    "changed_after_original_blind_b": false
+  },
+  "shared_repairs": {
+    "category_taxonomy_sha256": "2dde7cd4fbde032f8abe90ab8e3eae8b88e43ed2295cf40490de90d8ac403c7b",
+    "signal_merger_sha256": "2b8b0cff4af8050d6a0abb7991f436430c94a8efea721945cf184279d91bfb9b",
+    "product_name_resolver_sha256": "97a50fbd72974992f3280b536c3e0444f60235489803273983b76dc3547d8625",
+    "unified_turn_router_sha256": "35d0a636bdc61dffaa824b1b18f31c1d7b36a3c25f405789aa27b8620b2eaf7c",
+    "text_recommendation_flow_sha256": "ea0eb1a81ba528fc08878ac7bfdfd99f118535ce62f388b9dc1ff514a2035a95"
+  },
+  "gate": {
+    "fixture_loader_sha256": "78df7ac653c9b581b9bb4b531b6d6008ec2e03e41107489b30397d34ab0369be",
+    "mechanical_truth_sha256": "a83a9f99b55c6ed8aeab1262f90aa17a08872c8e2ece2dcdfd277af7545e8d6c",
+    "runtime_sha256": "58ab6da3a66f663c6ffb3faf15cfead601f6b8bd20195e61a1fadd63db0f9fce",
+    "runner_sha256": "8d853e2c0f3eafb62bd84f16bce1823965b780d363ff38c4a4cd91db9468e688"
+  },
+  "data": {
+    "canonical_products_sha256": "0ba95df8c38d39f5bc0d73a32c318b157903abb64778c3e7b0acebfb75e95734",
+    "canonical_manifest_file_sha256": "e0430a244af451a3fa73642295c4a79128e1622dfeed19ff8140eda9f2df0c69",
+    "selection_concepts_manifest_file_sha256": "216db6ee39e0a05d50483e1f38f90d723fca6eb9191bcbabe8c0cf73738af0df",
+    "category_facts_manifest_file_sha256": "1f7913ea7005fe00503aaabdec4fbfeebc977e6ad5e52a9f298bde483d914605",
+    "merchant_claims_manifest_file_sha256": "29771195411866f28fdfea56859b24deb63ad94f328eed707346568b65cddc54",
+    "presentation_fact_admission_sha256": "3e2dbd4ad3cf872f4a066ecf0a684775afd34d961b33ed5ad627baa4cb269d25",
+    "data_truth_preflight_sha256": "3b6e806ebe4d8b4078520b8ecd362812c7c9f4d735a9d94ec7acc39603ea40f4"
+  },
+  "replacement_paper": {
+    "fixture_sha256": "544d6c7a8b6e05a69d695261c68c14cb44710e4a4a41613a893ca960f42c0b76",
+    "manifest_sha256": "a6a36e56bdb992d312b0e2a8ef36f2e4864c1c849a979c6675da4cbda90727d5",
+    "truth_sha256": "05f53fad5e95771b6336ae59f36af53d89754e7d6f78e9a513082036c1a7b27b",
+    "authoring_summary_sha256": "105bd38bc08daad100aca56b2b1199ea75dbcc1ac7fbc1db255e701a6e1239e4",
+    "failed_first_review_sha256": "4ff961291ac5c4e6b84a8caf8d52245eee3e32c8def70b65eac6ab1a1bfe07d4",
+    "passing_second_review_sha256": "63847fe7f0a898579a6e849fb481334514007fa97e615c664be88362f52405ba",
+    "trajectory_count": 20,
+    "turn_count": 100,
+    "ordinary_moderate_complex": [
+      14,
+      4,
+      2
+    ],
+    "unsupported_product_count": 0,
+    "unknown_required_field_count": 0,
+    "historical_or_seen_collision_count": 0,
+    "independent_review": "pass"
+  },
+  "verification": {
+    "red_green_shared_fix_passed": true,
+    "replacement_seal_tests_passed": 46,
+    "full_zero_api_regression_passed": 6238,
+    "full_zero_api_regression_failed": 0,
+    "git_diff_check_passed": true,
+    "new_action_or_intent_regex_count": 0
+  },
+  "paid_usage": {
+    "additional_semantic_calls_after_original_blind_b": 0,
+    "additional_copywriter_calls_after_original_blind_b": 0,
+    "provider_retry_count": 0,
+    "format_repair_attempts": 0
+  },
+  "policy": {
+    "replacement_for_invalid_blind_b": true,
+    "blind_c_created": false,
+    "question_bodies_previewed_by_main_agent": false,
+    "production_prompt_data_fixture_or_truth_edit_invalidates_seal": true
+  }
+}

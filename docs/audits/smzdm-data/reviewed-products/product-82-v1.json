@@ -1,0 +1,272 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:82:shade:i10-ivory-v1",
+      "field_key": "shade",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "I10 象牙白",
+      "review_rationale": "来源标题和长图第5张选色表都明确标注I10象牙白；只作为气垫组件的单品选色知识，不据此解决套组与参考价SKU冲突。",
+      "sku_status": "exact_cushion_component_i10_in_bundle_price_display_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-detail-image:29f5c18bccab240f109563a3f12a5d521f6f4df79f34817a66b6d2701fb3952f",
+        "smzdm-browser-body:669a5009e6b7ee264e7202b351a8dc6c5334000674b14be190d3e7e22916a28f"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:82:finish:clear-diamond-glow-v1",
+      "field_key": "finish",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "清透钻光妆效",
+      "review_rationale": "长图第4张直接描述清透钻光妆效；现有底妆父概念只有哑光方向，没有准确的钻光概念，因此保留为单品知识。",
+      "sku_status": "exact_cushion_component_in_bundle_non_sku_finish",
+      "source_kind": "detail_image",
+      "source_ordinal": 4,
+      "source_refs": [
+        "smzdm-detail-image:c27574ace12bf5807593a00328a48c9807aa550127d4fb75f5858b81defbd3bf"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.lightweight",
+      "decision": "map",
+      "fact_id": "reviewed:product:82:texture:light-clear-skin-fit-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "轻盈清透、贴妆服帖",
+      "review_rationale": "长图第4张对气垫组件明确写轻盈贴妆、清透服帖，可映射轻薄质地方向。",
+      "sku_status": "exact_cushion_component_in_bundle_non_sku_texture",
+      "source_kind": "detail_image",
+      "source_ordinal": 4,
+      "source_refs": [
+        "smzdm-detail-image:c27574ace12bf5807593a00328a48c9807aa550127d4fb75f5858b81defbd3bf"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:82:coverage:even-skin-tone-v1",
+      "field_key": "coverage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "均匀肤色方向",
+      "review_rationale": "参数表明确写均肤，来源没有可审计的遮瑕程度或具体瑕疵对象，因此只保留均匀肤色的单品知识。",
+      "sku_status": "exact_cushion_component_in_bundle_non_sku_coverage",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:669a5009e6b7ee264e7202b351a8dc6c5334000674b14be190d3e7e22916a28f"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:82:longevity:color-holding-powder-v1",
+      "field_key": "longevity",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "持色粉末方向",
+      "review_rationale": "长图第2张明确写精粹与持色粉末组合；没有时长、样本或环境，不能映射为持久时长或不暗沉保证。",
+      "sku_status": "exact_cushion_component_in_bundle_non_sku_longevity",
+      "source_kind": "detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:0db05b5ef7519c1a361d72aab33da78813c535dea15539af7036974ecf104670"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:82:net-content:bundle-vs-canonical-v1",
+      "field_key": "net_content",
+      "promotion_status": "rejected",
+      "public_text": "14g气垫加37ml妆前霜套组规格",
+      "review_rationale": "来源是I10 14g气垫与37ml妆前霜套组，Canonical和参考价目标是气垫加外壳且现有资产存在14g/15g差异，不能提升为展示规格或与价格组合。",
+      "sku_status": "bundle_source_canonical_single_cushion_capacity_unresolved_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:669a5009e6b7ee264e7202b351a8dc6c5334000674b14be190d3e7e22916a28f"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:82:texture:primer-and-powder-cross-product-v1",
+      "field_key": "texture",
+      "promotion_status": "rejected",
+      "public_text": "长管妆前乳和光纱蜜粉的润养、持妆与轻透定妆信息",
+      "review_rationale": "长图第8至13张已切换到CPB长管妆前乳、精华和光纱蜜粉，均不是当前方气垫组件，不能把跨商品事实提升给Canonical气垫。",
+      "sku_status": "cross_product_images_outside_cushion_component",
+      "source_kind": "detail_image",
+      "source_ordinal": 8,
+      "source_refs": [
+        "smzdm-detail-image:8f0883f1f7e6394c0e43e1972204b2e890f92447ccd9afa4b4871c9c89cfd29d",
+        "smzdm-detail-image:e9af0ee0233e7da9892688a3d223bf3b5cbddb1323af1aa20045287a793797bb",
+        "smzdm-detail-image:54cffeee82abf2243876de95e2e2e836002e80405a645cefc22c23f974d7f742",
+        "smzdm-detail-image:c9d26c68d6ecb98d9fe300121967f4e03fb00a515d46f51c3793e25d4eceefdc",
+        "smzdm-detail-image:ca8eefb8406281c8c84ea140e1f7a0a5eb43d22a44db88989ca509a6ca772a98",
+        "smzdm-detail-image:7f1c5a2a0e6dd032241a79b91b86ec62977920cf8383fb488581db4399c1245a"
+      ]
+    }
+  ],
+  "canonical_identity": "肌肤之钥CPB光柔水凝气垫精华粉底膏I10象牙白 钻光方气垫+外壳 持妆遮瑕",
+  "canonical_sku_scope": "canonical_cushion_with_case_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T21:52:04.707Z",
+  "category_profile": "base_makeup",
+  "detail_image_count": 13,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 1169,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/82/001_046f2a2850aaeaf1.jpg",
+      "ordinal": 1,
+      "sha256": "046f2a2850aaeaf1214ba20876d162e66504319bd55930b6fcdf365eac1d5691",
+      "width": 600
+    },
+    {
+      "height": 1057,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/82/002_0db05b5ef7519c1a.jpg",
+      "ordinal": 2,
+      "sha256": "0db05b5ef7519c1a361d72aab33da78813c535dea15539af7036974ecf104670",
+      "width": 600
+    },
+    {
+      "height": 998,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/82/003_b56bab69127f52c1.jpg",
+      "ordinal": 3,
+      "sha256": "b56bab69127f52c10aa8e529b2109d3f7eab97ec43f915b2d85b73b70ee0c1a5",
+      "width": 600
+    },
+    {
+      "height": 1124,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/82/004_c27574ace12bf580.jpg",
+      "ordinal": 4,
+      "sha256": "c27574ace12bf5807593a00328a48c9807aa550127d4fb75f5858b81defbd3bf",
+      "width": 600
+    },
+    {
+      "height": 1404,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/82/005_29f5c18bccab240f.jpg",
+      "ordinal": 5,
+      "sha256": "29f5c18bccab240f109563a3f12a5d521f6f4df79f34817a66b6d2701fb3952f",
+      "width": 600
+    },
+    {
+      "height": 1077,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/82/006_9908cedc6b55d282.jpg",
+      "ordinal": 6,
+      "sha256": "9908cedc6b55d282d9cc4afa46fc252ec5c19f6311b28a5ff4211333d0f2fafb",
+      "width": 600
+    },
+    {
+      "height": 893,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/82/007_034b05235435f670.jpg",
+      "ordinal": 7,
+      "sha256": "034b05235435f6708024fda660ea97b86a77350bfb90a7f0062f39af745ae5aa",
+      "width": 600
+    },
+    {
+      "height": 1006,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/82/008_8f0883f1f7e6394c.jpg",
+      "ordinal": 8,
+      "sha256": "8f0883f1f7e6394c0e43e1972204b2e890f92447ccd9afa4b4871c9c89cfd29d",
+      "width": 600
+    },
+    {
+      "height": 610,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/82/009_e9af0ee0233e7da9.jpg",
+      "ordinal": 9,
+      "sha256": "e9af0ee0233e7da9892688a3d223bf3b5cbddb1323af1aa20045287a793797bb",
+      "width": 600
+    },
+    {
+      "height": 850,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/82/010_54cffeee82abf224.jpg",
+      "ordinal": 10,
+      "sha256": "54cffeee82abf2243876de95e2e2e836002e80405a645cefc22c23f974d7f742",
+      "width": 600
+    },
+    {
+      "height": 978,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/82/011_c9d26c68d6ecb98d.jpg",
+      "ordinal": 11,
+      "sha256": "c9d26c68d6ecb98d9fe300121967f4e03fb00a515d46f51c3793e25d4eceefdc",
+      "width": 600
+    },
+    {
+      "height": 687,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/82/012_ca8eefb8406281c8.jpg",
+      "ordinal": 12,
+      "sha256": "ca8eefb8406281c8c84ea140e1f7a0a5eb43d22a44db88989ca509a6ca772a98",
+      "width": 600
+    },
+    {
+      "height": 802,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/82/013_7f1c5a2a0e6dd032.jpg",
+      "ordinal": 13,
+      "sha256": "7f1c5a2a0e6dd032241a79b91b86ec62977920cf8383fb488581db4399c1245a",
+      "width": 600
+    }
+  ],
+  "introduction_text": "",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "finish",
+    "texture"
+  ],
+  "parameter_text": "规格\n14g+37mL\n产品名称\n钻光随行套组\n产地\n日本\n功效\n滋润、均肤、清透光泽\n妆效\n自然裸妆\n适合肤质\n任何肤质",
+  "portfolio_role": "premium_cushion",
+  "product_id": 82,
+  "review_field_policy": [
+    "net_content",
+    "shade",
+    "finish",
+    "coverage",
+    "longevity",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "I10 cushion + case; 14g/15g unresolved",
+    "source_sku": "I10 14g cushion + 37ml primer set"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "669a5009e6b7ee264e7202b351a8dc6c5334000674b14be190d3e7e22916a28f",
+  "source_product_title": "肌肤之钥 CPB 钻光随行套组 (光柔水凝气垫精华粉底膏#I10 14g+光凝润采妆前霜37ml) 柔雾版【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "肌肤之钥 CPB 钻光随行套组 (光柔水凝气垫精华粉底膏#I10 14g+光凝润采妆前霜37ml) 柔雾版【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/4yw6yg0/"
+}

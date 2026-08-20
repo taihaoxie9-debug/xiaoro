@@ -1,0 +1,151 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:120:concentration:edc-v1",
+      "field_key": "concentration",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "古龙水 EDC",
+      "review_rationale": "来源标题与长图瓶身都明确为Cologne/EDC，可保留浓度知识；来源容量未锁定。",
+      "sku_status": "exact_fragrance_capacity_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:d8ee6e7b77682c42f6f1631f7ce59ab3e58483789e1626063043dfa24e21370f",
+        "smzdm-browser-body:1164618ee2c8f5b745a88bb5afaa455ac5fb1512a910f1181d44395d51aa071d"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:120:fragrance-family:fruity-chypre-v1",
+      "field_key": "fragrance_family",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "果香甘苔调",
+      "review_rationale": "商品介绍明确标注香调为果香甘苔调，可保留为香型知识。",
+      "sku_status": "exact_fragrance_capacity_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:1164618ee2c8f5b745a88bb5afaa455ac5fb1512a910f1181d44395d51aa071d"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:120:top-notes:melon-pear-v1",
+      "field_key": "top_notes",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "前调：香瓜、梨",
+      "review_rationale": "商品介绍明确列出前调为香瓜和梨。",
+      "sku_status": "exact_fragrance_capacity_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:1164618ee2c8f5b745a88bb5afaa455ac5fb1512a910f1181d44395d51aa071d"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:120:heart-notes:freesia-rose-v1",
+      "field_key": "heart_notes",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "中调：小苍兰、玫瑰",
+      "review_rationale": "商品介绍明确列出中调为小苍兰和玫瑰。",
+      "sku_status": "exact_fragrance_capacity_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:1164618ee2c8f5b745a88bb5afaa455ac5fb1512a910f1181d44395d51aa071d"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:120:base-notes:musk-patchouli-amber-rhubarb-v1",
+      "field_key": "base_notes",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "后调：麝香、广藿香、琥珀、大黄",
+      "review_rationale": "商品介绍明确列出后调为麝香、广藿香、琥珀和大黄。",
+      "sku_status": "exact_fragrance_capacity_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:1164618ee2c8f5b745a88bb5afaa455ac5fb1512a910f1181d44395d51aa071d"
+      ]
+    }
+  ],
+  "canonical_identity": "祖玛珑英国梨与小苍兰",
+  "canonical_sku_scope": "canonical_single_fragrance_pending_source",
+  "canonical_specification": "EDC 30ml",
+  "captured_at": "2026-08-19T22:04:31.598Z",
+  "category_profile": "fragrance",
+  "detail_image_count": 1,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 665,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/120/001_d8ee6e7b77682c42.jpg",
+      "ordinal": 1,
+      "sha256": "d8ee6e7b77682c42f6f1631f7ce59ab3e58483789e1626063043dfa24e21370f",
+      "width": 600
+    }
+  ],
+  "introduction_text": "这款果香味的香水算是祖玛珑的入门款，也是明星款，有非常清淡和宜人的味道。这款香水主要香调有威廉梨、白苍兰、广藿香。在浓郁高雅的花香下就能感受到传统而熟透的梨子的香气。喜欢梨子的朋友千万不要错过。\n\n名字里的英国梨，是指著名的威廉梨，不同于中国雪梨的清淡，口味更加甜美清冽，伴着香瓜的浓郁，颇有些糖水梨甜品的味道；很快，小苍兰的白花香和温柔的玫瑰包围了上来，点缀着果香更显水灵；后调糅合广藿香与麝香的温暖，延长留香的同时，多了分稳重。整体给人的感觉就像个循规蹈矩的淑雅少女，适合秋冬休闲场合使用。\n\n香调：果香甘苔调\n\n前调：香瓜、梨\n\n中调：小苍兰、玫瑰\n\n后调：麝香、广藿香、琥珀、大黄",
+  "missing_fields": [
+    "net_content",
+    "concentration",
+    "top_notes",
+    "heart_notes",
+    "base_notes"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "fresh_fruity_fragrance",
+  "product_id": 120,
+  "review_field_policy": [
+    "net_content",
+    "concentration",
+    "fragrance_family",
+    "top_notes",
+    "heart_notes",
+    "base_notes",
+    "longevity",
+    "sillage"
+  ],
+  "review_sources": [
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "EDC 30ml",
+    "display_specification": null,
+    "identity_status": "exact_product",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "EDC 30ml",
+    "source_sku": "EDC capacity unresolved"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "1164618ee2c8f5b745a88bb5afaa455ac5fb1512a910f1181d44395d51aa071d",
+  "source_product_title": "Jo Malone London 祖·玛珑 英国梨与小苍兰女士古龙水 EDC【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "Jo Malone London 祖·玛珑 英国梨与小苍兰女士古龙水 EDC【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/ryo4x0d/"
+}

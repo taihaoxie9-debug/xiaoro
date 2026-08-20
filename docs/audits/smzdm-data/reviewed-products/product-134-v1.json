@@ -1,0 +1,200 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:134:net-content:500ml-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "500ml",
+      "review_rationale": "商品标题、长图第3张、Canonical与参考价SKU均为500ml，规格价格完成同SKU对齐。",
+      "sku_status": "exact_product_exact_500ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:1f47a561cea85a673bb2ef205c1b9f92b12209ef7d3264f9c1d20dfeff5b3f95",
+        "smzdm-browser-body:6029126b86ae2211f850d97705d2c2c2e937e548e5b320d94411716b55c0532a"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:134:surfactant-type:micellar-v1",
+      "field_key": "surfactant_type",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "胶束洁肤体系",
+      "review_rationale": "商品介绍明确说明胶束团亲水端与疏水端的清洁方式；不保留重金属刺激或安全保障扩写。",
+      "sku_status": "exact_product_exact_500ml_aligned",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:6029126b86ae2211f850d97705d2c2c2e937e548e5b320d94411716b55c0532a"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:134:texture:water-like-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "水状洁肤液质地",
+      "review_rationale": "参数类别、商品形态和长图均确认是水状洁肤液；不把清爽或肤质适配扩大为质地结论。",
+      "sku_status": "exact_product_exact_500ml_aligned",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:6029126b86ae2211f850d97705d2c2c2e937e548e5b320d94411716b55c0532a"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "cleansing_power.removes_makeup",
+      "decision": "map",
+      "fact_id": "reviewed:product:134:cleansing-power:removes-makeup-v1",
+      "field_key": "cleansing_power",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "卸除彩妆与日常污物方向",
+      "review_rationale": "参数、商品介绍和长图都明确卸除彩妆、油脂和污物，可映射卸妆清洁方向。",
+      "sku_status": "exact_product_exact_500ml_aligned",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:6029126b86ae2211f850d97705d2c2c2e937e548e5b320d94411716b55c0532a"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:134:rinse-behavior:no-rinse-v1",
+      "field_key": "rinse_behavior",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "用化妆棉反复擦拭至干净，无需额外水洗",
+      "review_rationale": "商品介绍明确免洗，长图第7张给出化妆棉反复擦拭至干净的步骤。",
+      "sku_status": "exact_product_exact_500ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 7,
+      "source_refs": [
+        "smzdm-detail-image:f9e462ec878fcc97e11398a8c53b63bc430d3385e389d77c52999fe2e6425712",
+        "smzdm-browser-body:6029126b86ae2211f850d97705d2c2c2e937e548e5b320d94411716b55c0532a"
+      ]
+    }
+  ],
+  "canonical_identity": "贝德玛舒妍卸妆洁肤液500ml*1",
+  "canonical_sku_scope": "canonical_single_product_500ml",
+  "canonical_specification": "500ml",
+  "captured_at": "2026-08-19T20:51:14.773Z",
+  "category_profile": "cleanser",
+  "detail_image_count": 8,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 137,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/134/001_69369ed15e3f5306.jpg",
+      "ordinal": 1,
+      "sha256": "69369ed15e3f5306f88df7c0f50a709c515f8fa69a7a1abb445b278cad20b550",
+      "width": 600
+    },
+    {
+      "height": 1062,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/134/002_9259f12eb43875fb.jpg",
+      "ordinal": 2,
+      "sha256": "9259f12eb43875fbe1102282db2fb67db3fdf346c6c89731436cc6c3ce24d58b",
+      "width": 600
+    },
+    {
+      "height": 1086,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/134/003_1f47a561cea85a67.jpg",
+      "ordinal": 3,
+      "sha256": "1f47a561cea85a673bb2ef205c1b9f92b12209ef7d3264f9c1d20dfeff5b3f95",
+      "width": 600
+    },
+    {
+      "height": 885,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/134/004_771320c49a6ba9b3.jpg",
+      "ordinal": 4,
+      "sha256": "771320c49a6ba9b3d0c20ca2671beeab53d4c43a07b8f49eded1bccfde87f7eb",
+      "width": 600
+    },
+    {
+      "height": 892,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/134/005_e220d87c20a961ff.jpg",
+      "ordinal": 5,
+      "sha256": "e220d87c20a961ff65710c815ea9b2331d99f06c2cc2ab008635e5a17dc1a747",
+      "width": 600
+    },
+    {
+      "height": 921,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/134/006_377f9d3f45e56edb.jpg",
+      "ordinal": 6,
+      "sha256": "377f9d3f45e56edb7a685512ffa996f8f1b13644b69564ead47857066dd0e132",
+      "width": 600
+    },
+    {
+      "height": 1091,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/134/007_f9e462ec878fcc97.jpg",
+      "ordinal": 7,
+      "sha256": "f9e462ec878fcc97e11398a8c53b63bc430d3385e389d77c52999fe2e6425712",
+      "width": 600
+    },
+    {
+      "height": 741,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/134/008_9822e78fbe6c276d.jpg",
+      "ordinal": 8,
+      "sha256": "9822e78fbe6c276d44f76df00bff18d305e0d9024a6f6bc85d78ac64f6009def",
+      "width": 600
+    }
+  ],
+  "introduction_text": "这款BIODERMA 贝德玛 舒妍修护系列舒妍多效洁肤液，专为敏感脆弱肌肤打造，添加胶束科技洁肤配方，被高纯水浸湿的化妆棉，使胶束团的亲水端依附。当化妆棉轻拭肌肤时，胶束团疏水端会锁住所有杂质，如彩妆、油脂和污物等。免洗配方，无需额外水洗。由四种天然糖分构成，分别为低聚果糖、甘露糖醇、鼠李糖及木糖醇；有效清除脸部多种杂质，可卸除彩妆污垢，清理PM1-PM2.5微粒，抵抗重金属刺激，给肌肤提供足够的安全保障。",
+  "missing_fields": [
+    "net_content",
+    "ingredients_present",
+    "cleansing_power"
+  ],
+  "parameter_text": "商品名称\n舒妍多效洁肤液\n是否为特殊用途化妆品\n否\n净含量\n200g/mL以上\n国产/进口\n进口\n类别\n卸妆水/卸妆液\n商品产地\n欧美\n规格类型\n正常规格\n产品类别\n粉水\n批准文号\n国妆备进字J201310513\n保质期\n3年\n功效\n卸妆\n适合肤质\n干性\n适用部位\n脸部\n适用人群\n通用",
+  "portfolio_role": "micellar_water",
+  "product_id": 134,
+  "review_field_policy": [
+    "net_content",
+    "surfactant_type",
+    "cleansing_power",
+    "rinse_behavior",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "500ml",
+    "display_specification": "500ml",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "aligned",
+    "reference_price_sku": "500ml",
+    "source_sku": "500ml"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "6029126b86ae2211f850d97705d2c2c2e937e548e5b320d94411716b55c0532a",
+  "source_product_title": "BIODERMA 贝德玛 舒妍多效洁肤液 500ml",
+  "source_title": "BIODERMA 贝德玛 舒妍多效洁肤液 500ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/38qqp04/"
+}

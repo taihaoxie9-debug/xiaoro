@@ -1,0 +1,21 @@
+{
+  "schema_version": "review-candidate-sources-v1",
+  "sources": [
+    {
+      "collected_at": "2026-08-01T09:30:00Z",
+      "item_id": "111111111111",
+      "path": "tmall_reviews_alpha.html",
+      "product_id": 501,
+      "sha256": "fccd5e080261e4419d139ece8fd2eceb19d8e2b5c8d14b036dec576a1b56f65c",
+      "sku_id": "222222222222"
+    },
+    {
+      "collected_at": "2026-08-01T09:31:00Z",
+      "item_id": "333333333333",
+      "path": "tmall_reviews_beta.html",
+      "product_id": 502,
+      "sha256": "8607fa4791e55cba49d5dad1ad20859e00a0e87e40b57a6298c7256138e88392",
+      "sku_id": "444444444444"
+    }
+  ]
+}

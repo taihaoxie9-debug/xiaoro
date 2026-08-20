@@ -1,0 +1,68 @@
+{
+  "schema_version": "smzdm-wiki-source-audit-v1",
+  "status": "manual_browser_observed_not_raw",
+  "canonical_product_id": 34,
+  "source_url": "https://wiki.smzdm.com/p/qxpxgwd/",
+  "source_kind": "smzdm_wiki",
+  "observed_page_title": "SKINCEUTICALS 修丽可 CE复合修护精华液 30ml",
+  "observed_at": "2026-08-19",
+  "capture_status": {
+    "independent_headless": "capture_blocked",
+    "reason": "TCaptcha document returned before page body",
+    "raw_written": false,
+    "retry_performed": false
+  },
+  "page_sections": {
+    "product_introduction_present": true,
+    "structured_parameter_text_present": true,
+    "detail_image_count": 17,
+    "aigc_sections_present": [
+      "Powered by ZDM-AIGC Engine v0.3",
+      "优势",
+      "建议"
+    ]
+  },
+  "existing_source_comparison": {
+    "existing_source_origin": "https://item.m.jd.com/product/100107528567.html",
+    "existing_detail_image_count": 5,
+    "conclusion": "Existing OCR source is a different, shorter detail sequence and does not cover the later SMZDM wiki pages."
+  },
+  "observed_candidate_topics": [
+    {
+      "detail_image_ordinal": 11,
+      "kind": "ordinary_usage_candidate",
+      "summary": "商家页面写有“每次4-6滴，干手干脸”",
+      "allowed_next_step": "human review as answer_only usage",
+      "prohibited_next_step": "automatic efficacy or safety promotion"
+    },
+    {
+      "detail_image_ordinal": 12,
+      "kind": "high_risk_safety_transcript",
+      "summary": "商家将产品与专业美容项目、项目后使用、预防返黑关联，并提示开放性创口不建议使用。",
+      "allowed_next_step": "retain as attributed safety transcript after review",
+      "prohibited_next_step": "safety recommendation, ranking, or treatment claim"
+    },
+    {
+      "detail_image_ordinal": 14,
+      "kind": "cross_product_combination_candidate",
+      "summary": "页面展示 CE 经典抗氧瓶与紫米精华、A.G.E面霜、色修精华的使用顺序。",
+      "allowed_next_step": "retain only after every referenced product is identity-resolved and the combination is reviewed as attributed answer-only content",
+      "prohibited_next_step": "automatic recommendation or cross-product effect attribution"
+    },
+    {
+      "detail_image_ordinal": 15,
+      "kind": "ordinary_usage_candidate",
+      "summary": "页面展示洁面、爽肤、眼霜、CE、修护、面霜、防晒的基础顺序。",
+      "allowed_next_step": "human review as answer_only usage",
+      "prohibited_next_step": "automatic medical or safety conclusion"
+    },
+    {
+      "detail_image_ordinal": 16,
+      "kind": "storage_candidate",
+      "summary": "页面展示避光、避免剧烈晃动和夏季冷藏等待后开瓶等保存说明。",
+      "allowed_next_step": "human review as attributed storage/usage content",
+      "prohibited_next_step": "automatic stability guarantee"
+    }
+  ],
+  "next_required_step": "Obtain an auditable raw capture of the wiki page and all 17 detail images through an authorized non-challenged session before generating review candidates."
+}

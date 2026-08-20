@@ -1,0 +1,41 @@
+{
+  "schema_version": "guide-winner-presentation-contract-preflight-v1",
+  "created_at_utc": "2026-08-20T09:15:34Z",
+  "scope": "fast-path mixed guide closure for recording readiness",
+  "provider_call_count": 0,
+  "prompt_only_retry": false,
+  "source_hashes": {
+    "app/guide/understanding/semantic_equivalence.py": "5b84c8c613f3e4233e697b01891e5e8298afb4f079d1bb76f4f0b7d744725549",
+    "tools/guide_gates/turn_meaning_gate.py": "4a28e88b44bd5e35fce356c870784d585656992be6eb37f159e2166b7c8cf4cb",
+    "app/guide/presentation/public_contracts.py": "ec11c67b40c787fe79b87e44d778022a5192660bbff9a475499517fa0bd74d83",
+    "app/guide/presentation/presentation_compiler.py": "6c2b102b1411f5514e1ef22f42816170aeb896b9872799639711c735b574d1e6",
+    "app/static/guide-presentation.js": "d3f3957b81c332e76d05f5296811d98363959c31adac8497ca49248b3b70dbb4",
+    "app/static/chat.html": "221200563761be8423084f8040fc47f040c2dc67d31803ab0211a47a1f016c57"
+  },
+  "local_evidence": [
+    {
+      "command": "PYTHONPATH=. .venv/bin/python -m compileall -q app/guide tools/guide_gates tests/guide",
+      "status": "passed"
+    },
+    {
+      "command": "PYTHONPATH=. .venv/bin/pytest -q tests/guide/presentation/test_winner_presentation_contract.py tests/guide/presentation/test_public_contracts.py tests/guide/runtime/test_frontend_card_binding.py tests/guide/runtime/test_frontend_mode_rendering.py tests/guide/application/test_image_presentation_integration.py tests/guide/application/test_text_recommendation_flow.py::test_batch_suitability_route_executes_as_comparison",
+      "status": "passed",
+      "passed_count": 32
+    },
+    {
+      "command": "PYTHONPATH=. .venv/bin/pytest -q tests/guide/understanding/test_semantic_equivalence.py tests/guide/tools/test_turn_meaning_gate.py tests/guide/tools/test_semantic_equivalence_matrix.py tests/guide/presentation/test_winner_presentation_contract.py tests/guide/presentation/test_public_contracts.py tests/guide/presentation/test_presentation_compiler.py tests/guide/runtime/test_frontend_card_binding.py tests/guide/runtime/test_frontend_mode_rendering.py tests/guide/application/test_image_presentation_integration.py tests/guide/application/test_text_recommendation_flow.py::test_batch_suitability_route_executes_as_comparison",
+      "status": "passed",
+      "passed_count": 85
+    },
+    {
+      "command": "PYTHONPATH=. .venv/bin/pytest -q tests/guide/runtime/test_runtime_http.py::test_runtime_two_image_stream_emits_exact_ordered_comparison",
+      "status": "passed",
+      "passed_count": 1
+    }
+  ],
+  "current_limitations": [
+    "No new DeepSeek 48-turn batch has been run after this patch.",
+    "No real backend SSE browser recording has been completed after this patch.",
+    "This preflight proves targeted fast-path contract behavior, not final release readiness."
+  ]
+}

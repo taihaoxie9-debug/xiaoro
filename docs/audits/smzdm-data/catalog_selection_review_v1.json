@@ -1,0 +1,735 @@
+{
+  "decisions": [
+    {
+      "disposition": "retain",
+      "portfolio_role": "luxury_lightweight_cream",
+      "product_id": 24,
+      "rationale": "保留高价轻盈面霜路线，覆盖高预算保湿修护比较。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "needs_identity_resolution",
+      "portfolio_role": null,
+      "product_id": 26,
+      "rationale": "Canonical 商品名为“无”，须先锁定兰蔻具体防晒 SKU。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "cleansing_oil",
+      "product_id": 30,
+      "rationale": "保留琥珀卸妆油常规容量路线。",
+      "sku_scope": "canonical_single_product_150ml"
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 32,
+      "rationale": "与 product_id=129 均为兰蔻50ml肌底修护精华，保留可锁定版本129。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "flagship_repair_serum",
+      "product_id": 33,
+      "rationale": "保留经典修护精华路线，覆盖中高价夜间修护比较。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "antioxidant_serum",
+      "product_id": 34,
+      "rationale": "保留维C抗氧精华路线，与修护和提亮精华形成成分差异。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "plumping_serum",
+      "product_id": 35,
+      "rationale": "保留丰盈保湿精华路线，覆盖高价饱满感诉求。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "brightening_serum",
+      "product_id": 36,
+      "rationale": "保留中价提亮精华路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "entry_repair_serum",
+      "product_id": 37,
+      "rationale": "保留平价修护精华路线，形成修护精华价格带。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "barrier_serum",
+      "product_id": 38,
+      "rationale": "保留B5修护精华作为敏感屏障路线的基准商品。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "luxury_repair_serum",
+      "product_id": 39,
+      "rationale": "保留高端修护精华路线，保留与平价修护精华的预算对照。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 40,
+      "rationale": "与已保留的高价修护/抗老精华路线重叠，当前无足够差异字段。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "entry_antioxidant_serum",
+      "product_id": 41,
+      "rationale": "保留平价抗氧提亮精华路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "single_dose_serum",
+      "product_id": 42,
+      "rationale": "保留次抛精华形态，覆盖卫生与单次剂量决策。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 43,
+      "rationale": "与 product_id=132 均为科颜氏高保湿面霜，保留价格带更清晰的132。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "sensitive_moisturizer",
+      "product_id": 45,
+      "rationale": "保留敏感肌面霜路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "entry_repair_cream",
+      "product_id": 46,
+      "rationale": "保留平价B5修护面霜路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "luxury_firming_cream",
+      "product_id": 47,
+      "rationale": "保留高价紧致晚霜路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "luxury_nourishing_cream",
+      "product_id": 48,
+      "rationale": "保留高价滋润面霜路线，与紧致晚霜区分。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "barrier_cream",
+      "product_id": 49,
+      "rationale": "保留屏障保湿面霜路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "sensitive_skin_cream",
+      "product_id": 50,
+      "rationale": "保留敏感肌保湿面霜路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "daily_allround_sunscreen",
+      "product_id": 51,
+      "rationale": "保留日常高防晒路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "luxury_uv_primer",
+      "product_id": 52,
+      "rationale": "保留高价防晒隔离路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "fluid_sunscreen",
+      "product_id": 53,
+      "rationale": "保留轻盈防晒乳路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "watery_sunscreen",
+      "product_id": 54,
+      "rationale": "保留触肤化水防晒路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "entry_sensitive_sunscreen",
+      "product_id": 55,
+      "rationale": "保留平价敏感肌防晒路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "outdoor_sunscreen",
+      "product_id": 56,
+      "rationale": "保留户外防晒路线。",
+      "sku_scope": "canonical_single_product_50ml"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "entry_watery_sunscreen",
+      "product_id": 57,
+      "rationale": "保留平价水感防晒路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "domestic_sunscreen",
+      "product_id": 58,
+      "rationale": "保留国产防晒路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "fermented_essence",
+      "product_id": 59,
+      "rationale": "保留发酵精华水路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 60,
+      "rationale": "与 product_id=131 均为悦木之源灵芝水，保留200ml常规规格131。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 61,
+      "rationale": "与 product_id=133 均为科颜氏金盏花水，保留命名和价格带更清晰的133。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 62,
+      "rationale": "微精华露与已保留的精华水/修护精华路线重叠，当前无独立决策字段。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 63,
+      "rationale": "双重精华水与已保留的化妆水路线重叠，当前无独立决策字段。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "balancing_toner",
+      "product_id": 64,
+      "rationale": "保留平衡型化妆水路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "amino_acid_cleanser",
+      "product_id": 65,
+      "rationale": "保留氨基酸洁面路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "foam_cleanser",
+      "product_id": 66,
+      "rationale": "保留按压泡沫洁面路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "enzyme_foam_cleanser",
+      "product_id": 67,
+      "rationale": "保留酶类泡沫洁面路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "sensitive_cleanser",
+      "product_id": 68,
+      "rationale": "保留敏感肌洁面路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 69,
+      "rationale": "与 product_id=30 同为植村秀琥珀卸妆油，保留150ml常规容量30。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 70,
+      "rationale": "与 product_id=134 同为贝德玛卸妆水路线，保留身份更明确的134。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "cleansing_balm",
+      "product_id": 71,
+      "rationale": "保留卸妆膏路线。",
+      "sku_scope": "canonical_single_product_100ml"
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 72,
+      "rationale": "与 product_id=135 同为雅诗兰黛特润修护眼霜，保留价格带更清晰的135。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "entry_eye_cream",
+      "product_id": 73,
+      "rationale": "保留平价全脸眼霜路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 74,
+      "rationale": "名称含创面愈合、痤疮、皮炎等医疗边界，不纳入当前普通美妆导购池。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 75,
+      "rationale": "与已保留的补水/高价面膜路线重叠，当前无独立决策字段。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "premium_mask",
+      "product_id": 76,
+      "rationale": "保留高价片状面膜路线。",
+      "sku_scope": "catalogued_mask_pack_pending_source"
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 77,
+      "rationale": "与已保留的修护精华和面膜路线重叠，当前无独立决策字段。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 78,
+      "rationale": "与已保留的敏感肌面霜和补水面膜路线重叠，当前无独立决策字段。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "longwear_foundation",
+      "product_id": 79,
+      "rationale": "保留持妆粉底液路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "entry_foundation",
+      "product_id": 80,
+      "rationale": "保留中价持妆粉底路线。",
+      "sku_scope": "canonical_single_product_30ml"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "setting_powder",
+      "product_id": 81,
+      "rationale": "保留定妆粉饼路线。",
+      "sku_scope": "canonical_single_product_10g"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "premium_cushion",
+      "product_id": 82,
+      "rationale": "保留高价气垫路线。",
+      "sku_scope": "canonical_cushion_with_case_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "oil_control_foundation",
+      "product_id": 83,
+      "rationale": "保留油皮粉底路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "loose_powder",
+      "product_id": 84,
+      "rationale": "保留国产蜜粉路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "sheer_lipstick",
+      "product_id": 86,
+      "rationale": "保留水润口红色号路线。",
+      "sku_scope": "canonical_single_shade_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "classic_lotion",
+      "product_id": 89,
+      "rationale": "保留经典乳液路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "needs_identity_resolution",
+      "portfolio_role": null,
+      "product_id": 90,
+      "rationale": "Canonical 身份仅为“理肤泉”，无法锁定具体乳霜 SKU。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "entry_barrier_serum",
+      "product_id": 91,
+      "rationale": "保留低价屏障修护精华路线，与高价修护精华形成可比较价格带。",
+      "sku_scope": "canonical_single_product_50ml"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "premium_eye_cream",
+      "product_id": 92,
+      "rationale": "保留高价眼霜路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 93,
+      "rationale": "与已保留的平价、高价、咖啡因和修护眼部路线重叠，当前无独立决策字段。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "caffeine_eye_serum",
+      "product_id": 94,
+      "rationale": "保留咖啡因眼部精华路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "luxury_cleanser",
+      "product_id": 97,
+      "rationale": "保留高价洁面霜路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "hydrating_mask",
+      "product_id": 98,
+      "rationale": "保留补水面膜路线。",
+      "sku_scope": "catalogued_mask_pack_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "overnight_mask",
+      "product_id": 99,
+      "rationale": "保留涂抹式高价面膜路线。",
+      "sku_scope": "catalogued_mask_pack_pending_source"
+    },
+    {
+      "disposition": "needs_identity_resolution",
+      "portfolio_role": null,
+      "product_id": 100,
+      "rationale": "Canonical 商品名为“000”，须先恢复可验证商品身份。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "premium_lightweight_sunscreen",
+      "product_id": 101,
+      "rationale": "保留轻薄高价防晒路线。",
+      "sku_scope": "canonical_single_product_30ml"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "water_resistant_sunscreen",
+      "product_id": 102,
+      "rationale": "保留高防水防晒路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "green_tea_cleansing_oil",
+      "product_id": 103,
+      "rationale": "保留绿茶卸妆油路线，与琥珀卸妆油区分。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "cleansing_cream",
+      "product_id": 104,
+      "rationale": "保留洁颜霜路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "needs_identity_resolution",
+      "portfolio_role": null,
+      "product_id": 105,
+      "rationale": "“精萃水”无法锁定海蓝之谜具体版本与规格。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "botanical_toner",
+      "product_id": 106,
+      "rationale": "保留植物化妆水路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 107,
+      "rationale": "阿玛尼粉底与气垫两种形式已覆盖，优先保留粉底液80和其他品牌气垫。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 108,
+      "rationale": "替换芯不与单品粉底/完整气垫混入同一抓取池。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "premium_cushion",
+      "product_id": 109,
+      "rationale": "保留高价气垫粉底路线。",
+      "sku_scope": "canonical_single_product_13g"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "concealer",
+      "product_id": 110,
+      "rationale": "保留遮瑕膏路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 111,
+      "rationale": "与已保留的遮瑕膏110重叠，当前无足够差异字段。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "luxury_primer",
+      "product_id": 112,
+      "rationale": "保留高价妆前乳路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "oil_control_primer",
+      "product_id": 113,
+      "rationale": "保留控油妆前乳路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "matte_lipstick",
+      "product_id": 114,
+      "rationale": "保留哑光口红色号路线。",
+      "sku_scope": "canonical_single_shade_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "velvet_lipstick",
+      "product_id": 115,
+      "rationale": "保留丝绒口红色号路线。",
+      "sku_scope": "canonical_single_shade_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "slim_matte_lipstick",
+      "product_id": 116,
+      "rationale": "保留细管哑光口红路线。",
+      "sku_scope": "canonical_single_shade_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "single_eyeshadow",
+      "product_id": 117,
+      "rationale": "保留单色眼影路线。",
+      "sku_scope": "canonical_single_shade_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "powder_blush",
+      "product_id": 118,
+      "rationale": "保留腮红路线。",
+      "sku_scope": "canonical_single_shade_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "fresh_fruity_fragrance",
+      "product_id": 120,
+      "rationale": "保留清新花果香水路线。",
+      "sku_scope": "canonical_single_fragrance_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "gift_set_fragrance",
+      "product_id": 121,
+      "rationale": "保留礼赠香水套装路线，但不与单瓶规格混用。",
+      "sku_scope": "catalogued_set_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "studio_foundation",
+      "product_id": 122,
+      "rationale": "保留专业粉底路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "premium_foundation",
+      "product_id": 123,
+      "rationale": "保留高价粉底液路线。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 124,
+      "rationale": "与已保留的兰蔻气垫和其他粉底路线重叠，当前无独立决策字段。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "soft_matte_foundation",
+      "product_id": 125,
+      "rationale": "保留柔雾粉底路线。",
+      "sku_scope": "canonical_single_product_30ml"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "oil_control_foundation",
+      "product_id": 126,
+      "rationale": "保留高价油皮粉底路线。",
+      "sku_scope": "canonical_single_product_30ml"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "radiant_foundation",
+      "product_id": 127,
+      "rationale": "保留光泽持妆粉底路线。",
+      "sku_scope": "canonical_single_product_30ml"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "flagship_repair_serum_value",
+      "product_id": 129,
+      "rationale": "保留同系列修护精华的可锁定50ml版本，替代重复的高价记录。",
+      "sku_scope": "canonical_single_product_50ml"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "premium_uv_sunscreen",
+      "product_id": 130,
+      "rationale": "保留高价50ml防晒乳路线。",
+      "sku_scope": "canonical_single_product_50ml"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "botanical_essence_toner",
+      "product_id": 131,
+      "rationale": "保留灵芝水常规规格路线。",
+      "sku_scope": "canonical_single_product_200ml"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "classic_moisturizer",
+      "product_id": 132,
+      "rationale": "保留高保湿面霜路线，替代同名重复记录。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "calendula_toner",
+      "product_id": 133,
+      "rationale": "保留金盏花爽肤水路线，替代同系列重复记录。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "micellar_water",
+      "product_id": 134,
+      "rationale": "保留卸妆水路线。",
+      "sku_scope": "canonical_single_product_500ml"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "repair_eye_cream",
+      "product_id": 135,
+      "rationale": "保留修护眼霜路线，替代同名重复记录。",
+      "sku_scope": "canonical_single_product_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "classic_fragrance",
+      "product_id": 143,
+      "rationale": "保留经典香水路线。",
+      "sku_scope": "canonical_single_fragrance_pending_source"
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "barrier_lotion",
+      "product_id": 144,
+      "rationale": "保留神经酰胺调理乳路线。",
+      "sku_scope": "canonical_single_product_100ml"
+    },
+    {
+      "disposition": "exclude_from_capture",
+      "portfolio_role": null,
+      "product_id": 145,
+      "rationale": "水乳两件套不是单一 SKU，不进入当前单品导购抓取池。",
+      "sku_scope": null
+    },
+    {
+      "disposition": "retain",
+      "portfolio_role": "sensitive_lotion",
+      "product_id": 146,
+      "rationale": "保留敏感肌乳液路线。",
+      "sku_scope": "canonical_single_product_120ml"
+    }
+  ],
+  "review_status": "assistant_proposed_pending_human_confirmation",
+  "schema_version": "catalog-selection-review-v1",
+  "target_quotas": {
+    "base_makeup": 15,
+    "cleanser": 10,
+    "color_makeup": 6,
+    "fragrance": 3,
+    "skincare": 34,
+    "suncare": 12
+  }
+}

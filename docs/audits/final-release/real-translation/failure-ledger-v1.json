@@ -1,0 +1,24 @@
+{
+  "schema_version": "guide-final-real-translation-failure-v1",
+  "batch": "real-translation-v1",
+  "earliest_failure_layer": "model_translation",
+  "trajectory_id": "translation-02",
+  "turn_id": "rec-007-paraphrase-serum",
+  "input": "水后乳前那一步想加个修护屏障的",
+  "truth_before": {
+    "allowed_topic_hints": [
+      "serum"
+    ]
+  },
+  "provider_output": {
+    "operation_hint": "recommendation",
+    "topic_hint": "skincare",
+    "continuity_hint": "new_task",
+    "preference_concept_id": "efficacy.barrier_repair"
+  },
+  "diagnosis": "The provider preserved the repair concept but selected the broader skincare topic because the input did not explicitly name serum. The sealed truth was narrower than the wording.",
+  "repair_owner": "translation_fixture_truth",
+  "shared_repair": "Replace the ambiguous paraphrase with an explicit repair-serum request in the next unseen 12x4 sheet. No prompt, sentence, regex, or product exception was added.",
+  "provider_calls_before_stop": 5,
+  "remaining_calls_not_attempted": 43
+}

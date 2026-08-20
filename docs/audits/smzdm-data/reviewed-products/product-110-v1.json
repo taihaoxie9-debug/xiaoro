@@ -1,0 +1,106 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "coverage.high",
+      "decision": "map",
+      "fact_id": "reviewed:product:110:coverage:high-multi-concern-v1",
+      "field_key": "coverage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "高遮瑕方向，可修饰黑眼圈、痘印、泛红和肤色不均",
+      "review_rationale": "商品介绍明确写遮瑕力高，并列出黑眼圈、痘印、泛红和肤色不均等遮盖对象，可映射高遮瑕方向。",
+      "sku_status": "exact_product_source_sku_unresolved_non_price_fact",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:502ba9ca75073edc986f46a144b33dcd2418f544b10b408f58ce8ac4f136db0a"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.smooth",
+      "decision": "map",
+      "fact_id": "reviewed:product:110:texture:cream-smooth-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "乳霜质地，轻盈顺滑、延展性较好",
+      "review_rationale": "商品介绍直接描述乳霜质地、轻盈顺滑和延展性，可映射平滑顺滑的质地方向。",
+      "sku_status": "exact_product_source_sku_unresolved_non_price_fact",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:502ba9ca75073edc986f46a144b33dcd2418f544b10b408f58ce8ac4f136db0a"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:110:longevity:absolute-no-dryness-v1",
+      "field_key": "longevity",
+      "promotion_status": "rejected",
+      "public_text": "自然持久、不脱妆且时间久了也不会发干",
+      "review_rationale": "来源没有持妆时长、样本、环境或干燥评估方法，不能把绝对持妆和不发干表述提升为公开事实。",
+      "sku_status": "exact_product_source_sku_unresolved_unverified_claim",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:502ba9ca75073edc986f46a144b33dcd2418f544b10b408f58ce8ac4f136db0a"
+      ]
+    }
+  ],
+  "canonical_identity": "NARS亮采柔滑遮瑕膏",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "6ml",
+  "captured_at": "2026-08-19T21:53:43.195Z",
+  "category_profile": "base_makeup",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "detail_images": [],
+  "introduction_text": "富含水润保养与光散射科技，水润质地，完整服帖，遮盖肌肤瑕疵，赋予肌肤自然持久的透亮底妆。轻松遮盖痘印，黑眼圈，肤色不均，泛红。色斑等。丝绸般质感，滋润肌肤，不脱妆，轻盈顺滑，打造无暇自然裸妆。\n\nNARS这款遮瑕膏是乳霜质地，质感顺滑，遮瑕力很高，5色可选。延展性不错，可以协调配合各种粉底，就能有效隐藏黑眼圈、修饰泛红和其他瑕疵。而且时间久了，也不会因为遮瑕膏发干让遮瑕部位显形。",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "finish",
+    "texture"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "concealer",
+  "product_id": 110,
+  "review_field_policy": [
+    "net_content",
+    "shade",
+    "finish",
+    "coverage",
+    "longevity",
+    "texture"
+  ],
+  "review_sources": [
+    "product_introduction"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "6ml",
+    "display_specification": null,
+    "identity_status": "exact_product",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "6ml",
+    "source_sku": "unresolved"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "502ba9ca75073edc986f46a144b33dcd2418f544b10b408f58ce8ac4f136db0a",
+  "source_product_title": "NARS 纳斯 亮采柔滑遮瑕膏【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "NARS 纳斯 亮采柔滑遮瑕膏【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/6o18mwv/"
+}

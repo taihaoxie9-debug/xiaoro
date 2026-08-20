@@ -1,0 +1,47 @@
+{
+  "candidate_facts": [],
+  "canonical_identity": "珀莱雅超膜盾护防晒霜",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T20:15:12.580Z",
+  "category_profile": "suncare",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "detail_images": [],
+  "introduction_text": "待完善",
+  "missing_fields": [
+    "net_content",
+    "texture",
+    "water_resistance"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "domestic_sunscreen",
+  "product_id": 58,
+  "review_field_policy": [
+    "net_content",
+    "spf_pa",
+    "texture",
+    "film_speed",
+    "water_resistance",
+    "reapplication",
+    "cleansing_requirement"
+  ],
+  "review_sources": [
+    "product_introduction"
+  ],
+  "review_status": "no_promotion",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "family",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "unresolved"
+  },
+  "source_match": "family",
+  "source_page_text_sha256": "ab9933b9fb74ae251cfdea4ee59cd7b571e304194b3d740c1a4835d249e43b62",
+  "source_product_title": "PROYA/珀莱雅 防晒霜",
+  "source_title": "PROYA/珀莱雅 防晒霜【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/8yd3gnp/"
+}

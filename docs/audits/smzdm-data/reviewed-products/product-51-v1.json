@@ -1,0 +1,85 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:51:spf-pa:spf50-plus-pa-four-plus-v1",
+      "field_key": "spf_pa",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "SPF50+ / PA++++",
+      "review_rationale": "参数表明确标注SPF50+与PA++++；来源是同产品套装变体，只保留防晒等级，不扩写时长或水汗表现。",
+      "sku_status": "same_product_set_variant_specification_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:f05fa2b82eaa892f09ffdb27aaf10fdd5c5bcee2dbe9605953b82c626f7df4c3"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:51:net-content:set-60ml-plus-samples-v1",
+      "field_key": "net_content",
+      "promotion_status": "rejected",
+      "public_text": "60ml+12ml×5套装规格",
+      "review_rationale": "来源为60ml正装加五支12ml的组合装，Canonical与参考价SKU未锁定，不能提升为单品展示规格或与价格组合。",
+      "sku_status": "same_product_set_variant_specification_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:f05fa2b82eaa892f09ffdb27aaf10fdd5c5bcee2dbe9605953b82c626f7df4c3"
+      ]
+    }
+  ],
+  "canonical_identity": "安热沙智感倍护防晒乳液GB",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T20:10:55.681Z",
+  "category_profile": "suncare",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "detail_images": [],
+  "introduction_text": "待完善",
+  "missing_fields": [
+    "net_content",
+    "texture",
+    "water_resistance"
+  ],
+  "parameter_text": "规格\n防晒乳液 60ml+12ml*5\n防晒指数\nSPF50+\nPA值\nPA++++\n是否为特殊用途化妆品\n特殊化妆品\n保质期\n3年\n批准文号\n国妆特进字20240273\n适用部位\n面部\n功效\n防晒",
+  "portfolio_role": "daily_allround_sunscreen",
+  "product_id": 51,
+  "review_field_policy": [
+    "net_content",
+    "spf_pa",
+    "texture",
+    "film_speed",
+    "water_resistance",
+    "reapplication",
+    "cleansing_requirement"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "unresolved",
+    "source_sku": "60ml+12ml*5_set"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "f05fa2b82eaa892f09ffdb27aaf10fdd5c5bcee2dbe9605953b82c626f7df4c3",
+  "source_product_title": "ANEASAY/安耐晒 新一代小金瓶智感倍护防晒乳液 60ml+12ml*5",
+  "source_title": "ANEASAY/安耐晒 新一代小金瓶智感倍护防晒乳液 60ml+12ml*5【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/pgoyxrg/"
+}

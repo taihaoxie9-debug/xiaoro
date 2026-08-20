@@ -1,0 +1,136 @@
+{
+  "schema_version": "guide-unified-router-browser-closure-v1",
+  "date": "2026-08-17",
+  "repository": "/Users/bytedance/Desktop/xiaoro-fresh",
+  "branch": "rebuild",
+  "feature_flag": {
+    "acceptance_value": true,
+    "name": "GUIDE_UNIFIED_ROUTER_ENABLED",
+    "rollback_value": false
+  },
+  "static_mode_matrix": {
+    "source_report": "docs/audits/frontend-integration/browser_closure_v1.json",
+    "source_report_sha256": "b280d067ee7262b67dff40e02133743f15a4d4fbed7391c5dde46bcdd96a1552",
+    "mode_run_count": 40,
+    "passed": true,
+    "viewports": {
+      "desktop": {
+        "height": 900,
+        "width": 1440
+      },
+      "mobile": {
+        "height": 844,
+        "width": 390
+      }
+    },
+    "defects": {
+      "clipped_text": 0,
+      "comparison_table_mismatches": 0,
+      "console_errors": 0,
+      "horizontal_overflow": 0,
+      "image_failures": 0,
+      "network_failures": 0,
+      "overlaps": 0,
+      "third_cards": 0
+    },
+    "live_sse": {
+      "copywriter_call_count": 0,
+      "copywriter_call_count_source": "presentation_contract.telemetry",
+      "event_sequence": [
+        "start",
+        "stage",
+        "intent",
+        "stage",
+        "stage",
+        "merchant_claims",
+        "decision_process",
+        "answer_contract",
+        "card_display_contract",
+        "products",
+        "product_evidence",
+        "presentation_contract",
+        "message",
+        "feedback_target",
+        "end"
+      ],
+      "presentation_before_message": true,
+      "thinking_removed_after_first_character": true,
+      "thinking_started_immediately": true,
+      "third_model_call_count": 0,
+      "translator_call_count": 1
+    },
+    "visual_shell_drift_count": 0
+  },
+  "unified_router_browser_probes": {
+    "conditional_image_similarity": {
+      "confirmed_product_id": 53,
+      "constraints": [
+        "budget_maximum=150",
+        "more_refreshing"
+      ],
+      "product_ids": [
+        54
+      ],
+      "source_product_excluded": true
+    },
+    "dynamic_consultation": {
+      "confirmed_session_profile": true,
+      "correction_replaced_observation": true,
+      "exit_processor": "recommendation",
+      "medical_escalation_cards": 0,
+      "provisional_base_skin": "combination",
+      "trajectory_completed": true
+    },
+    "error_modes": {
+      "active_damage_cards": 0,
+      "clarification_cards": 0,
+      "no_match_cards": 0,
+      "unconfirmed_image_cards": 0,
+      "unconfirmed_image_error_code": "IMAGE_IDENTITY_UNCONFIRMED"
+    },
+    "pure_image_similarity": {
+      "confirmed_product_id": 53,
+      "difference_explanation_present": true,
+      "product_ids": [
+        54,
+        101
+      ],
+      "requested_count_respected": true,
+      "similarity_explanation_present": true,
+      "source_product_excluded": true
+    },
+    "three_image_comparison_mobile": {
+      "comparison_table_count": 1,
+      "confirmed_product_ids": [
+        53,
+        55,
+        57
+      ],
+      "horizontal_overflow": false,
+      "viewport": {
+        "height": 844,
+        "width": 390
+      }
+    },
+    "two_image_comparison": {
+      "comparison_table_count": 1,
+      "confirmed_product_ids": [
+        53,
+        55
+      ],
+      "presentation_mode": "comparison"
+    }
+  },
+  "screenshots": [
+    "docs/audits/frontend-integration/screenshots/compare-two-desktop.jpg",
+    "docs/audits/frontend-integration/screenshots/compare-two-mobile.jpg",
+    "docs/audits/frontend-integration/screenshots/consultation-provisional-zero-desktop.jpg",
+    "docs/audits/frontend-integration/screenshots/consultation-confirmation-zero-mobile.jpg",
+    "docs/audits/frontend-integration/screenshots/image-recommend-two-desktop.jpg",
+    "docs/audits/frontend-integration/screenshots/image-compare-two-mobile.jpg",
+    "docs/audits/unified-router/screenshots/live-image-similarity-desktop.png",
+    "docs/audits/unified-router/screenshots/live-image-constrained_similarity-desktop.png"
+  ],
+  "production_deployment": false,
+  "passed": true
+}

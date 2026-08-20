@@ -1,0 +1,272 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:126:net-content:30ml-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "30ml",
+      "review_rationale": "来源标题、参数、Canonical与参考价SKU均为N95 30ml，规格价格完成同SKU对齐。",
+      "sku_status": "exact_product_exact_n95_30ml_aligned",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:f4b6bd470c70fee7be389dd91a2096a1cad9258386250487f914437aaa7d0208"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:126:shade:n95-fair-v1",
+      "field_key": "shade",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "1-N95 白皙色",
+      "review_rationale": "来源标题、参数与长图第10、11张都明确为1-N95白皙色，可作为精确SKU选色知识。",
+      "sku_status": "exact_product_exact_n95_30ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 10,
+      "source_refs": [
+        "smzdm-detail-image:9d9ecf7a8008b54ba9da1ee203000f437a995eeb207522ff246213f164a2bdee",
+        "smzdm-detail-image:7b742b61aea4183ea5418d5deb664d08ddb5d016c3a38bf40bc7d99d3f28505b",
+        "smzdm-browser-body:f4b6bd470c70fee7be389dd91a2096a1cad9258386250487f914437aaa7d0208"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "finish.matte",
+      "decision": "map",
+      "fact_id": "reviewed:product:126:finish:soft-matte-v1",
+      "field_key": "finish",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "柔雾哑光妆效",
+      "review_rationale": "参数表明确写哑光/雾面，长图第4、5、7张也描述柔雾哑光与柔焦，可映射哑光妆效方向。",
+      "sku_status": "exact_product_exact_n95_30ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 4,
+      "source_refs": [
+        "smzdm-detail-image:e4ae8a9a39c7a86c2e233b233c16206e003c986bfcdd13c6141f2c0dbcc9fdfd",
+        "smzdm-detail-image:fcdcd6f5bb6c0228c627988c53d81a3abd6a89ec917714366d012bf6f2c91e0e",
+        "smzdm-detail-image:7dc1cf924abb1404923a1143f164e8b8b30ccf6318e48f3bea34ab128252538e",
+        "smzdm-browser-body:f4b6bd470c70fee7be389dd91a2096a1cad9258386250487f914437aaa7d0208"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.lightweight",
+      "decision": "map",
+      "fact_id": "reviewed:product:126:texture:lightweight-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "轻盈无感、不厚重",
+      "review_rationale": "长图第3张明确写一抹贴合、轻盈无感、不厚重，可映射轻薄质地方向；不把“会呼吸”解释为皮肤生理结论。",
+      "sku_status": "exact_product_exact_n95_30ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:b2c27a2fac47666896be33052466419c948f22a483fdfb94e4936490288137fe"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "coverage.high",
+      "decision": "map",
+      "fact_id": "reviewed:product:126:coverage:high-soft-focus-v1",
+      "field_key": "coverage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "高遮瑕方向，可柔焦修饰多重瑕疵",
+      "review_rationale": "长图第6、7张明确写遮瑕、柔焦不斑驳并可修饰肤色和多重瑕疵，可映射高遮瑕方向；不采用24小时量化值。",
+      "sku_status": "exact_product_exact_n95_30ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 6,
+      "source_refs": [
+        "smzdm-detail-image:bc4edcd75c01c73842d4f9faee811417b1ed7da16fb7c3d7d67b96b2a6e957f1",
+        "smzdm-detail-image:7dc1cf924abb1404923a1143f164e8b8b30ccf6318e48f3bea34ab128252538e"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:126:longevity:24h-without-footnote-v1",
+      "field_key": "longevity",
+      "promotion_status": "rejected",
+      "public_text": "24小时持妆、哑光和遮瑕",
+      "review_rationale": "长图第3至6张使用24小时上标，但本批原图没有对应样本、环境、方法或脚注，不能发布量化持妆结论。",
+      "sku_status": "exact_product_exact_n95_30ml_unverified_quantified_claim",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:b2c27a2fac47666896be33052466419c948f22a483fdfb94e4936490288137fe",
+        "smzdm-detail-image:e4ae8a9a39c7a86c2e233b233c16206e003c986bfcdd13c6141f2c0dbcc9fdfd",
+        "smzdm-detail-image:fcdcd6f5bb6c0228c627988c53d81a3abd6a89ec917714366d012bf6f2c91e0e",
+        "smzdm-detail-image:bc4edcd75c01c73842d4f9faee811417b1ed7da16fb7c3d7d67b96b2a6e957f1"
+      ]
+    }
+  ],
+  "canonical_identity": "纪梵希明星柔雾粉底液N95 30ml油皮服帖遮瑕",
+  "canonical_sku_scope": "canonical_single_product_30ml",
+  "canonical_specification": "N95 30ml",
+  "captured_at": "2026-08-19T21:58:53.891Z",
+  "category_profile": "base_makeup",
+  "detail_image_count": 14,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 567,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/126/001_f7d4ddf2f4be8c58.jpg",
+      "ordinal": 1,
+      "sha256": "f7d4ddf2f4be8c589ea58f5586fea0ec4d04e84a2656f7837cd028c68155a78e",
+      "width": 600
+    },
+    {
+      "height": 567,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/126/002_f69c0f9da6e85a70.jpg",
+      "ordinal": 2,
+      "sha256": "f69c0f9da6e85a705f7394cc932dbbc4b47515cf1ea684f6d675299c4da4051d",
+      "width": 600
+    },
+    {
+      "height": 567,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/126/003_b2c27a2fac476668.jpg",
+      "ordinal": 3,
+      "sha256": "b2c27a2fac47666896be33052466419c948f22a483fdfb94e4936490288137fe",
+      "width": 600
+    },
+    {
+      "height": 567,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/126/004_e4ae8a9a39c7a86c.jpg",
+      "ordinal": 4,
+      "sha256": "e4ae8a9a39c7a86c2e233b233c16206e003c986bfcdd13c6141f2c0dbcc9fdfd",
+      "width": 600
+    },
+    {
+      "height": 567,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/126/005_fcdcd6f5bb6c0228.jpg",
+      "ordinal": 5,
+      "sha256": "fcdcd6f5bb6c0228c627988c53d81a3abd6a89ec917714366d012bf6f2c91e0e",
+      "width": 600
+    },
+    {
+      "height": 567,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/126/006_bc4edcd75c01c738.jpg",
+      "ordinal": 6,
+      "sha256": "bc4edcd75c01c73842d4f9faee811417b1ed7da16fb7c3d7d67b96b2a6e957f1",
+      "width": 600
+    },
+    {
+      "height": 567,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/126/007_7dc1cf924abb1404.jpg",
+      "ordinal": 7,
+      "sha256": "7dc1cf924abb1404923a1143f164e8b8b30ccf6318e48f3bea34ab128252538e",
+      "width": 600
+    },
+    {
+      "height": 567,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/126/008_a386b870420cf7bc.jpg",
+      "ordinal": 8,
+      "sha256": "a386b870420cf7bc25a081f5b741e0ce772dde54bb43f4267f1961851c914d51",
+      "width": 600
+    },
+    {
+      "height": 567,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/126/009_47ca02038de95873.jpg",
+      "ordinal": 9,
+      "sha256": "47ca02038de95873eb478582cf0694b1872178843ff8b0022b5086f903d8c65e",
+      "width": 600
+    },
+    {
+      "height": 567,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/126/010_9d9ecf7a8008b54b.jpg",
+      "ordinal": 10,
+      "sha256": "9d9ecf7a8008b54ba9da1ee203000f437a995eeb207522ff246213f164a2bdee",
+      "width": 600
+    },
+    {
+      "height": 567,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/126/011_7b742b61aea4183e.jpg",
+      "ordinal": 11,
+      "sha256": "7b742b61aea4183ea5418d5deb664d08ddb5d016c3a38bf40bc7d99d3f28505b",
+      "width": 600
+    },
+    {
+      "height": 567,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/126/012_e89c16e87073088b.jpg",
+      "ordinal": 12,
+      "sha256": "e89c16e87073088bb073fdbc68f81d92c1353fdc0686571a0dfbaff125dcf07a",
+      "width": 600
+    },
+    {
+      "height": 567,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/126/013_57a9818c3d77f794.jpg",
+      "ordinal": 13,
+      "sha256": "57a9818c3d77f7944fb95b26c936770c78bd26b26123abc29f02d93efdee0b1f",
+      "width": 600
+    },
+    {
+      "height": 567,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/126/014_5ec7104dcfcc11b4.jpg",
+      "ordinal": 14,
+      "sha256": "5ec7104dcfcc11b4335435f370fb7519d824a7027410710b4c861356957f59d5",
+      "width": 600
+    }
+  ],
+  "introduction_text": "",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "finish",
+    "texture"
+  ],
+  "parameter_text": "色号颜色\nN95\n规格\n30ml\n国产/进口\n进口\n商品名称\n明星柔雾粉底液\n商品产地\n法国\n是否防晒\n否\n批准文号\n国妆网备进字（沪）2021504055\n规格类型\n正常规格\n是否为特殊用途化妆品\n否\n保质期\n3年\n类别\n粉底液\n功效\n修饰肤色\n妆效\n哑光/雾面\n适合肤质\n干皮适用中性肤质适用油皮适用混合性",
+  "portfolio_role": "oil_control_foundation",
+  "product_id": 126,
+  "review_field_policy": [
+    "net_content",
+    "shade",
+    "finish",
+    "coverage",
+    "longevity",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "N95 30ml",
+    "display_specification": "N95 30ml",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "aligned",
+    "reference_price_sku": "N95 30ml",
+    "source_sku": "N95 30ml"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "f4b6bd470c70fee7be389dd91a2096a1cad9258386250487f914437aaa7d0208",
+  "source_product_title": "GIVENCHY 纪梵希 明星柔雾粉底液 #1-N95 30ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "GIVENCHY 纪梵希 明星柔雾粉底液 #1-N95 30ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/pr738r5/"
+}

@@ -1,0 +1,2 @@
+audited_at,audit_profile,audit_key,base_commit,scope_sha256,status,findings,report_path,real_invocations
+2026-08-11T01:21:00+08:00,guide-closure-full-file-v1,b874c83c4f79b594a80de475b9a353755b27a9b90e7dd03a743e392aad40d0da,5762d327fc433513a0d0687a06406525df515a73,93c72acd79c3fb767eccf8b39293510b8726035ebed5526781a61845190ff03c,FINDINGS_CLEARED/targeted verification,P0=0;P1=2;P2=0,docs/audits/guide-closure/opening_audit_report.md,1
