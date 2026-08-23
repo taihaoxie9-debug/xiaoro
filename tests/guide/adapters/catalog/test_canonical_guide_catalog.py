@@ -210,6 +210,19 @@ def test_presentation_facts_preserve_canonical_category(
     assert facts.category == "精华"
 
 
+def test_presentation_facts_include_canonical_direct_display_fields(
+    real_catalog,
+) -> None:
+    facts = real_catalog.get_presentation_facts(35)
+
+    assert facts.efficacy == ("抗皱", "淡化细纹", "紧致", "保湿")
+    assert facts.efficacy_state == "known"
+    assert facts.suitable_skin == ("多种肤质适用",)
+    assert facts.suitable_skin_state == "known"
+    assert facts.ingredients_present == ("玻色因", "透明质酸")
+    assert facts.ingredients_present_state == "known"
+
+
 def test_catalog_derives_profile_from_raw_category_with_strict_empty_default(
     real_catalog,
 ) -> None:

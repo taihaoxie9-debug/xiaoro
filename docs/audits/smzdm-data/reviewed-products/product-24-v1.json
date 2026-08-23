@@ -1,0 +1,250 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:24:net_content:60ml-canonical-unresolved-v1",
+      "field_key": "net_content",
+      "promotion_status": "rejected",
+      "public_text": "60ml",
+      "review_rationale": "来源页明确为60ml，但Canonical和参考价SKU尚未锁定，不能据此覆盖展示规格或组合参考价。",
+      "sku_status": "source_sku_exact_canonical_and_price_unresolved",
+      "source_kind": "product_title_and_parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:1959ab628c954367fbb7d0a163cb4ae534b2e8ad945ecdb579f6f7a9d229a135"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:24:ingredients:algae-extract-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "藻类提取物",
+      "review_rationale": "结构化参数表明确列出藻类提取物；不采纳长图中的胶原新生、蛋白新生和胜肽机制扩写。",
+      "sku_status": "exact_product_source_sku",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:1959ab628c954367fbb7d0a163cb4ae534b2e8ad945ecdb579f6f7a9d229a135"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.lightweight",
+      "decision": "map",
+      "fact_id": "reviewed:product:24:texture:lightweight-cloud-cream-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "轻盈型云绒乳霜质地",
+      "review_rationale": "来源标题明确为轻盈型精华乳霜，第7张长图展示云绒绵密质地，可形成跨商品轻盈质地方向。",
+      "sku_status": "exact_product_source_sku",
+      "source_kind": "product_title_and_detail_image",
+      "source_ordinal": 7,
+      "source_refs": [
+        "smzdm-browser-body:1959ab628c954367fbb7d0a163cb4ae534b2e8ad945ecdb579f6f7a9d229a135",
+        "smzdm-detail-image:aa0a1ab014fd4e6a498f63a4644d3c74e45897714d2c07545fbddb7fe0872d4f"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.refreshing",
+      "decision": "map",
+      "fact_id": "reviewed:product:24:texture:spreadable-non-sticky-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "易延展，润而不粘",
+      "review_rationale": "商品介绍和第7张长图共同支持易延展、润而不粘的肤感；删除微润球数量和渗透机制表述。",
+      "sku_status": "exact_product_source_sku",
+      "source_kind": "product_introduction_and_detail_image",
+      "source_ordinal": 7,
+      "source_refs": [
+        "smzdm-browser-body:1959ab628c954367fbb7d0a163cb4ae534b2e8ad945ecdb579f6f7a9d229a135",
+        "smzdm-detail-image:aa0a1ab014fd4e6a498f63a4644d3c74e45897714d2c07545fbddb7fe0872d4f"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:24:usage:no-emulsification-v1",
+      "field_key": "usage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "无需乳化，可直接涂抹",
+      "review_rationale": "商品介绍和第9张长图明确说明无需乳化；不保留全天候抗老等效果承诺。",
+      "sku_status": "exact_product_source_sku",
+      "source_kind": "product_introduction_and_detail_image",
+      "source_ordinal": 9,
+      "source_refs": [
+        "smzdm-browser-body:1959ab628c954367fbb7d0a163cb4ae534b2e8ad945ecdb579f6f7a9d229a135",
+        "smzdm-detail-image:20d940c6b0077e3fd707b84fdc8a6e37177a71ca506f22d17092a3090b3f203b"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:24:efficacy:quantified-anti-aging-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "量化淡纹紧致与胶原新生表述",
+      "review_rationale": "第2至6张长图包含百分比、即时效果、胶原和多种蛋白新生机制，属于高风险营销扩写，不进入公开事实。",
+      "sku_status": "exact_product_source_sku",
+      "source_kind": "detail_images",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:edf9926bafc17b0d9695ce6e1cea8552b3755566acca68c10637006fa6a83006",
+        "smzdm-detail-image:eb56649efd674371b5c8df8011176288ed54cf25323d1572b827906cb0675d9c",
+        "smzdm-detail-image:dd715cd490253fa562b1047d1ea7b119f0f9b0b710b64cd5047e6eb6064c7e2f",
+        "smzdm-detail-image:0db82204e1a3cf00eff257df12e9dedd01252c088972007de6e70e01319ed89f",
+        "smzdm-detail-image:b1c0328e4715567dbb281790b7dee76e77d5252de413b546596d7a85bc9f873b"
+      ]
+    }
+  ],
+  "canonical_identity": "海蓝之谜轻盈型精华乳霜",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T18:10:20.239Z",
+  "category_profile": "skincare",
+  "detail_image_count": 12,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 635,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/24/001_4bfcaa5e30e161e7.webp",
+      "ordinal": 1,
+      "sha256": "4bfcaa5e30e161e732a2da4eb2f698a4359d5f35e5cb913750cb69155419b7fe",
+      "width": 600
+    },
+    {
+      "height": 800,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/24/002_edf9926bafc17b0d.webp",
+      "ordinal": 2,
+      "sha256": "edf9926bafc17b0d9695ce6e1cea8552b3755566acca68c10637006fa6a83006",
+      "width": 600
+    },
+    {
+      "height": 1190,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/24/003_eb56649efd674371.webp",
+      "ordinal": 3,
+      "sha256": "eb56649efd674371b5c8df8011176288ed54cf25323d1572b827906cb0675d9c",
+      "width": 600
+    },
+    {
+      "height": 558,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/24/004_dd715cd490253fa5.webp",
+      "ordinal": 4,
+      "sha256": "dd715cd490253fa562b1047d1ea7b119f0f9b0b710b64cd5047e6eb6064c7e2f",
+      "width": 600
+    },
+    {
+      "height": 866,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/24/005_0db82204e1a3cf00.webp",
+      "ordinal": 5,
+      "sha256": "0db82204e1a3cf00eff257df12e9dedd01252c088972007de6e70e01319ed89f",
+      "width": 600
+    },
+    {
+      "height": 928,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/24/006_b1c0328e4715567d.webp",
+      "ordinal": 6,
+      "sha256": "b1c0328e4715567dbb281790b7dee76e77d5252de413b546596d7a85bc9f873b",
+      "width": 600
+    },
+    {
+      "height": 938,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/24/007_aa0a1ab014fd4e6a.webp",
+      "ordinal": 7,
+      "sha256": "aa0a1ab014fd4e6a498f63a4644d3c74e45897714d2c07545fbddb7fe0872d4f",
+      "width": 600
+    },
+    {
+      "height": 996,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/24/008_cf8be5075de9ce95.webp",
+      "ordinal": 8,
+      "sha256": "cf8be5075de9ce95c13b89c38a4a2806503993575cfad31a0464639fac472c20",
+      "width": 600
+    },
+    {
+      "height": 960,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/24/009_20d940c6b0077e3f.webp",
+      "ordinal": 9,
+      "sha256": "20d940c6b0077e3fd707b84fdc8a6e37177a71ca506f22d17092a3090b3f203b",
+      "width": 600
+    },
+    {
+      "height": 921,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/24/010_c6512f723ef942b3.webp",
+      "ordinal": 10,
+      "sha256": "c6512f723ef942b35e1aaa37118f06040cd43d54f2d23068147e5a9c4d7ce79f",
+      "width": 600
+    },
+    {
+      "height": 933,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/24/011_80cdcddf8c2269b8.webp",
+      "ordinal": 11,
+      "sha256": "80cdcddf8c2269b8ffa216de8718dd258f38c393466e077e0c73470cdc357a78",
+      "width": 600
+    },
+    {
+      "height": 303,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/24/012_2cf90971a76e49cb.webp",
+      "ordinal": 12,
+      "sha256": "2cf90971a76e49cb1785bfe84e135730387863482cc3b4565682f1357693d2a9",
+      "width": 600
+    }
+  ],
+  "introduction_text": "La Mer海蓝之谜是隶属于美国雅诗兰黛集团旗下的高端顶级奢华的护肤品牌，其明星产品便是La Mer海蓝之谜面霜。这款海蓝之谜全新升级奇迹云绒霜和之前的版本对比来说，是科技与质地全面升级。①全新复合愈颜Ⅲ科技，神奇活性精萃复配黄金三重胜肽，修护之上，加乘抗老，令肌肤持续年轻，同时还加速胶原蛋白新生、加速细胞间脂质新生、加速丝聚蛋白新生。②全新微润球传导黑科技，一滴蕴含十亿微小水润球，3D精准定位，高效修护抗老。③全新云绒质地，奢润绵密，无需乳化，触肤瞬间，层层快速渗透。精华乳霜全新升级为云绒霜，新添加黄金抗老三重胜肽相辅相成，淡化纹路，能够加速胶原和弹力纤维新生，紧塑肌底结构，使肌肤紧实；质地上是奢华的云绒质地，触肤即融，配合独特的微脂水润球智能导入科技，将活性成分层层渗透，快速直达肌底，在修护的同时长效保湿润泽，全天候修护抗老哦~奇迹云绒霜和奇迹面霜有什么不同？两款面霜都主打愈颜Ⅲ抗老，淡纹紧实，仅在质地上有所不同。奇迹云绒霜质地奢润绵密，触肤即融，无需乳化。经典奇迹面霜为奢华丰盈质地，需要以指尖乳化来释放活性能量，更适合较为干燥的肌肤或非常干燥的气候环境下使用。",
+  "missing_fields": [
+    "net_content",
+    "ingredients_present",
+    "texture"
+  ],
+  "parameter_text": "规格\n60g/mL\n是否为特殊用途化妆品\n否\n功效\n修护;保湿\n净含量（mL/g）\n51-100mL(g)\n适合肤质\n干性\n产品产地\n美国\n国产/进口\n进口\n适用人群\n成人\n类别\n面霜\n成分\n藻类提取物\n规格类型\n正常规格\n保质期\n3年",
+  "portfolio_role": "luxury_lightweight_cream",
+  "product_id": 24,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "60ml"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "1959ab628c954367fbb7d0a163cb4ae534b2e8ad945ecdb579f6f7a9d229a135",
+  "source_product_title": "LA MER 海蓝之谜 愈龄云绒霜 轻盈型精华乳霜 60ml",
+  "source_title": "LA MER 海蓝之谜 愈龄云绒霜 轻盈型精华乳霜 60ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/mzqge3x/"
+}

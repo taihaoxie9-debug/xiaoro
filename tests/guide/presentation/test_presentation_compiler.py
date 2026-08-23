@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from pathlib import Path
 
 import pytest
 
@@ -15,18 +16,31 @@ from app.guide.adapters.llm.presentation_copywriter_adapter import (
 from app.guide.presentation.contracts import CardDisplayContract
 from app.guide.presentation.copywriter_contracts import (
     ApprovedSoftFact,
+    CompactTagEvidence,
     CopyLengthBudget,
     CopySlot,
     CopywriterDraft,
+    CopywriterSection,
     LockedFact,
     PresentationMode,
     PresentationPacket,
     PresentationSectionSpec,
-    ProductCopy,
+    SourceTaggedCopy,
+    build_copywriter_section_specs,
+    responsibility_for_presentation_mode,
 )
 from app.guide.presentation.presentation_compiler import (
     PresentationCompileInputs,
     compile_presentation,
+)
+from app.guide.presentation.public_contracts import (
+    PublicPresentationContract,
+)
+from app.guide.presentation.public_fact_contracts import (
+    ProjectedPublicFact,
+)
+from app.guide.intent.responsibility_matrix import (
+    decision_for_responsibility,
 )
 
 
@@ -94,6 +108,18 @@ def _slot(index: int, product_id: int) -> CopySlot:
                 source_refs=(f"source:soft:{product_id}",),
             ),
         ),
+        detail_facts=(
+            ProjectedPublicFact(
+                fact_id=f"soft-{product_id}",
+                product_id=product_id,
+                field_key="texture",
+                label="质地",
+                display_value="轻盈清爽",
+                source_refs=(f"source:soft:{product_id}",),
+                source_kind="evidence",
+                attribution="verified_fact",
+            ),
+        ),
         locked_facts=(
             LockedFact(
                 fact_id=f"price-{product_id}",
@@ -105,6 +131,16 @@ def _slot(index: int, product_id: int) -> CopySlot:
             ),
         ),
         required_cautions=(),
+        compact_tag_evidence=(
+            CompactTagEvidence(
+                product_id=product_id,
+                fact_id=f"soft-{product_id}",
+                field_key="texture",
+                label="轻盈清爽",
+                source_refs=(f"source:soft:{product_id}",),
+                attribution="verified_fact",
+            ),
+        ),
     )
 
 
@@ -130,21 +166,39 @@ def _packet(mode: PresentationMode) -> PresentationPacket:
         )
     elif mode == "product_knowledge":
         sections = (
-            PresentationSectionSpec(kind="product", slot_id="p1"),
+            PresentationSectionSpec(kind="summary"),
+            PresentationSectionSpec(kind="answer"),
+            PresentationSectionSpec(kind="full_cards"),
+        )
+    elif mode in {"single_product", "image_suitability"}:
+        sections = (
+            PresentationSectionSpec(kind="summary"),
+            PresentationSectionSpec(kind="judgement"),
+            PresentationSectionSpec(kind="full_cards"),
+        )
+    elif mode == "image_identity":
+        sections = (
+            PresentationSectionSpec(kind="observation"),
+            PresentationSectionSpec(
+                kind="product",
+                slot_id="p1",
+            ),
             PresentationSectionSpec(kind="full_cards"),
         )
     elif not slots:
         sections = (
             PresentationSectionSpec(kind="summary"),
             PresentationSectionSpec(kind="closing"),
-            PresentationSectionSpec(kind="evidence"),
+        )
+    elif mode in COMPARISON_MODES:
+        sections = (
+            PresentationSectionSpec(kind="summary"),
+            PresentationSectionSpec(kind="comparison"),
+            PresentationSectionSpec(kind="full_cards"),
         )
     else:
-        prefix = [PresentationSectionSpec(kind="summary")]
-        if mode in COMPARISON_MODES:
-            prefix.append(PresentationSectionSpec(kind="comparison"))
         sections = (
-            *prefix,
+            PresentationSectionSpec(kind="summary"),
             *(
                 PresentationSectionSpec(
                     kind="product",
@@ -154,14 +208,24 @@ def _packet(mode: PresentationMode) -> PresentationPacket:
             ),
             PresentationSectionSpec(kind="closing"),
             PresentationSectionSpec(kind="full_cards"),
-            PresentationSectionSpec(kind="pitfalls"),
         )
     return PresentationPacket(
         mode=mode,
+        recommendation_mode=(
+            "explore"
+            if responsibility_for_presentation_mode(mode).value
+            == "recommendation"
+            else None
+        ),
         user_need_summary="按当前条件给出展示结果",
         winner_status="INSUFFICIENT_FOR_WINNER",
         slots=slots,
         section_order=sections,
+        requested_dimensions=(
+            ("texture",)
+            if mode in COMPARISON_MODES
+            else ()
+        ),
         copy_budget=CopyLengthBudget(
             summary_max_chars=180,
             positioning_max_chars=90,
@@ -196,26 +260,81 @@ def _card_display(packet: PresentationPacket) -> CardDisplayContract:
 
 
 def _draft(packet: PresentationPacket) -> CopywriterDraft:
-    has_closing = any(
-        section.kind == "closing"
-        for section in packet.section_order
-    )
-    return CopywriterDraft(
-        mode=packet.mode,
-        summary_copy="现有信息可以支持下面的路线说明，但不强行分出唯一胜负。",
-        product_copy=tuple(
-            ProductCopy(
-                slot_id=slot.slot_id,
-                positioning="更偏轻盈清爽的使用路线。",
-                advisor_reason="可以结合自己的肤感偏好继续比较。",
-                used_soft_fact_ids=(slot.approved_soft_facts[0].fact_id,),
+    slots_by_id = {slot.slot_id: slot for slot in packet.slots}
+    sections = []
+    for spec in build_copywriter_section_specs(packet):
+        if spec.kind == "product":
+            slot = slots_by_id[spec.slot_id]
+            sections.append(
+                CopywriterSection(
+                    kind="product",
+                    slot_id=slot.slot_id,
+                    content=SourceTaggedCopy(
+                        text="更偏轻盈清爽的使用路线。",
+                        used_fact_ids=(
+                            slot.approved_soft_facts[0].fact_id,
+                        ),
+                    ),
+                    advisor_reason=SourceTaggedCopy(
+                        text="可以结合自己的肤感偏好继续比较。"
+                    ),
+                )
             )
-            for slot in packet.slots
-        ),
-        closing_copy=(
-            "最后结合下方商品资料和注意项选择。"
-            if has_closing
-            else None
+        elif spec.kind in {"answer", "judgement"}:
+            sections.append(
+                CopywriterSection(
+                    kind=spec.kind,
+                    slot_id=spec.slot_id,
+                    content=SourceTaggedCopy(
+                        text="这部分信息可以结合当前需求继续判断。"
+                    ),
+                )
+            )
+        else:
+            sections.append(
+                CopywriterSection(
+                    kind=spec.kind,
+                    content=SourceTaggedCopy(
+                        text=(
+                            "现有信息可以支持下面的路线说明，"
+                            "但不强行分出唯一胜负。"
+                        )
+                    ),
+                )
+            )
+    return CopywriterDraft(mode=packet.mode, sections=tuple(sections))
+
+
+def _section(
+    draft: CopywriterDraft,
+    kind: str,
+    slot_id: str | None = None,
+) -> CopywriterSection:
+    return next(
+        section
+        for section in draft.sections
+        if (section.kind, section.slot_id) == (kind, slot_id)
+    )
+
+
+def _replace_section(
+    draft: CopywriterDraft,
+    replacement: CopywriterSection,
+) -> CopywriterDraft:
+    return CopywriterDraft(
+        mode=draft.mode,
+        sections=tuple(
+            replacement
+            if (
+                section.kind,
+                section.slot_id,
+            )
+            == (
+                replacement.kind,
+                replacement.slot_id,
+            )
+            else section
+            for section in draft.sections
         ),
     )
 
@@ -250,21 +369,193 @@ def test_compiler_builds_each_mode_with_exact_card_authority(
         copywriter=copywriter,
     )
 
-    assert result.mode == mode
+    assert result.mode == decision_for_responsibility(
+        packet.responsibility
+    ).presentation_mode
     assert result.card_display == _card_display(packet)
     assert tuple(
         section.product_id
         for section in result.sections
         if section.kind == "product"
-    ) == result.card_display.visible_product_ids
-    expected_calls = 0 if mode in {"clarification", "error"} else 1
+    ) == (
+        result.card_display.visible_product_ids
+            if result.responsibility.value
+            in {"recommendation", "image_identity"}
+        else ()
+    )
+    expected_calls = (
+        0 if mode in {"clarification", "error", "image_identity"} else 1
+    )
     assert len(copywriter.calls) == expected_calls
     assert result.copy_source == (
-        "fallback" if expected_calls == 0 else "model"
+        "authoritative" if expected_calls == 0 else "model"
+    )
+    if expected_calls == 0:
+        assert result.telemetry.fallback_reason is None
+
+
+def test_compiler_preserves_each_multi_image_identity_product() -> None:
+    first = _packet("image_identity")
+    second_slot = _slot(2, 57)
+    packet = PresentationPacket.model_validate(
+        {
+            **first.model_dump(mode="python"),
+            "slots": (*first.slots, second_slot),
+            "section_order": (
+                PresentationSectionSpec(kind="observation"),
+                PresentationSectionSpec(
+                    kind="product",
+                    slot_id="p1",
+                ),
+                PresentationSectionSpec(
+                    kind="product",
+                    slot_id="p2",
+                ),
+                PresentationSectionSpec(kind="full_cards"),
+            ),
+        },
+        strict=True,
+    )
+    card_display = CardDisplayContract(
+        mode="recommendation",
+        visible_product_ids=(55, 57),
+        max_cards=2,
+        reason="recommendation",
+    )
+
+    result = compile_presentation(
+        PresentationCompileInputs(
+            packet=packet,
+            card_display=card_display,
+        ),
+        copywriter=RecordingCopywriter([]),
+    )
+
+    assert tuple(
+        section.product_id
+        for section in result.sections
+        if section.kind == "product"
+    ) == (55, 57)
+    assert result.visible_product_ids == (55, 57)
+
+
+def test_compiler_returns_one_public_contract_type() -> None:
+    packet = _packet("recommendation")
+
+    result = compile_presentation(
+        PresentationCompileInputs(
+            packet=packet,
+            card_display=_card_display(packet),
+        ),
+        copywriter=RecordingCopywriter([_result(packet)]),
+    )
+
+    assert isinstance(result, PublicPresentationContract)
+
+
+def test_comparison_compiles_only_summary_table_and_shelf() -> None:
+    packet = _packet("comparison")
+
+    result = compile_presentation(
+        PresentationCompileInputs(
+            packet=packet,
+            card_display=_card_display(packet),
+        ),
+        copywriter=RecordingCopywriter([_result(packet)]),
+    )
+
+    assert isinstance(result, PublicPresentationContract)
+    assert [section.kind for section in result.sections] == [
+        "summary",
+        "comparison",
+        "full_cards",
+    ]
+    assert [row.label for row in result.comparison_rows] == [
+        "品牌主打",
+        "质地",
+        "当前画像匹配",
+    ]
+    assert result.requested_comparison_dimensions == ("texture",)
+    assert all(section.kind != "product" for section in result.sections)
+    assert all(
+        0 < len([
+            tag
+            for tag in result.compact_tags
+            if tag.product_id == product_id
+        ]) <= 3
+        for product_id in result.visible_product_ids
     )
 
 
-def test_compiler_attaches_locked_facts_after_valid_model_copy() -> None:
+def test_comparison_compiles_fact_backed_winner_after_table() -> None:
+    packet = _packet("comparison").model_copy(
+        update={
+            "winner_status": "SELECTED",
+            "winner_product_id": 57,
+        }
+    )
+
+    result = compile_presentation(
+        PresentationCompileInputs(
+            packet=packet,
+            card_display=_card_display(packet),
+        ),
+        copywriter=RecordingCopywriter([_result(packet)]),
+    )
+
+    assert result.winner.status == "selected"
+    assert result.winner.winner_product_id == 57
+    assert result.winner.fact_ids == ("soft-57",)
+    assert result.winner.dimension_ids == ("texture",)
+
+
+def test_comparison_winner_receipt_uses_known_visible_rows() -> None:
+    base = _packet("comparison")
+    slots = tuple(
+        slot.model_copy(
+            update={
+                "approved_soft_facts": (
+                    *slot.approved_soft_facts,
+                    ApprovedSoftFact(
+                        fact_id=f"brand-{slot.product_id}",
+                        product_id=slot.product_id,
+                        field_key="brand_main",
+                        plain_meaning="品牌主打：修护维稳",
+                        attribution="merchant_claim",
+                        source_refs=(
+                            f"source:{slot.product_id}:brand",
+                        ),
+                    ),
+                ),
+            },
+            deep=True,
+        )
+        for slot in base.slots
+    )
+    packet = base.model_copy(
+        update={
+            "winner_status": "SELECTED",
+            "winner_product_id": 57,
+            "requested_dimensions": (),
+            "slots": slots,
+        },
+        deep=True,
+    )
+
+    result = compile_presentation(
+        PresentationCompileInputs(
+            packet=packet,
+            card_display=_card_display(packet),
+        ),
+        copywriter=RecordingCopywriter([_result(packet)]),
+    )
+
+    assert result.winner.status == "selected"
+    assert result.winner.fact_ids == ("brand-57",)
+    assert result.winner.dimension_ids == ("brand_main",)
+
+
+def test_compiler_attaches_selected_detail_facts_after_model_copy() -> None:
     packet = _packet("recommendation")
     copywriter = RecordingCopywriter([_result(packet)])
 
@@ -286,9 +577,19 @@ def test_compiler_attaches_locked_facts_after_valid_model_copy() -> None:
         "可以结合自己的肤感偏好继续比较。"
     )
     assert product.product_id == 55
-    assert product.direct_facts[0].fact_id == "price-55"
-    assert product.direct_facts[0].display_value == "¥55.00"
+    assert product.direct_facts[0].fact_id == "soft-55"
+    assert product.direct_facts[0].display_value == "轻盈清爽"
     assert "55.00" not in product.copy_text
+
+
+def test_compiler_has_no_temporary_debug_http_instrumentation() -> None:
+    source = Path(
+        "app/guide/presentation/presentation_compiler.py"
+    ).read_text(encoding="utf-8")
+
+    assert "127.0.0.1:7777" not in source
+    assert "urllib.request" not in source
+    assert "#region debug" not in source
 
 
 @pytest.mark.parametrize(
@@ -311,18 +612,26 @@ def test_compiler_skips_copywriter_for_deterministic_policies(
     )
 
     assert copywriter.calls == []
-    assert result.copy_source == "fallback"
-    assert result.telemetry.fallback_reason == policy
+    assert result.copy_source == "authoritative"
+    assert result.telemetry.fallback_reason is None
 
 
 def test_invalid_model_copy_falls_back_without_second_request() -> None:
     packet = _packet("recommendation")
+    base = _draft(packet)
+    summary = _section(base, "summary")
     invalid = _result(packet).model_copy(
         update={
-            "draft": _draft(packet).model_copy(
-                update={
-                    "summary_copy": "这就是最适合你的唯一首选。"
-                }
+            "draft": _replace_section(
+                base,
+                summary.model_copy(
+                    update={
+                        "content": SourceTaggedCopy(
+                                text="这就是最适合你的唯一首选。",
+                                winner_claim="selected",
+                        )
+                    }
+                ),
             )
         }
     )
@@ -345,16 +654,24 @@ def test_invalid_model_copy_falls_back_without_second_request() -> None:
     )
 
 
-def test_demo_relaxed_validation_uses_model_copy_without_retry(
+def test_demo_relaxed_validation_cannot_bypass_validation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     packet = _packet("recommendation")
+    base = _draft(packet)
+    summary = _section(base, "summary")
     invalid = _result(packet).model_copy(
         update={
-            "draft": _draft(packet).model_copy(
-                update={
-                    "summary_copy": "这就是最适合你的唯一首选。"
-                }
+            "draft": _replace_section(
+                base,
+                summary.model_copy(
+                    update={
+                        "content": SourceTaggedCopy(
+                                text="这就是最适合你的唯一首选。",
+                                winner_claim="selected",
+                        )
+                    }
+                ),
             )
         }
     )
@@ -373,10 +690,9 @@ def test_demo_relaxed_validation_uses_model_copy_without_retry(
     )
 
     assert len(copywriter.calls) == 1
-    assert result.copy_source == "model"
-    assert result.telemetry.fallback_reason is None
-    assert result.sections[0].copy_text == (
-        "这就是最适合你的唯一首选。"
+    assert result.copy_source == "fallback"
+    assert result.telemetry.fallback_reason == (
+        "validation:winner_language"
     )
 
 
@@ -416,6 +732,122 @@ def test_missing_copywriter_uses_deterministic_fallback() -> None:
 
     assert result.copy_source == "fallback"
     assert result.telemetry.fallback_reason == "copywriter_disabled"
+
+
+def test_compiler_rejects_legacy_universal_essay_draft() -> None:
+    packet = _packet("general_knowledge")
+    legacy = CopywriterCallResult(
+        draft=CopywriterDraft(
+            mode="general_knowledge",
+            summary_copy=SourceTaggedCopy(
+                text="这是不应进入新运行路径的旧格式。"
+            ),
+        ),
+        usage=SemanticTokenUsage(
+            prompt_tokens=80,
+            completion_tokens=30,
+            total_tokens=110,
+            cached_tokens=0,
+        ),
+        provider="copy-provider",
+        model="copy-model",
+        latency_ms=25.0,
+    )
+
+    result = compile_presentation(
+        PresentationCompileInputs(
+            packet=packet,
+            card_display=_card_display(packet),
+        ),
+        copywriter=RecordingCopywriter([legacy]),
+    )
+
+    assert result.copy_source == "fallback"
+    assert result.telemetry.fallback_reason == "validation:legacy_draft"
+
+
+def test_reviewed_general_knowledge_copy_bypasses_copywriter() -> None:
+    packet = _packet("general_knowledge")
+    copywriter = RecordingCopywriter([_result(packet)])
+    public_copy = (
+        "下面先讲通用知识：\n\n"
+        "1. **看防护指标**：SPF 针对 UVB。"
+    )
+
+    result = compile_presentation(
+        PresentationCompileInputs(
+            packet=packet,
+            card_display=_card_display(packet),
+            authoritative_public_copy=SourceTaggedCopy(
+                text=public_copy,
+            ),
+        ),
+        copywriter=copywriter,
+    )
+
+    assert copywriter.calls == []
+    assert result.sections[0].copy_text == public_copy
+    assert result.copy_source == "authoritative"
+    assert result.telemetry.fallback_reason is None
+
+
+def test_authoritative_public_copy_is_knowledge_only() -> None:
+    packet = _packet("recommendation")
+
+    with pytest.raises(ValueError, match="knowledge"):
+        PresentationCompileInputs(
+            packet=packet,
+            card_display=_card_display(packet),
+            authoritative_public_copy=SourceTaggedCopy(
+                text="公开正文",
+            ),
+        )
+
+
+def test_product_knowledge_uses_authoritative_copy_with_fact_ids() -> None:
+    packet = _packet("product_knowledge")
+    copywriter = RecordingCopywriter([_result(packet)])
+    answer = SourceTaggedCopy(
+        text="品牌主打轻盈清爽，具体肤感仍以实际使用为准。",
+        used_fact_ids=("soft-55",),
+    )
+
+    result = compile_presentation(
+        PresentationCompileInputs(
+            packet=packet,
+            card_display=_card_display(packet),
+            authoritative_public_copy=answer,
+        ),
+        copywriter=copywriter,
+    )
+
+    assert copywriter.calls == []
+    assert tuple(section.kind for section in result.sections) == (
+        "summary",
+        "answer",
+        "full_cards",
+    )
+    assert result.sections[1].copy_text == answer.text
+    assert result.sections[1].used_fact_ids == ("soft-55",)
+    assert result.copy_source == "authoritative"
+    assert result.telemetry.fallback_reason is None
+
+
+def test_authoritative_product_knowledge_rejects_unknown_fact_id() -> None:
+    packet = _packet("product_knowledge")
+
+    with pytest.raises(ValueError, match="authority"):
+        compile_presentation(
+            PresentationCompileInputs(
+                packet=packet,
+                card_display=_card_display(packet),
+                authoritative_public_copy=SourceTaggedCopy(
+                    text="这段正文不能冒用未知依据。",
+                    used_fact_ids=("unknown-fact",),
+                ),
+            ),
+            copywriter=None,
+        )
 
 
 def test_compile_inputs_reject_card_slot_mismatch_before_model_call() -> None:

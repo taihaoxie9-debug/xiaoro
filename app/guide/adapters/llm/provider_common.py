@@ -150,7 +150,12 @@ class OpenAIJsonClient:
             trust_env=False,
         )
 
-    def request(self, body: Mapping[str, object]) -> JsonCompletion:
+    def request(
+        self,
+        body: Mapping[str, object],
+        *,
+        tool_name: str | None = None,
+    ) -> JsonCompletion:
         try:
             response = self._client.post(
                 "chat/completions",
@@ -182,7 +187,11 @@ class OpenAIJsonClient:
                 SemanticProviderFailureCode.INVALID_RESPONSE
             ) from None
 
-        content = extract_content(envelope)
+        content = (
+            extract_tool_arguments(envelope, tool_name)
+            if tool_name is not None
+            else extract_content(envelope)
+        )
         usage, actual_cost = extract_usage(envelope)
         trace_id = safe_trace_id(
             response.headers.get("x-request-id")
@@ -305,6 +314,55 @@ def extract_content(envelope: object) -> str:
     return content
 
 
+def extract_tool_arguments(
+    envelope: object,
+    expected_tool_name: str,
+) -> str:
+    if not isinstance(envelope, Mapping):
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.INVALID_RESPONSE
+        )
+    choices = envelope.get("choices")
+    if not isinstance(choices, list) or len(choices) != 1:
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.INVALID_RESPONSE
+        )
+    choice = choices[0]
+    if not isinstance(choice, Mapping):
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.INVALID_RESPONSE
+        )
+    message = choice.get("message")
+    if not isinstance(message, Mapping):
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.INVALID_RESPONSE
+        )
+    tool_calls = message.get("tool_calls")
+    if not isinstance(tool_calls, list) or len(tool_calls) != 1:
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.INVALID_RESPONSE
+        )
+    tool_call = tool_calls[0]
+    if not isinstance(tool_call, Mapping):
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.INVALID_RESPONSE
+        )
+    function = tool_call.get("function")
+    if (
+        not isinstance(function, Mapping)
+        or function.get("name") != expected_tool_name
+    ):
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.INVALID_RESPONSE
+        )
+    arguments = function.get("arguments")
+    if not isinstance(arguments, str) or not arguments.strip():
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.EMPTY_RESPONSE
+        )
+    return arguments
+
+
 def extract_usage(
     envelope: object,
 ) -> tuple[dict[str, int | None], Decimal | None]:
@@ -389,6 +447,7 @@ def contains_control(value: str) -> bool:
 
 __all__ = [
     "DailyUsageLimiter",
+    "extract_tool_arguments",
     "JsonCompletion",
     "OpenAIJsonClient",
     "UsageReservation",

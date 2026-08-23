@@ -11,6 +11,12 @@ from app.guide.understanding.turn_meaning_contracts import (
 def _payload() -> dict[str, object]:
     return {
         "operation_hint": "recommendation",
+        "recommendation_mode": "explore",
+        "recommendation_count": 3,
+        "recommendation_mode_basis": {
+            "basis": "count_requested",
+            "source_text": "三款",
+        },
         "topic_hint": "sunscreen",
         "continuity_hint": "new_task",
         "subject_scope_hint": "self",
@@ -61,10 +67,94 @@ def test_turn_meaning_accepts_one_universal_translation() -> None:
     meaning = TurnMeaning.model_validate(_payload(), strict=True)
 
     assert meaning.operation_hint == "recommendation"
+    assert meaning.recommendation_mode == "explore"
+    assert meaning.recommendation_count == 3
+    assert meaning.recommendation_mode_basis.basis == (
+        "count_requested"
+    )
     assert meaning.preference_candidates[0].concept_id == (
         "texture.refreshing"
     )
     assert meaning.relative_candidates[0].direction == "higher"
+
+
+def test_turn_meaning_accepts_one_product_fit() -> None:
+    payload = _payload()
+    payload["recommendation_mode"] = "fit"
+    payload["recommendation_count"] = 1
+    payload["recommendation_mode_basis"] = {
+        "basis": "single_best_request",
+        "source_text": "这个",
+    }
+
+    meaning = TurnMeaning.model_validate(payload, strict=True)
+
+    assert meaning.recommendation_mode == "fit"
+    assert meaning.recommendation_count == 1
+    assert meaning.recommendation_mode_basis.basis == (
+        "single_best_request"
+    )
+    assert meaning.recommendation_mode_basis.source_text == "这个"
+
+
+def test_turn_meaning_rejects_recommendation_without_basis() -> None:
+    payload = _payload()
+    payload["recommendation_mode_basis"] = None
+
+    with pytest.raises(ValidationError, match="recommendation basis"):
+        TurnMeaning.model_validate(payload, strict=True)
+
+
+def test_turn_meaning_rejects_fit_with_explore_basis() -> None:
+    payload = _payload()
+    payload["recommendation_mode"] = "fit"
+    payload["recommendation_count"] = 1
+    payload["recommendation_mode_basis"] = {
+        "basis": "count_requested",
+        "source_text": "这个",
+    }
+
+    with pytest.raises(ValidationError, match="parent-scoped"):
+        TurnMeaning.model_validate(payload, strict=True)
+
+
+def test_turn_meaning_rejects_fit_with_multiple_results() -> None:
+    payload = _payload()
+    payload["recommendation_mode"] = "fit"
+    payload["recommendation_count"] = 2
+    payload["recommendation_mode_basis"] = {
+        "basis": "single_best_request",
+        "source_text": "这个",
+    }
+
+    with pytest.raises(ValidationError, match="fit"):
+        TurnMeaning.model_validate(payload, strict=True)
+
+
+def test_non_recommendation_forbids_recommendation_outcome() -> None:
+    payload = _payload()
+    payload["operation_hint"] = "knowledge"
+
+    with pytest.raises(ValidationError, match="non-recommendation"):
+        TurnMeaning.model_validate(payload, strict=True)
+
+    payload["recommendation_mode"] = None
+    payload["recommendation_count"] = None
+    payload["recommendation_mode_basis"] = None
+    meaning = TurnMeaning.model_validate(payload, strict=True)
+
+    assert meaning.recommendation_mode is None
+    assert meaning.recommendation_count is None
+
+
+def test_non_recommendation_forbids_recommendation_mode_basis() -> None:
+    payload = _payload()
+    payload["operation_hint"] = "knowledge"
+    payload["recommendation_mode"] = None
+    payload["recommendation_count"] = None
+
+    with pytest.raises(ValidationError, match="recommendation basis"):
+        TurnMeaning.model_validate(payload, strict=True)
 
 
 def test_turn_meaning_forbids_offsets_ids_and_state_operations() -> None:
@@ -84,6 +174,14 @@ def test_turn_meaning_forbids_offsets_ids_and_state_operations() -> None:
     payload = _payload()
     payload["reference_mentions"][0]["start"] = 0
     with pytest.raises(ValidationError, match="start"):
+        TurnMeaning.model_validate(payload, strict=True)
+
+
+def test_batch_size_hint_requires_a_batch_reference() -> None:
+    payload = _payload()
+    payload["reference_mentions"][0]["batch_size_hint"] = 2
+
+    with pytest.raises(ValidationError, match="batch_size_hint"):
         TurnMeaning.model_validate(payload, strict=True)
 
 
@@ -115,6 +213,23 @@ def test_free_descriptor_is_valid_without_parent_concept() -> None:
     assert meaning.preference_candidates[0].concept_id is None
 
 
+def test_ingredient_exclusion_parent_requires_a_bare_avoid_target() -> None:
+    payload = _payload()
+    payload["preference_candidates"] = [
+        {
+            "field_key": "ingredient_exclusion",
+            "concept_id": "ingredient_exclusion.alcohol",
+            "raw_text": "酒精",
+            "polarity": "avoid",
+            "strength": "ordinary",
+        }
+    ]
+    payload["relative_candidates"] = []
+
+    with pytest.raises(ValidationError, match="ingredient exclusion"):
+        TurnMeaning.model_validate(payload, strict=True)
+
+
 def test_turn_meaning_rejects_duplicate_raw_semantic_atoms() -> None:
     payload = _payload()
     payload["preference_candidates"] = [
@@ -126,11 +241,47 @@ def test_turn_meaning_rejects_duplicate_raw_semantic_atoms() -> None:
         TurnMeaning.model_validate(payload, strict=True)
 
 
+def test_turn_meaning_accepts_closed_state_action_atoms() -> None:
+    payload = _payload()
+    payload["pending_response_hint"] = "unknown"
+    payload["constraint_changes"] = [
+        {
+            "parent_concept": "efficacy",
+            "requested_change": "replace",
+            "raw_text": "修护",
+            "normalized_value": "repair",
+        },
+        {
+            "parent_concept": "skin",
+            "requested_change": "replace",
+            "raw_text": "油皮",
+            "normalized_value": "oily",
+        },
+    ]
+
+    meaning = TurnMeaning.model_validate(payload, strict=True)
+
+    assert [
+        (
+            item.parent_concept,
+            item.requested_change,
+            item.normalized_value,
+        )
+        for item in meaning.constraint_changes
+    ] == [
+        ("efficacy", "replace", "repair"),
+        ("skin", "replace", "oily"),
+    ]
+
+
 def test_consultation_hypothesis_references_current_observation_ids() -> None:
     payload = _payload()
     payload.update(
         {
             "operation_hint": "assessment",
+            "recommendation_mode": None,
+            "recommendation_count": None,
+            "recommendation_mode_basis": None,
             "topic_hint": "skincare",
             "continuity_hint": "continue",
             "observation_candidates": [
@@ -219,6 +370,9 @@ def test_observation_accepts_source_bound_trigger_qualifier_aliases(
     payload.update(
         {
             "operation_hint": "assessment",
+            "recommendation_mode": None,
+            "recommendation_count": None,
+                "recommendation_mode_basis": None,
             "topic_hint": "skincare",
             "reference_mentions": [],
             "budget_candidates": [],

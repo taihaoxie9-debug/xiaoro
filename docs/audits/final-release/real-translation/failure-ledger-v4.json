@@ -1,0 +1,20 @@
+{
+  "schema_version": "guide-final-real-translation-failure-v1",
+  "batch": "real-translation-v4",
+  "earliest_failure_layer": "model_translation",
+  "trajectory_id": "translation-04",
+  "turn_id": "follow-012-alcohol-followup",
+  "input": "那不含酒精的第二款呢",
+  "provider_output": {
+    "operation_hint": "recommendation",
+    "topic_hint": "serum",
+    "continuity_hint": "continue",
+    "reference_ordinal": 2,
+    "ingredient_exclusion": "酒精"
+  },
+  "diagnosis": "Unlike the budget-revision failure, this output compiled to a new recommendation task rather than product followup/product knowledge. Letting it pass would hide a route-selection risk for referenced product followups.",
+  "repair_owner": "real_translation_fixture_scope",
+  "shared_repair": "Keep the shared budget-revision compatibility, but do not generalize recommendation as an equivalent operation for referenced product followups. Freeze this real failure and use a new unseen product-followup wording in the next batch.",
+  "provider_calls_before_stop": 16,
+  "remaining_calls_not_attempted": 32
+}

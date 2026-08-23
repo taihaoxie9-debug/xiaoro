@@ -6,8 +6,11 @@ from app.guide.feedback.contracts import (
     ConversationSnapshot,
     DisplayedCandidateRef,
     RecommendationQueryContext,
+    RecommendationSlotState,
 )
+from app.guide.feedback.focus_state import ActiveFocus
 from app.guide.intent.contracts import FollowupPlan
+from app.guide.intent.responsibility_matrix import Responsibility
 from app.guide.retrieval.category_profiles import CategoryProfile
 from app.guide.understanding.contracts import FollowupAction
 
@@ -52,52 +55,62 @@ def snapshot() -> ConversationSnapshot:
     return ConversationSnapshot(
         session_id="s-1",
         version=1,
-        query_context=RecommendationQueryContext(
-            category="serum",
-            budget_minimum=None,
-            budget_maximum=Decimal("500"),
-            skin="sensitive",
-            efficacy="repair",
-            exclusions=[],
+        active_owner=Responsibility.RECOMMENDATION,
+        active_focus=ActiveFocus(slot="recommendation"),
+        recommendation_slot=RecommendationSlotState(
+            query_context=RecommendationQueryContext(
+                category="serum",
+                recommendation_mode_basis="broad_exploration",
+                budget_minimum=None,
+                budget_maximum=Decimal("500"),
+                skin="sensitive",
+                efficacy="repair",
+                exclusions=[],
+            ),
+            candidates=[
+                DisplayedCandidateRef(
+                    product_id=91,
+                    ordinal=1,
+                    skin_match="unknown",
+                    matched_efficacies=["修护"],
+                ),
+                DisplayedCandidateRef(
+                    product_id=38,
+                    ordinal=2,
+                    skin_match="unknown",
+                    matched_efficacies=["修护"],
+                ),
+            ],
         ),
-        candidates=[
-            DisplayedCandidateRef(
-                product_id=91,
-                ordinal=1,
-                skin_match="unknown",
-                matched_efficacies=["修护"],
-            ),
-            DisplayedCandidateRef(
-                product_id=38,
-                ordinal=2,
-                skin_match="unknown",
-                matched_efficacies=["修护"],
-            ),
-        ],
     )
 
 
 def four_candidate_snapshot() -> ConversationSnapshot:
     current = snapshot()
-    return ConversationSnapshot(
-        session_id=current.session_id,
-        version=current.version,
-        query_context=current.query_context,
-        candidates=[
-            *current.candidates,
-            DisplayedCandidateRef(
-                product_id=55,
-                ordinal=3,
-                skin_match="unknown",
-                matched_efficacies=["修护"],
-            ),
-            DisplayedCandidateRef(
-                product_id=72,
-                ordinal=4,
-                skin_match="unknown",
-                matched_efficacies=["修护"],
-            ),
-        ],
+    slot = current.recommendation_slot
+    assert slot is not None
+    return current.model_copy(
+        update={
+            "recommendation_slot": slot.model_copy(
+                update={
+                    "candidates": [
+                        *slot.candidates,
+                        DisplayedCandidateRef(
+                            product_id=55,
+                            ordinal=3,
+                            skin_match="unknown",
+                            matched_efficacies=["修护"],
+                        ),
+                        DisplayedCandidateRef(
+                            product_id=72,
+                            ordinal=4,
+                            skin_match="unknown",
+                            matched_efficacies=["修护"],
+                        ),
+                    ]
+                }
+            )
+        }
     )
 
 

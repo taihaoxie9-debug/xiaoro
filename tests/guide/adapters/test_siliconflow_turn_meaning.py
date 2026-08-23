@@ -22,13 +22,22 @@ from app.guide_runtime.llm_config import GuideLlmConfig
 def _payload() -> dict[str, object]:
     return {
         "operation_hint": "knowledge",
+        "recommendation_mode": None,
+        "recommendation_count": None,
+        "recommendation_mode_basis": None,
         "topic_hint": "skincare",
+        "continuity_hint": "new_task",
+        "subject_scope_hint": "self",
+        "pending_response_hint": "unknown",
         "reference_mentions": [],
         "product_mentions": [],
         "budget_candidates": [],
         "observation_candidates": [],
         "preference_candidates": [],
+        "constraint_changes": [],
         "relative_candidates": [],
+        "consultation_hypothesis": None,
+        "next_observation_gap": None,
         "question_meaning": "询问烟酰胺作用",
         "safety_language": "ordinary",
     }

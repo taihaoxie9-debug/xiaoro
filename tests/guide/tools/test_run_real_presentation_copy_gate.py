@@ -17,6 +17,10 @@ from app.guide.adapters.llm.presentation_copywriter_adapter import (
     CopywriterCallResult,
 )
 from app.guide.presentation.copywriter_fallback import fallback_copy
+from app.guide.presentation.copywriter_contracts import (
+    CopywriterSection,
+    SourceTaggedCopy,
+)
 from tools.guide_gates.presentation_copy_gate import load_copy_gate_cases
 from tools.guide_gates.run_real_presentation_copy_gate import (
     replay_real_copy_gate_results,
@@ -27,12 +31,16 @@ from tools.guide_gates import run_real_presentation_copy_gate as runner
 
 
 FIXTURE = Path(
-    "tests/fixtures/guide/presentation/copy_gate_v2.jsonl"
+    "tests/fixtures/guide/presentation/copy_gate_v3_production.jsonl"
 )
 
 
 def test_real_copy_gate_uses_production_token_limit() -> None:
     assert getattr(runner, "COPY_GATE_MAX_TOKENS", None) == 1536
+
+
+def test_real_copy_gate_defaults_to_production_v3_fixture() -> None:
+    assert Path(runner.DEFAULT_CASES).resolve() == FIXTURE.resolve()
 
 
 def test_copywriter_budget_guard_preserves_browser_reserve() -> None:
@@ -87,6 +95,107 @@ def test_cli_rejects_call_cap_before_key_or_output(
     assert not output.exists()
 
 
+def _qualifying_draft(packet):
+    draft = fallback_copy(packet)
+    slots_by_id = {slot.slot_id: slot for slot in packet.slots}
+    sections = []
+    for section in draft.sections:
+        slot = (
+            slots_by_id[section.slot_id]
+            if section.slot_id is not None
+            else None
+        )
+        if section.kind == "product":
+            assert slot is not None
+            merchant_ids = tuple(
+                fact.fact_id
+                for fact in slot.approved_soft_facts
+                if fact.attribution == "merchant_claim"
+            )
+            consumer_ids = tuple(
+                fact.fact_id
+                for fact in slot.approved_soft_facts
+                if fact.attribution == "consumer_report"
+            )
+            sections.append(
+                section.model_copy(
+                    update={
+                        "content": SourceTaggedCopy(
+                            text=(
+                                "品牌主打的功效、肤感与使用场景各有侧重。"
+                            ),
+                            used_fact_ids=merchant_ids,
+                        ),
+                        "advisor_reason": SourceTaggedCopy(
+                            text=(
+                                "限定样本的用户反馈只作体验参考。"
+                                if consumer_ids
+                                else "未给出的部分不作推断。"
+                            ),
+                            used_fact_ids=consumer_ids,
+                        ),
+                    }
+                )
+            )
+        elif slot is not None:
+            merchant_ids = tuple(
+                fact.fact_id
+                for fact in slot.approved_soft_facts
+                if fact.attribution == "merchant_claim"
+            )
+            consumer_ids = tuple(
+                fact.fact_id
+                for fact in slot.approved_soft_facts
+                if fact.attribution == "consumer_report"
+            )
+            sections.append(
+                section.model_copy(
+                    update={
+                        "content": SourceTaggedCopy(
+                            text=(
+                                "品牌主打的相关方向可作参考。"
+                                + (
+                                    "限定样本的用户反馈只作体验参考。"
+                                    if consumer_ids
+                                    else ""
+                                )
+                            ),
+                            used_fact_ids=(
+                                *merchant_ids,
+                                *consumer_ids,
+                            ),
+                        )
+                    }
+                )
+            )
+        else:
+            sections.append(section)
+    return draft.model_copy(update={"sections": tuple(sections)})
+
+
+def _replace_section(
+    draft,
+    replacement: CopywriterSection,
+):
+    return draft.model_copy(
+        update={
+            "sections": tuple(
+                replacement
+                if (
+                    section.kind,
+                    section.slot_id,
+                )
+                == (
+                    replacement.kind,
+                    replacement.slot_id,
+                )
+                else section
+                for section in draft.sections
+            )
+        }
+    )
+
+
 class RecordingAdapter:
     provider = "offline"
     model = "offline/copywriter"
@@ -96,7 +205,7 @@ class RecordingAdapter:
 
     def write(self, packet):
         self.calls.append(packet)
-        draft = fallback_copy(packet)
+        draft = _qualifying_draft(packet)
         return CopywriterCallResult(
             draft=draft,
             usage=SemanticTokenUsage(
@@ -166,24 +275,82 @@ class DurabilityRecordingAdapter(RecordingAdapter):
 class OneTerseAdapter(RecordingAdapter):
     def write(self, packet):
         result = super().write(packet)
-        if result.draft.mode == "clarification":
-            result = result.model_copy(
-                update={
-                    "draft": result.draft.model_copy(
-                        update={
-                            "closing_copy": (
-                                "请补充要查看的图片序号，我再继续说明。"
-                            )
-                        }
-                    )
-                }
-            )
         if len(self.calls) != 1:
             return result
+        summary = next(
+            section
+            for section in result.draft.sections
+            if section.kind == "summary"
+        )
         return result.model_copy(
             update={
-                "draft": result.draft.model_copy(
-                    update={"summary_copy": "过短。"}
+                "draft": _replace_section(
+                    result.draft,
+                    summary.model_copy(
+                        update={
+                            "content": summary.content.model_copy(
+                                update={
+                                    "text": "过短。",
+                                    "used_fact_ids": (),
+                                }
+                            )
+                        }
+                    ),
+                )
+            }
+        )
+
+
+class ThreeTerseAdapter(RecordingAdapter):
+    def write(self, packet):
+        result = super().write(packet)
+        if len(self.calls) > 3:
+            return result
+        summary = next(
+            section
+            for section in result.draft.sections
+            if section.kind == "summary"
+        )
+        return result.model_copy(
+            update={
+                "draft": _replace_section(
+                    result.draft,
+                    summary.model_copy(
+                        update={
+                            "content": summary.content.model_copy(
+                                update={
+                                    "text": "过短。",
+                                    "used_fact_ids": (),
+                                }
+                            )
+                        }
+                    ),
+                )
+            }
+        )
+
+
+class HardFailureAdapter(RecordingAdapter):
+    def write(self, packet):
+        result = super().write(packet)
+        product = next(
+            section
+            for section in result.draft.sections
+            if section.kind == "product"
+        )
+        return result.model_copy(
+            update={
+                "draft": _replace_section(
+                    result.draft,
+                    product.model_copy(
+                        update={
+                            "content": product.content.model_copy(
+                                update={
+                                    "used_fact_ids": ("unknown-fact",),
+                                }
+                            )
+                        }
+                    ),
                 )
             }
         )
@@ -270,19 +437,64 @@ def test_zero_api_replay_rescores_immutable_real_results(
     assert len(persisted["rows"]) == 3
 
 
-def test_real_runner_requires_every_case_to_pass(tmp_path: Path) -> None:
+def test_real_runner_allows_two_ordinary_misses(tmp_path: Path) -> None:
     cases = load_copy_gate_cases(FIXTURE)
 
     report = run_real_copy_gate(
         adapter=OneTerseAdapter(),
         cases=cases,
-        output_dir=tmp_path / "strict-twenty",
-        run_id="strict-twenty",
+        output_dir=tmp_path / "nineteen-of-twenty",
+        run_id="nineteen-of-twenty",
     )
 
     assert report.case_count == 20
     assert report.passed_count == 19
+    assert report.hard_violation_count == 0
+    assert report.passed
+
+
+def test_real_runner_rejects_below_eighteen_of_twenty(
+    tmp_path: Path,
+) -> None:
+    cases = load_copy_gate_cases(FIXTURE)
+
+    report = run_real_copy_gate(
+        adapter=ThreeTerseAdapter(),
+        cases=cases,
+        output_dir=tmp_path / "seventeen-of-twenty",
+        run_id="seventeen-of-twenty",
+    )
+
+    assert report.case_count == 20
+    assert report.passed_count == 17
+    assert report.hard_violation_count == 0
     assert not report.passed
+
+
+def test_real_runner_stops_after_first_hard_failure(
+    tmp_path: Path,
+) -> None:
+    cases = load_copy_gate_cases(FIXTURE)[:3]
+    adapter = HardFailureAdapter()
+    output = tmp_path / "hard-stop"
+
+    report = run_real_copy_gate(
+        adapter=adapter,
+        cases=cases,
+        output_dir=output,
+        run_id="hard-stop",
+    )
+
+    assert len(adapter.calls) == 1
+    assert report.case_count == 3
+    assert report.completed_case_count == 1
+    assert report.provider_call_count == 1
+    assert report.stopped_early
+    assert report.stop_reason == "hard_violation"
+    assert not report.passed
+    assert len(
+        (output / "results.jsonl").read_text(encoding="utf-8").splitlines()
+    ) == 1
 
 
 def test_real_copy_gate_persists_and_reports_after_each_attempt(

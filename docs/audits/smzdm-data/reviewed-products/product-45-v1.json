@@ -1,0 +1,222 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:45:ingredients:ceramide-squalene-allantoin-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "神经酰胺、角鲨烯与尿囊素",
+      "review_rationale": "商品介绍明确列出这些成分；40g来源与Canonical 80g规格冲突，因此只作为同产品变体的单品知识。",
+      "sku_status": "same_product_40g_source_80g_canonical_conflict",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:e6233c18da51320ab94beae412d0016f2cb1f0dc8cf4111466ee3566067aa126"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.rich_cream",
+      "decision": "map",
+      "fact_id": "reviewed:product:45:texture:rich-gel-cream-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "较厚的凝胶乳霜质地，润而不油腻",
+      "review_rationale": "商品介绍直接描述介于乳液和霜之间、较厚凝胶状且润而不油腻，可映射丰润乳霜方向。",
+      "sku_status": "same_product_40g_source_80g_canonical_conflict",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:e6233c18da51320ab94beae412d0016f2cb1f0dc8cf4111466ee3566067aa126"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.barrier_repair",
+      "decision": "map",
+      "fact_id": "reviewed:product:45:efficacy:barrier-hydration-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "保湿与屏障养护方向",
+      "review_rationale": "参数和商品介绍共同支持保湿及屏障养护方向；不保留舒缓泛红、敏感肌保证或量化修复结论。",
+      "sku_status": "same_product_40g_source_80g_canonical_conflict",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:e6233c18da51320ab94beae412d0016f2cb1f0dc8cf4111466ee3566067aa126"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:45:usage:day-thin-night-thick-v1",
+      "field_key": "usage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "日间可薄涂保湿，夜间可厚涂滋润",
+      "review_rationale": "长图第6张明确区分日间薄涂与夜间厚涂；只保留普通使用场景，不扩写肤质适配。",
+      "sku_status": "same_product_40g_source_80g_canonical_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 6,
+      "source_refs": [
+        "smzdm-detail-image:ea2ae93d05fe6fd151dbc0b06fac8ee84722c98ca4de2c751e286c373832e096"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:45:net-content:40g-conflict-v1",
+      "field_key": "net_content",
+      "promotion_status": "rejected",
+      "public_text": "40g来源规格",
+      "review_rationale": "来源40g与Canonical 80g冲突，参考价SKU也未确认，不能提升为Canonical展示规格或与价格组合。",
+      "sku_status": "same_product_40g_source_80g_canonical_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:5870d0003d7a529fe224b85ba121ce95708973e4f5283bc23c9093e57f03fcb2",
+        "smzdm-browser-body:e6233c18da51320ab94beae412d0016f2cb1f0dc8cf4111466ee3566067aa126"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:45:efficacy:universal-sensitive-pregnancy-quantified-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "全肤质、敏感肌、孕期适用及量化修护结论",
+      "review_rationale": "长图和参数中的普遍人群适配、孕期表述及量化修护缺少可独立审计依据，不进入公开事实。",
+      "sku_status": "same_product_40g_source_80g_canonical_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 7,
+      "source_refs": [
+        "smzdm-detail-image:aad7a7415adcd2902cfe93d7e111021ecc3917a6c2280d19eca9d1b24607f65a",
+        "smzdm-browser-body:e6233c18da51320ab94beae412d0016f2cb1f0dc8cf4111466ee3566067aa126"
+      ]
+    }
+  ],
+  "canonical_identity": "润浸保湿滋润乳霜",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "80g",
+  "captured_at": "2026-08-19T18:57:51.487Z",
+  "category_profile": "skincare",
+  "detail_image_count": 9,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 647,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/45/001_5870d0003d7a529f.jpg",
+      "ordinal": 1,
+      "sha256": "5870d0003d7a529fe224b85ba121ce95708973e4f5283bc23c9093e57f03fcb2",
+      "width": 600
+    },
+    {
+      "height": 878,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/45/002_239381598d2059b1.jpg",
+      "ordinal": 2,
+      "sha256": "239381598d2059b19a154d41f12996d53990fd184c4290cbab6888cf64fcd658",
+      "width": 600
+    },
+    {
+      "height": 594,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/45/003_64b9713a00679d21.jpg",
+      "ordinal": 3,
+      "sha256": "64b9713a00679d21b8c883bb5de45afe659fc5228eb409bb773b1d458dd6ac64",
+      "width": 600
+    },
+    {
+      "height": 410,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/45/004_eae53ec9ec2c9f7c.jpg",
+      "ordinal": 4,
+      "sha256": "eae53ec9ec2c9f7c6caf4d5e8682be2db786c29d68f7ade248cc8ab51299bb20",
+      "width": 600
+    },
+    {
+      "height": 633,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/45/005_a5166c9028cb65c1.jpg",
+      "ordinal": 5,
+      "sha256": "a5166c9028cb65c1e4cb4a9cb3c0b5e24ba16dc53403c81b3d02cb568045c006",
+      "width": 600
+    },
+    {
+      "height": 759,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/45/006_ea2ae93d05fe6fd1.jpg",
+      "ordinal": 6,
+      "sha256": "ea2ae93d05fe6fd151dbc0b06fac8ee84722c98ca4de2c751e286c373832e096",
+      "width": 600
+    },
+    {
+      "height": 659,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/45/007_aad7a7415adcd290.jpg",
+      "ordinal": 7,
+      "sha256": "aad7a7415adcd2902cfe93d7e111021ecc3917a6c2280d19eca9d1b24607f65a",
+      "width": 600
+    },
+    {
+      "height": 269,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/45/008_00f5d02cb57ecf49.jpg",
+      "ordinal": 8,
+      "sha256": "00f5d02cb57ecf4989f86df0f9d84c5a9733982a1899ea24e95bc2c1d9c63a08",
+      "width": 600
+    },
+    {
+      "height": 354,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/45/009_39deaa761d5f90f9.jpg",
+      "ordinal": 9,
+      "sha256": "39deaa761d5f90f925f014bea4e4f9432be0f852bb337623c801a0d477cafcea",
+      "width": 600
+    }
+  ],
+  "introduction_text": "Curel 珂润是日本花王旗下的护肤品牌，针对敏感肌设计，擅用ceramide神经酰胺成分，该成分是良好的保湿因子，能建立和维持肌肤脂质屏障，适合和果酸类成分搭配使用。\n\n这款珂润乳霜，特别适合敏感肌秋冬换季使用。同样主打神经酰胺成分，对于修复肌肤屏障，软化皮肤很有帮助。和其他醇类、角鲨烯、尿囊素等成分，帮助肌肤保湿水润。质地介于乳液和霜之间，呈现较为厚重的凝胶状，吸收度好，润而不油腻，作为打底产品也是不错的选择。",
+  "missing_fields": [
+    "net_content"
+  ],
+  "parameter_text": "规格\n40g/mL\n是否为特殊用途化妆品\n否\n功效\n舒缓镇静;保湿\n净含量（mL/g）\n31-50mL(g)\n适合肤质\n任何肤质\n产品产地\n日本\n国产/进口\n进口\n适用人群\n通用\n类别\n面霜\n成分\n神经酰胺\n孕妇/哺乳期可用\n是\n规格类型\n正常规格\n保质期\n5年",
+  "portfolio_role": "sensitive_moisturizer",
+  "product_id": 45,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "80g",
+    "display_specification": "80g",
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "unresolved",
+    "source_sku": "40g"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "e6233c18da51320ab94beae412d0016f2cb1f0dc8cf4111466ee3566067aa126",
+  "source_product_title": "Curel 珂润 润浸保湿滋养乳霜 40g",
+  "source_title": "Curel 珂润 润浸保湿滋养乳霜 40g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/3qqwqd4/"
+}

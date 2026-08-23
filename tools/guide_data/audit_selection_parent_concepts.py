@@ -8,14 +8,23 @@ from collections.abc import Sequence
 from hashlib import sha256
 import json
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 from app.guide.adapters.catalog.canonical_product_reader import (
     CanonicalProductReader,
 )
-from app.guide.retrieval.category_profiles import category_profile_for
+from app.guide.retrieval.category_profiles import (
+    CategoryProfile,
+    category_profile_for,
+)
 from app.guide.retrieval.selection_parent_concept_contracts import (
     SelectionConceptCandidate,
     SelectionConceptReview,
@@ -26,6 +35,9 @@ from app.guide_runtime.composition import (
     build_category_fact_reader,
     build_product_evidence_reader,
     build_selection_fact_reader,
+)
+from tools.guide_data.review_smzdm_product import (
+    validate_reviewed_product_packet,
 )
 
 
@@ -92,6 +104,62 @@ class ParentConceptDecision(_StrictFrozenModel):
     comparability: Literal["binary", "ordered", "numeric", "none"]
     order_value: int | None = Field(default=None, ge=0, le=100)
     rationale: str = Field(min_length=8, max_length=512)
+
+
+class ReviewedConceptMapping(_StrictFrozenModel):
+    product_id: int = Field(gt=0)
+    profile: CategoryProfile
+    field_key: str = Field(pattern=r"^[a-z][a-z0-9_]{1,63}$")
+    normalized_value: str = Field(min_length=1, max_length=512)
+    concept_id: str = Field(
+        pattern=r"^[a-z][a-z0-9_]{1,63}\.[a-z][a-z0-9_]{1,63}$"
+    )
+    review_fact_id: str = Field(min_length=1, max_length=256)
+    rationale: str = Field(min_length=1, max_length=512)
+
+    @field_validator("profile", mode="before")
+    @classmethod
+    def parse_profile(cls, value: object) -> object:
+        if isinstance(value, str):
+            try:
+                return CategoryProfile(value)
+            except ValueError:
+                return value
+        return value
+
+    @model_validator(mode="after")
+    def validate_mapping(self) -> Self:
+        if not self.concept_id.startswith(f"{self.field_key}."):
+            raise ValueError("concept_id must be field-scoped")
+        if self.normalized_value != self.normalized_value.strip():
+            raise ValueError("normalized_value must be trimmed")
+        return self
+
+
+class ReviewedConceptPolicy(_StrictFrozenModel):
+    concept_id: str = Field(
+        pattern=r"^[a-z][a-z0-9_]{1,63}\.[a-z][a-z0-9_]{1,63}$"
+    )
+    stance: Literal["supports", "opposes"]
+    comparability: Literal["binary", "ordered", "numeric"]
+    order_value: int | None = Field(default=None, ge=0, le=100)
+    rationale: str = Field(min_length=8, max_length=512)
+
+    @model_validator(mode="after")
+    def validate_policy(self) -> Self:
+        if (
+            self.comparability == "ordered"
+            and self.order_value is None
+        ):
+            raise ValueError("ordered policy requires order_value")
+        if (
+            self.comparability != "ordered"
+            and self.order_value is not None
+        ):
+            raise ValueError(
+                "order_value is allowed only for ordered policy"
+            )
+        return self
 
 
 _CORE_CONCEPT_FIELDS = {
@@ -223,10 +291,31 @@ def build_selection_inventory(
 
 def build_parent_concept_candidates(
     inventory: SelectionConceptInventory,
+    *,
+    reviewed_mappings: Sequence[ReviewedConceptMapping] = (),
 ) -> tuple[SelectionConceptCandidate, ...]:
     if not isinstance(inventory, SelectionConceptInventory):
         raise TypeError("inventory must be SelectionConceptInventory")
-    candidates: list[SelectionConceptCandidate] = []
+    if any(
+        not isinstance(item, ReviewedConceptMapping)
+        for item in reviewed_mappings
+    ):
+        raise TypeError(
+            "reviewed_mappings must contain ReviewedConceptMapping"
+        )
+    inventory_values = {
+        (
+            field.profile,
+            field.field_key,
+            value.normalized_value.casefold(),
+        ): value
+        for field in inventory.fields
+        for value in field.values
+    }
+    candidate_values: dict[
+        tuple[str, str, str],
+        SelectionValueInventory,
+    ] = {}
     for field in inventory.fields:
         if field.field_key not in _CORE_CONCEPT_FIELDS.get(
             field.profile,
@@ -236,25 +325,50 @@ def build_parent_concept_candidates(
         for value in field.values:
             if len(value.product_ids) < 2:
                 continue
-            candidate_id = candidate_id_for(
-                profile=field.profile,
-                field_key=field.field_key,
-                normalized_value=value.normalized_value,
-                product_ids=tuple(value.product_ids),
-                rank_strengths=tuple(value.rank_strengths),
-                source_refs=tuple(value.source_refs),
+            candidate_values[(
+                field.profile,
+                field.field_key,
+                value.normalized_value.casefold(),
+            )] = value
+
+    reviewed_concepts: dict[tuple[str, str, str], str] = {}
+    for mapping in reviewed_mappings:
+        key = (
+            mapping.profile.value,
+            mapping.field_key,
+            mapping.normalized_value.casefold(),
+        )
+        if mapping.field_key not in _CORE_CONCEPT_FIELDS.get(
+            mapping.profile.value,
+            frozenset(),
+        ):
+            raise ValueError(
+                "reviewed map field is outside parent concept policy"
             )
-            candidates.append(
-                SelectionConceptCandidate(
-                    candidate_id=candidate_id,
-                    profile=field.profile,
-                    field_key=field.field_key,
-                    normalized_value=value.normalized_value,
-                    product_ids=tuple(value.product_ids),
-                    rank_strengths=tuple(value.rank_strengths),
-                    source_refs=tuple(value.source_refs),
-                )
+        value = inventory_values.get(key)
+        if value is None or mapping.product_id not in value.product_ids:
+            raise ValueError(
+                "reviewed map value is absent from selection inventory"
             )
+        previous_concept = reviewed_concepts.setdefault(
+            key,
+            mapping.concept_id,
+        )
+        if previous_concept != mapping.concept_id:
+            raise ValueError(
+                "reviewed map value has conflicting parent concepts"
+            )
+        candidate_values[key] = value
+
+    candidates = [
+        _candidate_from_value(
+            profile=profile,
+            field_key=field_key,
+            value=value,
+        )
+        for (profile, field_key, _), value
+        in candidate_values.items()
+    ]
     return tuple(
         sorted(
             candidates,
@@ -264,6 +378,270 @@ def build_parent_concept_candidates(
                 item.normalized_value.casefold(),
             ),
         )
+    )
+
+
+def load_reviewed_concept_mappings(
+    review_paths: Sequence[Path],
+) -> tuple[ReviewedConceptMapping, ...]:
+    mappings: list[ReviewedConceptMapping] = []
+    seen_fact_ids: set[str] = set()
+    for path in sorted(Path(item) for item in review_paths):
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ValueError(
+                f"invalid reviewed product packet: {path}"
+            ) from exc
+        if not isinstance(raw, dict):
+            raise ValueError(
+                f"reviewed product packet must be an object: {path}"
+            )
+        packet = validate_reviewed_product_packet(raw)
+        profile = CategoryProfile(str(packet["category_profile"]))
+        product_id = int(packet["product_id"])
+        for fact in packet["candidate_facts"]:
+            if fact["decision"] != "map":
+                continue
+            fact_id = str(fact["fact_id"])
+            if fact_id in seen_fact_ids:
+                raise ValueError(
+                    "duplicate reviewed map fact identity"
+                )
+            seen_fact_ids.add(fact_id)
+            field_key = _promoted_field_key(str(fact["field_key"]))
+            mappings.append(
+                ReviewedConceptMapping(
+                    product_id=product_id,
+                    profile=profile,
+                    field_key=field_key,
+                    normalized_value=str(fact["public_text"]),
+                    concept_id=str(fact["concept_id"]),
+                    review_fact_id=fact_id,
+                    rationale=str(fact["review_rationale"]),
+                )
+            )
+    return tuple(sorted(
+        mappings,
+        key=lambda item: (
+            item.profile.value,
+            item.field_key,
+            item.normalized_value.casefold(),
+            item.product_id,
+            item.review_fact_id,
+        ),
+    ))
+
+
+def build_review_v2_decisions(
+    *,
+    candidates: Sequence[SelectionConceptCandidate],
+    prior_reviews: Sequence[SelectionConceptReview],
+    reviewed_mappings: Sequence[ReviewedConceptMapping],
+    new_concept_policies: Sequence[ReviewedConceptPolicy],
+) -> tuple[ParentConceptDecision, ...]:
+    if any(
+        not isinstance(item, SelectionConceptCandidate)
+        for item in candidates
+    ):
+        raise TypeError(
+            "candidates must contain SelectionConceptCandidate"
+        )
+    if any(
+        not isinstance(item, SelectionConceptReview)
+        for item in prior_reviews
+    ):
+        raise TypeError(
+            "prior_reviews must contain SelectionConceptReview"
+        )
+    if any(
+        not isinstance(item, ReviewedConceptMapping)
+        for item in reviewed_mappings
+    ):
+        raise TypeError(
+            "reviewed_mappings must contain ReviewedConceptMapping"
+        )
+    if any(
+        not isinstance(item, ReviewedConceptPolicy)
+        for item in new_concept_policies
+    ):
+        raise TypeError(
+            "new_concept_policies must contain ReviewedConceptPolicy"
+        )
+
+    prior_by_key = {
+        _concept_value_key(item): item
+        for item in prior_reviews
+    }
+    if len(prior_by_key) != len(prior_reviews):
+        raise ValueError("duplicate prior concept review value")
+
+    mapped_concepts: dict[tuple[str, str, str], str] = {}
+    for mapping in reviewed_mappings:
+        key = _concept_value_key(mapping)
+        previous = mapped_concepts.setdefault(
+            key,
+            mapping.concept_id,
+        )
+        if previous != mapping.concept_id:
+            raise ValueError(
+                "reviewed map value has conflicting parent concepts"
+            )
+
+    existing_policies: dict[str, ReviewedConceptPolicy] = {}
+    for review in prior_reviews:
+        if review.decision != "map" or review.concept_id is None:
+            continue
+        policy = ReviewedConceptPolicy(
+            concept_id=review.concept_id,
+            stance=review.stance,
+            comparability=review.comparability,
+            order_value=review.order_value,
+            rationale=(
+                f"{review.concept_id} 已通过 v1 人工父概念审核。"
+            ),
+        )
+        previous = existing_policies.setdefault(
+            review.concept_id,
+            policy,
+        )
+        if (
+            previous.stance,
+            previous.comparability,
+            previous.order_value,
+        ) != (
+            policy.stance,
+            policy.comparability,
+            policy.order_value,
+        ):
+            raise ValueError(
+                "prior concept metadata is inconsistent"
+            )
+
+    new_policy_by_id = {
+        item.concept_id: item
+        for item in new_concept_policies
+    }
+    if len(new_policy_by_id) != len(new_concept_policies):
+        raise ValueError("duplicate new concept policy")
+    if set(new_policy_by_id) & set(existing_policies):
+        raise ValueError(
+            "new concept policy cannot replace prior concept metadata"
+        )
+    required_new_concepts = (
+        set(mapped_concepts.values()) - set(existing_policies)
+    )
+    if set(new_policy_by_id) != required_new_concepts:
+        raise ValueError(
+            "new concept policies must exactly cover new mapped concepts"
+        )
+    policies = {**existing_policies, **new_policy_by_id}
+
+    candidate_keys = {
+        _concept_value_key(item)
+        for item in candidates
+    }
+    if not set(mapped_concepts) <= candidate_keys:
+        raise ValueError(
+            "reviewed map value is absent from candidate inventory"
+        )
+
+    decisions = []
+    for candidate in candidates:
+        key = _concept_value_key(candidate)
+        prior = prior_by_key.get(key)
+        mapped_concept = mapped_concepts.get(key)
+        if prior is not None:
+            if mapped_concept is not None and (
+                prior.decision != "map"
+                or prior.concept_id != mapped_concept
+            ):
+                raise ValueError(
+                    "terminal map conflicts with prior concept review"
+                )
+            decisions.append(
+                ParentConceptDecision(
+                    candidate_id=candidate.candidate_id,
+                    decision=prior.decision,
+                    concept_id=prior.concept_id,
+                    stance=prior.stance,
+                    comparability=prior.comparability,
+                    order_value=prior.order_value,
+                    rationale=prior.rationale,
+                )
+            )
+            continue
+        if mapped_concept is None:
+            raise ValueError(
+                "candidate lacks prior or terminal map review"
+            )
+        policy = policies.get(mapped_concept)
+        if policy is None:
+            raise ValueError(
+                "mapped concept lacks reviewed semantic policy"
+            )
+        decisions.append(
+            ParentConceptDecision(
+                candidate_id=candidate.candidate_id,
+                decision="map",
+                concept_id=mapped_concept,
+                stance=policy.stance,
+                comparability=policy.comparability,
+                order_value=policy.order_value,
+                rationale=policy.rationale,
+            )
+        )
+    return tuple(
+        sorted(decisions, key=lambda item: item.candidate_id)
+    )
+
+
+def _concept_value_key(
+    item: (
+        SelectionConceptCandidate
+        | SelectionConceptReview
+        | ReviewedConceptMapping
+    ),
+) -> tuple[str, str, str]:
+    return (
+        item.profile.value,
+        item.field_key,
+        item.normalized_value.casefold(),
+    )
+
+
+def _candidate_from_value(
+    *,
+    profile: str,
+    field_key: str,
+    value: SelectionValueInventory,
+) -> SelectionConceptCandidate:
+    product_ids = tuple(value.product_ids)
+    rank_strengths = tuple(value.rank_strengths)
+    source_refs = tuple(value.source_refs)
+    return SelectionConceptCandidate(
+        candidate_id=candidate_id_for(
+            profile=profile,
+            field_key=field_key,
+            normalized_value=value.normalized_value,
+            product_ids=product_ids,
+            rank_strengths=rank_strengths,
+            source_refs=source_refs,
+        ),
+        profile=profile,
+        field_key=field_key,
+        normalized_value=value.normalized_value,
+        product_ids=product_ids,
+        rank_strengths=rank_strengths,
+        source_refs=source_refs,
+    )
+
+
+def _promoted_field_key(field_key: str) -> str:
+    return (
+        "claimed_ingredients"
+        if field_key == "ingredients_present"
+        else field_key
     )
 
 
@@ -360,6 +738,27 @@ def write_parent_concept_candidates(
         b"".join(
             _canonical_json(item.model_dump(mode="json")) + b"\n"
             for item in candidates
+        )
+    )
+
+
+def write_reviewed_concept_mappings(
+    mappings: Sequence[ReviewedConceptMapping],
+    path: Path,
+) -> None:
+    if any(
+        not isinstance(item, ReviewedConceptMapping)
+        for item in mappings
+    ):
+        raise TypeError(
+            "mappings must be ReviewedConceptMapping instances"
+        )
+    output = Path(path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_bytes(
+        b"".join(
+            _canonical_json(item.model_dump(mode="json")) + b"\n"
+            for item in mappings
         )
     )
 
@@ -470,19 +869,97 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
         action="store_true",
         help="materialize the deterministic inventory",
     )
-    parser.add_argument("--output", required=True)
+    parser.add_argument("--output")
+    parser.add_argument("--repo-root", default=".")
+    parser.add_argument("--review-dir")
+    parser.add_argument("--output-dir")
     return parser.parse_args(argv)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     arguments = _parse_args(argv)
-    if not arguments.inventory_only:
-        raise SystemExit("--inventory-only is required in Task 1")
-    write_selection_inventory(
-        build_selection_inventory(Path.cwd()),
-        Path(arguments.output),
+    if arguments.inventory_only:
+        if arguments.output is None or arguments.output_dir is not None:
+            raise SystemExit(
+                "--inventory-only requires --output and forbids --output-dir"
+            )
+        write_selection_inventory(
+            build_selection_inventory(Path(arguments.repo_root)),
+            Path(arguments.output),
+        )
+        return 0
+    if arguments.output_dir is None or arguments.output is not None:
+        raise SystemExit(
+            "review packet mode requires --output-dir and forbids --output"
+        )
+
+    root = Path(arguments.repo_root).resolve()
+    review_dir = (
+        Path(arguments.review_dir).resolve()
+        if arguments.review_dir is not None
+        else (
+            root
+            / "docs"
+            / "audits"
+            / "smzdm-data"
+            / "reviewed-products"
+        )
     )
+    review_paths = tuple(sorted(
+        review_dir.glob("product-*-v1.json")
+    ))
+    if not review_paths:
+        raise SystemExit("review directory contains no product packets")
+    output_dir = Path(arguments.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=False)
+    inventory_path = output_dir / "inventory.json"
+    candidates_path = output_dir / "candidates.jsonl"
+    mappings_path = output_dir / "reviewed_mappings.jsonl"
+
+    inventory = build_selection_inventory(root)
+    mappings = load_reviewed_concept_mappings(review_paths)
+    candidates = build_parent_concept_candidates(
+        inventory,
+        reviewed_mappings=mappings,
+    )
+    write_selection_inventory(inventory, inventory_path)
+    write_parent_concept_candidates(candidates, candidates_path)
+    write_reviewed_concept_mappings(mappings, mappings_path)
+
+    manifest_payload = {
+        "schema_version": "guide-selection-concept-review-packet-v2",
+        "inventory_file": inventory_path.name,
+        "inventory_sha256": _file_hash(inventory_path),
+        "candidates_file": candidates_path.name,
+        "candidates_sha256": _file_hash(candidates_path),
+        "reviewed_mappings_file": mappings_path.name,
+        "reviewed_mappings_sha256": _file_hash(mappings_path),
+        "review_packet_count": len(review_paths),
+        "review_packet_sha256s": {
+            path.name: _file_hash(path)
+            for path in review_paths
+        },
+        "candidate_count": len(candidates),
+        "reviewed_mapping_count": len(mappings),
+    }
+    manifest_payload["manifest_sha256"] = sha256(
+        _canonical_json(manifest_payload)
+    ).hexdigest()
+    manifest_path = output_dir / "manifest.json"
+    manifest_path.write_bytes(
+        _canonical_json(manifest_payload) + b"\n"
+    )
+    print(_canonical_json({
+        "candidate_count": len(candidates),
+        "manifest_path": str(manifest_path),
+        "review_packet_count": len(review_paths),
+        "reviewed_mapping_count": len(mappings),
+    }).decode("utf-8"))
     return 0
+
+
+def _file_hash(path: Path) -> str:
+    return sha256(Path(path).read_bytes()).hexdigest()
 
 
 if __name__ == "__main__":
@@ -495,12 +972,17 @@ __all__ = [
     "SelectionProfileInventory",
     "SelectionValueInventory",
     "ParentConceptDecision",
+    "ReviewedConceptMapping",
+    "ReviewedConceptPolicy",
     "build_parent_concept_candidates",
+    "build_review_v2_decisions",
     "build_selection_inventory",
     "load_parent_concept_decisions",
+    "load_reviewed_concept_mappings",
     "main",
     "materialize_parent_concept_reviews",
     "write_parent_concept_candidates",
     "write_parent_concept_reviews",
+    "write_reviewed_concept_mappings",
     "write_selection_inventory",
 ]

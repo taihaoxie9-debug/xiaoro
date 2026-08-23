@@ -74,9 +74,27 @@ _CHINESE_CURRENCY = re.compile(
 )
 _HUNDRED_ODD = re.compile(r"(?:预算\s*)?百来块")
 _HUNDREDS_AROUND = re.compile(r"(?:预算\s*)?几百(?:块)?上下")
+_ADJACENT_HUNDREDS_AROUND = re.compile(
+    r"(?:预算\s*)?"
+    r"(?P<minimum>[一二两三四五六七八])\s*"
+    r"(?P<maximum>[二三四五六七八九])\s*"
+    r"百\s*(?:元|块)?\s*(?:左右|上下)"
+)
 _ARABIC_APPROXIMATE = re.compile(
     rf"(?:预算\s*)?(?P<value>{_ARABIC_NUMBER})\s*"
     r"(?:元|块)?\s*左右"
+)
+_CHINESE_APPROXIMATE = re.compile(
+    rf"(?:预算\s*)?(?:大概|大约|约|差不多)\s*"
+    rf"(?P<value>{_CHINESE_NUMBER})\s*(?:元|块)?"
+)
+_CHINESE_POSTFIX_BOUND = re.compile(
+    rf"(?P<value>{_CHINESE_NUMBER})\s*(?:元|块)?\s*"
+    r"(?:就是|作为|算作)?\s*(?P<direction>上限|下限)"
+)
+_ARABIC_POSTFIX_BOUND = re.compile(
+    rf"(?P<value>{_ARABIC_NUMBER})\s*(?:元|块)?\s*"
+    r"(?:就是|作为|算作)?\s*(?P<direction>上限|下限)"
 )
 _COLLOQUIAL_HUNDREDS_MAXIMUM = re.compile(
     r"(?:预算\s*)?(?P<value>[一二两三四五六七八九])"
@@ -229,6 +247,22 @@ def parse_colloquial_budget(text: str) -> ColloquialBudget | None:
             ),
         )
 
+    match = _ADJACENT_HUNDREDS_AROUND.search(text)
+    if match is not None:
+        minimum = _CHINESE_DIGITS[match.group("minimum")] * 100
+        maximum = _CHINESE_DIGITS[match.group("maximum")] * 100
+        if maximum == minimum + 100:
+            return ColloquialBudget(
+                minimum=Decimal(minimum),
+                maximum=Decimal(maximum),
+                start=match.start(),
+                end=match.end(),
+                clarification=(
+                    f"你说的“{match.group(0)}”"
+                    f"是指 {minimum} 到 {maximum} 元吗？"
+                ),
+            )
+
     match = _ARABIC_APPROXIMATE.search(text)
     if match is not None:
         value = _arabic_decimal(match.group("value"))
@@ -243,6 +277,43 @@ def parse_colloquial_budget(text: str) -> ColloquialBudget | None:
                 f"你说的“{_format_decimal(value)} 左右”"
                 f"是指 {lower} 到 {upper} 元吗？"
             ),
+        )
+
+    match = _CHINESE_APPROXIMATE.search(text)
+    if match is not None:
+        value = Decimal(chinese_integer(match.group("value")))
+        lower = _format_decimal(value * Decimal("0.9"))
+        upper = _format_decimal(value * Decimal("1.1"))
+        return ColloquialBudget(
+            minimum=value * Decimal("0.9"),
+            maximum=value * Decimal("1.1"),
+            start=match.start(),
+            end=match.end(),
+            clarification=(
+                f"你说的“{match.group(0)}”"
+                f"是指 {lower} 到 {upper} 元吗？"
+            ),
+        )
+
+    for pattern in (_CHINESE_POSTFIX_BOUND, _ARABIC_POSTFIX_BOUND):
+        match = pattern.search(text)
+        if match is None:
+            continue
+        raw_value = match.group("value")
+        value = (
+            Decimal(chinese_integer(raw_value))
+            if pattern is _CHINESE_POSTFIX_BOUND
+            else _arabic_decimal(raw_value)
+        )
+        return ColloquialBudget(
+            minimum=(
+                value if match.group("direction") == "下限" else None
+            ),
+            maximum=(
+                value if match.group("direction") == "上限" else None
+            ),
+            start=match.start(),
+            end=match.end(),
         )
 
     for pattern in (_CHINESE_BUDGET_PREFIX, _CHINESE_CURRENCY):

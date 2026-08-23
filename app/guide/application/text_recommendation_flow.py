@@ -5,78 +5,71 @@
 """
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator, Sequence
-import logging
-import re
-from typing import Literal
+from collections.abc import Sequence
 
-from app.guide.application.contracts import UserTurn
+from app.guide.application.execution_contracts import (
+    ClarificationLaneState,
+    ClarificationTerminal,
+    ConversationStateDelta,
+    ExecutionResult,
+    ImageLaneState,
+    ImageRoutingEvidence,
+    KnowledgeLaneState,
+    LaneMutation,
+    PresentationTerminal,
+    ProductLaneState,
+    ProcessorExecutionInput,
+    RecommendationLaneState,
+)
 from app.guide.application.product_evidence_answer import (
-    render_product_evidence_answer,
+    build_product_knowledge_answer_plan,
+    render_product_evidence_fact,
 )
 from app.guide.application.general_knowledge_answer import (
     render_general_knowledge_answer,
 )
-from app.guide.application.image_alternative_count import (
-    requested_recommendation_result_count,
-)
 from app.guide.application.query_context import (
-    apply_session_profile_to_task,
-    query_context_to_constraints,
     task_plan_to_query_context,
 )
 from app.guide.application.pending_turn import (
+    PendingReply,
     build_pending_turn,
-    classify_pending_reply,
-    resume_pending_recommendation,
 )
-from app.guide.application.scenario_inputs import build_scenario_inputs
+from app.guide.application.recommendation_terminal import (
+    FitSelectionEvidenceGap,
+    fit_selection_clarification_data,
+    fit_selection_is_unresolved,
+    require_fit_presentation_facts,
+)
 from app.guide.decision.contracts import (
+    CandidateEvaluation,
     DecisionResult,
     RelativeComparisonResult,
     WinnerStatus,
 )
-from app.guide.decision.followup import decide_followup
 from app.guide.decision.concept_ranking import rank_common_concepts
 from app.guide.decision.facet_ranking import rank_soft_facets
 from app.guide.decision.ports import DecisionFactPort
 from app.guide.decision.recommendation import decide_recommendation
 from app.guide.feedback.contracts import (
+    ClarificationProgress,
     ConversationSnapshot,
     DisplayedCandidateRef,
-)
-from app.guide.feedback.ports import (
-    ConversationStateConflict,
-    ConversationStatePort,
-    FeedbackPort,
-    FeedbackWriteStatus,
-    SessionLockPort,
+    PendingClarificationSlot,
+    PendingReplySlot,
 )
 from app.guide.feedback.profile_policy import ResolvedProfileContext
 from app.guide.intent.contracts import (
-    BudgetRevisionPlan,
     CategoryConstraint,
     ConceptConstraint,
     FacetConstraint,
-    FollowupPlan,
     RelativeRequirement,
-    SkinRevisionPlan,
+    TaskConstraint,
     TaskPlan,
+    revalidate_task_plan,
 )
-from app.guide.intent.budget_revision_planning import (
-    plan_budget_revision,
-)
-from app.guide.intent.followup_planning import plan_followup
-from app.guide.intent.signal_merger import merge_context_signals
-from app.guide.intent.skin_revision_planning import plan_skin_revision
-from app.guide.intent.task_planning import plan_task
-from app.guide.intent.transition_planning import (
-    plan_code_owned_transitions,
-)
+from app.guide.intent.responsibility_matrix import Responsibility
 from app.guide.intent.unified_turn_router import UnifiedRouteDecision
-from app.guide.presentation.budget_revision_response import (
-    build_budget_revision_message,
-)
 from app.guide.presentation.card_display import (
     comparison_card_display,
     recommendation_card_display,
@@ -89,12 +82,11 @@ from app.guide.presentation.contracts import (
     ResponsePlan,
 )
 from app.guide.presentation.copywriter_contracts import (
+    ApprovedSoftFact,
     LockedFact,
     PresentationMode,
-)
-from app.guide.presentation.followup_response import (
-    build_followup_cards,
-    build_followup_message,
+    SourceTaggedCopy,
+    responsibility_for_presentation_mode,
 )
 from app.guide.presentation.presentation_compiler import (
     PresentationCompileInputs,
@@ -103,32 +95,25 @@ from app.guide.presentation.presentation_compiler import (
 from app.guide.presentation.presentation_packet import (
     build_presentation_packet,
 )
+from app.guide.presentation.public_fact_projection import (
+    project_public_facts,
+)
 from app.guide.presentation.ports import PresentationFactPort
 from app.guide.presentation.response_planning import (
+    build_product_card,
     build_response_plan,
-    project_public_category_facts,
-)
-from app.guide.presentation.skin_revision_response import (
-    build_skin_revision_message,
 )
 from app.guide.presentation.sse_events import (
     AnswerContractData,
     AnswerContractEvent,
     CardDisplayContractEvent,
     ClarifyData,
-    ClarifyEvent,
     ConceptSlotData,
     DecisionProcessData,
     DecisionProcessEvent,
-    EndData,
-    EndEvent,
-    ErrorData,
-    ErrorEvent,
     GeneralKnowledgeEvent,
     IntentData,
     IntentEvent,
-    MessageData,
-    MessageEvent,
     MerchantClaimEvidenceData,
     MerchantClaimsData,
     MerchantClaimsEvent,
@@ -147,8 +132,8 @@ from app.guide.presentation.sse_events import (
     SseEvent,
     StageData,
     StageEvent,
-    StartData,
-    StartEvent,
+    image_citations_event,
+    image_observation_events,
 )
 from app.guide.retrieval.canonical_retrieval import retrieve_candidates
 from app.guide.retrieval.contracts import CandidateRef, RetrievalResult
@@ -162,12 +147,13 @@ from app.guide.retrieval.ports import (
 )
 from app.guide.retrieval.product_name_resolver import (
     ProductMentionResolution,
-    ProductResolutionIssue,
     ProductNameResolver,
     ResolvedProductBinding,
+    merge_batch_and_specific_bindings,
 )
 from app.guide.retrieval.pitfall_contracts import TypedPitfall
 from app.guide.retrieval.product_evidence_retrieval import (
+    EvidencePacket,
     EvidenceQuery,
     ProductEvidenceRetriever,
 )
@@ -183,42 +169,24 @@ from app.guide.retrieval.general_knowledge_retrieval import (
 from app.guide.retrieval.review_reader import ReviewEvidenceReader
 from app.guide.retrieval.merchant_claim_reader import MerchantClaimReader
 from app.guide.retrieval.review_summary import build_review_summary
+from app.guide.retrieval.review_summary_contracts import (
+    ReviewSummaryResult,
+)
 from app.guide.retrieval.scenario_pitfalls import (
     project_scenario_pitfalls,
 )
-from app.guide.understanding.budget_revision_parsing import (
-    parse_budget_revision,
-)
-from app.guide.understanding.context_resolver import (
-    resolve_context_constraint_signals,
-    resolve_semantic_context,
-)
-from app.guide.understanding.followup_parsing import parse_followup
-from app.guide.understanding.ports import TextUnderstandingPort
 from app.guide.understanding.contracts import (
-    ExactRevisionTarget,
     ProductMentionDraft,
     ReferenceDraft,
     SourceSpan,
     StructuredUnderstanding,
     TopicCode,
 )
-from app.guide.understanding.exact_parsing import (
-    parse_exact_revision_confirmations,
-)
 from app.guide.understanding.semantic_contracts import (
     ClarificationCode,
-    SemanticContext,
     SemanticProductMention,
 )
-from app.guide.understanding.skin_revision_parsing import (
-    parse_skin_revision,
-)
-from app.guide.understanding.text_understanding import (
-    ExactOnlyTextUnderstanding,
-)
-
-logger = logging.getLogger(__name__)
+from app.guide.understanding.turn_meaning_contracts import RecommendationMode
 
 
 class TextRecommendationOrchestrator:
@@ -234,15 +202,8 @@ class TextRecommendationOrchestrator:
         product_evidence: ProductEvidenceRetriever | None = None,
         general_knowledge: GeneralKnowledgeRetriever | None = None,
         concept_reader: SelectionParentConceptReader | None = None,
-        feedback: FeedbackPort,
-        conversation_state: ConversationStatePort,
-        session_locks: SessionLockPort,
-        understanding: TextUnderstandingPort | None = None,
         product_name_resolver: ProductNameResolver | None = None,
         presentation_compiler: PresentationCompiler | None = None,
-        profile_resolver: (
-            Callable[..., ResolvedProfileContext] | None
-        ) = None,
     ) -> None:
         self._category_catalog = category_catalog
         self._scenario_evidence = scenario_evidence
@@ -253,85 +214,503 @@ class TextRecommendationOrchestrator:
         self._product_evidence = product_evidence
         self._general_knowledge = general_knowledge
         self._concept_reader = concept_reader
-        self._feedback = feedback
-        self._conversation_state = conversation_state
-        self._session_locks = session_locks
-        self._understanding = (
-            understanding
-            if understanding is not None
-            else ExactOnlyTextUnderstanding()
-        )
         self._product_name_resolver = product_name_resolver
         self._presentation_compiler = (
             presentation_compiler
             if presentation_compiler is not None
             else PresentationCompiler(copywriter=None)
         )
-        self._profile_resolver = profile_resolver
 
-    def orchestrate(self, turn: UserTurn) -> ResponsePlan:
-        snapshot = self._conversation_state.load(turn.session_id)
-        profile_context = self._resolve_profile_context(turn)
-        understanding = self._understanding.understand(
-            turn.message,
-            context=resolve_semantic_context(
-                conversation_version=turn.conversation_version,
-                snapshot=snapshot,
-                profile_context=profile_context,
-            ),
-        )
-        understanding = merge_context_signals(
-            understanding,
-            signals=resolve_context_constraint_signals(
-                snapshot=snapshot,
-                profile_context=profile_context,
-            ),
-        )
-        understanding = self._recover_explicit_product_mentions(
-            turn.message,
-            understanding,
-        )
-        product_resolution = self._resolve_product_mentions(
-            turn.message,
-            understanding.product_mentions,
-        )
-        if not understanding.product_mentions:
-            product_resolution = self._resolve_reference_products(
-                understanding.references,
-                snapshot=snapshot,
+
+    def execute(
+        self,
+        execution_input: ProcessorExecutionInput,
+    ) -> ExecutionResult:
+        if type(execution_input) is not ProcessorExecutionInput:
+            raise TypeError(
+                "execution_input must be an exact ProcessorExecutionInput"
             )
-        task = plan_task(
-            understanding,
-            resolved_product_ids=product_resolution.product_ids,
-            product_resolution_issue=product_resolution.issue,
-            message=turn.message,
-        )
-        task = self._prepare_image_similarity_task(task)
-        task = plan_code_owned_transitions(
-            message=turn.message,
-            understanding=understanding,
-            task=task,
-            previous=(
-                snapshot.query_context
-                if snapshot is not None
-                else None
-            ),
-        ).task_plan
-        if snapshot is not None and snapshot.session_profile is not None:
-            task = apply_session_profile_to_task(
+        understanding = execution_input.understanding
+        snapshot = execution_input.current_snapshot
+        route_decision = execution_input.decision
+        evidence = execution_input.routing_evidence
+        product_resolution = evidence.product_resolution
+        pending_reply = evidence.pending_reply
+        profile_context = evidence.profile_context
+        routing_evidence = evidence.image
+        candidate_product_ids = evidence.candidate_product_ids
+        source_message = evidence.query.value
+        if type(understanding) is not StructuredUnderstanding:
+            raise TypeError(
+                "understanding must be an exact StructuredUnderstanding"
+            )
+        if (
+            snapshot is not None
+            and type(snapshot) is not ConversationSnapshot
+        ):
+            raise TypeError(
+                "snapshot must be an exact ConversationSnapshot or None"
+            )
+        if type(route_decision) is not UnifiedRouteDecision:
+            raise TypeError(
+                "route_decision must be an exact UnifiedRouteDecision"
+            )
+        if type(product_resolution) is not ProductMentionResolution:
+            raise TypeError(
+                "product_resolution must be ProductMentionResolution"
+            )
+        if type(profile_context) is not ResolvedProfileContext:
+            raise TypeError(
+                "profile_context must be ResolvedProfileContext"
+            )
+        if (
+            routing_evidence is not None
+            and type(routing_evidence) is not ImageRoutingEvidence
+        ):
+            raise TypeError(
+                "routing_evidence must be ImageRoutingEvidence or None"
+            )
+        if (
+            type(candidate_product_ids) is not tuple
+            or any(
+                not isinstance(product_id, int)
+                or isinstance(product_id, bool)
+                or product_id <= 0
+                for product_id in candidate_product_ids
+            )
+            or len(candidate_product_ids)
+            != len(set(candidate_product_ids))
+        ):
+            raise TypeError(
+                "candidate_product_ids must contain unique positive integers"
+            )
+        if pending_reply is not None:
+            if _pending_turn(snapshot) is None:
+                raise ValueError(
+                    "pending reply requires persisted pending turn"
+                )
+            return self._execute_pending_reply(
+                execution_input,
+                snapshot=snapshot,
+                route_decision=route_decision,
+                reply=pending_reply,
+            )
+        admitted = understanding
+        effective_product_resolution = product_resolution
+        if route_decision.product_bindings:
+            effective_product_resolution = ProductMentionResolution(
+                bindings=route_decision.product_bindings,
+            )
+        task = evidence.task_plan
+        if (
+            route_decision.processor == "recommendation"
+            and route_decision.focus_source == "confirmed_image"
+            and len(route_decision.product_bindings) == 1
+            and task.mode == "recommend"
+            and task.similarity_anchor_product_id is None
+        ):
+            task = revalidate_task_plan(
                 task,
-                snapshot.session_profile,
+                update={
+                    "similarity_anchor_product_id": (
+                        route_decision.product_bindings[0].product_id
+                    ),
+                },
+            )
+        task = self._prepare_image_similarity_task(task)
+        if route_decision.processor == "clarification":
+            pending_turn = (
+                build_pending_turn(
+                    message=source_message,
+                    source_conversation_version=(
+                        execution_input.routing_evidence.conversation_version
+                    ),
+                    task=task,
+                )
+                if task.mode == "clarify"
+                else None
+            )
+            clarification = ClarifyData(
+                question=(
+                    route_decision.clarification
+                    or task.clarification
+                    or "请明确这次要查看的商品或任务。"
+                ),
+                clarification_code=(
+                    route_decision.clarification_code
+                    or task.clarification_code
+                    or ClarificationCode.REFERENCE
+                ),
+                pending_turn=pending_turn,
+            )
+            return self._clarification_execution_result(
+                execution_input=execution_input,
+                route_decision=route_decision,
+                snapshot=snapshot,
+                clarification=clarification,
+                audit_events=(
+                    StageEvent(
+                        data=StageData(
+                            stage="understanding",
+                            summary=(
+                                "已提取明确预算、品类和适配条件。"
+                            ),
+                        )
+                    ),
+                    IntentEvent(
+                        data=IntentData(
+                            mode=_intent_mode(
+                                execution_input,
+                                "clarify",
+                            )
+                        )
+                    ),
+                ),
             )
         if task.mode == "clarify":
-            raise ValueError("clarification has no recommendation plan")
-        if task.mode != "recommend":
-            raise ValueError(
-                "orchestrate only supports recommendation plans"
+            if task.clarification_code is None:
+                raise RuntimeError(
+                    "clarification task requires typed code"
+                )
+            return self._clarification_execution_result(
+                execution_input=execution_input,
+                route_decision=route_decision,
+                snapshot=snapshot,
+                clarification=ClarifyData(
+                    question=task.clarification,
+                    clarification_code=task.clarification_code,
+                    pending_turn=build_pending_turn(
+                        message=execution_input.routing_evidence.query.value,
+                        source_conversation_version=(
+                            execution_input.routing_evidence.conversation_version
+                        ),
+                        task=task,
+                    ),
+                ),
+                audit_events=(
+                    StageEvent(
+                        data=StageData(
+                            stage="understanding",
+                            summary=(
+                                "已提取明确预算、品类和适配条件。"
+                            ),
+                        )
+                    ),
+                    IntentEvent(
+                        data=IntentData(
+                            mode=_intent_mode(
+                                execution_input,
+                                "clarify",
+                            )
+                        )
+                    ),
+                ),
             )
-        scenario_inputs = build_scenario_inputs(
-            task,
-            message=turn.message,
+        if route_decision.processor == "general_knowledge":
+            return self._execute_general_knowledge_task(
+                execution_input,
+                snapshot=snapshot,
+                task=task,
+                route_decision=route_decision,
+            )
+        if route_decision.processor == "recommendation":
+            if task.mode == "suitability":
+                task = revalidate_task_plan(
+                    task,
+                    update={
+                        "mode": "recommend",
+                        "recommendation_mode": "explore",
+                        "recommendation_mode_basis": (
+                            "broad_exploration"
+                        ),
+                        "recommendation_count": 3,
+                    },
+                )
+            if task.mode != "recommend":
+                raise NotImplementedError(
+                    "non-recommendation task execution is not migrated"
+                )
+            return self._execute_recommendation(
+                execution_input,
+                snapshot=snapshot,
+                task=task,
+                route_decision=route_decision,
+                candidate_product_ids=candidate_product_ids,
+            )
+        if (
+            route_decision.processor in {
+                "comparison",
+                "product_knowledge",
+            }
+            and task.mode in {"comparison", "suitability"}
+            and task.product_ids
+        ):
+            return self._execute_direct_product_task(
+                execution_input,
+                snapshot=snapshot,
+                task=task,
+                route_decision=route_decision,
+                product_resolution=effective_product_resolution,
+            )
+        if (
+            route_decision.processor == "product_knowledge"
+            and task.mode in {"knowledge", "followup"}
+            and task.product_ids
+            and self._product_evidence is not None
+        ):
+            return self._execute_product_evidence_task(
+                execution_input,
+                snapshot=snapshot,
+                task=task,
+                route_decision=route_decision,
+                product_resolution=effective_product_resolution,
+            )
+        raise NotImplementedError(
+            f"{route_decision.processor} execution is not migrated"
         )
+
+    def _execute_pending_reply(
+        self,
+        execution_input: ProcessorExecutionInput,
+        *,
+        snapshot: ConversationSnapshot,
+        route_decision: UnifiedRouteDecision,
+        reply: PendingReply,
+    ) -> ExecutionResult:
+        pending = _pending_turn(snapshot)
+        if pending is None:
+            raise ValueError(
+                "pending reply requires persisted pending turn"
+            )
+        if reply.kind == "replace_task":
+            if route_decision.processor != "recommendation":
+                raise ValueError(
+                    "replacement pending reply requires recommendation route"
+                )
+            if reply.replacement_category is None:
+                raise ValueError(
+                    "replacement pending reply requires category"
+                )
+            task = TaskPlan(
+                mode="recommend",
+                recommendation_mode="explore",
+                recommendation_mode_basis="broad_exploration",
+                recommendation_count=3,
+                referenced_image_ids=[],
+                constraints=[
+                    CategoryConstraint(
+                        value=TopicCode(reply.replacement_category)
+                    )
+                ],
+                references=[],
+                product_mentions=[],
+                product_ids=[],
+                required_evidence=["canonical_product"],
+                question_meaning=execution_input.routing_evidence.query.value,
+            )
+            return self._execute_recommendation(
+                execution_input,
+                snapshot=snapshot,
+                task=task,
+                route_decision=route_decision,
+            )
+        if reply.kind in {"affirm", "correct", "supplement"}:
+            if route_decision.processor != "recommendation":
+                raise ValueError(
+                    "accepted pending reply requires recommendation route"
+                )
+            return self._execute_recommendation(
+                execution_input,
+                snapshot=snapshot,
+                task=execution_input.routing_evidence.task_plan,
+                route_decision=route_decision,
+            )
+        if route_decision.processor != "clarification":
+            raise ValueError(
+                "unresolved pending reply requires clarification route"
+            )
+        attempts = min(pending.attempts + 1, 2)
+        if reply.kind == "reject":
+            next_pending = pending.model_copy(
+                update={
+                    "attempts": attempts,
+                    "expected_response": "supply_value",
+                    "proposed_budget": None,
+                },
+                deep=True,
+            )
+            question = (
+                "请直接告诉我预算下限和上限，例如800到1000元。"
+            )
+        else:
+            next_pending = pending.model_copy(
+                update={"attempts": attempts},
+                deep=True,
+            )
+            question = (
+                "请回答“是”或“不是”，也可以直接给出预算范围。"
+                if pending.proposed_budget is not None
+                else "请直接告诉我预算下限和上限。"
+            )
+        return self._clarification_execution_result(
+            execution_input=execution_input,
+            route_decision=route_decision,
+            snapshot=snapshot,
+            clarification=ClarifyData(
+                question=question,
+                clarification_code=pending.gap,
+                pending_turn=next_pending,
+            ),
+            audit_events=(
+                IntentEvent(
+                    data=IntentData(
+                        mode=_intent_mode(
+                            execution_input,
+                            "clarify",
+                        )
+                    )
+                ),
+            ),
+        )
+
+    def _execute_general_knowledge_task(
+        self,
+        execution_input: ProcessorExecutionInput,
+        *,
+        snapshot: ConversationSnapshot | None,
+        task: TaskPlan,
+        route_decision: UnifiedRouteDecision,
+    ) -> ExecutionResult:
+        if self._general_knowledge is None:
+            raise RuntimeError(
+                "general knowledge retriever is unavailable"
+            )
+        topic = next(
+            (
+                constraint.value
+                for constraint in task.constraints
+                if isinstance(constraint, CategoryConstraint)
+            ),
+            None,
+        )
+        query = GeneralKnowledgeQuery(
+            retrieval_query=(
+                execution_input.routing_evidence.query.value.strip()
+            ),
+            question_meaning=(
+                task.question_meaning or execution_input.routing_evidence.query.value.strip()
+            ),
+            topic=topic,
+            safety_sensitive=task.safety_sensitive,
+            prior_knowledge_ids=(
+                snapshot.knowledge_slot.evidence_ids
+                if (
+                    task.mode == "followup"
+                    and snapshot is not None
+                    and snapshot.knowledge_slot is not None
+                )
+                else ()
+            ),
+            top_k=3,
+        )
+        packet = self._general_knowledge.retrieve(query)
+        rendered = render_general_knowledge_answer(packet)
+        presentation = self._presentation_event(
+            mode="general_knowledge",
+            user_need_summary=(
+                task.question_meaning or execution_input.routing_evidence.query.value.strip()
+            ),
+            winner_status="NOT_APPLICABLE",
+            card_display=CardDisplayContract(
+                mode="none",
+                visible_product_ids=(),
+                max_cards=0,
+                reason=None,
+            ),
+            cards=(),
+            task_constraints=task.constraints,
+            copywriter_policy=(
+                "medical_escalation"
+                if rendered.data.medical_escalation
+                else "eligible"
+            ),
+            authoritative_public_copy=SourceTaggedCopy(
+                text=rendered.message,
+            ),
+        ).data
+        knowledge_ids = tuple(
+            sorted(hit.block.knowledge_id for hit in packet.hits)
+        )
+        knowledge_topic = (
+            topic
+            or task.question_meaning
+            or execution_input.routing_evidence.query.value.strip()
+        )
+        return ExecutionResult(
+            decision=route_decision,
+            state_delta=ConversationStateDelta(
+                profile_owner=(
+                    execution_input.routing_evidence.profile_owner
+                ),
+                image=_image_lane_mutation(execution_input),
+                knowledge=LaneMutation[KnowledgeLaneState](
+                    action="replace",
+                    value=KnowledgeLaneState(
+                        focused_ids=knowledge_ids,
+                        question=execution_input.routing_evidence.query.value.strip(),
+                        topic=knowledge_topic[:256],
+                    ),
+                ),
+                clarification=LaneMutation[ClarificationLaneState](
+                    action="clear",
+                    reason="resolved by general knowledge answer",
+                ),
+            ),
+            terminal=PresentationTerminal(data=presentation),
+            audit_events=_execution_audit_events(
+                execution_input,
+                (
+                    StageEvent(
+                        data=StageData(
+                            stage="understanding",
+                            summary="已提取明确预算、品类和适配条件。",
+                        )
+                    ),
+                    IntentEvent(
+                        data=IntentData(
+                            mode=_intent_mode(
+                                execution_input,
+                                "knowledge",
+                            )
+                        )
+                    ),
+                    StageEvent(
+                        data=StageData(
+                            stage="retrieval",
+                            summary="已检索审核过的通用知识资料。",
+                        )
+                    ),
+                    GeneralKnowledgeEvent(data=rendered.data),
+                ),
+            ),
+        )
+
+    def _execute_recommendation(
+        self,
+        execution_input: ProcessorExecutionInput,
+        *,
+        snapshot: ConversationSnapshot | None,
+        task: TaskPlan,
+        route_decision: UnifiedRouteDecision,
+        candidate_product_ids: tuple[int, ...] = (),
+    ) -> ExecutionResult:
+        scenario_inputs = (
+            execution_input.routing_evidence.scenario_inputs
+        )
+        if scenario_inputs is None:
+            raise ValueError(
+                "recommendation execution requires scenario inputs"
+            )
         effective_task = task.model_copy(
             update={
                 "constraints": scenario_inputs.decision.constraints,
@@ -343,52 +722,926 @@ class TextRecommendationOrchestrator:
             self._category_catalog,
             category=category.value,
         )
+        if candidate_product_ids:
+            candidates_by_id = {
+                candidate.product_id: candidate
+                for candidate in retrieval.candidates
+            }
+            retrieval = retrieval.model_copy(
+                update={
+                    "candidates": [
+                        candidates_by_id[product_id]
+                        for product_id in candidate_product_ids
+                        if product_id in candidates_by_id
+                    ]
+                },
+                deep=True,
+            )
+        if effective_task.similarity_anchor_product_id is not None:
+            retrieval = retrieval.model_copy(
+                update={
+                    "candidates": [
+                        candidate
+                        for candidate in retrieval.candidates
+                        if candidate.product_id
+                        != effective_task.similarity_anchor_product_id
+                    ]
+                },
+                deep=True,
+            )
         decision = decide_recommendation(
             self._decision_facts,
             retrieval,
             constraints=effective_task.constraints,
             safety_sensitive=effective_task.safety_sensitive,
             concept_reader=self._concept_reader,
+            relative_requirement=(
+                effective_task.relative_requirements[0]
+                if effective_task.relative_requirements
+                else None
+            ),
         )
-        return self._build_plan(decision)
-
-    def stream(self, turn: UserTurn) -> Iterator[SseEvent]:
-        yield from self._stream_entry(turn, self._stream_locked)
-
-    def stream_text_vertical(
-        self,
-        turn: UserTurn,
-        *,
-        semantic_context: SemanticContext | None = None,
-    ) -> Iterator[SseEvent]:
-        """Run model-isolation text vertical; this is not public routing."""
-        if semantic_context is not None and not isinstance(
-            semantic_context,
-            SemanticContext,
+        if fit_selection_is_unresolved(
+            recommendation_mode=effective_task.recommendation_mode,
+            decision=decision,
         ):
-            raise TypeError(
-                "semantic_context must be SemanticContext or None"
+            clarification = fit_selection_clarification_data(
+                decision=decision,
+                gap_stage="decision_selection",
             )
-        yield from self._stream_entry(
-            turn,
-            lambda locked_turn: self._stream_text_vertical_locked(
-                locked_turn,
-                semantic_context=semantic_context,
+            return self._clarification_execution_result(
+                execution_input=execution_input,
+                route_decision=route_decision,
+                snapshot=snapshot,
+                clarification=clarification,
+                audit_events=(
+                    StageEvent(
+                        data=StageData(
+                            stage="understanding",
+                            summary=(
+                                "已提取明确预算、品类和适配条件。"
+                            ),
+                        )
+                    ),
+                    IntentEvent(
+                        data=IntentData(
+                            mode=_intent_mode(
+                                execution_input,
+                                "recommend",
+                            )
+                        )
+                    ),
+                ),
+            )
+        visible_limit = effective_task.recommendation_count
+        if visible_limit is None:
+            raise AssertionError(
+                "recommend task requires recommendation count"
+            )
+        visible_product_ids = (
+            (
+                (decision.winner_product_id,)
+                if decision.winner_product_id is not None
+                else ()
+            )
+            if effective_task.recommendation_mode == "fit"
+            else tuple(
+                decision.ordered_product_ids[:visible_limit]
+            )
+        )
+        visible_decision = decision.model_copy(
+            update={
+                "ordered_product_ids": list(visible_product_ids),
+                "relative_comparisons": [
+                    item
+                    for item in decision.relative_comparisons
+                    if item.candidate_product_id
+                    in visible_product_ids
+                ],
+            },
+            deep=True,
+        )
+        response = self._build_plan(visible_decision)
+        cards = list(response.structured_events)
+        card_display = recommendation_card_display(cards)
+        concept_slots = _concept_slot_data(
+            self._decision_facts,
+            reader=self._concept_reader,
+            product_ids=tuple(
+                visible_decision.ordered_product_ids
+            ),
+            constraints=effective_task.constraints,
+            safety_sensitive=effective_task.safety_sensitive,
+        )
+        merchant_claims = _project_merchant_claims(
+            self._merchant_claims,
+            product_ids=visible_decision.ordered_product_ids,
+            constraints=effective_task.constraints,
+        )
+        review_results = [
+            self._review_evidence.read(product_id=product_id)
+            for product_id in visible_decision.ordered_product_ids
+        ]
+        review_summaries = [
+            summary
+            for result in review_results
+            if (
+                summary := build_review_summary(result)
+            ) is not None
+        ]
+        has_review_evidence = any(
+            result.evidence for result in review_results
+        )
+        product_evidence_event = (
+            self._build_post_decision_evidence_event(
+                execution_input,
+                task=effective_task,
+                product_ids=tuple(
+                    card.product_id for card in cards
+                ),
+            )
+        )
+        has_unknown_skin = any(
+            item.kind == "skin_match_unknown"
+            for item in visible_decision.risk_findings
+        )
+        selection_slots = _selection_slot_data(
+            self._decision_facts,
+            product_ids=tuple(
+                visible_decision.ordered_product_ids
+            ),
+            constraints=effective_task.constraints,
+            safety_sensitive=effective_task.safety_sensitive,
+        )
+        scenario_records = []
+        pitfalls: list[TypedPitfall] = []
+        audit_events: list[SseEvent] = [
+            StageEvent(
+                data=StageData(
+                    stage="understanding",
+                    summary="已提取明确预算、品类和适配条件。",
+                )
+            ),
+            IntentEvent(
+                data=IntentData(
+                    mode=_intent_mode(
+                        execution_input,
+                        "recommend",
+                    ),
+                    category_profile=_task_category_profile(
+                        effective_task
+                    ),
+                )
+            ),
+            StageEvent(
+                data=StageData(
+                    stage="retrieval",
+                    summary="正在读取已审核的 Canonical 商品事实。",
+                )
+            ),
+            StageEvent(
+                data=StageData(
+                    stage="decision",
+                    summary="正在执行预算、排除项和肤质证据规则。",
+                )
+            ),
+        ]
+        if (
+            scenario_inputs.decision.evidence_requirements
+            and cards
+        ):
+            scenario_records = [
+                record
+                for product_id in visible_decision.ordered_product_ids
+                for record in self._scenario_evidence.get_scenario_evidence(
+                    product_id,
+                    scenario_inputs.decision.evidence_requirements,
+                )
+            ]
+        if scenario_records:
+            audit_events.append(
+                ScenarioEvidenceEvent(
+                    data=ScenarioEvidenceData(
+                        records=scenario_records,
+                    )
+                )
+            )
+        if merchant_claims:
+            audit_events.append(
+                MerchantClaimsEvent(
+                    data=MerchantClaimsData(claims=merchant_claims)
+                )
+            )
+        if (
+            review_results
+            and (scenario_records or has_review_evidence)
+        ):
+            audit_events.append(
+                ReviewEvidenceEvent(
+                    data=ReviewEvidenceData(
+                        approved_source_count=(
+                            self._review_evidence.approved_source_count
+                        ),
+                        results=review_results,
+                        summaries=review_summaries,
+                    )
+                )
+            )
+        if scenario_records:
+            pitfalls = project_scenario_pitfalls(scenario_records)
+            audit_events.append(
+                PitfallsEvent(
+                    data=PitfallsData(pitfalls=pitfalls)
+                )
+            )
+        audit_events.extend(
+            [
+                DecisionProcessEvent(
+                    data=DecisionProcessData(
+                        ordered_product_ids=list(
+                            visible_decision.ordered_product_ids
+                        ),
+                        winner_status=(
+                            visible_decision.winner_status.value
+                        ),
+                        evidence_refs=list(
+                            visible_decision.evidence_refs
+                        ),
+                        selection_slots=selection_slots,
+                        concept_slots=concept_slots,
+                        relative_comparisons=list(
+                            visible_decision.relative_comparisons
+                        ),
+                    )
+                ),
+                AnswerContractEvent(
+                    data=AnswerContractData(
+                        product_count=len(cards),
+                        winner_status=(
+                            visible_decision.winner_status.value
+                        ),
+                        has_unknown_skin=has_unknown_skin,
+                    )
+                ),
+                CardDisplayContractEvent(data=card_display),
+                ProductsEvent(data=ProductsData(cards=cards)),
+            ]
+        )
+        if product_evidence_event is not None:
+            audit_events.append(product_evidence_event)
+        try:
+            presentation = self._presentation_event(
+                mode=(
+                    "image_recommendation"
+                    if (
+                        effective_task.similarity_anchor_product_id
+                        is not None
+                    )
+                    else "recommendation"
+                ),
+                user_need_summary=(
+                    effective_task.question_meaning
+                    or execution_input.routing_evidence.query.value.strip()
+                ),
+                winner_status=visible_decision.winner_status.value,
+                winner_product_id=(
+                    visible_decision.winner_product_id
+                    if effective_task.recommendation_mode == "fit"
+                    else None
+                ),
+                recommendation_mode=effective_task.recommendation_mode,
+                card_display=card_display,
+                cards=cards,
+                task_constraints=effective_task.constraints,
+                selection_slots=selection_slots,
+                concept_slots=concept_slots,
+                merchant_claims=merchant_claims,
+                review_summaries=review_summaries,
+                pitfalls=pitfalls,
+                proof_points=_presentation_proof_points(
+                    product_evidence_event
+                ),
+            ).data
+        except FitSelectionEvidenceGap:
+            clarification = fit_selection_clarification_data(
+                decision=visible_decision,
+                gap_stage="public_fact_projection",
+            )
+            return self._clarification_execution_result(
+                execution_input=execution_input,
+                route_decision=route_decision,
+                snapshot=snapshot,
+                clarification=clarification,
+                audit_events=tuple(audit_events),
+            )
+        candidates = tuple(
+            DisplayedCandidateRef(
+                product_id=card.product_id,
+                ordinal=index,
+                skin_match=card.skin_match,
+                matched_efficacies=tuple(card.matched_efficacies),
+            )
+            for index, card in enumerate(cards[:3], start=1)
+        )
+        return ExecutionResult(
+            decision=route_decision,
+            state_delta=ConversationStateDelta(
+                profile_owner=(
+                    execution_input.routing_evidence.profile_owner
+                ),
+                image=_image_lane_mutation(execution_input),
+                recommendation=LaneMutation[
+                    RecommendationLaneState
+                ](
+                    action="replace",
+                    value=RecommendationLaneState(
+                        query_context=task_plan_to_query_context(
+                            effective_task
+                        ),
+                        candidates=candidates,
+                        empty_result=not candidates,
+                    ),
+                ),
+                clarification=LaneMutation[ClarificationLaneState](
+                    action="clear",
+                    reason="resolved by recommendation",
+                ),
+            ),
+            terminal=PresentationTerminal(data=presentation),
+            audit_events=_execution_audit_events(
+                execution_input,
+                audit_events,
             ),
         )
 
-    def resolve_product_bindings(
+    def _execute_direct_product_task(
         self,
+        execution_input: ProcessorExecutionInput,
         *,
-        message: str,
-        understanding: StructuredUnderstanding,
         snapshot: ConversationSnapshot | None,
-    ) -> tuple[ResolvedProductBinding, ...]:
-        return self.resolve_product_resolution(
-            message=message,
-            understanding=understanding,
-            snapshot=snapshot,
-        ).bindings
+        task: TaskPlan,
+        route_decision: UnifiedRouteDecision,
+        product_resolution: ProductMentionResolution,
+    ) -> ExecutionResult:
+        task = self._task_with_inferred_product_category(task)
+        records = {
+            record.product_id: record
+            for record in self._category_catalog.iter_category_records()
+        }
+        retrieval = RetrievalResult(
+            candidates=[
+                CandidateRef(
+                    product_id=product_id,
+                    source="canonical_product_name",
+                    canonical_category=(
+                        records[product_id].value or ""
+                    ),
+                    canonical_category_state=records[product_id].state,
+                    retrieval_reason="exact_product_name",
+                )
+                for product_id in task.product_ids
+            ],
+            knowledge_evidence=[],
+            review_evidence=[],
+            memory_evidence=[],
+            missing_sources=[],
+        )
+        decision_constraints = list(task.constraints)
+        eligibility_constraints = (
+            [_category_constraint(decision_constraints)]
+            if task.mode == "comparison"
+            else decision_constraints
+        )
+        decision = decide_recommendation(
+            self._decision_facts,
+            retrieval,
+            constraints=eligibility_constraints,
+            safety_sensitive=task.safety_sensitive,
+            concept_reader=self._concept_reader,
+        )
+        profile_evaluations: tuple[CandidateEvaluation, ...] = ()
+        if task.mode == "comparison":
+            profile_decision = decide_recommendation(
+                self._decision_facts,
+                retrieval,
+                constraints=decision_constraints,
+                safety_sensitive=task.safety_sensitive,
+                concept_reader=self._concept_reader,
+            )
+            eligible = set(decision.ordered_product_ids)
+            decision = decision.model_copy(
+                update={
+                    "ordered_product_ids": [
+                        product_id
+                        for product_id in task.product_ids
+                        if product_id in eligible
+                    ],
+                },
+                deep=True,
+            )
+            visible_ids = set(decision.ordered_product_ids)
+            profile_evaluations = tuple(
+                evaluation
+                for evaluation in profile_decision.evaluations
+                if evaluation.product_id in visible_ids
+            )
+        if (
+            task.mode == "suitability"
+            and not decision.ordered_product_ids
+        ):
+            identity_decision = decide_recommendation(
+                self._decision_facts,
+                retrieval,
+                constraints=[
+                    _category_constraint(decision_constraints),
+                ],
+                safety_sensitive=task.safety_sensitive,
+                concept_reader=self._concept_reader,
+            )
+            decision = identity_decision.model_copy(
+                update={
+                    "winner_status": (
+                        WinnerStatus.INSUFFICIENT_FOR_WINNER
+                    ),
+                    "winner_product_id": None,
+                    "risk_findings": decision.risk_findings,
+                    "evidence_refs": list(
+                        dict.fromkeys(
+                            [
+                                *decision.evidence_refs,
+                                *identity_decision.evidence_refs,
+                            ]
+                        )
+                    ),
+                },
+                deep=True,
+            )
+        response = self._build_plan(
+            decision,
+            product_resolution=product_resolution,
+        )
+        cards = list(response.structured_events)
+        if task.mode == "comparison":
+            card_display = comparison_card_display(cards)
+        else:
+            if len(cards) != 1:
+                raise ValueError(
+                    "direct suitability requires exactly one card"
+                )
+            card_display = single_product_card_display(cards[0])
+        product_evidence_event = (
+            self._build_post_decision_evidence_event(
+                execution_input,
+                task=task,
+                product_ids=tuple(
+                    card.product_id for card in cards
+                ),
+            )
+        )
+        product_ids = tuple(card.product_id for card in cards)
+        selection_slots = _selection_slot_data(
+            self._decision_facts,
+            product_ids=product_ids,
+            constraints=task.constraints,
+            safety_sensitive=task.safety_sensitive,
+        )
+        concept_slots = _concept_slot_data(
+            self._decision_facts,
+            reader=self._concept_reader,
+            product_ids=product_ids,
+            constraints=task.constraints,
+            safety_sensitive=task.safety_sensitive,
+        )
+        merchant_claims = _project_merchant_claims(
+            self._merchant_claims,
+            product_ids=product_ids,
+            constraints=task.constraints,
+        )
+        review_summaries = tuple(
+            summary
+            for product_id in product_ids
+            if (
+                summary := build_review_summary(
+                    self._review_evidence.read(
+                        product_id=product_id
+                    )
+                )
+            ) is not None
+        )
+        presentation = self._presentation_event(
+            mode=(
+                "comparison"
+                if task.mode == "comparison"
+                else "single_product"
+            ),
+            user_need_summary=(
+                task.question_meaning or execution_input.routing_evidence.query.value.strip()
+            ),
+            winner_status=decision.winner_status.value,
+            winner_product_id=(
+                decision.winner_product_id
+                if task.mode == "comparison"
+                else None
+            ),
+            winner_tie_reason=decision.tie_reason,
+            card_display=card_display,
+            cards=cards,
+            task_constraints=task.constraints,
+            selection_slots=selection_slots,
+            concept_slots=concept_slots,
+            merchant_claims=merchant_claims,
+            review_summaries=review_summaries,
+            proof_points=_presentation_proof_points(
+                product_evidence_event
+            ),
+            requested_dimensions=(
+                task.requested_comparison_dimensions
+            ),
+            candidate_evaluations=profile_evaluations,
+        ).data
+        evidence_ids = (
+            tuple(
+                item.evidence.evidence_id
+                for item in product_evidence_event.data.packet.selected
+            )
+            if product_evidence_event is not None
+            else ()
+        )
+        focused_ordinal = (
+            next(
+                (
+                    item.ordinal
+                    for item in _candidate_batch(snapshot)
+                    if item.product_id == product_ids[0]
+                ),
+                None,
+            )
+            if snapshot is not None and len(product_ids) == 1
+            else None
+        )
+        comparison_candidates = tuple(
+            DisplayedCandidateRef(
+                product_id=card.product_id,
+                ordinal=index,
+                skin_match=card.skin_match,
+                matched_efficacies=tuple(card.matched_efficacies),
+            )
+            for index, card in enumerate(cards, start=1)
+        )
+        if task.mode == "suitability":
+            product_mutation = LaneMutation[ProductLaneState](
+                action="replace",
+                value=ProductLaneState(
+                    current_product_id=product_ids[0],
+                    focused_candidate_ordinal=focused_ordinal,
+                    focused_evidence_ids=evidence_ids,
+                ),
+            )
+        elif task.mode == "comparison":
+            product_mutation = LaneMutation[ProductLaneState](
+                action="replace",
+                value=ProductLaneState(
+                    candidates=comparison_candidates,
+                    focused_evidence_ids=evidence_ids,
+                ),
+            )
+        else:
+            product_mutation = LaneMutation[ProductLaneState](
+                action="preserve"
+            )
+        state_delta = ConversationStateDelta(
+            profile_owner=(
+                execution_input.routing_evidence.profile_owner
+            ),
+            image=_image_lane_mutation(execution_input),
+            product=product_mutation,
+            clarification=LaneMutation[ClarificationLaneState](
+                action="clear",
+                reason="resolved by direct product task",
+            ),
+        )
+        audit_events: list[SseEvent] = [
+            StageEvent(
+                data=StageData(
+                    stage="understanding",
+                    summary="已提取明确预算、品类和适配条件。",
+                )
+            ),
+            IntentEvent(
+                data=IntentData(
+                    mode=_intent_mode(
+                        execution_input,
+                        task.mode,
+                    ),
+                    category_profile=_task_category_profile(task),
+                )
+            ),
+            StageEvent(
+                data=StageData(
+                    stage="retrieval",
+                    summary="已按商品名称绑定 Canonical 目录。",
+                )
+            ),
+            StageEvent(
+                data=StageData(
+                    stage="decision",
+                    summary="已执行同一套事实状态和硬约束判断。",
+                )
+            ),
+            DecisionProcessEvent(
+                data=DecisionProcessData(
+                    ordered_product_ids=list(
+                        decision.ordered_product_ids
+                    ),
+                    winner_status=decision.winner_status.value,
+                    evidence_refs=list(decision.evidence_refs),
+                    selection_slots=selection_slots,
+                    concept_slots=concept_slots,
+                    relative_comparisons=list(
+                        decision.relative_comparisons
+                    ),
+                )
+            ),
+            AnswerContractEvent(
+                data=AnswerContractData(
+                    product_count=len(cards),
+                    winner_status=decision.winner_status.value,
+                    has_unknown_skin=any(
+                        card.skin_match == "unknown"
+                        for card in cards
+                    ),
+                )
+            ),
+            CardDisplayContractEvent(data=card_display),
+            ProductsEvent(data=ProductsData(cards=cards)),
+        ]
+        if product_evidence_event is not None:
+            audit_events.append(product_evidence_event)
+        return ExecutionResult(
+            decision=route_decision,
+            state_delta=state_delta,
+            terminal=PresentationTerminal(data=presentation),
+            audit_events=_execution_audit_events(
+                execution_input,
+                audit_events,
+            ),
+        )
+
+    def _execute_product_evidence_task(
+        self,
+        execution_input: ProcessorExecutionInput,
+        *,
+        snapshot: ConversationSnapshot | None,
+        task: TaskPlan,
+        route_decision: UnifiedRouteDecision,
+        product_resolution: ProductMentionResolution,
+    ) -> ExecutionResult:
+        if self._product_evidence is None:
+            raise RuntimeError(
+                "product evidence retriever is unavailable"
+            )
+        task = self._task_with_inferred_product_category(task)
+        query = EvidenceQuery(
+            product_ids=tuple(task.product_ids),
+            raw_question=execution_input.routing_evidence.query.value,
+            question_meaning=(
+                task.question_meaning or execution_input.routing_evidence.query.value.strip()
+            ),
+            safety_sensitive=task.safety_sensitive,
+            product_identity_names=self._product_identity_names(
+                task.product_ids
+            ),
+            product_mention_spans=tuple(
+                sorted(
+                    (
+                        mention.source_span.start,
+                        mention.source_span.end,
+                    )
+                    for mention in task.product_mentions
+                )
+            ),
+        )
+        packet = self._product_evidence.retrieve(query)
+        cards = self._cards_for_product_ids(
+            task.product_ids,
+            product_resolution=product_resolution,
+        )
+        if len(cards) != 1:
+            raise ValueError(
+                "product knowledge execution requires one product"
+            )
+        product_id = cards[0].product_id
+        variant_scope = product_resolution.variant_scope_for(product_id)
+        facts = (
+            self._presentation_facts.get_presentation_facts(
+                product_id,
+                variant_scope=variant_scope,
+            )
+            if variant_scope is not None
+            else self._presentation_facts.get_presentation_facts(
+                product_id
+            )
+        )
+        product_names = {
+            product_id: facts.name or f"商品{product_id}"
+        }
+        merchant_claims = _project_merchant_claims(
+            self._merchant_claims,
+            product_ids=(product_id,),
+            constraints=task.constraints,
+        )
+        review_summaries = tuple(
+            summary
+            for summary in (
+                build_review_summary(
+                    self._review_evidence.read(
+                        product_id=product_id
+                    )
+                ),
+            )
+            if summary is not None
+        )
+        requested_dimensions = (
+            execution_input.routing_evidence
+            .product_knowledge_dimensions
+        )
+        evidence_facts = (
+            *_approved_product_evidence_facts(
+                packet,
+                product_names=product_names,
+            ),
+            *_approved_merchant_claim_facts(merchant_claims),
+            *_approved_review_summary_facts(review_summaries),
+        )
+        projection = project_public_facts(
+            card=cards[0],
+            approved_soft_facts=evidence_facts,
+            requested_dimensions=requested_dimensions,
+        )
+        answer_plan = build_product_knowledge_answer_plan(
+            projection=projection,
+            question=execution_input.routing_evidence.query.value,
+            requested_dimensions=requested_dimensions,
+        )
+        product_evidence_event = ProductEvidenceEvent(
+            data=ProductEvidenceData(packet=packet)
+        )
+        card_display = single_product_card_display(cards[0])
+        presentation = self._presentation_event(
+            mode="product_knowledge",
+            user_need_summary=(
+                task.question_meaning or execution_input.routing_evidence.query.value.strip()
+            ),
+            winner_status="NOT_APPLICABLE",
+            card_display=card_display,
+            cards=cards,
+            task_constraints=task.constraints,
+            merchant_claims=(),
+            review_summaries=(),
+            proof_points=(),
+            additional_soft_facts=evidence_facts,
+            requested_dimensions=requested_dimensions,
+            authoritative_public_copy=SourceTaggedCopy(
+                text=answer_plan.answer_text,
+                used_fact_ids=answer_plan.used_fact_ids,
+            ),
+        ).data
+        focused_ordinal = (
+            next(
+                (
+                    item.ordinal
+                    for item in _candidate_batch(snapshot)
+                    if item.product_id == product_id
+                ),
+                None,
+            )
+            if snapshot is not None
+            else None
+        )
+        evidence_ids = tuple(
+            item.evidence.evidence_id
+            for item in packet.selected
+        )
+        return ExecutionResult(
+            decision=route_decision,
+            state_delta=ConversationStateDelta(
+                profile_owner=(
+                    execution_input.routing_evidence.profile_owner
+                ),
+                image=_image_lane_mutation(execution_input),
+                product=LaneMutation[ProductLaneState](
+                    action="replace",
+                    value=ProductLaneState(
+                        current_product_id=product_id,
+                        focused_candidate_ordinal=focused_ordinal,
+                        focused_evidence_ids=evidence_ids,
+                    ),
+                ),
+                clarification=LaneMutation[
+                    ClarificationLaneState
+                ](
+                    action="clear",
+                    reason="resolved by product knowledge answer",
+                ),
+            ),
+            terminal=PresentationTerminal(data=presentation),
+            audit_events=_execution_audit_events(
+                execution_input,
+                (
+                    StageEvent(
+                        data=StageData(
+                            stage="understanding",
+                            summary="已提取明确预算、品类和适配条件。",
+                        )
+                    ),
+                    IntentEvent(
+                        data=IntentData(
+                            mode=_intent_mode(
+                                execution_input,
+                                task.mode,
+                            ),
+                            category_profile=_task_category_profile(task),
+                        )
+                    ),
+                    StageEvent(
+                        data=StageData(
+                            stage="retrieval",
+                            summary=(
+                                "已在当前商品的审核证据中检索相关资料。"
+                            ),
+                        )
+                    ),
+                    AnswerContractEvent(
+                        data=AnswerContractData(
+                            product_count=1,
+                            winner_status="NOT_APPLICABLE",
+                            has_unknown_skin=True,
+                        )
+                    ),
+                    CardDisplayContractEvent(data=card_display),
+                    ProductsEvent(data=ProductsData(cards=cards)),
+                    product_evidence_event,
+                ),
+            ),
+        )
+
+    @staticmethod
+    def _clarification_execution_result(
+        *,
+        execution_input: ProcessorExecutionInput,
+        route_decision: UnifiedRouteDecision,
+        snapshot: ConversationSnapshot | None,
+        clarification: ClarifyData,
+        audit_events: tuple[SseEvent, ...],
+    ) -> ExecutionResult:
+        previous = (
+            _clarification(snapshot)
+        )
+        attempts = (
+            min(previous.attempts + 1, 2)
+            if (
+                previous is not None
+                and previous.gap
+                is clarification.clarification_code
+            )
+            else 1
+        )
+        pending_turn = clarification.pending_turn
+        if pending_turn is not None:
+            pending_turn = pending_turn.model_copy(
+                update={"attempts": attempts},
+                deep=True,
+            )
+        return ExecutionResult(
+            decision=route_decision,
+            state_delta=ConversationStateDelta(
+                profile_owner=(
+                    execution_input.routing_evidence.profile_owner
+                ),
+                image=_image_lane_mutation(execution_input),
+                clarification=LaneMutation[
+                    ClarificationLaneState
+                ](
+                    action="replace",
+                    value=ClarificationLaneState(
+                        progress=ClarificationProgress(
+                            gap=clarification.clarification_code,
+                            attempts=attempts,
+                        ),
+                        pending_turn=pending_turn,
+                    ),
+                )
+            ),
+            terminal=ClarificationTerminal(data=clarification),
+            audit_events=_execution_audit_events(
+                execution_input,
+                audit_events,
+            ),
+        )
+
+
+
+
 
     def resolve_product_resolution(
         self,
@@ -414,1102 +1667,29 @@ class TextRecommendationOrchestrator:
             message,
             understanding,
         )
-        resolution = self._resolve_product_mentions(
+        return self._resolve_product_mentions_or_references(
             message,
-            recovered.product_mentions,
-        )
-        if not recovered.product_mentions:
-            resolution = self._resolve_reference_products(
-                recovered.references,
-                snapshot=snapshot,
-            )
-        return resolution
-
-    def stream_understanding(
-        self,
-        turn: UserTurn,
-        *,
-        understanding: StructuredUnderstanding,
-        route_decision: UnifiedRouteDecision,
-        product_bindings: tuple[ResolvedProductBinding, ...],
-        product_resolution_issue: ProductResolutionIssue | None = None,
-    ) -> Iterator[SseEvent]:
-        if type(understanding) is not StructuredUnderstanding:
-            raise TypeError(
-                "understanding must be an exact StructuredUnderstanding"
-            )
-        if type(route_decision) is not UnifiedRouteDecision:
-            raise TypeError(
-                "route_decision must be an exact UnifiedRouteDecision"
-            )
-        if any(
-            not isinstance(item, ResolvedProductBinding)
-            for item in product_bindings
-        ):
-            raise TypeError(
-                "product_bindings must contain resolved bindings"
-            )
-        yield from self._stream_entry(
-            turn,
-            lambda locked_turn: self._stream_preunderstood_locked(
-                locked_turn,
-                understanding=understanding,
-                route_decision=route_decision,
-                product_bindings=product_bindings,
-                product_resolution_issue=product_resolution_issue,
-            ),
-        )
-
-    def stream_understanding_body(
-        self,
-        turn: UserTurn,
-        *,
-        understanding: StructuredUnderstanding,
-        route_decision: UnifiedRouteDecision,
-        product_bindings: tuple[ResolvedProductBinding, ...],
-        product_resolution_issue: ProductResolutionIssue | None = None,
-    ) -> Iterator[SseEvent]:
-        """Run a pretranslated turn while an outer flow owns the lock."""
-        if type(understanding) is not StructuredUnderstanding:
-            raise TypeError(
-                "understanding must be an exact StructuredUnderstanding"
-            )
-        if type(route_decision) is not UnifiedRouteDecision:
-            raise TypeError(
-                "route_decision must be an exact UnifiedRouteDecision"
-            )
-        if any(
-            not isinstance(item, ResolvedProductBinding)
-            for item in product_bindings
-        ):
-            raise TypeError(
-                "product_bindings must contain resolved bindings"
-            )
-        yield from self._stream_preunderstood_locked(
-            turn,
-            understanding=understanding,
-            route_decision=route_decision,
-            product_bindings=product_bindings,
-            product_resolution_issue=product_resolution_issue,
-        )
-
-    def _stream_preunderstood_locked(
-        self,
-        turn: UserTurn,
-        *,
-        understanding: StructuredUnderstanding,
-        route_decision: UnifiedRouteDecision,
-        product_bindings: tuple[ResolvedProductBinding, ...],
-        product_resolution_issue: ProductResolutionIssue | None = None,
-    ) -> Iterator[SseEvent]:
-        snapshot = self._conversation_state.load(turn.session_id)
-        if (
-            snapshot is not None
-            and snapshot.profile_owner != turn.profile_owner
-        ):
-            raise ConversationStateConflict(turn.session_id)
-        yield from self._stream_planned_text_or_stale(
-            turn,
-            snapshot=snapshot,
-            understanding_override=understanding,
-            product_bindings_override=product_bindings,
-            product_resolution_issue=product_resolution_issue,
-            route_decision=route_decision,
-        )
-
-    def _stream_entry(
-        self,
-        turn: UserTurn,
-        stream_locked: Callable[[UserTurn], Iterator[SseEvent]],
-    ) -> Iterator[SseEvent]:
-        yield StartEvent(data=StartData(session_id=turn.session_id))
-        with self._session_locks.hold(turn.session_id):
-            try:
-                buffered_events = list(stream_locked(turn))
-            except ConversationStateConflict:
-                latest = self._conversation_state.load(turn.session_id)
-                buffered_events = [
-                    IntentEvent(data=IntentData(mode="clarify")),
-                    ClarifyEvent(
-                        data=ClarifyData(
-                            question=(
-                                "会话状态已变化，请基于最新结果重试。"
-                            ),
-                            clarification_code=(
-                                ClarificationCode.REFERENCE
-                            ),
-                        )
-                    ),
-                    EndEvent(
-                        data=EndData(
-                            conversation_version=self._snapshot_version(
-                                latest
-                            )
-                        )
-                    ),
-                ]
-            except Exception:
-                logger.exception(
-                    "slice 1 recommendation failed for session_id=%s",
-                    turn.session_id,
-                )
-                buffered_events = [
-                    ErrorEvent(
-                        data=ErrorData(
-                            code="GUIDE_INTERNAL_ERROR",
-                            message="推荐暂时不可用，请稍后重试。",
-                        )
-                    )
-                ]
-        yield from buffered_events
-
-    def _stream_text_vertical_locked(
-        self,
-        turn: UserTurn,
-        *,
-        semantic_context: SemanticContext | None,
-    ) -> Iterator[SseEvent]:
-        """Bypass closed-operation dispatch for model gate isolation only."""
-        snapshot = self._conversation_state.load(turn.session_id)
-        if (
-            snapshot is not None
-            and snapshot.profile_owner != turn.profile_owner
-        ):
-            raise ConversationStateConflict(turn.session_id)
-        yield from self._stream_planned_text_or_stale(
-            turn,
-            snapshot=snapshot,
-            allow_unbound_references=True,
-            semantic_context=semantic_context,
-        )
-
-    def _stream_locked(self, turn: UserTurn) -> Iterator[SseEvent]:
-        snapshot = self._conversation_state.load(turn.session_id)
-        if (
-            snapshot is not None
-            and snapshot.profile_owner != turn.profile_owner
-        ):
-            raise ConversationStateConflict(turn.session_id)
-        if (
-            snapshot is not None
-            and snapshot.pending_turn is not None
-        ):
-            if turn.conversation_version != snapshot.version:
-                yield from self._stream_planned_text_or_stale(
-                    turn,
-                    snapshot=snapshot,
-                )
-                return
-            pending_reply = classify_pending_reply(
-                message=turn.message,
-                pending=snapshot.pending_turn,
-            )
-            if pending_reply.kind == "replace_task":
-                assert pending_reply.replacement_category is not None
-                replacement_task = TaskPlan(
-                    mode="recommend",
-                    referenced_image_ids=[],
-                    constraints=[
-                        CategoryConstraint(
-                            value=TopicCode(
-                                pending_reply.replacement_category
-                            )
-                        )
-                    ],
-                    references=[],
-                    product_mentions=[],
-                    product_ids=[],
-                    required_evidence=["canonical_product"],
-                    question_meaning=turn.message,
-                )
-                yield StageEvent(
-                    data=StageData(
-                        stage="understanding",
-                        summary="已取消上一轮待确认任务并切换品类。",
-                    )
-                )
-                yield IntentEvent(
-                    data=IntentData(
-                        mode="recommend",
-                        category_profile=_task_category_profile(
-                            replacement_task
-                        ),
-                    )
-                )
-                yield from self._stream_recommendation(
-                    turn,
-                    snapshot=snapshot,
-                    task=replacement_task,
-                    revision_kind=None,
-                )
-                return
-            yield from self._stream_pending_reply(
-                turn,
-                snapshot=snapshot,
-                reply=pending_reply,
-            )
-            return
-        followup_draft = parse_followup(turn.message)
-        followup_task = plan_followup(
-            followup_draft,
-            snapshot=snapshot,
-            request_version=turn.conversation_version,
-        )
-        if followup_task is not None:
-            yield from self._stream_followup(
-                turn,
-                snapshot=snapshot,
-                plan=followup_task,
-            )
-            return
-        revision_confirmations = tuple(
-            parse_exact_revision_confirmations(turn.message)
-        )
-        skin_draft = parse_skin_revision(turn.message)
-        skin_plan = plan_skin_revision(
-            skin_draft,
-            query_context=(
-                snapshot.query_context
-                if snapshot is not None
-                else None
-            ),
-            request_version=turn.conversation_version,
-            snapshot_version=(
-                snapshot.version
-                if snapshot is not None
-                else None
-            ),
-            revision_confirmation=next(
-                (
-                    proof
-                    for proof in revision_confirmations
-                    if proof.target is ExactRevisionTarget.SKIN
-                ),
-                None,
-            ),
-        )
-        if skin_plan is not None:
-            yield from self._stream_skin_revision(
-                turn,
-                snapshot=snapshot,
-                plan=skin_plan,
-            )
-            return
-        budget_draft = parse_budget_revision(turn.message)
-        budget_plan = plan_budget_revision(
-            budget_draft,
-            query_context=(
-                snapshot.query_context
-                if snapshot is not None
-                else None
-            ),
-            request_version=turn.conversation_version,
-            snapshot_version=(
-                snapshot.version
-                if snapshot is not None
-                else None
-            ),
-            revision_confirmation=next(
-                (
-                    proof
-                    for proof in revision_confirmations
-                    if proof.target is ExactRevisionTarget.BUDGET
-                ),
-                None,
-            ),
-        )
-        if budget_plan is not None:
-            yield from self._stream_budget_revision(
-                turn,
-                snapshot=snapshot,
-                plan=budget_plan,
-            )
-            return
-        yield from self._stream_planned_text_or_stale(
-            turn,
+            recovered,
             snapshot=snapshot,
         )
 
-    def _stream_pending_reply(
-        self,
-        turn: UserTurn,
-        *,
-        snapshot: ConversationSnapshot,
-        reply,
-    ) -> Iterator[SseEvent]:
-        pending = snapshot.pending_turn
-        assert pending is not None
-        if reply.kind in {"affirm", "correct", "supplement"}:
-            task = resume_pending_recommendation(
-                pending=pending,
-                reply=reply,
-            )
-            yield StageEvent(
-                data=StageData(
-                    stage="understanding",
-                    summary="已确认上一轮预算并恢复原导购任务。",
-                )
-            )
-            yield IntentEvent(
-                data=IntentData(
-                    mode="recommend",
-                    category_profile=_task_category_profile(task),
-                )
-            )
-            yield from self._stream_recommendation(
-                turn,
-                snapshot=snapshot,
-                task=task,
-                revision_kind=None,
-            )
-            return
 
-        attempts = min(pending.attempts + 1, 2)
-        if reply.kind == "reject":
-            next_pending = pending.model_copy(
-                update={
-                    "attempts": attempts,
-                    "expected_response": "supply_value",
-                    "proposed_budget": None,
-                },
-                deep=True,
-            )
-            question = "请直接告诉我预算下限和上限，例如800到1000元。"
-        else:
-            next_pending = pending.model_copy(
-                update={"attempts": attempts},
-                deep=True,
-            )
-            question = (
-                "请回答“是”或“不是”，也可以直接给出预算范围。"
-                if pending.proposed_budget is not None
-                else "请直接告诉我预算下限和上限。"
-            )
-        yield IntentEvent(data=IntentData(mode="clarify"))
-        yield ClarifyEvent(
-            data=ClarifyData(
-                question=question,
-                clarification_code=pending.gap,
-                pending_turn=next_pending,
-            )
-        )
-        yield EndEvent(
-            data=EndData(conversation_version=snapshot.version)
-        )
 
-    def _stream_planned_text_or_stale(
-        self,
-        turn: UserTurn,
-        *,
-        snapshot: ConversationSnapshot | None,
-        allow_unbound_references: bool = False,
-        semantic_context: SemanticContext | None = None,
-        understanding_override: StructuredUnderstanding | None = None,
-        product_bindings_override: (
-            tuple[ResolvedProductBinding, ...] | None
-        ) = None,
-        product_resolution_issue: ProductResolutionIssue | None = None,
-        route_decision: UnifiedRouteDecision | None = None,
-    ) -> Iterator[SseEvent]:
-        if (
-            snapshot is not None
-            and turn.conversation_version != snapshot.version
-        ):
-            yield IntentEvent(data=IntentData(mode="clarify"))
-            yield ClarifyEvent(
-                data=ClarifyData(
-                    question=(
-                        "会话状态已变化，请基于最新结果重试。"
-                    ),
-                    clarification_code=ClarificationCode.REFERENCE,
-                )
-            )
-            yield EndEvent(
-                data=EndData(
-                    conversation_version=snapshot.version
-                )
-            )
-            return
 
-        yield from self._stream_planned_text(
-            turn,
-            snapshot=snapshot,
-            allow_unbound_references=allow_unbound_references,
-            semantic_context=semantic_context,
-            understanding_override=understanding_override,
-            product_bindings_override=product_bindings_override,
-            product_resolution_issue=product_resolution_issue,
-            route_decision=route_decision,
-        )
 
-    def _stream_planned_text(
-        self,
-        turn: UserTurn,
-        *,
-        snapshot: ConversationSnapshot | None,
-        allow_unbound_references: bool = False,
-        semantic_context: SemanticContext | None = None,
-        understanding_override: StructuredUnderstanding | None = None,
-        product_bindings_override: (
-            tuple[ResolvedProductBinding, ...] | None
-        ) = None,
-        product_resolution_issue: ProductResolutionIssue | None = None,
-        route_decision: UnifiedRouteDecision | None = None,
-    ) -> Iterator[SseEvent]:
-        profile_context = self._resolve_profile_context(turn)
-        understanding = (
-            understanding_override
-            if understanding_override is not None
-            else self._understanding.understand(
-                turn.message,
-                context=(
-                    semantic_context
-                    or resolve_semantic_context(
-                        conversation_version=turn.conversation_version,
-                        snapshot=snapshot,
-                        profile_context=profile_context,
-                    )
-                ),
-            )
-        )
-        understanding = merge_context_signals(
-            understanding,
-            signals=resolve_context_constraint_signals(
-                snapshot=snapshot,
-                profile_context=profile_context,
-            ),
-        )
-        understanding = self._recover_explicit_product_mentions(
-            turn.message,
-            understanding,
-        )
-        yield StageEvent(
-            data=StageData(
-                stage="understanding",
-                summary="已提取明确预算、品类和适配条件。",
-            )
-        )
-        product_resolution = (
-            ProductMentionResolution(
-                bindings=product_bindings_override,
-                issue=product_resolution_issue,
-            )
-            if product_bindings_override is not None
-            else self._resolve_product_mentions(
-                turn.message,
-                understanding.product_mentions,
-            )
-        )
-        if product_bindings_override is None:
-            if (
-                not understanding.product_mentions
-                and not (
-                    allow_unbound_references
-                    and snapshot is None
-                )
-            ):
-                product_resolution = self._resolve_reference_products(
-                    understanding.references,
-                    snapshot=snapshot,
-                )
-        if (
-            route_decision is not None
-            and route_decision.processor == "clarification"
-        ):
-            yield IntentEvent(data=IntentData(mode="clarify"))
-            yield ClarifyEvent(
-                data=ClarifyData(
-                    question=(
-                        route_decision.clarification
-                        or "请明确这次要查看的商品或任务。"
-                    ),
-                    clarification_code=(
-                        route_decision.clarification_code
-                        or ClarificationCode.REFERENCE
-                    ),
-                )
-            )
-            yield EndEvent(
-                data=EndData(
-                    conversation_version=self._snapshot_version(
-                        snapshot
-                    )
-                )
-            )
-            return
-        if route_decision is not None:
-            expected_route_modes = {
-                "recommendation": {
-                    "recommendation",
-                    "image_similarity",
-                },
-                "comparison": {"comparison"},
-                "product_knowledge": {
-                    "knowledge",
-                    "followup",
-                    "suitability",
-                },
-                "general_knowledge": {"knowledge", "followup"},
-                "clarification": {"clarification"},
-            }.get(route_decision.processor)
-            if (
-                expected_route_modes is not None
-                and understanding.goal.value
-                not in expected_route_modes
-                and not (
-                    route_decision.processor == "clarification"
-                    and product_resolution_issue is not None
-                )
-            ):
-                raise ValueError(
-                    "route processor and understanding goal disagree"
-                )
-        task = plan_task(
-            understanding,
-            resolved_product_ids=product_resolution.product_ids,
-            product_resolution_issue=product_resolution.issue,
-            message=turn.message,
-        )
-        task = self._prepare_image_similarity_task(task)
-        transition_planning = plan_code_owned_transitions(
-            message=turn.message,
-            understanding=understanding,
-            task=task,
-            previous=(
-                snapshot.query_context
-                if snapshot is not None
-                else None
-            ),
-            continuation_requested=(
-                route_decision is not None
-                and route_decision.continuity
-                in {"supplement", "correct", "withdraw"}
-            ),
-        )
-        task = transition_planning.task_plan
-        if snapshot is not None and snapshot.session_profile is not None:
-            task = apply_session_profile_to_task(
-                task,
-                snapshot.session_profile,
-            )
-        revision_kind: Literal["budget", "skin"] | None = None
-        if (
-            route_decision is not None
-            and route_decision.continuity == "correct"
-            and transition_planning.transition_result is not None
-        ):
-            replaced_targets = {
-                item.target
-                for item in (
-                    transition_planning.transition_result.transitions
-                )
-                if item.operation == "replace"
-            }
-            if replaced_targets == {"budget"}:
-                revision_kind = "budget"
-            elif replaced_targets == {"skin"}:
-                revision_kind = "skin"
-        yield IntentEvent(
-            data=IntentData(
-                mode=(
-                    "revise"
-                    if revision_kind is not None
-                    else (
-                        "image_recommend"
-                        if task.similarity_anchor_product_id
-                        is not None
-                        else task.mode
-                    )
-                ),
-                category_profile=_task_category_profile(task),
-            )
-        )
-        if task.mode == "clarify":
-            assert task.clarification_code is not None
-            pending_turn = build_pending_turn(
-                message=turn.message,
-                source_conversation_version=turn.conversation_version,
-                task=task,
-            )
-            yield ClarifyEvent(
-                data=ClarifyData(
-                    question=task.clarification,
-                    clarification_code=task.clarification_code,
-                    pending_turn=pending_turn,
-                )
-            )
-            yield EndEvent(
-                data=EndData(
-                    conversation_version=self._snapshot_version(
-                        snapshot
-                    )
-                )
-            )
-            return
 
-        if task.mode == "comparison" and task.product_ids:
-            yield from self._stream_direct_product_task(
-                turn,
-                snapshot=snapshot,
-                task=task,
-                product_resolution=product_resolution,
-            )
-            return
-        if task.mode == "comparison":
-            yield MessageEvent(
-                data=MessageData(
-                    content=(
-                        "我知道你想比较商品，但还没有确认具体是哪几款。"
-                        "请补充完整商品名。"
-                    )
-                )
-            )
-            yield EndEvent(
-                data=EndData(
-                    conversation_version=self._snapshot_version(
-                        snapshot
-                    )
-                )
-            )
-            return
-        if task.mode == "suitability" and task.product_ids:
-            yield from self._stream_direct_product_task(
-                turn,
-                snapshot=snapshot,
-                task=task,
-                product_resolution=product_resolution,
-            )
-            return
-        if task.mode == "suitability":
-            yield from self._stream_recommendation(
-                turn,
-                snapshot=snapshot,
-                task=task.model_copy(
-                    update={"mode": "recommend"},
-                    deep=True,
-                ),
-                revision_kind=None,
-            )
-            return
-        if task.mode == "followup" and task.relative_requirements:
-            baseline_product_id = _relative_baseline_product_id(
-                snapshot,
-                task.relative_requirements[0],
-            )
-            if (
-                snapshot is None
-                or snapshot.query_context is None
-                or baseline_product_id is None
-            ):
-                yield ClarifyEvent(
-                    data=ClarifyData(
-                        question=(
-                            "相对需求缺少可用的基准商品，"
-                            "请先明确要和哪一款比较。"
-                        ),
-                        clarification_code=ClarificationCode.REFERENCE,
-                    )
-                )
-                yield EndEvent(
-                    data=EndData(
-                        conversation_version=self._snapshot_version(
-                            snapshot
-                        )
-                    )
-                )
-                return
-            relative_task = task.model_copy(
-                update={
-                    "mode": "recommend",
-                    "constraints": query_context_to_constraints(
-                        snapshot.query_context
-                    ),
-                    "product_ids": [],
-                    "required_evidence": ["canonical_product"],
-                },
-                deep=True,
-            )
-            yield from self._stream_recommendation(
-                turn,
-                snapshot=snapshot,
-                task=relative_task,
-                revision_kind=None,
-                relative_baseline_product_id=baseline_product_id,
-            )
-            return
-        if (
-            task.mode in {"knowledge", "followup"}
-            and task.product_ids
-            and self._product_evidence is not None
-        ):
-            yield from self._stream_product_evidence_task(
-                turn,
-                snapshot=snapshot,
-                task=task,
-                product_resolution=product_resolution,
-            )
-            return
-        if (
-            self._general_knowledge is not None
-            and (
-                task.mode == "knowledge"
-                or (
-                    task.mode == "followup"
-                    and snapshot is not None
-                    and (
-                        snapshot.last_general_knowledge_question
-                        is not None
-                    )
-                )
-            )
-        ):
-            yield from self._stream_general_knowledge_task(
-                turn,
-                snapshot=snapshot,
-                task=task,
-            )
-            return
-        if task.mode == "knowledge":
-            yield MessageEvent(
-                data=MessageData(
-                    content=(
-                        "当前资料还不足以回答这个知识问题，"
-                        "这里先不凭商品信息猜测结论。"
-                    )
-                )
-            )
-            yield EndEvent(
-                data=EndData(
-                    conversation_version=self._snapshot_version(
-                        snapshot
-                    )
-                )
-            )
-            return
-        if task.mode == "followup":
-            yield MessageEvent(
-                data=MessageData(
-                    content=(
-                        "我知道你在继续问前面的商品，但还不确定你想看"
-                        "价格、用法还是注意事项。可以再说具体一点。"
-                    )
-                )
-            )
-            yield EndEvent(
-                data=EndData(
-                    conversation_version=self._snapshot_version(
-                        snapshot
-                    )
-                )
-            )
-            return
 
-        yield from self._stream_recommendation(
-            turn,
-            snapshot=snapshot,
-            task=task,
-            revision_kind=revision_kind,
-        )
 
-    def _stream_general_knowledge_task(
-        self,
-        turn: UserTurn,
-        *,
-        snapshot: ConversationSnapshot | None,
-        task: TaskPlan,
-    ) -> Iterator[SseEvent]:
-        assert self._general_knowledge is not None
-        topic = next(
-            (
-                constraint.value
-                for constraint in task.constraints
-                if isinstance(constraint, CategoryConstraint)
-            ),
-            None,
-        )
-        query = GeneralKnowledgeQuery(
-            raw_question=turn.message.strip(),
-            question_meaning=(
-                task.question_meaning or turn.message.strip()
-            ),
-            topic=topic,
-            safety_sensitive=task.safety_sensitive,
-            prior_knowledge_ids=(
-                snapshot.focused_general_knowledge_ids
-                if (
-                    task.mode == "followup"
-                    and snapshot is not None
-                )
-                else ()
-            ),
-            top_k=3,
-        )
-        packet = self._general_knowledge.retrieve(query)
-        rendered = render_general_knowledge_answer(packet)
-        presentation_event = self._presentation_event(
-            mode="general_knowledge",
-            user_need_summary=(
-                task.question_meaning or turn.message.strip()
-            ),
-            winner_status="NOT_APPLICABLE",
-            card_display=CardDisplayContract(
-                mode="none",
-                visible_product_ids=(),
-                max_cards=0,
-                reason=None,
-            ),
-            cards=(),
-            copywriter_policy=(
-                "medical_escalation"
-                if rendered.data.medical_escalation
-                else "eligible"
-            ),
-        )
-        expected_version = self._snapshot_version(snapshot)
-        knowledge_ids = tuple(
-            sorted(
-                hit.block.knowledge_id
-                for hit in packet.hits
-            )
-        )
-        values = {
-            "version": expected_version + 1,
-            "focused_general_knowledge_ids": knowledge_ids,
-            "last_general_knowledge_question": turn.message.strip(),
-            "clarification": None,
-        }
-        if snapshot is None:
-            next_snapshot = ConversationSnapshot(
-                session_id=turn.session_id,
-                profile_owner=turn.profile_owner,
-                **values,
-            )
-        else:
-            next_snapshot = snapshot.model_copy(
-                update=values,
-                deep=True,
-            )
-        saved = self._conversation_state.save(
-            next_snapshot,
-            expected_version=expected_version,
-        )
-        yield StageEvent(
-            data=StageData(
-                stage="retrieval",
-                summary="已检索审核过的通用知识资料。",
-            )
-        )
-        yield GeneralKnowledgeEvent(data=rendered.data)
-        yield presentation_event
-        yield MessageEvent(data=MessageData(content=rendered.message))
-        yield EndEvent(
-            data=EndData(conversation_version=saved.version)
-        )
 
-    def _stream_product_evidence_task(
-        self,
-        turn: UserTurn,
-        *,
-        snapshot: ConversationSnapshot | None,
-        task: TaskPlan,
-        product_resolution: ProductMentionResolution,
-    ) -> Iterator[SseEvent]:
-        assert self._product_evidence is not None
-        task = self._task_with_inferred_product_category(task)
-        query = EvidenceQuery(
-            product_ids=tuple(task.product_ids),
-            raw_question=turn.message,
-            question_meaning=(
-                task.question_meaning or turn.message.strip()
-            ),
-            safety_sensitive=task.safety_sensitive,
-            product_identity_names=self._product_identity_names(
-                task.product_ids
-            ),
-            product_mention_spans=tuple(
-                sorted(
-                    (
-                        mention.source_span.start,
-                        mention.source_span.end,
-                    )
-                    for mention in task.product_mentions
-                )
-            ),
-        )
-        packet = self._product_evidence.retrieve(query)
-        product_names: dict[int, str] = {}
-        for product_id in task.product_ids:
-            variant_scope = product_resolution.variant_scope_for(
-                product_id
-            )
-            facts = (
-                self._presentation_facts.get_presentation_facts(
-                    product_id,
-                    variant_scope=variant_scope,
-                )
-                if variant_scope is not None
-                else self._presentation_facts.get_presentation_facts(
-                    product_id
-                )
-            )
-            product_names[product_id] = (
-                facts.name or f"商品{product_id}"
-            )
-        message = render_product_evidence_answer(
-            packet,
-            product_names=product_names,
-        )
-        cards = self._cards_for_product_ids(
-            task.product_ids,
-            product_resolution=product_resolution,
-        )
-        if len(cards) == 1:
-            card_display = single_product_card_display(cards[0])
-            presentation_mode: PresentationMode = "product_knowledge"
-        else:
-            card_display = comparison_card_display(cards)
-            presentation_mode = "comparison"
-        merchant_claims = _project_merchant_claims(
-            self._merchant_claims,
-            product_ids=tuple(task.product_ids),
-            constraints=task.constraints,
-        )
-        product_evidence_event = ProductEvidenceEvent(
-            data=ProductEvidenceData(packet=packet)
-        )
-        presentation_event = self._presentation_event(
-            mode=presentation_mode,
-            user_need_summary=(
-                task.question_meaning or turn.message.strip()
-            ),
-            winner_status="NOT_APPLICABLE",
-            card_display=card_display,
-            cards=cards,
-            merchant_claims=merchant_claims,
-            proof_points=_presentation_proof_points(
-                product_evidence_event
-            ),
-        )
-        expected_version = self._snapshot_version(snapshot)
-        saved = self._conversation_state.save(
-            self._product_evidence_snapshot(
-                turn,
-                snapshot=snapshot,
-                task=task,
-                product_ids=tuple(task.product_ids),
-                evidence_ids=tuple(
-                    item.evidence.evidence_id
-                    for item in packet.selected
-                ),
-                version=expected_version + 1,
-            ),
-            expected_version=expected_version,
-        )
-        yield StageEvent(
-            data=StageData(
-                stage="retrieval",
-                summary="已在当前商品的审核证据中检索相关资料。",
-            )
-        )
-        yield AnswerContractEvent(
-            data=AnswerContractData(
-                product_count=len(cards),
-                winner_status="NOT_APPLICABLE",
-                has_unknown_skin=True,
-            )
-        )
-        yield CardDisplayContractEvent(data=card_display)
-        yield ProductsEvent(data=ProductsData(cards=cards))
-        yield product_evidence_event
-        yield presentation_event
-        yield MessageEvent(data=MessageData(content=message))
-        yield EndEvent(
-            data=EndData(
-                conversation_version=saved.version
-            )
-        )
 
-    @staticmethod
-    def _product_evidence_snapshot(
-        turn: UserTurn,
-        *,
-        snapshot: ConversationSnapshot | None,
-        task: TaskPlan,
-        product_ids: tuple[int, ...],
-        evidence_ids: tuple[str, ...],
-        version: int,
-    ) -> ConversationSnapshot:
-        preserve_recommendation_batch = (
-            snapshot is not None
-            and snapshot.query_context is not None
-            and bool(snapshot.candidates)
-            and set(product_ids).issubset(
-                {
-                    item.product_id
-                    for item in snapshot.candidates
-                }
-            )
-        )
-        snapshot_task = task.model_copy(
-            update={"mode": "recommend"},
-            deep=True,
-        )
-        if preserve_recommendation_batch:
-            assert snapshot is not None
-            assert snapshot.query_context is not None
-            query_context = snapshot.query_context
-            candidates = snapshot.candidates
-            focused_ordinal = next(
-                (
-                    item.ordinal
-                    for item in candidates
-                    if (
-                        len(product_ids) == 1
-                        and item.product_id == product_ids[0]
-                    )
-                ),
-                snapshot.focused_candidate_ordinal,
-            )
-        else:
-            candidates = tuple(
-                DisplayedCandidateRef(
-                    product_id=product_id,
-                    ordinal=ordinal,
-                    skin_match="unknown",
-                    matched_efficacies=(),
-                )
-                for ordinal, product_id in enumerate(
-                    product_ids,
-                    start=1,
-                )
-            )
-            focused_ordinal = 1 if len(candidates) == 1 else None
-            try:
-                query_context = task_plan_to_query_context(snapshot_task)
-            except ValueError:
-                if snapshot is None or snapshot.query_context is None:
-                    raise
-                query_context = snapshot.query_context
-        values = {
-            "version": version,
-            "query_context": query_context,
-            "candidates": candidates,
-            "focused_candidate_ordinal": focused_ordinal,
-            "focused_evidence_ids": evidence_ids,
-            "focused_general_knowledge_ids": (),
-            "last_general_knowledge_question": None,
-        }
-        if snapshot is None:
-            return ConversationSnapshot(
-                session_id=turn.session_id,
-                profile_owner=turn.profile_owner,
-                **values,
-            )
-        return snapshot.model_copy(update=values, deep=True)
+
+
+
+
 
     def _build_post_decision_evidence_event(
         self,
-        turn: UserTurn,
+        execution_input: ProcessorExecutionInput,
         *,
         task: TaskPlan,
         product_ids: tuple[int, ...],
@@ -1519,9 +1699,9 @@ class TextRecommendationOrchestrator:
         packet = self._product_evidence.retrieve(
             EvidenceQuery(
                 product_ids=product_ids,
-                raw_question=turn.message,
+                raw_question=execution_input.routing_evidence.query.value,
                 question_meaning=(
-                    task.question_meaning or turn.message.strip()
+                    task.question_meaning or execution_input.routing_evidence.query.value.strip()
                 ),
                 safety_sensitive=task.safety_sensitive,
                 product_identity_names=self._product_identity_names(
@@ -1575,6 +1755,30 @@ class TextRecommendationOrchestrator:
             mentions=semantic_mentions,
         )
 
+    def _resolve_product_mentions_or_references(
+        self,
+        message: str,
+        understanding: StructuredUnderstanding,
+        *,
+        snapshot: ConversationSnapshot | None,
+    ) -> ProductMentionResolution:
+        mention_resolution = self._resolve_product_mentions(
+            message,
+            understanding.product_mentions,
+        )
+        reference_resolution = self._resolve_reference_products(
+            understanding.references,
+            snapshot=snapshot,
+        )
+        if not understanding.product_mentions:
+            return reference_resolution
+        if (
+            mention_resolution.issue is not None
+            and reference_resolution.bindings
+        ):
+            return reference_resolution
+        return mention_resolution
+
     def _recover_explicit_product_mentions(
         self,
         message: str,
@@ -1627,60 +1831,74 @@ class TextRecommendationOrchestrator:
                 bindings=(),
                 issue=None,
             )
-        if snapshot is None or not snapshot.candidates:
+        if snapshot is None:
             return ProductMentionResolution(
                 bindings=(),
                 issue="missing_reference",
             )
         candidate_by_ordinal = {
             candidate.ordinal: candidate.product_id
-            for candidate in snapshot.candidates
+            for candidate in _candidate_batch(snapshot)
         }
-        focused_ordinal = snapshot.focused_candidate_ordinal
+        focused_ordinal = _focused_candidate_ordinal(snapshot)
         if (
             focused_ordinal is None
-            and snapshot.focus_state is not None
-            and snapshot.focus_state.current_product_id is not None
+            and _current_product_id(snapshot) is not None
         ):
             focused_ordinals = [
                 candidate.ordinal
-                for candidate in snapshot.candidates
+                for candidate in _candidate_batch(snapshot)
                 if (
                     candidate.product_id
-                    == snapshot.focus_state.current_product_id
+                    == _current_product_id(snapshot)
                 )
             ]
             if len(focused_ordinals) == 1:
                 focused_ordinal = focused_ordinals[0]
-        bindings: list[ResolvedProductBinding] = []
+        batch_bindings: list[ResolvedProductBinding] = []
+        specific_bindings: list[ResolvedProductBinding] = []
         for reference in product_references:
             if reference.kind == "current_batch":
-                bindings.extend(
+                batch_bindings.extend(
                     ResolvedProductBinding(
                         product_id=candidate.product_id,
                         source_text="current_batch",
                     )
-                    for candidate in snapshot.candidates
+                    for candidate in _candidate_batch(snapshot)
                 )
                 continue
             ordinal = (
                 (
                     focused_ordinal
                     or (
-                        snapshot.candidates[0].ordinal
-                        if len(snapshot.candidates) == 1
+                        _candidate_batch(snapshot)[0].ordinal
+                        if len(_candidate_batch(snapshot)) == 1
                         else None
                     )
                 )
                 if reference.kind == "current_item"
                 else reference.ordinal
             )
+            if (
+                reference.kind == "current_item"
+                and ordinal is None
+                and _current_product_id(snapshot) is not None
+            ):
+                specific_bindings.append(
+                    ResolvedProductBinding(
+                        product_id=(
+                            _current_product_id(snapshot)
+                        ),
+                        source_text="current_item",
+                    )
+                )
+                continue
             if ordinal is None or ordinal not in candidate_by_ordinal:
                 return ProductMentionResolution(
                     bindings=(),
                     issue="missing_reference",
                 )
-            bindings.append(
+            specific_bindings.append(
                 ResolvedProductBinding(
                     product_id=candidate_by_ordinal[ordinal],
                     source_text=(
@@ -1688,17 +1906,11 @@ class TextRecommendationOrchestrator:
                     ),
                 )
             )
-        unique: dict[
-            tuple[int, str | None],
-            ResolvedProductBinding,
-        ] = {}
-        for binding in bindings:
-            unique.setdefault(
-                (binding.product_id, binding.variant_scope),
-                binding,
-            )
         return ProductMentionResolution(
-            bindings=tuple(unique.values())
+            bindings=merge_batch_and_specific_bindings(
+                batch_bindings,
+                specific_bindings,
+            )
         )
 
     def _task_with_inferred_product_category(
@@ -1833,898 +2045,13 @@ class TextRecommendationOrchestrator:
             deep=True,
         )
 
-    def _stream_direct_product_task(
-        self,
-        turn: UserTurn,
-        *,
-        snapshot: ConversationSnapshot | None,
-        task: TaskPlan,
-        product_resolution: ProductMentionResolution,
-    ) -> Iterator[SseEvent]:
-        task = self._task_with_inferred_product_category(task)
-        records = {
-            record.product_id: record
-            for record in self._category_catalog.iter_category_records()
-        }
-        retrieval = RetrievalResult(
-            candidates=[
-                CandidateRef(
-                    product_id=product_id,
-                    source="canonical_product_name",
-                    canonical_category=(
-                        records[product_id].value or ""
-                    ),
-                    canonical_category_state=records[product_id].state,
-                    retrieval_reason="exact_product_name",
-                )
-                for product_id in task.product_ids
-            ],
-            knowledge_evidence=[],
-            review_evidence=[],
-            memory_evidence=[],
-            missing_sources=[],
-        )
-        decision_constraints = list(task.constraints)
-        eligibility_constraints = (
-            [_category_constraint(decision_constraints)]
-            if task.mode == "comparison"
-            else decision_constraints
-        )
-        decision = decide_recommendation(
-            self._decision_facts,
-            retrieval,
-            constraints=eligibility_constraints,
-            safety_sensitive=task.safety_sensitive,
-            concept_reader=self._concept_reader,
-        )
-        if task.mode == "comparison":
-            eligible = set(decision.ordered_product_ids)
-            decision = decision.model_copy(
-                update={
-                    "ordered_product_ids": [
-                        product_id
-                        for product_id in task.product_ids
-                        if product_id in eligible
-                    ],
-                },
-                deep=True,
-            )
-        if (
-            task.mode == "suitability"
-            and not decision.ordered_product_ids
-        ):
-            identity_decision = decide_recommendation(
-                self._decision_facts,
-                retrieval,
-                constraints=[
-                    _category_constraint(decision_constraints),
-                ],
-                safety_sensitive=task.safety_sensitive,
-                concept_reader=self._concept_reader,
-            )
-            decision = identity_decision.model_copy(
-                update={
-                    "winner_status": (
-                        WinnerStatus.INSUFFICIENT_FOR_WINNER
-                    ),
-                    "winner_product_id": None,
-                    "risk_findings": decision.risk_findings,
-                    "evidence_refs": list(
-                        dict.fromkeys(
-                            [
-                                *decision.evidence_refs,
-                                *identity_decision.evidence_refs,
-                            ]
-                        )
-                    ),
-                },
-                deep=True,
-            )
-        response = self._build_plan(
-            decision,
-            product_resolution=product_resolution,
-        )
-        cards = list(response.structured_events)
-        if task.mode == "comparison":
-            card_display = comparison_card_display(cards)
-            message = (
-                "下面只比较这几款现有资料能够确认的差异；"
-                "资料没有覆盖的部分不会被当作优势或适配结论。"
-            )
-        else:
-            if len(cards) != 1:
-                raise ValueError(
-                    "direct suitability requires exactly one card"
-                )
-            card_display = single_product_card_display(cards[0])
-            message = (
-                "现有资料还不足以判断它一定适合你现在的状态；"
-                "没有覆盖的肤质或功效信息不会被当作适合结论。"
-            )
-        product_evidence_event = (
-            self._build_post_decision_evidence_event(
-                turn,
-                task=task,
-                product_ids=tuple(
-                    card.product_id for card in cards
-                ),
-            )
-        )
-        product_ids = tuple(card.product_id for card in cards)
-        selection_slots = _selection_slot_data(
-            self._decision_facts,
-            product_ids=product_ids,
-            constraints=task.constraints,
-            safety_sensitive=task.safety_sensitive,
-        )
-        concept_slots = _concept_slot_data(
-            self._decision_facts,
-            reader=self._concept_reader,
-            product_ids=product_ids,
-            constraints=task.constraints,
-            safety_sensitive=task.safety_sensitive,
-        )
-        merchant_claims = _project_merchant_claims(
-            self._merchant_claims,
-            product_ids=product_ids,
-            constraints=task.constraints,
-        )
-        presentation_event = self._presentation_event(
-            mode=(
-                "comparison"
-                if task.mode == "comparison"
-                else "single_product"
-            ),
-            user_need_summary=(
-                task.question_meaning or turn.message.strip()
-            ),
-            winner_status=decision.winner_status.value,
-            card_display=card_display,
-            cards=cards,
-            selection_slots=selection_slots,
-            concept_slots=concept_slots,
-            merchant_claims=merchant_claims,
-            proof_points=_presentation_proof_points(
-                product_evidence_event
-            ),
-        )
-        message = _presentation_compatibility_message(
-            presentation_event,
-            default=message,
-        )
 
-        status = self._feedback.record_turn(turn)
-        if status is not FeedbackWriteStatus.SKIPPED_SLICE_SCOPE:
-            raise RuntimeError("unexpected feedback write status")
-        expected_version = self._snapshot_version(snapshot)
-        snapshot_task = task.model_copy(
-            update={
-                "mode": "recommend",
-                "constraints": decision_constraints,
-            },
-            deep=True,
-        )
-        next_snapshot = (
-            self._product_evidence_snapshot(
-                turn,
-                snapshot=snapshot,
-                task=task,
-                product_ids=product_ids,
-                evidence_ids=(
-                    tuple(
-                        item.evidence.evidence_id
-                        for item in (
-                            product_evidence_event.data.packet.selected
-                        )
-                    )
-                    if product_evidence_event is not None
-                    else ()
-                ),
-                version=expected_version + 1,
-            )
-            if task.mode == "suitability"
-            else self._visible_snapshot(
-                turn,
-                cards,
-                snapshot=snapshot,
-                task=snapshot_task,
-                version=expected_version + 1,
-            )
-        )
-        saved = self._conversation_state.save(
-            next_snapshot,
-            expected_version=expected_version,
-        )
-        yield StageEvent(
-            data=StageData(
-                stage="retrieval",
-                summary="已按商品名称绑定 Canonical 目录。",
-            )
-        )
-        yield StageEvent(
-            data=StageData(
-                stage="decision",
-                summary="已执行同一套事实状态和硬约束判断。",
-            )
-        )
-        yield DecisionProcessEvent(
-            data=DecisionProcessData(
-                ordered_product_ids=list(decision.ordered_product_ids),
-                winner_status=decision.winner_status.value,
-                evidence_refs=list(decision.evidence_refs),
-                selection_slots=selection_slots,
-                concept_slots=concept_slots,
-                relative_comparisons=list(
-                    decision.relative_comparisons
-                ),
-            )
-        )
-        yield AnswerContractEvent(
-            data=AnswerContractData(
-                product_count=len(cards),
-                winner_status=decision.winner_status.value,
-                has_unknown_skin=any(
-                    card.skin_match == "unknown"
-                    for card in cards
-                ),
-            )
-        )
-        yield CardDisplayContractEvent(data=card_display)
-        yield ProductsEvent(data=ProductsData(cards=cards))
-        if product_evidence_event is not None:
-            yield product_evidence_event
-        yield presentation_event
-        yield MessageEvent(data=MessageData(content=message))
-        yield EndEvent(
-            data=EndData(conversation_version=saved.version)
-        )
 
-    def _resolve_profile_context(
-        self,
-        turn: UserTurn,
-    ) -> ResolvedProfileContext | None:
-        if self._profile_resolver is None or turn.profile_owner is None:
-            return None
-        return self._profile_resolver(
-            session_id=turn.session_id,
-            profile_owner=turn.profile_owner,
-        )
 
-    def _stream_recommendation(
-        self,
-        turn: UserTurn,
-        *,
-        snapshot: ConversationSnapshot | None,
-        task: TaskPlan,
-        revision_kind: Literal["budget", "skin"] | None,
-        relative_baseline_product_id: int | None = None,
-    ) -> Iterator[SseEvent]:
-        scenario_inputs = build_scenario_inputs(
-            task,
-            message=turn.message,
-        )
-        effective_task = task.model_copy(
-            update={
-                "constraints": scenario_inputs.decision.constraints,
-            },
-            deep=True,
-        )
-        category = _category_constraint(effective_task.constraints)
-        retrieval = retrieve_candidates(
-            self._category_catalog,
-            category=category.value,
-        )
-        if effective_task.similarity_anchor_product_id is not None:
-            retrieval = retrieval.model_copy(
-                update={
-                    "candidates": [
-                        candidate
-                        for candidate in retrieval.candidates
-                        if candidate.product_id
-                        != effective_task.similarity_anchor_product_id
-                    ]
-                },
-                deep=True,
-            )
-        decision = decide_recommendation(
-            self._decision_facts,
-            retrieval,
-            constraints=effective_task.constraints,
-            safety_sensitive=effective_task.safety_sensitive,
-            concept_reader=self._concept_reader,
-            relative_requirement=(
-                effective_task.relative_requirements[0]
-                if effective_task.relative_requirements
-                else None
-            ),
-            baseline_product_id=relative_baseline_product_id,
-        )
-        visible_limit = requested_recommendation_result_count(
-            None,
-            message=turn.message,
-        )
-        visible_decision = decision.model_copy(
-            update={
-                "ordered_product_ids": (
-                    decision.ordered_product_ids[:visible_limit]
-                ),
-                "relative_comparisons": [
-                    item
-                    for item in decision.relative_comparisons
-                    if item.candidate_product_id
-                    in decision.ordered_product_ids[:visible_limit]
-                ],
-            },
-            deep=True,
-        )
-        response = self._build_plan(visible_decision)
-        cards = list(response.structured_events)
-        card_display = recommendation_card_display(cards)
-        concept_slots = _concept_slot_data(
-            self._decision_facts,
-            reader=self._concept_reader,
-            product_ids=tuple(
-                visible_decision.ordered_product_ids
-            ),
-            constraints=effective_task.constraints,
-            safety_sensitive=effective_task.safety_sensitive,
-        )
-        if revision_kind == "budget":
-            message = build_budget_revision_message(
-                effective_task,
-                visible_decision,
-            )
-        elif revision_kind == "skin":
-            message = build_skin_revision_message(
-                effective_task,
-                visible_decision,
-            )
-        else:
-            message = _summary_fragment(visible_decision)
-        message = _append_concept_rank_reason(
-            message,
-            cards=cards,
-            concept_slots=concept_slots,
-        )
-        message = _append_relative_rank_reason(
-            message,
-            cards=cards,
-            comparisons=visible_decision.relative_comparisons,
-            requirement=(
-                effective_task.relative_requirements[0]
-                if effective_task.relative_requirements
-                else None
-            ),
-        )
-        merchant_claims = _project_merchant_claims(
-            self._merchant_claims,
-            product_ids=visible_decision.ordered_product_ids,
-            constraints=effective_task.constraints,
-        )
-        review_results = [
-            self._review_evidence.read(product_id=product_id)
-            for product_id in visible_decision.ordered_product_ids
-        ]
-        review_summaries = [
-            summary
-            for result in review_results
-            if (
-                summary := build_review_summary(result)
-            ) is not None
-        ]
-        has_review_evidence = any(
-            result.evidence for result in review_results
-        )
-        product_evidence_event = (
-            self._build_post_decision_evidence_event(
-                turn,
-                task=effective_task,
-                product_ids=tuple(
-                    card.product_id for card in cards
-                ),
-            )
-        )
-        status = self._feedback.record_turn(turn)
-        if status is not FeedbackWriteStatus.SKIPPED_SLICE_SCOPE:
-            raise RuntimeError("unexpected feedback write status")
-        expected_version = self._snapshot_version(snapshot)
-        response_version = expected_version
 
-        has_unknown_skin = any(
-            item.kind == "skin_match_unknown"
-            for item in visible_decision.risk_findings
-        )
-        selection_slots = _selection_slot_data(
-            self._decision_facts,
-            product_ids=tuple(
-                visible_decision.ordered_product_ids
-            ),
-            constraints=effective_task.constraints,
-            safety_sensitive=effective_task.safety_sensitive,
-        )
-        scenario_records = []
-        pitfalls: list[TypedPitfall] = []
-        success_events: list[SseEvent] = [
-            StageEvent(
-                data=StageData(
-                    stage="retrieval",
-                    summary="正在读取已审核的 Canonical 商品事实。",
-                )
-            ),
-            StageEvent(
-                data=StageData(
-                    stage="decision",
-                    summary="正在执行预算、排除项和肤质证据规则。",
-                )
-            ),
-        ]
-        if scenario_inputs.query.scenarios and cards:
-            scenario_records = [
-                record
-                for product_id in visible_decision.ordered_product_ids
-                for record in self._scenario_evidence.get_scenario_evidence(
-                    product_id,
-                    scenario_inputs.decision.evidence_requirements,
-                )
-            ]
-            success_events.extend(
-                [
-                    ScenarioEvidenceEvent(
-                        data=ScenarioEvidenceData(
-                            records=scenario_records,
-                        )
-                    ),
-                ]
-            )
-        if merchant_claims:
-            success_events.append(
-                MerchantClaimsEvent(
-                    data=MerchantClaimsData(claims=merchant_claims)
-                )
-            )
-        if (
-            review_results
-            and (
-                scenario_inputs.query.scenarios
-                or has_review_evidence
-            )
-        ):
-            success_events.append(
-                ReviewEvidenceEvent(
-                    data=ReviewEvidenceData(
-                        approved_source_count=(
-                            self._review_evidence.approved_source_count
-                        ),
-                        results=review_results,
-                        summaries=review_summaries,
-                    )
-                )
-            )
-        if scenario_inputs.query.scenarios and cards:
-            pitfalls = project_scenario_pitfalls(scenario_records)
-            success_events.append(
-                PitfallsEvent(
-                    data=PitfallsData(pitfalls=pitfalls)
-                )
-            )
-        success_events.extend(
-            [
-                DecisionProcessEvent(
-                    data=DecisionProcessData(
-                        ordered_product_ids=list(
-                            visible_decision.ordered_product_ids
-                        ),
-                        winner_status=(
-                            visible_decision.winner_status.value
-                        ),
-                        evidence_refs=list(
-                            visible_decision.evidence_refs
-                        ),
-                        selection_slots=selection_slots,
-                        concept_slots=concept_slots,
-                        relative_comparisons=list(
-                            visible_decision.relative_comparisons
-                        ),
-                    )
-                ),
-                AnswerContractEvent(
-                    data=AnswerContractData(
-                        product_count=len(cards),
-                        winner_status=(
-                            visible_decision.winner_status.value
-                        ),
-                        has_unknown_skin=has_unknown_skin,
-                    )
-                ),
-                CardDisplayContractEvent(data=card_display),
-                ProductsEvent(data=ProductsData(cards=cards)),
-            ]
-        )
-        if product_evidence_event is not None:
-            success_events.append(product_evidence_event)
-        presentation_event = self._presentation_event(
-            mode=(
-                "revision"
-                if revision_kind is not None
-                else (
-                    "followup"
-                    if relative_baseline_product_id is not None
-                    else (
-                        "image_recommendation"
-                        if (
-                            effective_task.similarity_anchor_product_id
-                            is not None
-                        )
-                        else "recommendation"
-                    )
-                )
-            ),
-            user_need_summary=(
-                effective_task.question_meaning
-                or turn.message.strip()
-            ),
-            winner_status=visible_decision.winner_status.value,
-            card_display=card_display,
-            cards=cards,
-            selection_slots=selection_slots,
-            concept_slots=concept_slots,
-            merchant_claims=merchant_claims,
-            pitfalls=pitfalls,
-            proof_points=_presentation_proof_points(
-                product_evidence_event
-            ),
-        )
-        success_events.append(presentation_event)
-        message = _presentation_compatibility_message(
-            presentation_event,
-            default=message,
-        )
-        success_events.append(
-            MessageEvent(data=MessageData(content=message))
-        )
-        if cards or (
-            snapshot is not None
-            and snapshot.pending_turn is not None
-        ) or (
-            effective_task.similarity_anchor_product_id
-            is not None
-        ):
-            saved_snapshot = self._conversation_state.save(
-                self._visible_snapshot(
-                    turn,
-                    cards,
-                    snapshot=snapshot,
-                    task=effective_task,
-                    version=expected_version + 1,
-                ),
-                expected_version=expected_version,
-            )
-            response_version = saved_snapshot.version
-        success_events.append(
-            EndEvent(
-                data=EndData(conversation_version=response_version)
-            )
-        )
-        yield from success_events
 
-    def _stream_budget_revision(
-        self,
-        turn: UserTurn,
-        *,
-        snapshot: ConversationSnapshot | None,
-        plan: BudgetRevisionPlan,
-    ) -> Iterator[SseEvent]:
-        authoritative_version = self._snapshot_version(snapshot)
-        if plan.mode == "clarify":
-            assert plan.clarification is not None
-            assert plan.clarification_code is not None
-            yield IntentEvent(data=IntentData(mode="clarify"))
-            yield ClarifyEvent(
-                data=ClarifyData(
-                    question=plan.clarification,
-                    clarification_code=plan.clarification_code,
-                )
-            )
-            yield EndEvent(
-                data=EndData(
-                    conversation_version=authoritative_version
-                )
-            )
-            return
 
-        assert snapshot is not None
-        task = TaskPlan(
-            mode="recommend",
-            referenced_image_ids=[],
-            constraints=[
-                item.model_copy(deep=True)
-                for item in plan.constraints
-            ],
-            required_evidence=["canonical_product"],
-            clarification=None,
-        )
-        yield StageEvent(
-            data=StageData(
-                stage="state",
-                summary=(
-                    "已读取最近一次成功筛选的结构化条件。"
-                ),
-            )
-        )
-        yield IntentEvent(data=IntentData(mode="revise"))
-        yield from self._stream_recommendation(
-            turn,
-            snapshot=snapshot,
-            task=task,
-            revision_kind="budget",
-        )
 
-    def _stream_skin_revision(
-        self,
-        turn: UserTurn,
-        *,
-        snapshot: ConversationSnapshot | None,
-        plan: SkinRevisionPlan,
-    ) -> Iterator[SseEvent]:
-        authoritative_version = self._snapshot_version(snapshot)
-        if plan.mode == "clarify":
-            assert plan.clarification is not None
-            assert plan.clarification_code is not None
-            yield IntentEvent(data=IntentData(mode="clarify"))
-            yield ClarifyEvent(
-                data=ClarifyData(
-                    question=plan.clarification,
-                    clarification_code=plan.clarification_code,
-                )
-            )
-            yield EndEvent(
-                data=EndData(
-                    conversation_version=authoritative_version
-                )
-            )
-            return
-
-        assert snapshot is not None
-        task = TaskPlan(
-            mode="recommend",
-            referenced_image_ids=[],
-            constraints=[
-                item.model_copy(deep=True)
-                for item in plan.constraints
-            ],
-            required_evidence=["canonical_product"],
-            clarification=None,
-        )
-        yield StageEvent(
-            data=StageData(
-                stage="state",
-                summary=(
-                    "已读取最近一次成功筛选的结构化条件。"
-                ),
-            )
-        )
-        yield IntentEvent(data=IntentData(mode="revise"))
-        yield from self._stream_recommendation(
-            turn,
-            snapshot=snapshot,
-            task=task,
-            revision_kind="skin",
-        )
-
-    def _stream_followup(
-        self,
-        turn: UserTurn,
-        *,
-        snapshot: ConversationSnapshot | None,
-        plan: FollowupPlan,
-    ) -> Iterator[SseEvent]:
-        authoritative_version = self._snapshot_version(snapshot)
-        if plan.mode == "clarify":
-            assert plan.clarification is not None
-            assert plan.clarification_code is not None
-            yield IntentEvent(data=IntentData(mode="clarify"))
-            yield ClarifyEvent(
-                data=ClarifyData(
-                    question=plan.clarification,
-                    clarification_code=plan.clarification_code,
-                )
-            )
-            yield EndEvent(
-                data=EndData(
-                    conversation_version=authoritative_version
-                )
-            )
-            return
-
-        assert snapshot is not None
-        result = decide_followup(
-            self._decision_facts,
-            snapshot,
-            plan,
-        )
-        if result.status == "insufficient_evidence":
-            yield IntentEvent(data=IntentData(mode="clarify"))
-            yield ClarifyEvent(
-                data=ClarifyData(
-                    question=(
-                        "这几款暂时缺少可直接比较的价格，"
-                        "先不勉强判断哪款更便宜。"
-                    ),
-                    clarification_code=ClarificationCode.CONCERN,
-                )
-            )
-            yield EndEvent(
-                data=EndData(
-                    conversation_version=authoritative_version
-                )
-            )
-            return
-
-        facts = {
-            product_id: self._presentation_facts.get_presentation_facts(
-                product_id
-            )
-            for product_id in result.selected_product_ids
-        }
-        cards = build_followup_cards(
-            result,
-            snapshot=snapshot,
-            product_facts=facts,
-        )
-        message = build_followup_message(
-            result,
-            product_facts=facts,
-        )
-        card_display = recommendation_card_display(cards)
-        constraints = query_context_to_constraints(
-            snapshot.query_context
-        )
-        selection_slots = _selection_slot_data(
-            self._decision_facts,
-            product_ids=tuple(result.selected_product_ids),
-            constraints=constraints,
-            safety_sensitive=snapshot.query_context.safety_sensitive,
-        )
-        concept_slots = _concept_slot_data(
-            self._decision_facts,
-            reader=self._concept_reader,
-            product_ids=tuple(result.selected_product_ids),
-            constraints=constraints,
-            safety_sensitive=snapshot.query_context.safety_sensitive,
-        )
-        merchant_claims = _project_merchant_claims(
-            self._merchant_claims,
-            product_ids=tuple(result.selected_product_ids),
-            constraints=constraints,
-        )
-        presentation_event = self._presentation_event(
-            mode="followup",
-            user_need_summary=turn.message.strip(),
-            winner_status=result.status.upper(),
-            card_display=card_display,
-            cards=cards,
-            selection_slots=selection_slots,
-            concept_slots=concept_slots,
-            merchant_claims=merchant_claims,
-        )
-        message = _presentation_compatibility_message(
-            presentation_event,
-            default=message,
-        )
-        status = self._feedback.record_turn(turn)
-        if status is not FeedbackWriteStatus.SKIPPED_SLICE_SCOPE:
-            raise RuntimeError("unexpected feedback write status")
-        next_snapshot = snapshot.model_copy(
-            update={
-                "version": snapshot.version + 1,
-                "focused_candidate_ordinal": (
-                    result.ordinal
-                    if result.ordinal is not None
-                    else snapshot.focused_candidate_ordinal
-                ),
-                "focused_general_knowledge_ids": (),
-                "last_general_knowledge_question": None,
-            },
-            deep=True,
-        )
-        success_events: list[SseEvent] = [
-            StageEvent(
-                data=StageData(
-                    stage="state",
-                    summary="已经找到你前面提到的商品。",
-                )
-            ),
-            IntentEvent(data=IntentData(mode="followup")),
-            DecisionProcessEvent(
-                data=DecisionProcessData(
-                    ordered_product_ids=list(
-                        result.selected_product_ids
-                    ),
-                    winner_status=result.status.upper(),
-                    evidence_refs=list(result.evidence_refs),
-                    selection_slots=selection_slots,
-                    concept_slots=concept_slots,
-                    relative_comparisons=[],
-                )
-            ),
-            AnswerContractEvent(
-                data=AnswerContractData(
-                    product_count=len(cards),
-                    winner_status=result.status.upper(),
-                    has_unknown_skin=any(
-                        card.skin_match == "unknown"
-                        for card in cards
-                    ),
-                )
-            ),
-            CardDisplayContractEvent(data=card_display),
-            ProductsEvent(data=ProductsData(cards=cards)),
-            presentation_event,
-            MessageEvent(data=MessageData(content=message)),
-        ]
-        saved = self._conversation_state.save(
-            next_snapshot,
-            expected_version=snapshot.version,
-        )
-        success_events.append(
-            EndEvent(
-                data=EndData(conversation_version=saved.version)
-            )
-        )
-        yield from success_events
-
-    @staticmethod
-    def _snapshot_version(
-        snapshot: ConversationSnapshot | None,
-    ) -> int:
-        return snapshot.version if snapshot is not None else 0
-
-    @staticmethod
-    def _visible_snapshot(
-        turn: UserTurn,
-        cards: list[ProductCard],
-        *,
-        snapshot: ConversationSnapshot | None,
-        task: TaskPlan,
-        version: int,
-    ) -> ConversationSnapshot:
-        query_context = task_plan_to_query_context(task)
-        candidate_limit = 4 if task.product_ids else 3
-        candidates = tuple(
-            DisplayedCandidateRef(
-                product_id=card.product_id,
-                ordinal=index,
-                skin_match=card.skin_match,
-                matched_efficacies=list(
-                    card.matched_efficacies
-                ),
-            )
-            for index, card in enumerate(
-                cards[:candidate_limit],
-                start=1,
-            )
-        )
-        if snapshot is None:
-            return ConversationSnapshot(
-                session_id=turn.session_id,
-                version=version,
-                profile_owner=turn.profile_owner,
-                query_context=query_context,
-                empty_result=not candidates,
-                candidates=candidates,
-            )
-        return snapshot.model_copy(
-            update={
-                "version": version,
-                "query_context": query_context,
-                "empty_result": not candidates,
-                "candidates": candidates,
-                "focused_candidate_ordinal": None,
-                "focused_general_knowledge_ids": (),
-                "last_general_knowledge_question": None,
-            },
-            deep=True,
-        )
 
     def _build_plan(
         self,
@@ -2760,32 +2087,63 @@ class TextRecommendationOrchestrator:
         mode: PresentationMode,
         user_need_summary: str,
         winner_status: str | None,
+        recommendation_mode: RecommendationMode | None = None,
         card_display: CardDisplayContract,
         cards: Sequence[ProductCard],
+        winner_product_id: int | None = None,
+        winner_tie_reason: str | None = None,
         selection_slots: Sequence[SelectionSlotData] = (),
         concept_slots: Sequence[ConceptSlotData] = (),
         merchant_claims: Sequence[
             MerchantClaimEvidenceData
         ] = (),
+        review_summaries: Sequence[ReviewSummaryResult] = (),
         pitfalls: Sequence[TypedPitfall] = (),
         proof_points: Sequence[LockedFact] = (),
+        task_constraints: Sequence[TaskConstraint] = (),
+        additional_soft_facts: Sequence[ApprovedSoftFact] = (),
+        requested_dimensions: Sequence[str] = (),
+        candidate_evaluations: Sequence[CandidateEvaluation] = (),
         copywriter_policy: Literal[
             "eligible",
             "medical_escalation",
             "evidence_gap",
         ] = "eligible",
+        authoritative_public_copy: SourceTaggedCopy | None = None,
     ) -> PresentationContractEvent:
+        responsibility = responsibility_for_presentation_mode(mode)
+        if responsibility is Responsibility.RECOMMENDATION:
+            recommendation_mode = recommendation_mode or "explore"
+            if recommendation_mode == "explore":
+                winner_status = "NOT_APPLICABLE"
+                winner_product_id = None
+                winner_tie_reason = None
         packet = build_presentation_packet(
             mode=mode,
+            recommendation_mode=recommendation_mode,
             user_need_summary=user_need_summary,
             winner_status=winner_status,
+            winner_product_id=winner_product_id,
+            winner_tie_reason=winner_tie_reason,
             card_display=card_display,
             cards=cards,
             selection_slots=selection_slots,
             concept_slots=concept_slots,
             merchant_claims=merchant_claims,
+            review_summaries=review_summaries,
             pitfalls=pitfalls,
             proof_points=proof_points,
+            task_constraints=task_constraints,
+            additional_soft_facts=additional_soft_facts,
+            requested_dimensions=requested_dimensions,
+            candidate_evaluations=candidate_evaluations,
+        )
+        require_fit_presentation_facts(
+            recommendation_mode=recommendation_mode,
+            detail_fact_counts=tuple(
+                len(slot.detail_facts)
+                for slot in packet.slots
+            ),
         )
         return PresentationContractEvent(
             data=self._presentation_compiler.compile(
@@ -2793,6 +2151,9 @@ class TextRecommendationOrchestrator:
                     packet=packet,
                     card_display=card_display,
                     copywriter_policy=copywriter_policy,
+                    authoritative_public_copy=(
+                        authoritative_public_copy
+                    ),
                 )
             )
         )
@@ -2821,25 +2182,9 @@ class TextRecommendationOrchestrator:
                 )
             )
             cards.append(
-                ProductCard(
-                    product_id=product_id,
-                    category_profile=facts.category_profile,
-                    category_facts=project_public_category_facts(
-                        facts.category_fields
-                    ),
-                    variant_scope=facts.variant_scope,
-                    specification=facts.specification,
-                    name=facts.name,
-                    brand=facts.brand,
-                    category=facts.category,
-                    price=facts.price,
-                    image_url=facts.image_url,
-                    detail_url=facts.detail_url,
-                    platform=facts.platform,
-                    image_source_sha256=facts.image_source_sha256,
+                build_product_card(
+                    facts,
                     skin_match="unknown",
-                    matched_efficacies=[],
-                    fact_warnings=list(facts.fact_warnings),
                 )
             )
         return cards
@@ -3035,6 +2380,80 @@ def _task_category_profile(task: TaskPlan):
     )
 
 
+def _candidate_batch(
+    snapshot: ConversationSnapshot | None,
+) -> tuple[DisplayedCandidateRef, ...]:
+    if snapshot is None:
+        return ()
+    if (
+        snapshot.active_focus is not None
+        and snapshot.active_focus.slot == "product"
+        and snapshot.product_slot is not None
+    ):
+        return snapshot.product_slot.products
+    if snapshot.recommendation_slot is not None:
+        return snapshot.recommendation_slot.candidates
+    if snapshot.product_slot is not None:
+        return snapshot.product_slot.products
+    return ()
+
+
+def _focused_candidate_ordinal(
+    snapshot: ConversationSnapshot | None,
+) -> int | None:
+    if snapshot is None or snapshot.recommendation_slot is None:
+        return None
+    return snapshot.recommendation_slot.focused_candidate_ordinal
+
+
+def _current_product_id(
+    snapshot: ConversationSnapshot | None,
+) -> int | None:
+    if snapshot is None:
+        return None
+    if (
+        snapshot.product_slot is not None
+        and snapshot.product_slot.focused_product_id is not None
+    ):
+        return snapshot.product_slot.focused_product_id
+    if (
+        snapshot.active_focus is not None
+        and snapshot.active_focus.slot == "image"
+        and isinstance(snapshot.active_focus.object_id, int)
+    ):
+        return snapshot.active_focus.object_id
+    return None
+
+
+def _pending_turn(snapshot: ConversationSnapshot | None):
+    if (
+        snapshot is not None
+        and isinstance(snapshot.reply_slot, PendingReplySlot)
+    ):
+        return snapshot.reply_slot.value
+    return None
+
+
+def _clarification(snapshot: ConversationSnapshot | None):
+    if (
+        snapshot is not None
+        and isinstance(snapshot.reply_slot, PendingReplySlot)
+    ):
+        return ClarificationProgress(
+            gap=snapshot.reply_slot.value.gap,
+            attempts=snapshot.reply_slot.value.attempts,
+        )
+    if (
+        snapshot is not None
+        and isinstance(
+            snapshot.reply_slot,
+            PendingClarificationSlot,
+        )
+    ):
+        return snapshot.reply_slot.value
+    return None
+
+
 def _relative_baseline_product_id(
     snapshot: ConversationSnapshot | None,
     requirement: RelativeRequirement,
@@ -3044,12 +2463,13 @@ def _relative_baseline_product_id(
     if requirement.baseline.kind == "candidate_ordinal":
         ordinal = requirement.baseline.ordinal
     elif requirement.baseline.kind == "current_item":
-        ordinal = snapshot.focused_candidate_ordinal
+        ordinal = _focused_candidate_ordinal(snapshot)
     else:
         return None
-    if ordinal is None or ordinal > len(snapshot.candidates):
+    candidates = _candidate_batch(snapshot)
+    if ordinal is None or ordinal > len(candidates):
         return None
-    return snapshot.candidates[ordinal - 1].product_id
+    return candidates[ordinal - 1].product_id
 
 
 def _project_merchant_claims(
@@ -3123,6 +2543,12 @@ def _presentation_proof_points(
 ) -> tuple[LockedFact, ...]:
     if event is None:
         return ()
+    numeric_relation_predicates = {
+        "consumer_agrees",
+        "consumer_self_report_change",
+        "consumer_self_report_result",
+        "consumer_self_reported_change",
+    }
     candidates = sorted(
         (
             item.evidence
@@ -3134,9 +2560,10 @@ def _presentation_proof_points(
                 and item.evidence.qualifiers.population is not None
                 and item.evidence.qualifiers.method is not None
                 and item.evidence.qualifiers.duration is not None
-                and re.search(
-                    r"(?:\d+(?:\.\d+)?%|百分之)",
-                    item.evidence.exact_text,
+                and any(
+                    relation.predicate
+                    in numeric_relation_predicates
+                    for relation in item.evidence.relations
                 )
             )
         ),
@@ -3157,11 +2584,11 @@ def _presentation_proof_points(
             f"{qualifiers.sample_size}名"
             f"{qualifiers.population}{qualifiers.duration}"
         )
-        exact_text = point.exact_text.strip()
+        public_text = point.plain_meaning.strip()
         body = (
-            exact_text
-            if conditions in exact_text
-            else f"{conditions}，{exact_text}"
+            public_text
+            if conditions in public_text
+            else f"{conditions}，{public_text}"
         )
         if qualifiers.method not in body:
             body = f"{body}；测试方法：{qualifiers.method}"
@@ -3179,6 +2606,99 @@ def _presentation_proof_points(
             )
         )
     return tuple(proof_points)
+
+
+def _approved_product_evidence_facts(
+    packet: EvidencePacket,
+    *,
+    product_names: dict[int, str],
+) -> tuple[ApprovedSoftFact, ...]:
+    attribution_by_label = {
+        "consumer_self_report": "consumer_report",
+        "merchant_cited_test": "merchant_claim",
+        "safety_transcript": "merchant_claim",
+        "merchant_claim": "merchant_claim",
+        "faq": "merchant_claim",
+        "brand_research": "merchant_claim",
+        "packaging_information": "verified_fact",
+        "usage": "verified_fact",
+        "product_specification": "verified_fact",
+        "unclassified": "verified_fact",
+    }
+    return tuple(
+        ApprovedSoftFact(
+            fact_id=f"evidence:{item.evidence.evidence_id}",
+            product_id=item.evidence.product_id,
+            field_key=_product_evidence_field_key(
+                item.evidence.management_label
+            ),
+            plain_meaning=render_product_evidence_fact(
+                item.evidence,
+                product_name=product_names.get(
+                    item.evidence.product_id,
+                    f"商品{item.evidence.product_id}",
+                ),
+            ),
+            attribution=attribution_by_label[
+                item.evidence.management_label
+            ],
+            source_refs=(item.evidence.source.source_locator,),
+        )
+        for item in packet.selected
+    )
+
+
+def _product_evidence_field_key(management_label: str) -> str:
+    return {
+        "merchant_claim": "brand_main",
+        "brand_research": "brand_main",
+        "usage": "usage",
+        "product_specification": "net_content",
+        "packaging_information": "packaging_information",
+        "faq": "faq",
+        "consumer_self_report": "consumer_report",
+        "merchant_cited_test": "merchant_test",
+        "safety_transcript": "safety_information",
+        "unclassified": "product_information",
+    }[management_label]
+
+
+def _approved_merchant_claim_facts(
+    claims: Sequence[MerchantClaimEvidenceData],
+) -> tuple[ApprovedSoftFact, ...]:
+    return tuple(
+        ApprovedSoftFact(
+            fact_id=f"merchant:{claim.claim_id}",
+            product_id=claim.product_id,
+            field_key=claim.field_key,
+            plain_meaning=(
+                claim.normalized_value or claim.display_claim
+            ),
+            attribution="merchant_claim",
+            source_refs=(claim.source_locator,),
+        )
+        for claim in claims
+        if claim.claim_scope == "ordinary"
+    )
+
+
+def _approved_review_summary_facts(
+    summaries: Sequence[ReviewSummaryResult],
+) -> tuple[ApprovedSoftFact, ...]:
+    return tuple(
+        ApprovedSoftFact(
+            fact_id=summary.synthesis.claim_id,
+            product_id=summary.product_id,
+            field_key="consumer_report",
+            plain_meaning=summary.synthesis.text,
+            attribution="consumer_report",
+            source_refs=tuple(
+                fact.provenance.source_locator
+                for fact in summary.source_facts
+            ),
+        )
+        for summary in summaries
+    )
 
 
 def _append_source_quotes(
@@ -3242,23 +2762,6 @@ def _append_source_quotes(
     return "\n".join(sections)
 
 
-def _presentation_compatibility_message(
-    event: PresentationContractEvent,
-    *,
-    default: str,
-) -> str:
-    if event.data.copy_source == "fallback":
-        return default
-    copy_parts = tuple(
-        section.copy_text.strip()
-        for section in event.data.sections
-        if section.kind in {"summary", "product", "closing"}
-        and section.copy_text is not None
-        and section.copy_text.strip()
-    )
-    return "\n".join(copy_parts) if copy_parts else default
-
-
 def _summary_fragment(decision: DecisionResult) -> str:
     if decision.winner_status is WinnerStatus.NO_CANDIDATE:
         return "暂时没有找到能同时满足你这些要求的商品。"
@@ -3281,3 +2784,66 @@ def _summary_fragment(decision: DecisionResult) -> str:
             "不替你定死唯一一款。"
         )
     return "已经按你说的需求重新整理，下面先看更贴近的几款。"
+
+
+def _image_lane_mutation(
+    execution_input: ProcessorExecutionInput,
+) -> LaneMutation[ImageLaneState]:
+    routing_evidence = execution_input.routing_evidence.image
+    if (
+        routing_evidence is None
+        or not 1 <= len(routing_evidence.confirmed_products) <= 3
+    ):
+        return LaneMutation[ImageLaneState](action="preserve")
+    return LaneMutation[ImageLaneState](
+        action="replace",
+        value=ImageLaneState(
+            confirmed_products=routing_evidence.confirmed_products,
+        ),
+    )
+
+
+def _execution_audit_events(
+    execution_input: ProcessorExecutionInput,
+    audit_events: Sequence[SseEvent],
+) -> tuple[SseEvent, ...]:
+    routing_evidence = execution_input.routing_evidence.image
+    if routing_evidence is None:
+        return tuple(audit_events)
+    return (
+        StageEvent(
+            data=StageData(
+                stage="image_observation",
+                summary=(
+                    "正在确认图片中的商品信息。"
+                    if routing_evidence.image_count == 1
+                    else (
+                        "正在确认 "
+                        f"{routing_evidence.image_count} 张图片中的商品。"
+                    )
+                ),
+            )
+        ),
+        *image_observation_events(routing_evidence.observations),
+        *audit_events,
+        image_citations_event(
+            observations=routing_evidence.observations,
+            product_ids=tuple(
+                binding.product_id
+                for binding in execution_input.decision.product_bindings
+            ),
+        ),
+    )
+
+
+def _intent_mode(
+    execution_input: ProcessorExecutionInput,
+    default: str,
+) -> str:
+    if execution_input.routing_evidence.image is None:
+        return default
+    if execution_input.decision.processor == "recommendation":
+        return "image_recommend"
+    if execution_input.decision.processor == "comparison":
+        return "image_compare"
+    return default

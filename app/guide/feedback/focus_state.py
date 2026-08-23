@@ -1,26 +1,14 @@
 from __future__ import annotations
 
-from typing import Literal, Self
+from typing import Annotated, Literal, Self
 
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    field_validator,
+    StringConstraints,
     model_validator,
 )
-
-
-ProcessorKind = Literal[
-    "recommendation",
-    "comparison",
-    "product_knowledge",
-    "general_knowledge",
-    "image_identity",
-    "consultation",
-    "clarification",
-    "safety_escalation",
-]
 
 
 class _StrictFrozen(BaseModel):
@@ -37,44 +25,40 @@ class ConfirmedImageProductRef(_StrictFrozen):
     )
 
 
-class FocusState(_StrictFrozen):
-    active_processor: ProcessorKind | None = None
-    current_product_id: int | None = Field(default=None, gt=0)
-    confirmed_image_products: tuple[
-        ConfirmedImageProductRef,
-        ...,
-    ] = Field(default_factory=tuple, max_length=3)
-    current_knowledge_topic: str | None = Field(
-        default=None,
+ActiveFocusSlot = Literal[
+    "recommendation",
+    "product",
+    "image",
+    "consultation",
+    "knowledge",
+    "reply",
+]
+ActiveFocusObjectId = int | Annotated[
+    str,
+    StringConstraints(
         min_length=1,
         max_length=256,
-    )
-    last_question_meaning: str | None = Field(
-        default=None,
-        min_length=1,
-        max_length=512,
-    )
+    ),
+]
 
-    @field_validator("confirmed_image_products", mode="before")
-    @classmethod
-    def freeze_confirmed_images(cls, value: object) -> object:
-        return tuple(value) if isinstance(value, list) else value
+
+class ActiveFocus(_StrictFrozen):
+    slot: ActiveFocusSlot
+    object_id: ActiveFocusObjectId | None = None
+    ordinal: int | None = Field(default=None, ge=1, le=4)
 
     @model_validator(mode="after")
-    def validate_confirmed_images(self) -> Self:
-        ordinals = [
-            item.image_ordinal
-            for item in self.confirmed_image_products
-        ]
-        if len(ordinals) != len(set(ordinals)):
+    def validate_focus_shape(self) -> Self:
+        if self.slot in {"recommendation", "image"}:
+            return self
+        if self.ordinal is not None:
             raise ValueError(
-                "confirmed image ordinal must be unique"
+                f"{self.slot} focus forbids ordinal"
             )
         return self
 
 
 __all__ = [
+    "ActiveFocus",
     "ConfirmedImageProductRef",
-    "FocusState",
-    "ProcessorKind",
 ]

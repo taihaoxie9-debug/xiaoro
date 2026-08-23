@@ -15,12 +15,15 @@ def decide_followup(
     snapshot: ConversationSnapshot,
     plan: FollowupPlan,
 ) -> FollowupDecisionResult:
-    source_ids = [item.product_id for item in snapshot.candidates]
+    if snapshot.recommendation_slot is None:
+        raise ValueError("followup requires recommendation slot")
+    candidates = snapshot.recommendation_slot.candidates
+    source_ids = [item.product_id for item in candidates]
     if plan.mode != "followup" or plan.action is None:
         raise ValueError("decision requires followup plan")
     if plan.action is FollowupAction.ORDINAL_REFERENCE:
         assert plan.ordinal is not None
-        selected = snapshot.candidates[plan.ordinal - 1].product_id
+        selected = candidates[plan.ordinal - 1].product_id
         return FollowupDecisionResult(
             action=plan.action,
             ordinal=plan.ordinal,

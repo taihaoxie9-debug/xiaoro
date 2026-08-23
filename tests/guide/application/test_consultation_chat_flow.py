@@ -1,29 +1,79 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
-from decimal import Decimal
+import inspect
+import json
 from pathlib import Path
 
 import pytest
 
 from app.guide.adapters.state import (
     InMemoryConversationState,
-    InMemorySessionLocks,
 )
 from app.guide.adapters.state.sqlite_profile_state import (
     SqliteProfileState,
 )
-from app.guide.application.contracts import UserTurn
-from app.guide.application.consultation_coordinator import (
-    ConsultationApplicationCoordinator,
+from app.guide.application.contracts import TurnIdentity, UserTurn
+from app.guide.application.consultation_assessment import assess_consultation
+from app.guide.application.consultation_confirmation import (
+    confirm_provisional_conclusion,
+    record_medical_escalation,
+    record_provisional_conclusion,
 )
+from app.guide.application.execution_contracts import (
+    ExecutionResult,
+    OpaqueRetrievalQuery,
+    PreRoutingEvidence,
+    PresentationTerminal,
+    ProcessorExecutionInput,
+    ProfileLanePatch,
+)
+from app.guide.application.dynamic_consultation import (
+    prepare_dynamic_consultation_evidence,
+)
+from app.guide.application.session_profile_resolution import (
+    resolve_session_profile_context,
+)
+from app.guide.application.unified_guide_flow import UnifiedGuideFlow
+from app.guide.feedback.consultation_state import ConsultationSubstate
 from app.guide.feedback.contracts import (
+    ConsultationSlotState,
     ConversationSnapshot,
     DisplayedCandidateRef,
     RecommendationQueryContext,
+    RecommendationSlotState,
 )
-from app.guide.feedback.ports import ConversationStateConflict
+from app.guide.feedback.focus_state import ActiveFocus
+from app.guide.feedback.profile_policy import ResolvedProfileContext
 from app.guide.feedback.profile_contracts import ProfileOwnerRef
+from app.guide.feedback.session_profile import (
+    BaseSkinUpdate,
+    SessionProfile,
+    reduce_session_profile,
+)
+from app.guide.intent.executable_intent_compiler import (
+    compile_turn_meaning,
+)
+from app.guide.intent.responsibility_matrix import Responsibility
+from app.guide.intent.task_planning import plan_task
+from app.guide.intent.unified_turn_router import UnifiedRouteDecision
+from app.guide.retrieval.product_name_resolver import (
+    ProductMentionResolution,
+)
+from app.guide.presentation.sse_events import (
+    MedicalEscalationEvent,
+    ProfileConfirmationEvent,
+)
+from app.guide.understanding.consultation_contracts import (
+    ConsultationObservation,
+)
+from app.guide.understanding.consultation_questions import (
+    observable_questions,
+)
+from app.guide.understanding.consultation_escalation import (
+    ConsultationEscalationInput,
+    ConsultationEscalationTrigger,
+)
+from app.guide.understanding.semantic_contracts import SemanticContext
 from app.guide.understanding.turn_meaning_contracts import TurnMeaning
 
 
@@ -44,17 +94,8 @@ def _flow(tmp_path: Path):
         state_root / "profiles.sqlite3",
         trusted_state_root=state_root,
     )
-    coordinator = ConsultationApplicationCoordinator(
-        conversation_state=conversation_state,
-        profile_state=profile_state,
-    )
     return (
-        ConsultationChatFlow(
-            coordinator=coordinator,
-            conversation_state=conversation_state,
-            session_locks=InMemorySessionLocks(),
-            clock=lambda: datetime(2026, 8, 9, 10, 0, tzinfo=UTC),
-        ),
+        ConsultationChatFlow(),
         conversation_state,
         profile_state,
     )
@@ -67,6 +108,11 @@ def _turn(
     session_id: str = "consultation-chat-flow",
 ) -> UserTurn:
     return UserTurn(
+        identity=TurnIdentity(
+            session_id=session_id,
+            request_id=f"request_{session_id}_{version}",
+            turn_id=f"turn_{session_id}_{version}",
+        ),
         session_id=session_id,
         message=message,
         profile_owner=_OWNER,
@@ -74,8 +120,86 @@ def _turn(
     )
 
 
-def _events(flow, message: str, *, version: int):
-    return list(flow.stream(_turn(message, version=version)))
+def _processor_input(
+    turn: UserTurn,
+    *,
+    meaning: TurnMeaning,
+    understanding,
+    snapshot: ConversationSnapshot | None,
+    route_decision: UnifiedRouteDecision,
+) -> ProcessorExecutionInput:
+    expected_skin_target = None
+    if snapshot is not None and snapshot.consultation_slot is not None:
+        assessment = (
+            snapshot.consultation_slot.state.confirmable_assessment
+        )
+        if assessment is not None:
+            expected_skin_target = assessment.conclusion.skin_target
+    return ProcessorExecutionInput(
+        turn_identity=turn.identity,
+        understanding=understanding,
+        decision=route_decision,
+        current_snapshot=snapshot,
+        routing_evidence=PreRoutingEvidence(
+            query=OpaqueRetrievalQuery(value=turn.question_summary),
+            conversation_version=turn.conversation_version,
+            profile_owner=turn.profile_owner,
+            profile_context=(
+                resolve_session_profile_context(snapshot)
+                if snapshot is not None
+                else ResolvedProfileContext(values=())
+            ),
+            product_resolution=ProductMentionResolution(bindings=()),
+            task_plan=plan_task(
+                understanding,
+                responsibility=route_decision.responsibility,
+                message=turn.question_summary,
+            ),
+            consultation=prepare_dynamic_consultation_evidence(
+                message=turn.question_summary,
+                meaning=meaning,
+                source_turn_id=turn.identity.turn_id,
+                expected_skin_target=expected_skin_target,
+            ),
+        ),
+    )
+
+
+def _execute(
+    flow,
+    turn: UserTurn,
+    *,
+    meaning: TurnMeaning,
+    understanding,
+    snapshot: ConversationSnapshot | None,
+    route_decision: UnifiedRouteDecision,
+) -> ExecutionResult:
+    return flow.execute(
+        _processor_input(
+            turn,
+            meaning=meaning,
+            understanding=understanding,
+            snapshot=snapshot,
+            route_decision=route_decision,
+        )
+    )
+
+
+def _decode_frames(frames) -> list[tuple[str, dict]]:
+    decoded = []
+    for frame in frames:
+        event_line, data_line, _ = frame.split(b"\n", maxsplit=2)
+        decoded.append(
+            (
+                event_line.removeprefix(b"event: ").decode("ascii"),
+                json.loads(
+                    data_line.removeprefix(b"data: ").decode("utf-8")
+                ),
+            )
+        )
+    return decoded
+
+
 
 
 def _dynamic_meaning() -> TurnMeaning:
@@ -143,304 +267,875 @@ def _dynamic_meaning() -> TurnMeaning:
     )
 
 
-def _names(events) -> list[str]:
-    return [event.event for event in events]
+def _provisional_consultation() -> ConsultationSubstate:
+    observations = (
+        ConsultationObservation(
+            code="post_cleanse_tightness",
+            answer="yes",
+            source_turn_id="turn_observation_0001",
+        ),
+        ConsultationObservation(
+            code="t_zone_oiliness",
+            answer="unknown",
+            source_turn_id="turn_observation_0002",
+        ),
+    )
+    consultation = ConsultationSubstate(observations=observations)
+    assessment = assess_consultation(
+        consultation,
+        current_conversation_version=1,
+        conclusion_source_turn_id="turn_assessment_000001",
+    )
+    return record_provisional_conclusion(
+        consultation,
+        current_conversation_version=1,
+        assessment=assessment.confirmable_assessment,
+    ).next_consultation
 
 
-def test_has_authority_requires_real_snapshot_owner_and_version(
+def _confirmation_meaning(
+    *,
+    pending_response_hint: str,
+) -> TurnMeaning:
+    return TurnMeaning(
+        operation_hint="assessment",
+        topic_hint="skincare",
+        continuity_hint="continue",
+        subject_scope_hint="self",
+        pending_response_hint=pending_response_hint,
+        preference_candidates=(
+            {
+                "field_key": "skin",
+                "concept_id": "skin.dry",
+                "raw_text": "干皮",
+                "polarity": "prefer",
+                "strength": "ordinary",
+            },
+        )
+        if pending_response_hint == "affirm"
+        else (),
+        question_meaning="确认或拒绝问诊结论",
+        safety_language="ordinary",
+    )
+
+
+def test_dynamic_execute_returns_result_without_state_write(
     tmp_path: Path,
 ) -> None:
-    flow, state, _ = _flow(tmp_path)
-    state.save(
-        ConversationSnapshot(
-            session_id="owned-guide-session",
-            version=1,
-            profile_owner=_OWNER,
+    flow, conversation_state, profile_state = _flow(tmp_path)
+    turn = _turn(
+        "一会油一会干，换季还红",
+        version=0,
+    )
+    meaning = _dynamic_meaning()
+    understanding = compile_turn_meaning(
+        message=turn.message,
+        meaning=meaning,
+        context=SemanticContext(
+            conversation_version=0,
+            active_topic=None,
+            visible_candidate_count=0,
+            image_count=0,
+            focused_image_ordinal=None,
+            confirmed_profile_fields=(),
+        ),
+    )
+    decision = UnifiedRouteDecision(
+        processor="consultation",
+        responsibility=Responsibility.CONSULTATION,
+        presentation_mode="consultation",
+        continuity="continue",
+        focus_source="none",
+    )
+
+    result = _execute(
+        flow,
+        turn,
+        meaning=meaning,
+        understanding=understanding,
+        snapshot=None,
+        route_decision=decision,
+    )
+
+    assert type(result) is ExecutionResult
+    assert result.decision is decision
+    assert isinstance(result.terminal, PresentationTerminal)
+    assert result.terminal.data.mode == "consultation"
+    assert result.terminal.data.card_display.mode == "none"
+    assert result.state_delta.consultation.action == "replace"
+    assert [
+        item.dimension
+        for item in result.state_delta.consultation.value.observations
+    ] == ["oiliness", "dryness", "redness"]
+    assert conversation_state.load(turn.session_id) is None
+    assert profile_state.load(_OWNER) is None
+
+
+def test_consultation_processor_has_one_non_persisting_entrypoint() -> None:
+    from app.guide.application.consultation_chat_flow import (
+        ConsultationChatFlow,
+    )
+
+    source = inspect.getsource(ConsultationChatFlow)
+
+    assert not hasattr(ConsultationChatFlow, "stream")
+    assert not hasattr(ConsultationChatFlow, "stream_meaning")
+    assert not hasattr(ConsultationChatFlow, "claims")
+    assert not hasattr(ConsultationChatFlow, "has_session")
+    assert not hasattr(ConsultationChatFlow, "has_dynamic_session")
+    assert not hasattr(ConsultationChatFlow, "has_authority")
+    assert "_conversation_state" not in source
+    assert "_session_locks" not in source
+    assert "_coordinator.handle_" not in source
+
+
+def test_execute_enters_consultation_from_existing_recommendation_slot(
+    tmp_path: Path,
+) -> None:
+    flow, conversation_state, _ = _flow(tmp_path)
+    snapshot = ConversationSnapshot(
+        session_id="consultation-chat-flow",
+        version=1,
+        profile_owner=_OWNER,
+        active_owner=Responsibility.RECOMMENDATION,
+        active_focus=ActiveFocus(
+            slot="recommendation",
+            ordinal=1,
+        ),
+        recommendation_slot=RecommendationSlotState(
             query_context=RecommendationQueryContext(
-                category="sunscreen",
-                budget_minimum=None,
-                budget_maximum=Decimal("500"),
-                skin=None,
-                efficacy=None,
-                exclusions=(),
+                category="serum",
+                recommendation_mode="explore",
+                recommendation_mode_basis="broad_exploration",
+                recommendation_count=3,
             ),
             candidates=(
                 DisplayedCandidateRef(
-                    product_id=53,
+                    product_id=38,
                     ordinal=1,
                     skin_match="unknown",
                     matched_efficacies=(),
                 ),
             ),
+            focused_candidate_ordinal=1,
         ),
-        expected_version=0,
+    )
+    message = "我不知道自己是什么肤质"
+    meaning = TurnMeaning(
+        operation_hint="assessment",
+        topic_hint="skincare",
+        continuity_hint="new_task",
+        subject_scope_hint="self",
+        next_observation_gap="location",
+        question_meaning="开始肤质问诊",
+        safety_language="ordinary",
+    )
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=meaning,
+        context=SemanticContext(
+            conversation_version=1,
+            active_topic=None,
+            visible_candidate_count=1,
+            image_count=0,
+            focused_image_ordinal=None,
+            confirmed_profile_fields=(),
+        ),
+    )
+    decision = UnifiedRouteDecision(
+        processor="consultation",
+        responsibility=Responsibility.CONSULTATION,
+        presentation_mode="consultation",
+        continuity="replace_task",
+        focus_source="consultation",
     )
 
-    assert flow.has_authority(
-        _turn(
-            "它怎么样",
-            version=1,
-            session_id="owned-guide-session",
+    result = _execute(
+        flow,
+        _turn(message, version=1),
+        meaning=meaning,
+        understanding=understanding,
+        snapshot=snapshot,
+        route_decision=decision,
+    )
+
+    intent = next(
+        event
+        for event in result.audit_events
+        if event.event == "intent"
+    )
+    assert intent.data.mode == "consultation_entry"
+    observation = next(
+        event
+        for event in result.audit_events
+        if event.event == "consultation_observation"
+    )
+    assert observation.data.next_question is not None
+    assert result.terminal.data.mode == "consultation"
+    assert result.terminal.data.card_display.mode == "none"
+    assert result.state_delta.consultation.action == "replace"
+    assert result.state_delta.recommendation.action == "preserve"
+    assert conversation_state.load(snapshot.session_id) is None
+
+
+def test_execute_confirmation_returns_profile_patch_without_state_write(
+    tmp_path: Path,
+) -> None:
+    flow, conversation_state, profile_state = _flow(tmp_path)
+    observations = tuple(
+        ConsultationObservation(
+            code=question.code,
+            answer=answer,
+            source_turn_id=f"turn_observation_{index:04d}",
+        )
+        for index, (question, answer) in enumerate(
+            zip(
+                observable_questions(),
+                ("yes", "unknown"),
+                strict=False,
+            ),
+            start=1,
         )
     )
-    assert not flow.has_authority(
-        _turn("它怎么样", version=0, session_id="missing-guide-session")
+    consultation = ConsultationSubstate(observations=observations)
+    assessment = assess_consultation(
+        consultation,
+        current_conversation_version=1,
+        conclusion_source_turn_id="turn_assessment_000001",
     )
-    with pytest.raises(ConversationStateConflict):
-        flow.has_authority(
-            _turn(
-                "它怎么样",
-                version=0,
-                session_id="owned-guide-session",
+    provisional = record_provisional_conclusion(
+        consultation,
+        current_conversation_version=1,
+        assessment=assessment.confirmable_assessment,
+    ).next_consultation
+    snapshot = ConversationSnapshot(
+        session_id="consultation-chat-flow",
+        version=2,
+        profile_owner=_OWNER,
+        active_owner=Responsibility.CONSULTATION,
+        active_focus=ActiveFocus(slot="consultation"),
+        consultation_slot=ConsultationSlotState(
+            state=provisional,
+        ),
+    )
+    message = "我确认是干皮"
+    meaning = TurnMeaning(
+        operation_hint="assessment",
+        topic_hint="skincare",
+        continuity_hint="continue",
+        subject_scope_hint="self",
+        pending_response_hint="affirm",
+        preference_candidates=(
+            {
+                "field_key": "skin",
+                "concept_id": "skin.dry",
+                "raw_text": "干皮",
+                "polarity": "prefer",
+                "strength": "ordinary",
+            },
+        ),
+        question_meaning="确认问诊结论为干性肤质",
+        safety_language="ordinary",
+    )
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=meaning,
+        context=SemanticContext(
+            conversation_version=2,
+            active_topic=None,
+            visible_candidate_count=0,
+            image_count=0,
+            focused_image_ordinal=None,
+            confirmed_profile_fields=(),
+        ),
+    )
+    decision = UnifiedRouteDecision(
+        processor="consultation",
+        responsibility=Responsibility.CONSULTATION,
+        presentation_mode="consultation",
+        continuity="continue",
+        focus_source="consultation",
+    )
+
+    result = _execute(
+        flow,
+        _turn(message, version=2),
+        meaning=meaning,
+        understanding=understanding,
+        snapshot=snapshot,
+        route_decision=decision,
+    )
+
+    assert result.decision is decision
+    assert result.state_delta.consultation.action == "replace"
+    profile_mutation = result.state_delta.profile
+    assert profile_mutation.action == "replace"
+    assert isinstance(profile_mutation.value, ProfileLanePatch)
+    assert any(
+        update.value == "dry"
+        for update in profile_mutation.value.updates
+    )
+    assert any(
+        isinstance(event, ProfileConfirmationEvent)
+        for event in result.audit_events
+    )
+    assert conversation_state.load(snapshot.session_id) is None
+    assert profile_state.load(_OWNER) is None
+
+
+def test_unified_flow_reduces_confirmation_profile_patch_once(
+    tmp_path: Path,
+) -> None:
+    consultation_flow, conversation_state, profile_state = _flow(tmp_path)
+    observations = _provisional_consultation().observations
+    base = ConversationSnapshot(
+        session_id="consultation-chat-flow",
+        version=1,
+        profile_owner=_OWNER,
+        active_owner=Responsibility.CONSULTATION,
+        active_focus=ActiveFocus(slot="consultation"),
+        consultation_slot=ConsultationSlotState(
+            state=ConsultationSubstate(),
+        ),
+    )
+    first_observation = base.model_copy(
+        update={
+            "version": 2,
+            "consultation_slot": ConsultationSlotState(
+                state=ConsultationSubstate(
+                    observations=observations[:1],
+                ),
+            ),
+        },
+        deep=True,
+    )
+    complete_observations = first_observation.model_copy(
+        update={
+            "version": 3,
+            "consultation_slot": ConsultationSlotState(
+                state=ConsultationSubstate(
+                    observations=observations,
+                ),
+            ),
+        },
+        deep=True,
+    )
+    assert complete_observations.consultation_slot is not None
+    complete_consultation = complete_observations.consultation_slot.state
+    assessment = assess_consultation(
+        complete_consultation,
+        current_conversation_version=3,
+        conclusion_source_turn_id="turn_assessment_000003",
+    )
+    provisional = record_provisional_conclusion(
+        complete_consultation,
+        current_conversation_version=3,
+        assessment=assessment.confirmable_assessment,
+    ).next_consultation
+    snapshot = ConversationSnapshot(
+        session_id="consultation-chat-flow",
+        version=4,
+        profile_owner=_OWNER,
+        active_owner=Responsibility.CONSULTATION,
+        active_focus=ActiveFocus(slot="consultation"),
+        consultation_slot=ConsultationSlotState(
+            state=provisional,
+        ),
+    )
+    conversation_state.save(base, expected_version=0)
+    conversation_state.save(first_observation, expected_version=1)
+    conversation_state.save(complete_observations, expected_version=2)
+    conversation_state.save(snapshot, expected_version=3)
+    message = "我确认是干皮"
+    meaning = _confirmation_meaning(
+        pending_response_hint="affirm",
+    )
+
+    class ConfirmationTranslator:
+        def translate(self, candidate, *, context):
+            assert candidate == message
+            assert context.conversation_version == 4
+            return meaning
+
+    class UnusedTextProcessor:
+        @staticmethod
+        def resolve_product_resolution(**kwargs):
+            del kwargs
+            return ProductMentionResolution(bindings=())
+
+        @staticmethod
+        def execute(*args, **kwargs):
+            raise AssertionError(
+                "confirmation must use consultation processor"
             )
-        )
 
-
-def test_entry_emits_typed_question_and_zero_card_contract(
-    tmp_path: Path,
-) -> None:
-    flow, _, profile_state = _flow(tmp_path)
-
-    events = _events(
-        flow,
-        "我不知道自己是什么肤质",
-        version=0,
+    unified = UnifiedGuideFlow(
+        understanding=ConfirmationTranslator(),
+        text_processor=UnusedTextProcessor(),
+        consultation_processor=consultation_flow,
+        conversation_state=conversation_state,
     )
 
-    assert _names(events) == [
-        "start",
-        "stage",
-        "intent",
-        "consultation_observation",
-        "answer_contract",
-        "card_display_contract",
-        "presentation_contract",
-        "message",
-        "end",
-    ]
-    observation = events[3].data
-    assert observation.conversation_version == 1
-    assert observation.observations == []
-    assert observation.next_question is not None
-    assert observation.next_question.code == "post_cleanse_tightness"
-    assert events[4].data.product_count == 0
-    assert events[5].data.model_dump(mode="json") == {
-        "mode": "none",
-        "visible_product_ids": [],
-        "max_cards": 0,
-        "reason": None,
-    }
-    assert events[-1].data.conversation_version == 1
+    events = _decode_frames(
+        unified.stream(_turn(message, version=4))
+    )
+
+    assert events[-1][0] == "end"
+    assert events[-1][1]["conversation_version"] == 5
+    stored = conversation_state.load(snapshot.session_id)
+    assert stored is not None
+    assert stored.version == 5
+    assert stored.consultation_slot is not None
+    assert (
+        stored.consultation_slot.state.confirmable_assessment
+        .conclusion.confirmed_by_user
+    )
+    assert stored.session_profile is not None
+    assert stored.session_profile.base_skin is not None
+    assert stored.session_profile.base_skin.value == "dry"
     assert profile_state.load(_OWNER) is None
 
 
-def test_dynamic_meaning_persists_all_observations_in_one_turn(
+@pytest.mark.parametrize(
+    ("message", "pending_response_hint", "expected_intent"),
+    (
+        (
+            "我不确认",
+            "reject",
+            "consultation_rejection",
+        ),
+        (
+            "我还不确定",
+            "unknown",
+            "consultation_clarification",
+        ),
+    ),
+)
+def test_execute_unresolved_confirmation_preserves_business_lanes(
+    tmp_path: Path,
+    message: str,
+    pending_response_hint: str,
+    expected_intent: str,
+) -> None:
+    flow, conversation_state, profile_state = _flow(tmp_path)
+    snapshot = ConversationSnapshot(
+        session_id="consultation-chat-flow",
+        version=2,
+        profile_owner=_OWNER,
+        active_owner=Responsibility.CONSULTATION,
+        active_focus=ActiveFocus(slot="consultation"),
+        consultation_slot=ConsultationSlotState(
+            state=_provisional_consultation(),
+        ),
+    )
+    meaning = _confirmation_meaning(
+        pending_response_hint=pending_response_hint,
+    )
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=meaning,
+        context=SemanticContext(
+            conversation_version=2,
+            active_topic=None,
+            visible_candidate_count=0,
+            image_count=0,
+            focused_image_ordinal=None,
+            confirmed_profile_fields=(),
+        ),
+    )
+    decision = UnifiedRouteDecision(
+        processor="consultation",
+        responsibility=Responsibility.CONSULTATION,
+        presentation_mode="consultation",
+        continuity="continue",
+        focus_source="consultation",
+    )
+
+    result = _execute(
+        flow,
+        _turn(message, version=2),
+        meaning=meaning,
+        understanding=understanding,
+        snapshot=snapshot,
+        route_decision=decision,
+    )
+
+    assert result.state_delta.consultation.action == "preserve"
+    assert result.state_delta.profile.action == "preserve"
+    intent = next(
+        event
+        for event in result.audit_events
+        if event.event == "intent"
+    )
+    assert intent.data.mode == expected_intent
+    assert conversation_state.load(snapshot.session_id) is None
+    assert profile_state.load(_OWNER) is None
+
+
+def test_execute_confirmed_retry_is_idempotent(
     tmp_path: Path,
 ) -> None:
     flow, conversation_state, profile_state = _flow(tmp_path)
-    turn = _turn(
-        "一会油一会干，换季还红",
-        version=0,
+    provisional = _provisional_consultation()
+    confirmed = confirm_provisional_conclusion(
+        provisional,
+        current_conversation_version=2,
+        message="我确认是干皮",
+        source_turn_id="turn_confirmation_0001",
+        expected_skin_target="dry",
+        expected_conclusion_source_turn_id=(
+            provisional.confirmable_assessment.conclusion_source_turn_id
+        ),
+    ).next_consultation
+    profile = reduce_session_profile(
+        previous=SessionProfile(),
+        updates=(
+            BaseSkinUpdate(
+                value="dry",
+                confirmation="confirmed",
+            ),
+        ),
+        subject_scope="self",
+        source_turn_id="turn_confirmation_0001",
+        conversation_version=3,
+    ).profile
+    snapshot = ConversationSnapshot(
+        session_id="consultation-chat-flow",
+        version=3,
+        profile_owner=_OWNER,
+        session_profile=profile,
+        active_owner=Responsibility.CONSULTATION,
+        active_focus=ActiveFocus(slot="consultation"),
+        consultation_slot=ConsultationSlotState(
+            state=confirmed,
+        ),
+    )
+    message = "我确认是干皮"
+    meaning = _confirmation_meaning(
+        pending_response_hint="affirm",
+    )
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=meaning,
+        context=SemanticContext(
+            conversation_version=3,
+            active_topic=None,
+            visible_candidate_count=0,
+            image_count=0,
+            focused_image_ordinal=None,
+            confirmed_profile_fields=(),
+        ),
+    )
+    decision = UnifiedRouteDecision(
+        processor="consultation",
+        responsibility=Responsibility.CONSULTATION,
+        presentation_mode="consultation",
+        continuity="continue",
+        focus_source="consultation",
     )
 
-    events = list(
-        flow.stream_meaning(
-            turn,
-            meaning=_dynamic_meaning(),
-        )
+    result = _execute(
+        flow,
+        _turn(message, version=3),
+        meaning=meaning,
+        understanding=understanding,
+        snapshot=snapshot,
+        route_decision=decision,
     )
 
-    assert _names(events) == [
-        "start",
-        "stage",
-        "intent",
-        "consultation_observation",
-        "answer_contract",
-        "card_display_contract",
-        "presentation_contract",
-        "message",
-        "end",
-    ]
-    assert events[2].data.mode == "consultation_answer"
-    observation = events[3].data
-    assert observation.conversation_version == 1
-    assert [
-        item.dimension for item in observation.observations
-    ] == ["oiliness", "dryness", "redness"]
-    assert observation.next_question is not None
-    assert observation.next_question.code == "location"
-    stored = conversation_state.load("consultation-chat-flow")
-    assert stored is not None
-    assert stored.version == 1
-    assert stored.consultation is not None
-    assert stored.consultation.observations == tuple(
-        observation.observations
+    assert result.state_delta.consultation.action == "preserve"
+    assert result.state_delta.profile.action == "preserve"
+    confirmation = next(
+        event
+        for event in result.audit_events
+        if isinstance(event, ProfileConfirmationEvent)
     )
+    assert confirmation.data.session_profile == profile
+    assert conversation_state.load(snapshot.session_id) is None
     assert profile_state.load(_OWNER) is None
 
 
-def test_has_dynamic_session_detects_source_bound_observations(
-    tmp_path: Path,
-) -> None:
-    flow, _, _ = _flow(tmp_path)
-    turn = _turn(
-        "一会油一会干，换季还红",
-        version=0,
-    )
-    events = list(
-        flow.stream_meaning(
-            turn,
-            meaning=_dynamic_meaning(),
-        )
-    )
-    version = events[-1].data.conversation_version
-
-    assert flow.has_dynamic_session(
-        _turn("对，就是这样", version=version)
-    )
-    assert not flow.has_dynamic_session(
-        _turn(
-            "对，就是这样",
-            version=0,
-            session_id="missing-dynamic-session",
-        )
-    )
-
-
-def test_answers_end_in_typed_provisional_without_profile_write(
-    tmp_path: Path,
-) -> None:
-    flow, _, profile_state = _flow(tmp_path)
-    version = 0
-    for message in (
-        "我不知道自己是什么肤质",
-        "会",
-        "不会",
-        "不会",
-        "不会",
-    ):
-        events = _events(flow, message, version=version)
-        assert "consultation_observation" in _names(events)
-        version = events[-1].data.conversation_version
-
-    events = _events(flow, "不会", version=version)
-
-    assert _names(events) == [
-        "start",
-        "stage",
-        "intent",
-        "consultation_provisional",
-        "answer_contract",
-        "card_display_contract",
-        "presentation_contract",
-        "message",
-        "end",
-    ]
-    provisional = events[3].data
-    assert provisional.conversation_version == 7
-    assert provisional.conclusion.skin_target == "dry"
-    assert provisional.conclusion.evidence == (
-        "post_cleanse_tightness",
-    )
-    assert provisional.conclusion.uncertainties == ()
-    assert provisional.conclusion.confidence == "medium"
-    assert provisional.conclusion.confirmed_by_user is False
-    assert profile_state.load(_OWNER) is None
-
-
-def test_confirmation_emits_session_profile_without_long_term_write(
+def test_execute_medical_escalation_preserves_provisional_assessment(
     tmp_path: Path,
 ) -> None:
     flow, conversation_state, profile_state = _flow(tmp_path)
-    version = 0
-    for message in (
-        "我不知道自己是什么肤质",
-        "会",
-        "不会",
-        "不会",
-        "不会",
-        "不会",
-    ):
-        events = _events(flow, message, version=version)
-        version = events[-1].data.conversation_version
+    observations = (
+        ConsultationObservation(
+            code="post_cleanse_tightness",
+            answer="yes",
+            source_turn_id="turn_observation_0001",
+        ),
+        ConsultationObservation(
+            code="t_zone_oiliness",
+            answer="unknown",
+            source_turn_id="turn_observation_0002",
+        ),
+    )
+    consultation = ConsultationSubstate(observations=observations)
+    assessment = assess_consultation(
+        consultation,
+        current_conversation_version=1,
+        conclusion_source_turn_id="turn_assessment_000001",
+    )
+    provisional = record_provisional_conclusion(
+        consultation,
+        current_conversation_version=1,
+        assessment=assessment.confirmable_assessment,
+    ).next_consultation
+    snapshot = ConversationSnapshot(
+        session_id="consultation-chat-flow",
+        version=2,
+        profile_owner=_OWNER,
+        active_owner=Responsibility.CONSULTATION,
+        active_focus=ActiveFocus(slot="consultation"),
+        consultation_slot=ConsultationSlotState(
+            state=provisional,
+        ),
+    )
+    message = "现在还有明显疼痛"
+    meaning = TurnMeaning(
+        operation_hint="assessment",
+        topic_hint="skincare",
+        continuity_hint="continue",
+        subject_scope_hint="self",
+        observation_candidates=(
+            {
+                "observation_id": "obs_pain",
+                "code": "pain",
+                "present": True,
+                "qualifier": None,
+                "raw_text": "明显疼痛",
+                "location": None,
+                "trigger": None,
+                "duration": "current",
+                "severity": "severe",
+            },
+        ),
+        question_meaning="问诊中出现明显疼痛",
+        safety_language="safety",
+    )
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=meaning,
+        context=SemanticContext(
+            conversation_version=2,
+            active_topic=None,
+            visible_candidate_count=0,
+            image_count=0,
+            focused_image_ordinal=None,
+            confirmed_profile_fields=(),
+        ),
+    )
+    decision = UnifiedRouteDecision(
+        processor="safety_escalation",
+        responsibility=Responsibility.SAFETY_ESCALATION,
+        presentation_mode="consultation",
+        continuity="continue",
+        focus_source="consultation",
+    )
 
-    events = _events(flow, "我确认是干皮", version=version)
+    result = _execute(
+        flow,
+        _turn(message, version=2),
+        meaning=meaning,
+        understanding=understanding,
+        snapshot=snapshot,
+        route_decision=decision,
+    )
 
-    assert _names(events) == [
-        "start",
-        "stage",
-        "intent",
-        "profile_confirmation",
-        "answer_contract",
-        "card_display_contract",
-        "presentation_contract",
-        "message",
-        "end",
-    ]
-    confirmation = events[3].data
-    assert confirmation.conversation_version == 8
-    assert confirmation.conclusion.confirmed_by_user is True
-    assert confirmation.profile_persistence is None
-    assert confirmation.session_profile.base_skin is not None
-    assert confirmation.session_profile.base_skin.value == "dry"
-    stored = conversation_state.load("consultation-chat-flow")
-    assert stored is not None
-    assert stored.session_profile == confirmation.session_profile
+    next_consultation = result.state_delta.consultation.value
+    assert next_consultation is not None
+    assert (
+        next_consultation.confirmable_assessment
+        == provisional.confirmable_assessment
+    )
+    assert next_consultation.medical_escalation is not None
+    assert any(
+        isinstance(event, MedicalEscalationEvent)
+        for event in result.audit_events
+    )
+    assert conversation_state.load(snapshot.session_id) is None
     assert profile_state.load(_OWNER) is None
 
 
-def test_medical_red_flag_emits_terminal_typed_event_and_no_cards(
+def test_execute_post_confirmation_escalation_is_read_only(
     tmp_path: Path,
 ) -> None:
-    flow, _, profile_state = _flow(tmp_path)
-    entered = _events(
-        flow,
-        "我不知道自己是什么肤质",
-        version=0,
+    flow, conversation_state, profile_state = _flow(tmp_path)
+    provisional = _provisional_consultation()
+    confirmed = confirm_provisional_conclusion(
+        provisional,
+        current_conversation_version=2,
+        message="我确认是干皮",
+        source_turn_id="turn_confirmation_0001",
+        expected_skin_target="dry",
+        expected_conclusion_source_turn_id=(
+            provisional.confirmable_assessment.conclusion_source_turn_id
+        ),
+    ).next_consultation
+    profile = reduce_session_profile(
+        previous=SessionProfile(),
+        updates=(
+            BaseSkinUpdate(
+                value="dry",
+                confirmation="confirmed",
+            ),
+        ),
+        subject_scope="self",
+        source_turn_id="turn_confirmation_0001",
+        conversation_version=3,
+    ).profile
+    snapshot = ConversationSnapshot(
+        session_id="consultation-chat-flow",
+        version=3,
+        profile_owner=_OWNER,
+        session_profile=profile,
+        active_owner=Responsibility.CONSULTATION,
+        active_focus=ActiveFocus(slot="consultation"),
+        consultation_slot=ConsultationSlotState(
+            state=confirmed,
+        ),
+    )
+    message = "现在还有明显疼痛"
+    meaning = TurnMeaning(
+        operation_hint="assessment",
+        topic_hint="skincare",
+        continuity_hint="continue",
+        subject_scope_hint="self",
+        observation_candidates=(
+            {
+                "observation_id": "obs_pain",
+                "code": "pain",
+                "present": True,
+                "qualifier": None,
+                "raw_text": "明显疼痛",
+                "location": None,
+                "trigger": None,
+                "duration": "current",
+                "severity": "severe",
+            },
+        ),
+        question_meaning="确认后出现明显疼痛",
+        safety_language="safety",
+    )
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=meaning,
+        context=SemanticContext(
+            conversation_version=3,
+            active_topic=None,
+            visible_candidate_count=0,
+            image_count=0,
+            focused_image_ordinal=None,
+            confirmed_profile_fields=(),
+        ),
+    )
+    decision = UnifiedRouteDecision(
+        processor="safety_escalation",
+        responsibility=Responsibility.SAFETY_ESCALATION,
+        presentation_mode="consultation",
+        continuity="continue",
+        focus_source="consultation",
     )
 
-    events = _events(
+    result = _execute(
         flow,
-        "会，而且明显疼痛",
-        version=entered[-1].data.conversation_version,
+        _turn(message, version=3),
+        meaning=meaning,
+        understanding=understanding,
+        snapshot=snapshot,
+        route_decision=decision,
     )
 
-    assert _names(events) == [
-        "start",
-        "stage",
-        "intent",
-        "medical_escalation",
-        "answer_contract",
-        "card_display_contract",
-        "presentation_contract",
-        "message",
-        "end",
-    ]
-    escalation = events[3].data
-    assert escalation.stop_skincare_advice is True
-    assert [item.code for item in escalation.escalation_triggers] == [
-        "pain"
-    ]
-    assert escalation.conclusion.confirmed_by_user is False
-    assert events[5].data.max_cards == 0
+    assert result.state_delta.consultation.action == "preserve"
+    assert result.state_delta.profile.action == "preserve"
+    escalation = next(
+        event
+        for event in result.audit_events
+        if isinstance(event, MedicalEscalationEvent)
+    )
+    assert escalation.data.stop_skincare_advice is True
+    assert conversation_state.load(snapshot.session_id) is None
     assert profile_state.load(_OWNER) is None
 
 
-def test_claims_only_entry_or_active_consultation_turns(
+def test_execute_recorded_medical_escalation_is_terminal_and_read_only(
     tmp_path: Path,
 ) -> None:
-    flow, _, _ = _flow(tmp_path)
-
-    assert flow.claims(_turn(
-        "我不知道自己是什么肤质",
-        version=0,
-    ))
-    assert not flow.claims(_turn("500元内防晒", version=0))
-
-    entered = _events(
-        flow,
-        "我不知道自己是什么肤质",
-        version=0,
+    flow, conversation_state, profile_state = _flow(tmp_path)
+    provisional = _provisional_consultation()
+    medical_assessment = assess_consultation(
+        provisional,
+        current_conversation_version=2,
+        conclusion_source_turn_id="turn_escalation_0001",
+        escalation=ConsultationEscalationInput(
+            triggers=[
+                ConsultationEscalationTrigger(
+                    code="pain",
+                    source_turn_id="turn_escalation_0001",
+                ),
+            ],
+        ),
+    ).confirmable_assessment
+    recorded = record_medical_escalation(
+        provisional,
+        current_conversation_version=2,
+        assessment=medical_assessment,
+    ).next_consultation
+    snapshot = ConversationSnapshot(
+        session_id="consultation-chat-flow",
+        version=3,
+        profile_owner=_OWNER,
+        active_owner=Responsibility.SAFETY_ESCALATION,
+        active_focus=ActiveFocus(slot="consultation"),
+        consultation_slot=ConsultationSlotState(
+            state=recorded,
+        ),
     )
-    version = entered[-1].data.conversation_version
-    assert flow.claims(_turn("会", version=version))
+    message = "那我接下来怎么办"
+    meaning = TurnMeaning(
+        operation_hint="assessment",
+        topic_hint="skincare",
+        continuity_hint="continue",
+        subject_scope_hint="self",
+        question_meaning="医疗升级后的后续处理",
+        safety_language="ordinary",
+    )
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=meaning,
+        context=SemanticContext(
+            conversation_version=3,
+            active_topic=None,
+            visible_candidate_count=0,
+            image_count=0,
+            focused_image_ordinal=None,
+            confirmed_profile_fields=(),
+        ),
+    )
+    decision = UnifiedRouteDecision(
+        processor="safety_escalation",
+        responsibility=Responsibility.SAFETY_ESCALATION,
+        presentation_mode="consultation",
+        continuity="continue",
+        focus_source="consultation",
+    )
+
+    result = _execute(
+        flow,
+        _turn(message, version=3),
+        meaning=meaning,
+        understanding=understanding,
+        snapshot=snapshot,
+        route_decision=decision,
+    )
+
+    assert result.state_delta.consultation.action == "preserve"
+    escalation = next(
+        event
+        for event in result.audit_events
+        if isinstance(event, MedicalEscalationEvent)
+    )
+    assert escalation.data.conclusion == medical_assessment.conclusion
+    assert conversation_state.load(snapshot.session_id) is None
+    assert profile_state.load(_OWNER) is None

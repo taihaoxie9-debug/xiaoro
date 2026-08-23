@@ -9,7 +9,6 @@ from app.guide_runtime.llm_config import (
     GuideLlmConfig,
     GuideLlmConfigError,
     GuideLlmConfigErrorCode,
-    GuideRuntimeFlags,
 )
 
 
@@ -31,35 +30,13 @@ def _clear_environment(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv(name, raising=False)
 
 
-def test_unified_router_defaults_disabled(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.delenv(
-        "GUIDE_UNIFIED_ROUTER_ENABLED",
-        raising=False,
-    )
+def test_production_configuration_has_no_legacy_router_switch() -> None:
+    source = (
+        _REPO_ROOT / "app" / "guide_runtime" / "llm_config.py"
+    ).read_text(encoding="utf-8")
 
-    assert GuideRuntimeFlags.from_environment().unified_router is False
-
-
-def test_unified_router_accepts_explicit_true(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("GUIDE_UNIFIED_ROUTER_ENABLED", "true")
-
-    assert GuideRuntimeFlags.from_environment().unified_router is True
-
-
-def test_unified_router_rejects_unknown_boolean(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("GUIDE_UNIFIED_ROUTER_ENABLED", "sometimes")
-
-    with pytest.raises(
-        ValueError,
-        match="GUIDE_UNIFIED_ROUTER_ENABLED",
-    ):
-        GuideRuntimeFlags.from_environment()
+    assert "GUIDE_UNIFIED_ROUTER_ENABLED" not in source
+    assert "GuideRuntimeFlags" not in source
 
 
 def test_default_configuration_is_disabled_and_model_unselected(

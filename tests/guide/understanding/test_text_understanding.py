@@ -25,7 +25,7 @@ from app.guide.understanding.contracts import (
 
 
 def understand():
-    from app.guide.understanding.text_understanding import understand_text
+    from tests.guide.legacy_text_understanding import understand_text
 
     return understand_text
 
@@ -139,7 +139,9 @@ def test_clear_chinese_budget_becomes_exact_constraint(
         ("百来块的防晒", "100 到 199"),
         ("几百上下的防晒", "200 到 900"),
         ("几百块上下的防晒", "200 到 900"),
+        ("两三百左右的精华", "200 到 300"),
         ("250 左右的防晒", "225 到 275"),
+        ("预算大概五百的防晒", "450 到 550"),
         ("三张以内的防晒", "300 元以内"),
     ),
 )

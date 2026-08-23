@@ -65,6 +65,9 @@ def task_plan_to_query_context(
     ]
     return RecommendationQueryContext(
         category=category.value.value,
+        recommendation_mode=task.recommendation_mode,
+        recommendation_mode_basis=task.recommendation_mode_basis,
+        recommendation_count=task.recommendation_count,
         budget_minimum=budget.minimum if budget else None,
         budget_maximum=budget.maximum if budget else None,
         skin=skin.value.value if skin else None,

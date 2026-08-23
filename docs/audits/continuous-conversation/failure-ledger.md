@@ -1572,3 +1572,152 @@ shortfall: 25
 
 No further paid semantic call was started after this calculation. The CNY 18
 stop, retry 0, format repair 0, and copywriter cap 55 remain unchanged.
+
+## 2026-08-18 Resume Audit: Image Anchor Topic And Captured Meaning
+
+The resumed audit prioritized mixed image/text switching before any new paid
+semantic call. A zero-API image-focused regression exposed a real image-chain
+boundary defect:
+
+```text
+test: test_single_image_anchor_topic_clears_missing_category_issue
+earliest layer: route_selection / image processor admission boundary
+message: 找两款相似的，预算150以内，更清爽一点
+initial behavior: confirmed single image -> unified route clarification
+expected behavior: confirmed image category supplies the missing topic and
+  the normal image recommendation processor executes
+```
+
+Root cause:
+
+```text
+_stream_single_image called route_unified_turn before computing the confirmed
+image anchor category. When the text understanding carried missing_category,
+the Router returned a TOPIC clarification and the later anchor-topic repair
+logic never ran.
+```
+
+General correction:
+
+```text
+For a confirmed single image, compute the code-owned anchor category before
+handling Router clarification. Only a TOPIC clarification can be deferred, and
+only when the confirmed image has an admitted category. Other clarifications
+and safety escalation still fail closed exactly as before.
+```
+
+The same audit also found a fixture/test evidence defect, not a production
+defect:
+
+```text
+test: test_local_runtime_product_interruption_returns_to_consultation
+trajectory: consult-product-interruption-t5
+fixture message: 按目前观察给我选轻薄修护精华
+incorrect captured meaning: budget_candidates contained 三百以内
+independent proof: the fixture text contains no budget; exact parsing admits
+  category=serum and efficacy=repair, but no budget
+```
+
+Correction:
+
+```text
+Remove the nonexistent budget candidate from the captured test meaning. With
+the corrected captured meaning, the turn routes to recommendation, advances to
+version 5, and returns the expected card identity set (39, 91, 38).
+```
+
+Verification:
+
+```text
+image exact RED -> GREEN: 1 passed
+image flow suite: 37 passed
+image-focused cross-module suite: 57 passed
+pending-turn regression: 32 passed
+consult-product-interruption exact replay: 1 passed
+Task 10 focused zero-API preflight: 459 passed
+bounded preflight summary:
+  /private/tmp/xiaoro-task10-focused-3-summary.json
+V12 partial-capture zero-API replay after image fix:
+  captured turns: 30
+  replayed turns: 30
+  replay_passed: true
+  provider calls: 0
+  zero-tolerance counters: all 0
+  artifact:
+    docs/audits/continuous-conversation/backend-fixed-self-only-20x5-replay-after-image-anchor-v1.json
+  results_sha256:
+    9d928d3c114b9ee82e333b24e5073618e5332eb015d81e749e6057e18d30b694
+provider calls: 0
+copywriter calls: 0
+git diff --check: clean
+```
+
+## 2026-08-18 Image Chain Architecture Unification
+
+The user clarified that image handling must not remain a separate business
+chain. The approved architecture says images are context and identity inputs
+to normal recommendation, product-knowledge/suitability, and comparison
+processors, not an isolated answer system.
+
+Independent audit findings:
+
+```text
+single-image similarity:
+  old behavior: ImageRecommendationOrchestrator performed recall/ranking/cards
+  itself and did not call the standard text processor.
+
+single-image suitability:
+  old behavior: ImageRecommendationOrchestrator used SingleImageSuitabilityGate
+  and emitted an image-specific suitability decision instead of delegating to
+  the normal product_knowledge/suitability processor.
+
+multi-image routing:
+  old behavior: two confirmed image bindings could force comparison even when
+  the semantic operation was recommendation or clarification.
+```
+
+General correction:
+
+```text
+Keep image_identity as the only image-specific business output.
+After confirmed image identity, delegate recommendation, suitability,
+product knowledge, follow-up, and comparison to the standard processor.
+The image layer supplies code-owned product bindings, image citations, and
+similarity anchors. It no longer owns recommendation or suitability decisions.
+The Router no longer infers comparison from image count alone; comparison
+requires an explicit comparison operation.
+```
+
+Frontend integration decision:
+
+```text
+The frontend may still receive image_observation and image citations, and may
+still render image_identity. For recommendation/suitability/comparison after
+image binding, it consumes the normal presentation contracts. The image origin
+is preserved as context, not as a separate renderer contract.
+```
+
+Verification:
+
+```text
+RED:
+  image similarity standard_processor calls: 0
+  image suitability standard_processor calls: 0
+  recommendation + two images routed as comparison
+  ambiguous + two images routed as comparison
+
+GREEN:
+  image_recommendation_flow + unified_router: 87 passed
+  image/text/frontend focused suites: 53 passed, 26 passed, 6 passed
+  Task 10 focused zero-API preflight: 463 passed
+  V12 partial-capture replay:
+    captured turns: 30
+    replayed turns: 30
+    replay_passed: true
+    provider calls: 0
+    zero-tolerance counters: all 0
+    artifact:
+      docs/audits/continuous-conversation/backend-fixed-self-only-20x5-replay-image-unified-v1.json
+    results_sha256:
+      422e15cebc91e49e3547fe3e232985a612a59772cbe964ccbd35d0ef854dc1c0
+```

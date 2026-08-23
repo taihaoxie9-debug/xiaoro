@@ -51,20 +51,8 @@ state = guide.reduceGuideEvent(state, {{
     copy_source: 'fallback',
     sections: [
       {{ kind: 'summary', copy_text: 'summary' }},
-      {{
-        kind: 'product',
-        copy_text: 'product copy',
-        slot_id: 'p1',
-        product_id: 55,
-        direct_facts: [],
-      }},
-      {{
-        kind: 'closing',
-        copy_text: '回看{{{{product:p1}}}}',
-      }},
-      {{ kind: 'pitfalls' }},
+      {{ kind: 'judgement', copy_text: '使用判断' }},
       {{ kind: 'full_cards' }},
-      {{ kind: 'evidence' }},
     ],
     card_display: {{
       mode: 'single',
@@ -105,15 +93,12 @@ process.stdout.write(JSON.stringify({{
     assert result == {
         "sections": [
             "summary",
-            "product",
-            "closing",
-            "pitfalls",
+            "judgement",
             "full_cards",
-            "evidence",
         ],
-        "inline": [55],
+        "inline": [],
         "full": [55],
-        "refs": [{"slot_id": "p1", "product_id": 55}],
+        "refs": [],
         "stages": [],
     }
 

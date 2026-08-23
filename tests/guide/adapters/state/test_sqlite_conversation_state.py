@@ -15,11 +15,16 @@ from pydantic import ValidationError
 from app.guide.feedback.consultation_state import ConsultationSubstate
 from app.guide.feedback.contracts import (
     ClarificationProgress,
+    ConsultationSlotState,
     ConversationSnapshot,
     DisplayedCandidateRef,
+    KnowledgeSlotState,
+    PendingClarificationSlot,
+    ProductSlotState,
     RecommendationQueryContext,
+    RecommendationSlotState,
 )
-from app.guide.feedback.focus_state import FocusState
+from app.guide.feedback.focus_state import ActiveFocus
 from app.guide.feedback.ports import (
     ConversationStateConflict,
     ConversationStateCorrupt,
@@ -30,6 +35,7 @@ from app.guide.feedback.session_profile import (
     StableTendencyUpdate,
     reduce_session_profile,
 )
+from app.guide.intent.responsibility_matrix import Responsibility
 from app.guide.understanding.contracts import TopicCode
 from app.guide.understanding.semantic_contracts import ClarificationCode
 
@@ -59,27 +65,35 @@ def _recommendation(
         session_id=session_id,
         version=version,
         profile_owner=owner,
-        query_context=RecommendationQueryContext(
-            category=category,
-            budget_minimum=Decimal("100.50"),
-            budget_maximum=Decimal("500"),
-            skin="sensitive",
-            efficacy="repair" if category == "serum" else None,
-            exclusions=["酒精", "香精"],
+        active_owner=Responsibility.RECOMMENDATION,
+        active_focus=ActiveFocus(
+            slot="recommendation",
+            ordinal=focused_candidate_ordinal,
         ),
-        candidates=[
-            DisplayedCandidateRef(
-                product_id=visible_product_id,
-                ordinal=ordinal,
-                skin_match="matched",
-                matched_efficacies=["修护", "保湿"],
-            )
-            for ordinal, visible_product_id in enumerate(
-                visible_product_ids,
-                start=1,
-            )
-        ],
-        focused_candidate_ordinal=focused_candidate_ordinal,
+        recommendation_slot=RecommendationSlotState(
+            query_context=RecommendationQueryContext(
+                category=category,
+                recommendation_mode_basis="broad_exploration",
+                budget_minimum=Decimal("100.50"),
+                budget_maximum=Decimal("500"),
+                skin="sensitive",
+                efficacy="repair" if category == "serum" else None,
+                exclusions=["酒精", "香精"],
+            ),
+            candidates=tuple(
+                DisplayedCandidateRef(
+                    product_id=visible_product_id,
+                    ordinal=ordinal,
+                    skin_match="matched",
+                    matched_efficacies=["修护", "保湿"],
+                )
+                for ordinal, visible_product_id in enumerate(
+                    visible_product_ids,
+                    start=1,
+                )
+            ),
+            focused_candidate_ordinal=focused_candidate_ordinal,
+        ),
     )
 
 
@@ -130,6 +144,19 @@ def _multiprocess_create(
         results.put("saved")
 
 
+def test_bool_expected_version_is_rejected(tmp_path: Path) -> None:
+    state = _state(tmp_path)
+
+    with pytest.raises(
+        ValueError,
+        match="expected_version must be a non-negative integer",
+    ):
+        state.save(
+            _recommendation(session_id="bool-version"),
+            expected_version=False,
+        )
+
+
 def test_delete_is_atomic_owner_scoped_and_idempotent(
     tmp_path: Path,
 ) -> None:
@@ -154,10 +181,6 @@ def test_delete_is_atomic_owner_scoped_and_idempotent(
                     source_turn_id="turn_delete_profile_0002",
                     conversation_version=1,
                 ).profile,
-                "focus_state": FocusState(
-                    active_processor="recommendation",
-                    current_product_id=91,
-                ),
             },
             deep=True,
         ),
@@ -165,7 +188,7 @@ def test_delete_is_atomic_owner_scoped_and_idempotent(
     )
 
     assert state.load(stored.session_id).session_profile is not None
-    assert state.load(stored.session_id).focus_state is not None
+    assert state.load(stored.session_id).active_focus is not None
     assert not state.delete(
         stored.session_id,
         expected_owner=foreign,
@@ -192,9 +215,11 @@ def test_deep_json_round_trip_and_restart(tmp_path: Path) -> None:
     active = first.model_copy(
         update={
             "version": 2,
-            "consultation": ConsultationSubstate(
-                started_at_conversation_version=2,
-                observations=[],
+            "consultation_slot": ConsultationSlotState(
+                state=ConsultationSubstate(
+                    started_at_conversation_version=2,
+                    observations=[],
+                )
             ),
         },
         deep=True,
@@ -209,15 +234,22 @@ def test_deep_json_round_trip_and_restart(tmp_path: Path) -> None:
 
     assert loaded == saved
     assert loaded is not saved
-    assert loaded.query_context is not saved.query_context
+    assert (
+        loaded.recommendation_slot
+        is not saved.recommendation_slot
+    )
     payload = loaded.model_dump(mode="json")
-    assert payload["query_context"]["budget_minimum"] == "100.50"
-    assert isinstance(payload["query_context"]["exclusions"], list)
-    assert isinstance(payload["candidates"], list)
-    assert isinstance(payload["consultation"]["observations"], list)
+    query = payload["recommendation_slot"]["query_context"]
+    assert query["budget_minimum"] == "100.50"
+    assert isinstance(query["exclusions"], list)
+    assert isinstance(payload["recommendation_slot"]["candidates"], list)
+    assert isinstance(
+        payload["consultation_slot"]["state"]["observations"],
+        list,
+    )
 
 
-def test_restart_round_trips_focus_state(tmp_path: Path) -> None:
+def test_restart_round_trips_active_product_focus(tmp_path: Path) -> None:
     state = _state(tmp_path)
     current = _recommendation(
         session_id="focus-restart",
@@ -225,12 +257,26 @@ def test_restart_round_trips_focus_state(tmp_path: Path) -> None:
         focused_candidate_ordinal=2,
     ).model_copy(
         update={
-            "focus_state": FocusState(
-                active_processor="product_knowledge",
-                current_product_id=55,
-                current_knowledge_topic="防晒补涂",
-                last_question_meaning="询问第二款补涂方式",
-            )
+            "active_owner": Responsibility.PRODUCT_KNOWLEDGE,
+            "active_focus": ActiveFocus(
+                slot="product",
+                object_id=55,
+            ),
+            "product_slot": ProductSlotState(
+                products=(
+                    DisplayedCandidateRef(
+                        product_id=55,
+                        ordinal=1,
+                        skin_match="matched",
+                        matched_efficacies=("修护",),
+                    ),
+                ),
+                focused_product_id=55,
+            ),
+            "knowledge_slot": KnowledgeSlotState(
+                question="询问第二款补涂方式",
+                evidence_ids=(),
+            ),
         },
         deep=True,
     )
@@ -243,9 +289,9 @@ def test_restart_round_trips_focus_state(tmp_path: Path) -> None:
     loaded = restarted.load(stored.session_id)
 
     assert loaded == stored
-    assert loaded.focus_state is not None
-    assert loaded.focus_state.current_product_id == 55
-    assert loaded.focus_state.current_knowledge_topic == "防晒补涂"
+    assert loaded.active_focus.object_id == 55
+    assert loaded.product_slot.focused_product_id == 55
+    assert loaded.knowledge_slot.question == "询问第二款补涂方式"
 
 
 def test_restart_round_trips_clarification_only_state(
@@ -256,9 +302,13 @@ def test_restart_round_trips_clarification_only_state(
         ConversationSnapshot(
             session_id="clarification-restart",
             version=1,
-            clarification=ClarificationProgress(
-                gap=ClarificationCode.REFERENCE,
-                attempts=1,
+            active_owner=Responsibility.CLARIFICATION,
+            active_focus=ActiveFocus(slot="reply"),
+            reply_slot=PendingClarificationSlot(
+                value=ClarificationProgress(
+                    gap=ClarificationCode.REFERENCE,
+                    attempts=1,
+                )
             ),
         ),
         expected_version=0,
@@ -272,7 +322,10 @@ def test_restart_round_trips_clarification_only_state(
     loaded = restarted.load(stored.session_id)
 
     assert loaded == stored
-    assert loaded.clarification.gap is ClarificationCode.REFERENCE
+    assert (
+        loaded.reply_slot.value.gap
+        is ClarificationCode.REFERENCE
+    )
 
 
 def test_restart_round_trips_general_knowledge_focus(
@@ -283,11 +336,15 @@ def test_restart_round_trips_general_knowledge_focus(
         ConversationSnapshot(
             session_id="knowledge-restart",
             version=1,
-            focused_general_knowledge_ids=(
-                "a" * 64,
-                "b" * 64,
+            active_owner=Responsibility.GENERAL_KNOWLEDGE,
+            active_focus=ActiveFocus(slot="knowledge"),
+            knowledge_slot=KnowledgeSlotState(
+                evidence_ids=(
+                    "a" * 64,
+                    "b" * 64,
+                ),
+                question="SPF是什么意思",
             ),
-            last_general_knowledge_question="SPF是什么意思",
         ),
         expected_version=0,
     )
@@ -299,27 +356,31 @@ def test_restart_round_trips_general_knowledge_focus(
     loaded = restarted.load(stored.session_id)
 
     assert loaded == stored
-    assert loaded.focused_general_knowledge_ids == (
+    assert loaded.knowledge_slot.evidence_ids == (
         "a" * 64,
         "b" * 64,
     )
-    assert loaded.last_general_knowledge_question == "SPF是什么意思"
+    assert loaded.knowledge_slot.question == "SPF是什么意思"
 
 
 def test_general_knowledge_focus_ids_must_be_sorted_unique() -> None:
     with pytest.raises(
         ValidationError,
-        match="general knowledge IDs must be sorted and unique",
+        match="knowledge evidence IDs must be sorted and unique",
     ):
         ConversationSnapshot(
             session_id="invalid-knowledge-focus",
             version=1,
-            focused_general_knowledge_ids=(
-                "b" * 64,
-                "a" * 64,
-                "b" * 64,
+            active_owner=Responsibility.GENERAL_KNOWLEDGE,
+            active_focus=ActiveFocus(slot="knowledge"),
+            knowledge_slot=KnowledgeSlotState(
+                evidence_ids=(
+                    "b" * 64,
+                    "a" * 64,
+                    "b" * 64,
+                ),
+                question="继续问",
             ),
-            last_general_knowledge_question="继续问",
         )
 
 
@@ -333,9 +394,13 @@ def test_clarification_state_must_start_at_first_attempt(
             ConversationSnapshot(
                 session_id="invalid-clarification-start",
                 version=1,
-                clarification=ClarificationProgress(
-                    gap=ClarificationCode.TOPIC,
-                    attempts=2,
+                active_owner=Responsibility.CLARIFICATION,
+                active_focus=ActiveFocus(slot="reply"),
+                reply_slot=PendingClarificationSlot(
+                    value=ClarificationProgress(
+                        gap=ClarificationCode.TOPIC,
+                        attempts=2,
+                    )
                 ),
             ),
             expected_version=0,
@@ -362,81 +427,21 @@ def test_four_candidate_round_trip_preserves_order_and_cas(
 
     assert loaded == current
     assert loaded is not current
-    assert [item.ordinal for item in loaded.candidates] == [1, 2, 3, 4]
-    assert [item.product_id for item in loaded.candidates] == [
+    candidates = loaded.recommendation_slot.candidates
+    assert [item.ordinal for item in candidates] == [1, 2, 3, 4]
+    assert [item.product_id for item in candidates] == [
         91,
         38,
         55,
         72,
     ]
-    assert loaded.focused_candidate_ordinal == 4
+    assert loaded.recommendation_slot.focused_candidate_ordinal == 4
     with pytest.raises(ConversationStateConflict):
         restarted.save(
             current.model_copy(update={"version": 2}, deep=True),
             expected_version=0,
         )
     assert restarted.load(current.session_id) == current
-
-
-def test_restart_loads_legacy_row_without_candidate_focus(
-    tmp_path: Path,
-) -> None:
-    state = _state(tmp_path)
-    current = state.save(_recommendation(), expected_version=0)
-    with state._storage.connect() as connection:
-        connection.execute("BEGIN IMMEDIATE")
-        payload = json.loads(
-            connection.execute(
-                """
-                SELECT snapshot_json
-                FROM conversations
-                WHERE session_id = ?
-                """,
-                (current.session_id,),
-            ).fetchone()[0]
-        )
-        del payload["focused_candidate_ordinal"]
-        connection.execute(
-            """
-            UPDATE conversations
-            SET snapshot_json = ?
-            WHERE session_id = ?
-            """,
-            (
-                json.dumps(payload, ensure_ascii=False),
-                current.session_id,
-            ),
-        )
-        connection.commit()
-
-    restarted = type(state)(
-        state.database_path,
-        trusted_state_root=state.database_path.parent,
-    )
-    loaded = restarted.load(current.session_id)
-
-    assert loaded is not None
-    assert loaded.focused_candidate_ordinal is None
-    saved = restarted.save(
-        loaded.model_copy(update={"version": 2}, deep=True),
-        expected_version=1,
-    )
-    assert saved.focused_candidate_ordinal is None
-
-    with restarted._storage.connect() as connection:
-        stored_payload = json.loads(
-            connection.execute(
-                """
-                SELECT snapshot_json
-                FROM conversations
-                WHERE session_id = ?
-                """,
-                (current.session_id,),
-            ).fetchone()[0]
-        )
-    assert stored_payload["focused_candidate_ordinal"] is None
-
-
 @pytest.mark.parametrize("topic", list(TopicCode))
 def test_restart_round_trips_every_topic_code(
     tmp_path: Path,
@@ -458,8 +463,11 @@ def test_restart_round_trips_every_topic_code(
     loaded = restarted.load(saved.session_id)
 
     assert loaded is not None
-    assert loaded.query_context is not None
-    assert loaded.query_context.category == topic.value
+    assert loaded.recommendation_slot is not None
+    assert (
+        loaded.recommendation_slot.query_context.category
+        == topic.value
+    )
 
 
 def test_optimistic_cas_rejects_stale_writer_after_restart(
@@ -998,3 +1006,295 @@ def test_adapter_has_no_second_consultation_authority() -> None:
     assert "ConversationStatePort" not in source
     assert "ConsultationStatePort" not in source
     assert "ConsultationSnapshot" not in source
+
+
+_LEGACY_V1_SCHEMA = """
+CREATE TABLE conversations (
+    session_id TEXT NOT NULL PRIMARY KEY,
+    snapshot_version INTEGER NOT NULL CHECK (snapshot_version >= 1),
+    owner_scope TEXT CHECK (
+        owner_scope IS NULL OR owner_scope IN (
+            'authenticated_user',
+            'local_demo',
+            'anonymous_browser'
+        )
+    ),
+    owner_subject_id TEXT,
+    snapshot_json TEXT NOT NULL,
+    CHECK (
+        (owner_scope IS NULL AND owner_subject_id IS NULL)
+        OR
+        (owner_scope IS NOT NULL AND owner_subject_id IS NOT NULL)
+    )
+)
+"""
+_V2_SNAPSHOT_KEYS = {
+    "session_id",
+    "version",
+    "profile_owner",
+    "session_profile",
+    "active_owner",
+    "active_focus",
+    "recommendation_slot",
+    "product_slot",
+    "image_slot",
+    "consultation_slot",
+    "knowledge_slot",
+    "reply_slot",
+}
+
+
+def _legacy_v1_payload(
+    session_id: str,
+    *,
+    include_recommendation_basis: bool,
+) -> dict[str, object]:
+    query = RecommendationQueryContext(
+        category="serum",
+        recommendation_mode="explore",
+        recommendation_mode_basis="broad_exploration",
+        recommendation_count=2,
+        budget_minimum=Decimal("100"),
+        budget_maximum=Decimal("500"),
+    ).model_dump(mode="json")
+    if not include_recommendation_basis:
+        del query["recommendation_mode_basis"]
+    return {
+        "session_id": session_id,
+        "version": 1,
+        "profile_owner": None,
+        "session_profile": None,
+        "focus_state": {
+            "active_processor": (
+                "recommendation"
+                if include_recommendation_basis
+                else "consultation"
+            ),
+            "current_product_id": None,
+            "confirmed_image_products": [
+                {
+                    "image_ordinal": 1,
+                    "product_id": 53,
+                    "variant_scope": None,
+                }
+            ],
+            "current_knowledge_topic": "防晒补涂",
+            "last_question_meaning": "防晒为什么需要补涂",
+        },
+        "has_image_delivery": True,
+        "query_context": query,
+        "empty_result": False,
+        "candidates": [
+            DisplayedCandidateRef(
+                product_id=91,
+                ordinal=1,
+                skin_match="matched",
+                matched_efficacies=("修护",),
+            ).model_dump(mode="json"),
+            DisplayedCandidateRef(
+                product_id=38,
+                ordinal=2,
+                skin_match="matched",
+                matched_efficacies=("保湿",),
+            ).model_dump(mode="json"),
+        ],
+        "focused_candidate_ordinal": 1,
+        "focused_evidence_ids": ["a" * 64],
+        "focused_general_knowledge_ids": ["b" * 64],
+        "last_general_knowledge_question": "防晒为什么需要补涂",
+        "consultation": ConsultationSubstate(
+            started_at_conversation_version=1,
+        ).model_dump(mode="json"),
+        "clarification": None,
+        "pending_turn": None,
+    }
+
+
+def _create_schema_v1_database(
+    database_path: Path,
+    payloads: tuple[dict[str, object], ...],
+) -> None:
+    database_path.parent.mkdir(mode=0o700, parents=True)
+    with sqlite3.connect(database_path) as connection:
+        connection.execute(_LEGACY_V1_SCHEMA)
+        connection.execute("PRAGMA application_id = 1481786198")
+        connection.execute("PRAGMA user_version = 1")
+        connection.executemany(
+            """
+            INSERT INTO conversations (
+                session_id,
+                snapshot_version,
+                owner_scope,
+                owner_subject_id,
+                snapshot_json
+            )
+            VALUES (?, ?, NULL, NULL, ?)
+            """,
+            [
+                (
+                    payload["session_id"],
+                    payload["version"],
+                    json.dumps(
+                        payload,
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                    ),
+                )
+                for payload in payloads
+            ],
+        )
+        connection.commit()
+    os.chmod(database_path, 0o600)
+
+
+def _current_v2_payload(session_id: str) -> dict[str, object]:
+    return {
+        "session_id": session_id,
+        "version": 1,
+        "profile_owner": None,
+        "session_profile": None,
+        "active_owner": "recommendation",
+        "active_focus": {
+            "slot": "recommendation",
+            "object_id": None,
+            "ordinal": None,
+        },
+        "recommendation_slot": {
+            "kind": "recommendation",
+            "query_context": RecommendationQueryContext(
+                category="serum",
+                recommendation_mode="explore",
+                recommendation_mode_basis="broad_exploration",
+                recommendation_count=2,
+            ).model_dump(mode="json"),
+            "candidates": [
+                DisplayedCandidateRef(
+                    product_id=91,
+                    ordinal=1,
+                    skin_match="unknown",
+                    matched_efficacies=(),
+                ).model_dump(mode="json"),
+                DisplayedCandidateRef(
+                    product_id=38,
+                    ordinal=2,
+                    skin_match="unknown",
+                    matched_efficacies=(),
+                ).model_dump(mode="json"),
+            ],
+            "empty_result": False,
+            "focused_candidate_ordinal": None,
+        },
+        "product_slot": None,
+        "image_slot": None,
+        "consultation_slot": None,
+        "knowledge_slot": None,
+        "reply_slot": None,
+    }
+
+
+def test_schema_v1_rows_are_atomically_migrated_to_v2(
+    tmp_path: Path,
+) -> None:
+    database_path = tmp_path / "state" / "conversations.sqlite3"
+    payloads = (
+        _legacy_v1_payload(
+            "legacy-valid-recommendation",
+            include_recommendation_basis=True,
+        ),
+        _legacy_v1_payload(
+            "legacy-missing-basis",
+            include_recommendation_basis=False,
+        ),
+    )
+    _create_schema_v1_database(database_path, payloads)
+
+    state = _state(tmp_path)
+
+    with state._storage.connect() as connection:
+        assert connection.execute(
+            "PRAGMA user_version"
+        ).fetchone() == (2,)
+        migrated_rows = {
+            session_id: json.loads(snapshot_json)
+            for session_id, snapshot_json in connection.execute(
+                """
+                SELECT session_id, snapshot_json
+                FROM conversations
+                ORDER BY session_id
+                """
+            ).fetchall()
+        }
+
+    assert set(migrated_rows) == {
+        "legacy-valid-recommendation",
+        "legacy-missing-basis",
+    }
+    assert all(
+        set(payload) == _V2_SNAPSHOT_KEYS
+        for payload in migrated_rows.values()
+    )
+    assert (
+        migrated_rows["legacy-valid-recommendation"][
+            "recommendation_slot"
+        ]
+        is not None
+    )
+    assert (
+        migrated_rows["legacy-missing-basis"]["recommendation_slot"]
+        is None
+    )
+    assert (
+        migrated_rows["legacy-missing-basis"]["consultation_slot"]
+        is not None
+    )
+    assert state.load("legacy-valid-recommendation") is not None
+    assert state.load("legacy-missing-basis") is not None
+
+
+def test_current_schema_load_does_not_invoke_legacy_dual_read(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.guide.adapters.state import sqlite_conversation_state
+
+    state = _state(tmp_path)
+    payload = _current_v2_payload("current-v2-no-dual-read")
+    with state._storage.connect() as connection:
+        connection.execute("BEGIN IMMEDIATE")
+        connection.execute(
+            """
+            INSERT INTO conversations (
+                session_id,
+                snapshot_version,
+                owner_scope,
+                owner_subject_id,
+                snapshot_json
+            )
+            VALUES (?, ?, NULL, NULL, ?)
+            """,
+            (
+                payload["session_id"],
+                payload["version"],
+                json.dumps(
+                    payload,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                ),
+            ),
+        )
+        connection.commit()
+
+    def fail_legacy_dual_read(_payload):
+        raise AssertionError("runtime load invoked legacy migration")
+
+    monkeypatch.setattr(
+        sqlite_conversation_state,
+        "migrate_legacy_conversation_snapshot_payload",
+        fail_legacy_dual_read,
+        raising=False,
+    )
+
+    loaded = state.load("current-v2-no-dual-read")
+
+    assert loaded is not None
+    assert loaded.model_dump(mode="json") == payload

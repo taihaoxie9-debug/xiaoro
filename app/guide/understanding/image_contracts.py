@@ -8,6 +8,7 @@ from pydantic import (
     ConfigDict,
     Field,
     StringConstraints,
+    field_validator,
     model_validator,
 )
 
@@ -135,6 +136,36 @@ class OcrIdentityObservation(_StrictFrozenContract):
         return self
 
 
+class OcrTraceLine(_StrictFrozenContract):
+    text: NonEmptyString
+    confidence: float = Field(ge=0.0, le=1.0)
+
+
+class OcrIdentityTrace(_StrictFrozenContract):
+    engine: NonEmptyString
+    engine_version: NonEmptyString | None = None
+    minimum_evidence_confidence: float = Field(ge=0.0, le=1.0)
+    lines: tuple[OcrTraceLine, ...] = ()
+    evidence_line_count: int = Field(ge=0)
+
+    @field_validator("lines", mode="before")
+    @classmethod
+    def freeze_lines(cls, value: object) -> object:
+        return tuple(value) if isinstance(value, list) else value
+
+    @model_validator(mode="after")
+    def validate_evidence_count(self) -> Self:
+        expected = sum(
+            line.confidence >= self.minimum_evidence_confidence
+            for line in self.lines
+        )
+        if self.evidence_line_count != expected:
+            raise ValueError(
+                "OCR evidence line count must match the trace threshold"
+            )
+        return self
+
+
 class ImageIdentityObservation(_StrictFrozenContract):
     image_id: OpaqueImageId
     observation_state: ObservationState
@@ -209,7 +240,6 @@ class ImageIdentityObservation(_StrictFrozenContract):
             IdentityState.NO_CANDIDATE,
             IdentityState.INSUFFICIENT_CANDIDATES,
             IdentityState.LOW_CONFIDENCE,
-            IdentityState.AMBIGUOUS_CANDIDATES,
             IdentityState.NON_CANONICAL_CANDIDATE,
             IdentityState.CANONICAL_IDENTITY_UNAVAILABLE,
         }
@@ -323,5 +353,78 @@ class ImageIdentityObservation(_StrictFrozenContract):
             raise ValueError(
                 "identity_state must be OCR_CONFLICT exactly when an "
                 "OCR conflict exists"
+            )
+        return self
+
+
+class ImageIdentityTrace(_StrictFrozenContract):
+    visual: VisualCandidateObservation
+    ocr_observation: OcrIdentityObservation
+    ocr_diagnostic: OcrIdentityTrace
+    observation: ImageIdentityObservation
+    minimum_similarity: float = Field(ge=-1.0, le=1.0)
+    minimum_margin: float = Field(gt=0.0, le=2.0)
+
+    @model_validator(mode="after")
+    def validate_shared_observation(self) -> Self:
+        if self.observation.visual_state is not self.visual.state:
+            raise ValueError(
+                "identity trace visual observation does not match"
+            )
+        if (
+            self.observation.ocr_state is not self.ocr_observation.state
+            or self.observation.ocr_brand_consistency
+            is not self.ocr_observation.brand_consistency
+            or self.observation.ocr_product_name_consistency
+            is not self.ocr_observation.product_name_consistency
+        ):
+            raise ValueError(
+                "identity trace OCR observation does not match"
+            )
+
+        result = self.visual.result
+        if result is None:
+            if self.observation.candidate_product_ids:
+                raise ValueError(
+                    "identity trace unavailable visual forbids candidates"
+                )
+            return self
+
+        candidate_ids = tuple(
+            candidate.product_id for candidate in result.candidates
+        )
+        confidence = (
+            result.candidates[0].similarity
+            if result.candidates
+            else None
+        )
+        margin = (
+            result.candidates[0].similarity
+            - result.candidates[1].similarity
+            if len(result.candidates) >= 2
+            else None
+        )
+        metadata = (
+            result.model_name,
+            result.weights_sha256,
+            result.preprocessing_version,
+            result.vector_dimension,
+            result.index_sha256,
+        )
+        observed_metadata = (
+            self.observation.model_name,
+            self.observation.weights_sha256,
+            self.observation.preprocessing_version,
+            self.observation.vector_dimension,
+            self.observation.index_sha256,
+        )
+        if (
+            self.observation.candidate_product_ids != candidate_ids
+            or self.observation.visual_confidence != confidence
+            or self.observation.similarity_margin != margin
+            or observed_metadata != metadata
+        ):
+            raise ValueError(
+                "identity trace visual result does not match"
             )
         return self

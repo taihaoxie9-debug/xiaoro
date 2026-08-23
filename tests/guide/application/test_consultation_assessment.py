@@ -15,6 +15,19 @@ from app.guide.understanding.consultation_questions import (
 )
 
 
+def test_observable_questions_have_fixed_auditable_order() -> None:
+    questions = observable_questions()
+
+    assert tuple(question.code for question in questions) == (
+        "post_cleanse_tightness",
+        "t_zone_oiliness",
+        "recurrent_redness",
+        "stinging",
+        "flaking",
+    )
+    assert all(question.prompt.strip() for question in questions)
+
+
 def _consultation(
     answers: Sequence[ObservationAnswer],
 ) -> ConsultationSubstate:

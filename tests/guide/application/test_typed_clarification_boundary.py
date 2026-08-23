@@ -3,13 +3,12 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from app.guide.adapters.state import InMemoryConversationState
-from app.guide.application.chat_api_adapter import (
-    PublicEventCommitConversationState,
-    commit_http_event_delivery,
-    iter_guide_public_events,
+import pytest
+
+from app.guide.application.public_event_envelope import (
+    materialize_guide_public_events,
 )
-from app.guide.application.contracts import UserTurn
+from app.guide.application.contracts import TurnIdentity, UserTurn
 from app.guide.presentation.sse_events import (
     ClarifyData,
     ClarifyEvent,
@@ -26,90 +25,85 @@ from app.guide.understanding.semantic_contracts import ClarificationCode
 ROOT = Path(__file__).resolve().parents[3]
 
 
-def _persist_clarification(
-    *,
-    session_id: str,
-    question: str,
-    code: ClarificationCode,
-) -> tuple[list[tuple[str, dict[str, object]]], ClarificationCode]:
-    state = InMemoryConversationState()
+def test_fit_clarification_proof_is_all_or_nothing() -> None:
+    with pytest.raises(
+        ValueError,
+        match="fit clarification proof must be complete",
+    ):
+        ClarifyData(
+            question="请补充一个更明确的使用场景。",
+            clarification_code=ClarificationCode.GOAL,
+            intended_responsibility="recommendation",
+        )
 
-    class ClarificationOrchestrator:
-        _conversation_state = PublicEventCommitConversationState(state)
 
+def test_fit_clarification_proof_records_typed_selection_gap() -> None:
+    data = ClarifyData(
+        question="请补充一个更明确的使用场景。",
+        clarification_code=ClarificationCode.GOAL,
+        intended_responsibility="recommendation",
+        intended_recommendation_mode="fit",
+        clarification_basis="fit_selection_evidence_gap",
+        fit_gap_stage="decision_selection",
+        fit_decision_status="INSUFFICIENT_FOR_WINNER",
+        fit_candidate_count=2,
+        fit_evidence_ref_count=1,
+        fit_public_fact_count=0,
+    )
+
+    assert data.fit_gap_stage == "decision_selection"
+    assert data.fit_decision_status == "INSUFFICIENT_FOR_WINNER"
+
+
+def test_public_fit_clarification_preserves_typed_selection_gap() -> None:
+    class FitClarificationOrchestrator:
         def stream(self, turn):
             yield StartEvent(data=StartData(session_id=turn.session_id))
             yield IntentEvent(data=IntentData(mode="clarify"))
             yield ClarifyEvent(
                 data=ClarifyData(
-                    question=question,
-                    clarification_code=code,
+                    question="请补充一个更明确的使用场景。",
+                    clarification_code=ClarificationCode.GOAL,
+                    intended_responsibility="recommendation",
+                    intended_recommendation_mode="fit",
+                    clarification_basis="fit_selection_evidence_gap",
+                    fit_gap_stage="decision_selection",
+                    fit_decision_status="INSUFFICIENT_FOR_WINNER",
+                    fit_candidate_count=2,
+                    fit_evidence_ref_count=1,
+                    fit_public_fact_count=0,
                 )
             )
-            yield EndEvent(
-                data=EndData(
-                    conversation_version=turn.conversation_version
-                )
-            )
+            yield EndEvent(data=EndData(conversation_version=1))
 
     events = list(
-        iter_guide_public_events(
-            ClarificationOrchestrator(),
-            UserTurn(
-                session_id=session_id,
-                message="原始文本故意不参与 code 选择",
-                conversation_version=0,
+        materialize_guide_public_events(
+            FitClarificationOrchestrator().stream(
+                UserTurn(
+                    identity=TurnIdentity(
+                        session_id="fit-proof",
+                        request_id="request_fit_proof",
+                        turn_id="turn_fit_proof",
+                    ),
+                    session_id="fit-proof",
+                    message="请选一款适合我的",
+                    conversation_version=0,
+                )
             ),
+            session_id="fit-proof",
         )
     )
-    commit_http_event_delivery(events[-1])
-    stored = state.load(session_id)
-    assert stored is not None
-    assert stored.clarification is not None
-    return events, stored.clarification.gap
 
-
-def test_new_clarification_copy_persists_typed_code_without_public_tuple_change(
-) -> None:
-    events, stored_code = _persist_clarification(
-        session_id="typed-new-copy",
-        question="这是一条此前从未登记过的新追问文案。",
-        code=ClarificationCode.CONCERN,
+    assert events[2][1]["fit_gap_stage"] == "decision_selection"
+    assert events[2][1]["fit_decision_status"] == (
+        "INSUFFICIENT_FOR_WINNER"
     )
-
-    assert events[2] == (
-        "message",
-        {
-            "content": "这是一条此前从未登记过的新追问文案。",
-            "done": False,
-            "clarify": True,
-        },
-    )
-    assert events[-1] == ("end", {"conversation_version": 1})
-    assert stored_code is ClarificationCode.CONCERN
-
-
-def test_same_clarification_copy_persists_each_distinct_typed_code() -> None:
-    question = "同一显示文案不能决定澄清类型。"
-
-    _, first_code = _persist_clarification(
-        session_id="typed-same-copy-goal",
-        question=question,
-        code=ClarificationCode.GOAL,
-    )
-    _, second_code = _persist_clarification(
-        session_id="typed-same-copy-budget",
-        question=question,
-        code=ClarificationCode.BUDGET,
-    )
-
-    assert first_code is ClarificationCode.GOAL
-    assert second_code is ClarificationCode.BUDGET
+    assert events[2][1]["fit_candidate_count"] == 2
 
 
 def test_public_api_boundary_has_no_parser_or_question_code_map() -> None:
     paths = [
-        ROOT / "app/guide/application/chat_api_adapter.py",
+        ROOT / "app/guide/application/public_event_envelope.py",
         *sorted((ROOT / "app/guide_runtime").rglob("*.py")),
     ]
     violations: list[str] = []

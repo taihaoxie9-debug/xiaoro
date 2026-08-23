@@ -1,0 +1,310 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:127:net-content:30ml-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "30ml",
+      "review_rationale": "来源标题、参数、长图第2张、Canonical与参考价SKU均为L1 OSLO 30ml，规格价格完成同SKU对齐。",
+      "sku_status": "exact_product_exact_l1_oslo_30ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:8091efb19b749ca6b7e31501520c7c641a17c1cfc80d3e1706c292308b3da1b6",
+        "smzdm-browser-body:c3c2264228dfe1808a6c8ba091ae2d7c954183769184d086b5fd60997cd93850"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:127:shade:l1-oslo-pink-fair-v1",
+      "field_key": "shade",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "L1 OSLO 粉调一白",
+      "review_rationale": "来源标题、参数和长图第3、9张都明确L1为粉调一白，可作为精确SKU选色知识。",
+      "sku_status": "exact_product_exact_l1_oslo_30ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 9,
+      "source_refs": [
+        "smzdm-detail-image:a9b2363fa79ab27113d12e00dc6c8f4785214bf9e03ec8df49ddff30942bc8ab",
+        "smzdm-detail-image:e7aeacf33a6d7b49bfee9826f6567018b7e5213f2d12fdf743adb6c3060ca533",
+        "smzdm-browser-body:c3c2264228dfe1808a6c8ba091ae2d7c954183769184d086b5fd60997cd93850"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:127:finish:radiant-v1",
+      "field_key": "finish",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "亮泽自然妆效",
+      "review_rationale": "参数表明确妆效为亮泽，长图第1张也将超方瓶描述为轻薄水润、细腻服帖的亮泽路线；现有底妆父概念没有准确的亮泽收尾，保留为单品知识。",
+      "sku_status": "exact_product_exact_l1_oslo_30ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:183b10ca8fe6c4437414dad234e411d888fe727423c6b9256d7fa2d3931edc41",
+        "smzdm-browser-body:c3c2264228dfe1808a6c8ba091ae2d7c954183769184d086b5fd60997cd93850"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.lightweight",
+      "decision": "map",
+      "fact_id": "reviewed:product:127:texture:light-moisturizing-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "轻薄水润、细腻服帖",
+      "review_rationale": "长图第1、5、14张明确描述超方瓶轻薄水润、细腻服帖和保湿不卡粉，可映射轻薄质地方向；不保留卡粉绝对保证。",
+      "sku_status": "exact_product_exact_l1_oslo_30ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:183b10ca8fe6c4437414dad234e411d888fe727423c6b9256d7fa2d3931edc41",
+        "smzdm-detail-image:27c78ffdfd2586b52f19e95a1a0655af0969ef6376ded89c47fa48d0e67afb23",
+        "smzdm-detail-image:250453decd3676295ddf3694b659d6f51677421e1fddf4ebcb7dab15598923fd"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "longevity.anti_darkening",
+      "decision": "map",
+      "fact_id": "reviewed:product:127:longevity:anti-darkening-v1",
+      "field_key": "longevity",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "持色不易暗沉方向",
+      "review_rationale": "长图第1、2、7张反复将超方瓶定位为抗暗沉和持色不易暗沉，可映射抗暗沉持妆方向；不采用16小时量化值。",
+      "sku_status": "exact_product_exact_l1_oslo_30ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 7,
+      "source_refs": [
+        "smzdm-detail-image:c335b59c95c9e9baefa6a5bac56bbfb14a9a0b2e02d63fc2d4389272ccd3a95d",
+        "smzdm-detail-image:183b10ca8fe6c4437414dad234e411d888fe727423c6b9256d7fa2d3931edc41",
+        "smzdm-detail-image:8091efb19b749ca6b7e31501520c7c641a17c1cfc80d3e1706c292308b3da1b6"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:127:longevity:16h-without-footnote-v1",
+      "field_key": "longevity",
+      "promotion_status": "rejected",
+      "public_text": "16小时保湿、持妆和持色不暗沉",
+      "review_rationale": "长图第2、5、6、7张使用16H上标，但本批原图没有对应样本、环境、方法或脚注，不能发布量化时长。",
+      "sku_status": "exact_product_exact_l1_oslo_30ml_unverified_quantified_claim",
+      "source_kind": "detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:8091efb19b749ca6b7e31501520c7c641a17c1cfc80d3e1706c292308b3da1b6",
+        "smzdm-detail-image:27c78ffdfd2586b52f19e95a1a0655af0969ef6376ded89c47fa48d0e67afb23",
+        "smzdm-detail-image:3441893e050ecae13b30d45c020ffdc0627eb754a093f843ba9058148122f54a",
+        "smzdm-detail-image:c335b59c95c9e9baefa6a5bac56bbfb14a9a0b2e02d63fc2d4389272ccd3a95d"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:127:finish:soft-matte-editorial-mix-v1",
+      "field_key": "finish",
+      "promotion_status": "rejected",
+      "public_text": "柔雾Soft Matte底妆与外部编辑测评信息",
+      "review_rationale": "长图第16、17张混入柔雾Soft Matte产品对比和外部编辑/测评内容，不是当前L1 OSLO超方瓶的单一来源事实。",
+      "sku_status": "cross_product_or_editorial_images_outside_super_square",
+      "source_kind": "detail_image",
+      "source_ordinal": 16,
+      "source_refs": [
+        "smzdm-detail-image:e4930c5016836a74682da66e54487c55bba7c372a512aeeec2b341caf0fe2f36",
+        "smzdm-detail-image:48932704177ed43a021f966a9d9da9d82396e8f623b2b2bc5df5c4e6423ea59e"
+      ]
+    }
+  ],
+  "canonical_identity": "NARS亮采持妆粉底液L1 30ml遮瑕持妆",
+  "canonical_sku_scope": "canonical_single_product_30ml",
+  "canonical_specification": "L1 OSLO 30ml",
+  "captured_at": "2026-08-19T21:59:37.912Z",
+  "category_profile": "base_makeup",
+  "detail_image_count": 17,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 600,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/001_183b10ca8fe6c443.jpg",
+      "ordinal": 1,
+      "sha256": "183b10ca8fe6c4437414dad234e411d888fe727423c6b9256d7fa2d3931edc41",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/002_8091efb19b749ca6.jpg",
+      "ordinal": 2,
+      "sha256": "8091efb19b749ca6b7e31501520c7c641a17c1cfc80d3e1706c292308b3da1b6",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/003_e7aeacf33a6d7b49.jpg",
+      "ordinal": 3,
+      "sha256": "e7aeacf33a6d7b49bfee9826f6567018b7e5213f2d12fdf743adb6c3060ca533",
+      "width": 600
+    },
+    {
+      "height": 1086,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/004_7f1cc61ba588a88f.jpg",
+      "ordinal": 4,
+      "sha256": "7f1cc61ba588a88fdae8828c290efac5cba723d3e8545e111fe867af68b9175e",
+      "width": 600
+    },
+    {
+      "height": 1139,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/005_27c78ffdfd2586b5.jpg",
+      "ordinal": 5,
+      "sha256": "27c78ffdfd2586b52f19e95a1a0655af0969ef6376ded89c47fa48d0e67afb23",
+      "width": 600
+    },
+    {
+      "height": 1094,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/006_3441893e050ecae1.jpg",
+      "ordinal": 6,
+      "sha256": "3441893e050ecae13b30d45c020ffdc0627eb754a093f843ba9058148122f54a",
+      "width": 600
+    },
+    {
+      "height": 1001,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/007_c335b59c95c9e9ba.jpg",
+      "ordinal": 7,
+      "sha256": "c335b59c95c9e9baefa6a5bac56bbfb14a9a0b2e02d63fc2d4389272ccd3a95d",
+      "width": 600
+    },
+    {
+      "height": 921,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/008_545794cc19631df6.jpg",
+      "ordinal": 8,
+      "sha256": "545794cc19631df6d14edc966f77018b369c87ea2bb28466382fd30e63a3e70d",
+      "width": 600
+    },
+    {
+      "height": 917,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/009_a9b2363fa79ab271.jpg",
+      "ordinal": 9,
+      "sha256": "a9b2363fa79ab27113d12e00dc6c8f4785214bf9e03ec8df49ddff30942bc8ab",
+      "width": 600
+    },
+    {
+      "height": 923,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/010_01cf029d23c5c51d.jpg",
+      "ordinal": 10,
+      "sha256": "01cf029d23c5c51dc94468735d7d3bbd1f39c3df6345eb0cb3958c27414c7f22",
+      "width": 600
+    },
+    {
+      "height": 923,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/011_773fcb14f1ba3c03.jpg",
+      "ordinal": 11,
+      "sha256": "773fcb14f1ba3c03deb3b469c07d6d877a2ecf8d102309ec1789bfc77c31a450",
+      "width": 600
+    },
+    {
+      "height": 930,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/012_7e955cbc174ab623.jpg",
+      "ordinal": 12,
+      "sha256": "7e955cbc174ab623c1a4f04c9babce1307151c004aafc6a9b906527a9d578711",
+      "width": 600
+    },
+    {
+      "height": 932,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/013_b4f9904769d15ac4.jpg",
+      "ordinal": 13,
+      "sha256": "b4f9904769d15ac4451f32a734bd8c4f6c1f6f7572a524c39b3ee6dd59e0cf65",
+      "width": 600
+    },
+    {
+      "height": 456,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/014_250453decd367629.jpg",
+      "ordinal": 14,
+      "sha256": "250453decd3676295ddf3694b659d6f51677421e1fddf4ebcb7dab15598923fd",
+      "width": 600
+    },
+    {
+      "height": 747,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/015_4da6f5df9d5b86c8.jpg",
+      "ordinal": 15,
+      "sha256": "4da6f5df9d5b86c88e26b3290b93863d995a78743271237632bd972350cf30a5",
+      "width": 600
+    },
+    {
+      "height": 3394,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/016_e4930c5016836a74.jpg",
+      "ordinal": 16,
+      "sha256": "e4930c5016836a74682da66e54487c55bba7c372a512aeeec2b341caf0fe2f36",
+      "width": 600
+    },
+    {
+      "height": 3414,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/127/017_48932704177ed43a.jpg",
+      "ordinal": 17,
+      "sha256": "48932704177ed43a021f966a9d9da9d82396e8f623b2b2bc5df5c4e6423ea59e",
+      "width": 600
+    }
+  ],
+  "introduction_text": "平滑有纹理的皮肤，并有助于掩盖瑕疵、黑斑和发红。",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "finish",
+    "texture"
+  ],
+  "parameter_text": "色号颜色\nL1\n规格\n30ml\n国产/进口\n进口\n商品名称\n流光美肌粉底液\n商品产地\n美国\n是否防晒\n否\n批准文号\n国妆网备进字（沪）2021500809\n规格类型\n正常规格\n是否为特殊用途化妆品\n否\n保质期\n3年\n类别\n粉底液\n功效\n修饰肤色;提亮肤色\n妆效\n亮泽",
+  "portfolio_role": "radiant_foundation",
+  "product_id": 127,
+  "review_field_policy": [
+    "net_content",
+    "shade",
+    "finish",
+    "coverage",
+    "longevity",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "L1 OSLO 30ml",
+    "display_specification": "L1 OSLO 30ml",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "aligned",
+    "reference_price_sku": "L1 OSLO 30ml",
+    "source_sku": "L1 OSLO 30ml"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "c3c2264228dfe1808a6c8ba091ae2d7c954183769184d086b5fd60997cd93850",
+  "source_product_title": "NARS 纳斯 超方瓶 流光美肌粉底液 #L1 OSLO 30ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "NARS 纳斯 超方瓶 流光美肌粉底液 #L1 OSLO 30ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/e56znp1/"
+}

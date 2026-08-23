@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from decimal import Decimal
+from hashlib import sha256
 import json
 import multiprocessing
 import os
@@ -17,49 +18,197 @@ from app.guide.adapters.state import (
     InMemoryImageBundleState,
     SqliteConversationState,
 )
-from app.guide.application.chat_api_adapter import (
-    PublicEventCommitConversationState,
-    commit_http_event_delivery,
-    iter_guide_public_events,
-)
-from app.guide.application.contracts import UserTurn
+from app.guide.application.contracts import TurnIdentity, UserTurn
 from app.guide.application.image_bundle_service import ImageBundleService
 from app.guide.feedback.ports import ConversationStateConflict
 from app.guide.feedback.contracts import (
+    KnowledgeSlotState,
+    PendingClarificationSlot,
+    ProductSlotState,
+    RecommendationSlotState,
     ConversationSnapshot,
     DisplayedCandidateRef,
     RecommendationQueryContext,
 )
-from app.guide.feedback.focus_state import FocusState
+from app.guide.feedback.focus_state import ActiveFocus
+from app.guide.intent.responsibility_matrix import Responsibility
 from app.guide.retrieval.image_contracts import ApprovedImageModelLock
 from app.guide.understanding.semantic_contracts import ClarificationCode
+from app.guide.understanding.turn_meaning_contracts import TurnMeaning
 from app.guide_runtime.composition import (
     REPO_ROOT,
     build_consultation_vertical_runtime as _build_consultation_vertical_runtime,
-    build_image_recommendation_orchestrator,
-    build_runtime_orchestrator as _build_runtime_orchestrator,
     conversation_database_path,
     guide_state_directory,
     guide_image_runtime_lock,
 )
-from app.guide_runtime.sse import iterate_http_events_in_threadpool
-from tests.guide.semantic_test_port import ExactEchoSemanticPort
-
-
-SCOPE_NOTICE = (
-    "当前支持护肤、防晒、底妆、彩妆、洁面/卸妆和香水导购。"
-    "请明确品类、预算、肤质，或指出要比较的商品。"
+from app.guide_runtime.sse import (
+    iterate_http_events_in_threadpool,
 )
 
 
-def build_runtime_orchestrator(*args, **kwargs):
-    kwargs.setdefault("semantic_intent", ExactEchoSemanticPort())
-    return _build_runtime_orchestrator(*args, **kwargs)
+class CrossWorkerTurnMeaningPort:
+    def propose(self, message, context) -> TurnMeaning:
+        del context
+        if message == "第二款呢":
+            return TurnMeaning(
+                operation_hint="followup",
+                topic_hint=None,
+                continuity_hint="continue",
+                subject_scope_hint="self",
+                reference_mentions=(
+                    {
+                        "raw_text": "第二款",
+                        "object_family_hint": "product",
+                        "ordinal_hint": 2,
+                        "plurality_hint": "single",
+                    },
+                ),
+                question_meaning="继续查看第二款",
+                safety_language="ordinary",
+            )
+        if message.startswith("预算降到"):
+            amount = message.removeprefix("预算降到").removesuffix("元呢")
+            return TurnMeaning(
+                operation_hint="followup",
+                topic_hint=None,
+                continuity_hint="continue",
+                subject_scope_hint="self",
+                reference_mentions=(
+                    {
+                        "raw_text": "预算",
+                        "object_family_hint": "constraint",
+                        "ordinal_hint": None,
+                        "plurality_hint": "single",
+                    },
+                ),
+                budget_candidates=(
+                    {
+                        "raw_text": f"{amount}元",
+                        "relation": "maximum",
+                        "minimum": None,
+                        "maximum": amount,
+                    },
+                ),
+                question_meaning=f"把原推荐预算上限改为{amount}元",
+                safety_language="ordinary",
+            )
+        if message == "150元以内找相似款":
+            return TurnMeaning(
+                operation_hint="image_similarity",
+                recommendation_mode="explore",
+                recommendation_count=None,
+                recommendation_mode_basis={
+                    "basis": "similar_alternatives",
+                    "source_text": "相似款",
+                },
+                topic_hint="sunscreen",
+                continuity_hint="new_task",
+                subject_scope_hint="self",
+                reference_mentions=(
+                    {
+                        "raw_text": "相似款",
+                        "object_family_hint": "image",
+                        "ordinal_hint": 1,
+                        "plurality_hint": "single",
+                    },
+                ),
+                budget_candidates=(
+                    {
+                        "raw_text": "150元以内",
+                        "relation": "maximum",
+                        "minimum": None,
+                        "maximum": "150",
+                    },
+                ),
+                question_meaning="查找预算内的相似防晒",
+                safety_language="ordinary",
+            )
+        if message == "帮我看看":
+            return TurnMeaning(
+                operation_hint="clarification",
+                topic_hint=None,
+                continuity_hint="unknown",
+                subject_scope_hint="self",
+                question_meaning="需求不完整",
+                safety_language="ordinary",
+            )
+        budget_text = next(
+            (
+                value
+                for value in ("500 元内", "100元内", "0 元以内")
+                if value in message
+            ),
+            None,
+        )
+        return TurnMeaning(
+            operation_hint="recommendation",
+            recommendation_mode="explore",
+            recommendation_count=None,
+            recommendation_mode_basis={
+                "basis": (
+                    "bounded_exploration"
+                    if budget_text is not None
+                    else "broad_exploration"
+                ),
+                "source_text": budget_text or "防晒",
+            },
+            topic_hint="serum" if "精华" in message else "sunscreen",
+            continuity_hint="new_task",
+            subject_scope_hint="self",
+            budget_candidates=(
+                (
+                    {
+                        "raw_text": budget_text,
+                        "relation": "maximum",
+                        "minimum": None,
+                        "maximum": (
+                            "500"
+                            if budget_text == "500 元内"
+                            else "100"
+                            if budget_text == "100元内"
+                            else "0"
+                        ),
+                    },
+                )
+                if budget_text is not None
+                else ()
+            ),
+            question_meaning=message,
+            safety_language="ordinary",
+        )
 
 
 def build_consultation_vertical_runtime(*args, **kwargs):
-    kwargs.setdefault("semantic_intent", ExactEchoSemanticPort())
+    kwargs.setdefault(
+        "semantic_intent",
+        CrossWorkerTurnMeaningPort(),
+    )
     return _build_consultation_vertical_runtime(*args, **kwargs)
+
+
+def build_unified_runtime(*args, **kwargs):
+    return build_consultation_vertical_runtime(
+        *args,
+        **kwargs,
+    ).unified
+
+
+def _turn_identity(
+    *,
+    session_id: str,
+    version: int,
+    channel: str,
+    discriminator: str,
+) -> TurnIdentity:
+    digest = sha256(
+        f"{session_id}\0{version}\0{channel}\0{discriminator}".encode()
+    ).hexdigest()
+    return TurnIdentity(
+        session_id=session_id,
+        request_id=f"request_{digest}",
+        turn_id=f"turn_{digest}",
+    )
 
 
 def _turn(
@@ -70,6 +219,12 @@ def _turn(
     profile_owner=None,
 ) -> UserTurn:
     return UserTurn(
+        identity=_turn_identity(
+            session_id=session_id,
+            version=version,
+            channel="text",
+            discriminator=message,
+        ),
         session_id=session_id,
         message=message,
         image_bundle_id=None,
@@ -82,9 +237,22 @@ def _public_events(
     orchestrator,
     turn: UserTurn,
 ) -> list[tuple[str, dict]]:
-    return list(
-        iter_guide_public_events(orchestrator, turn)
-    )
+    return _decode_frames(orchestrator.stream(turn))
+
+
+def _decode_frames(frames) -> list[tuple[str, dict]]:
+    events = []
+    for frame in frames:
+        event_line, data_line, _ = frame.split(b"\n", maxsplit=2)
+        events.append(
+            (
+                event_line.removeprefix(b"event: ").decode("ascii"),
+                json.loads(
+                    data_line.removeprefix(b"data: ").decode("utf-8")
+                ),
+            )
+        )
+    return events
 
 
 def _deliver(
@@ -93,8 +261,15 @@ def _deliver(
 ) -> list[tuple[str, dict]]:
     events = _public_events(orchestrator, turn)
     assert events[-1][0] in {"end", "error"}
-    if events[-1][0] == "end":
-        commit_http_event_delivery(events[-1])
+    return events
+
+
+def _deliver_image(
+    unified,
+    turn: UserTurn,
+) -> list[tuple[str, dict]]:
+    events = _decode_frames(unified.stream_image(turn))
+    assert events[-1][0] in {"end", "error"}
     return events
 
 
@@ -103,12 +278,18 @@ def _terminal_version(events: list[tuple[str, dict]]) -> int:
     return int(events[-1][1]["conversation_version"])
 
 
+def _clarification(snapshot: ConversationSnapshot):
+    return (
+        snapshot.reply_slot.value
+        if isinstance(snapshot.reply_slot, PendingClarificationSlot)
+        else None
+    )
+
+
 def _sqlite_delegate(orchestrator) -> SqliteConversationState:
     state = orchestrator._conversation_state
-    assert isinstance(state, PublicEventCommitConversationState)
-    delegate = state._delegate
-    assert isinstance(delegate, SqliteConversationState)
-    return delegate
+    assert isinstance(state, SqliteConversationState)
+    return state
 
 
 def _process_text_turn(
@@ -118,7 +299,7 @@ def _process_text_turn(
     results,
 ) -> None:
     try:
-        orchestrator = build_runtime_orchestrator(
+        orchestrator = build_unified_runtime(
             state_dir=state_dir,
         )
         events = _deliver(
@@ -163,7 +344,7 @@ def _process_text_turn_from_environment(
     try:
         os.chdir(cwd)
         os.environ["XIAORO_GUIDE_STATE_DIR"] = state_dir
-        orchestrator = build_runtime_orchestrator()
+        orchestrator = build_unified_runtime()
         events = _deliver(
             orchestrator,
             _turn(message, version=version),
@@ -259,6 +440,12 @@ def _image_turn(
         ],
     )
     return UserTurn(
+        identity=_turn_identity(
+            session_id=session_id,
+            version=version,
+            channel="image",
+            discriminator=receipt.bundle_id,
+        ),
         session_id=session_id,
         message="150元以内找相似款",
         image_bundle_id=receipt.bundle_id,
@@ -274,7 +461,7 @@ def test_runtime_uses_trusted_conversation_database(
 ) -> None:
     state_root = tmp_path / "trusted-state"
 
-    orchestrator = build_runtime_orchestrator(
+    orchestrator = build_unified_runtime(
         state_dir=state_root,
     )
 
@@ -300,7 +487,7 @@ def test_explicit_state_directory_precedes_environment(
         environment_root / "conversations.sqlite3"
     )
 
-    orchestrator = build_runtime_orchestrator(
+    orchestrator = build_unified_runtime(
         state_dir=explicit_root,
     )
 
@@ -329,10 +516,9 @@ def test_environment_state_directory_rejects_empty_or_relative_paths(
 @pytest.mark.parametrize(
     "factory",
     [
-        build_runtime_orchestrator,
         build_consultation_vertical_runtime,
     ],
-    ids=["text", "consultation"],
+    ids=["consultation"],
 )
 @pytest.mark.parametrize(
     "invalid_state_dir",
@@ -364,8 +550,8 @@ def test_worker_b_follows_worker_a_with_separate_orchestrators(
     tmp_path: Path,
 ) -> None:
     state_root = tmp_path / "shared-state"
-    worker_a = build_runtime_orchestrator(state_dir=state_root)
-    worker_b = build_runtime_orchestrator(state_dir=state_root)
+    worker_a = build_unified_runtime(state_dir=state_root)
+    worker_b = build_unified_runtime(state_dir=state_root)
 
     initial = _deliver(
         worker_a,
@@ -405,32 +591,47 @@ def test_focus_state_survives_two_sqlite_workers_and_stale_cas(
     initial = ConversationSnapshot(
         session_id="cross-worker-focus",
         version=1,
-        query_context=RecommendationQueryContext(
-            category="sunscreen",
-            budget_minimum=None,
-            budget_maximum=Decimal("500"),
-            skin=None,
-            efficacy=None,
-            exclusions=(),
+        active_owner=Responsibility.PRODUCT_KNOWLEDGE,
+        active_focus=ActiveFocus(
+            slot="product",
+            object_id=55,
         ),
-        candidates=(
-            DisplayedCandidateRef(
-                product_id=51,
-                ordinal=1,
-                skin_match="unknown",
-                matched_efficacies=(),
+        recommendation_slot=RecommendationSlotState(
+            query_context=RecommendationQueryContext(
+                category="sunscreen",
+                recommendation_mode_basis="broad_exploration",
+                budget_minimum=None,
+                budget_maximum=Decimal("500"),
+                skin=None,
+                efficacy=None,
+                exclusions=(),
             ),
-            DisplayedCandidateRef(
-                product_id=55,
-                ordinal=2,
-                skin_match="unknown",
-                matched_efficacies=(),
+            candidates=(
+                DisplayedCandidateRef(
+                    product_id=51,
+                    ordinal=1,
+                    skin_match="unknown",
+                    matched_efficacies=(),
+                ),
+                DisplayedCandidateRef(
+                    product_id=55,
+                    ordinal=2,
+                    skin_match="unknown",
+                    matched_efficacies=(),
+                ),
             ),
+            focused_candidate_ordinal=2,
         ),
-        focused_candidate_ordinal=2,
-        focus_state=FocusState(
-            active_processor="product_knowledge",
-            current_product_id=55,
+        product_slot=ProductSlotState(
+            products=(
+                DisplayedCandidateRef(
+                    product_id=55,
+                    ordinal=1,
+                    skin_match="unknown",
+                    matched_efficacies=(),
+                ),
+            ),
+            focused_product_id=55,
         ),
     )
     worker_a.save(initial, expected_version=0)
@@ -439,12 +640,11 @@ def test_focus_state_survives_two_sqlite_workers_and_stale_cas(
     switched = loaded.model_copy(
         update={
             "version": 2,
-            "focus_state": loaded.focus_state.model_copy(
-                update={
-                    "active_processor": "general_knowledge",
-                    "current_knowledge_topic": "视黄醇",
-                },
-                deep=True,
+            "active_owner": Responsibility.GENERAL_KNOWLEDGE,
+            "active_focus": ActiveFocus(slot="knowledge"),
+            "knowledge_slot": KnowledgeSlotState(
+                question="视黄醇是什么",
+                evidence_ids=(),
             ),
         },
         deep=True,
@@ -543,24 +743,24 @@ def test_text_state_survives_two_real_worker_processes(
 
     assert first == ("ok", 1, [38, 91])
     assert second == ("ok", 2, [91])
-    restarted = build_runtime_orchestrator(state_dir=state_root)
+    restarted = build_unified_runtime(state_dir=state_root)
     assert _sqlite_delegate(restarted).load(
         "cross-worker-session"
     ).version == 2
 
 
-def test_staged_workers_use_cas_and_terminal_commit_is_idempotent(
+def test_stale_worker_is_rejected_before_second_cas_save(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     state_root = tmp_path / "cas-state"
-    initial_worker = build_runtime_orchestrator(state_dir=state_root)
+    initial_worker = build_unified_runtime(state_dir=state_root)
     _deliver(
         initial_worker,
         _turn("500 元内敏感肌修护精华", version=0),
     )
-    worker_a = build_runtime_orchestrator(state_dir=state_root)
-    worker_b = build_runtime_orchestrator(state_dir=state_root)
+    worker_a = build_unified_runtime(state_dir=state_root)
+    worker_b = build_unified_runtime(state_dir=state_root)
     save_calls: list[tuple[str, int]] = []
     real_save = SqliteConversationState.save
 
@@ -581,34 +781,36 @@ def test_staged_workers_use_cas_and_terminal_commit_is_idempotent(
         worker_a,
         _turn("预算降到100元呢", version=1),
     )
-    staged_b = _public_events(
+    stale = _public_events(
         worker_b,
         _turn("预算降到200元呢", version=1),
     )
 
-    commit_http_event_delivery(staged_a[-1])
-    commit_http_event_delivery(staged_a[-1])
-    with pytest.raises(ConversationStateConflict):
-        commit_http_event_delivery(staged_b[-1])
-
+    assert staged_a[-1][0] == "end"
+    assert stale[-1] == (
+        "error",
+        {
+            "error": "GUIDE_INTERNAL_ERROR",
+            "message": "推荐暂时不可用，请稍后重试。",
+        },
+    )
     stored = _sqlite_delegate(worker_a).load(
         "cross-worker-session"
     )
     assert stored is not None
     assert stored.version == 2
-    assert str(stored.query_context.budget_maximum) == "100"
-    assert save_calls == [
-        ("cross-worker-session", 1),
-        ("cross-worker-session", 1),
-    ]
+    assert str(
+        stored.recommendation_slot.query_context.budget_maximum
+    ) == "100"
+    assert save_calls == [("cross-worker-session", 1)]
 
 
-def test_clarify_stale_zero_and_error_keep_last_valid_snapshot(
+def test_stale_and_error_keep_state_while_zero_result_commits(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     state_root = tmp_path / "non-mutating-state"
-    first = build_runtime_orchestrator(state_dir=state_root)
+    first = build_unified_runtime(state_dir=state_root)
     _deliver(
         first,
         _turn("500 元内敏感肌修护精华", version=0),
@@ -618,17 +820,14 @@ def test_clarify_stale_zero_and_error_keep_last_valid_snapshot(
     assert before is not None
 
     stale = _deliver(
-        build_runtime_orchestrator(state_dir=state_root),
+        build_unified_runtime(state_dir=state_root),
         _turn("预算降到100元呢", version=0),
     )
-    assert any(
-        event == "message" and data.get("clarify") is True
-        for event, data in stale
-    )
+    assert stale[-1][0] == "error"
     assert state.load("cross-worker-session") == before
 
     zero = _deliver(
-        build_runtime_orchestrator(state_dir=state_root),
+        build_unified_runtime(state_dir=state_root),
         _turn("预算降到50元呢", version=1),
     )
     zero_products = next(
@@ -637,7 +836,10 @@ def test_clarify_stale_zero_and_error_keep_last_valid_snapshot(
         if event == "products"
     )
     assert zero_products == []
-    assert state.load("cross-worker-session") == before
+    after_zero = state.load("cross-worker-session")
+    assert after_zero is not None
+    assert after_zero.version == 2
+    assert after_zero.recommendation_slot.empty_result is True
 
     def broken_retrieval(*args, **kwargs):
         raise RuntimeError("task7 injected retrieval failure")
@@ -650,46 +852,60 @@ def test_clarify_stale_zero_and_error_keep_last_valid_snapshot(
         broken_retrieval,
     )
     failed = _deliver(
-        build_runtime_orchestrator(state_dir=state_root),
-        _turn("预算降到100元呢", version=1),
+        build_unified_runtime(state_dir=state_root),
+        _turn("预算降到100元呢", version=2),
     )
     assert failed[-1][0] == "error"
-    assert state.load("cross-worker-session") == before
+    assert state.load("cross-worker-session") == after_zero
 
 
-def test_cross_worker_clarification_is_bounded_and_success_clears_it(
+def test_cross_worker_clarification_progress_is_bounded_and_success_clears_it(
     tmp_path: Path,
 ) -> None:
     state_root = tmp_path / "clarification-state"
-    worker_a = build_runtime_orchestrator(state_dir=state_root)
-    worker_b = build_runtime_orchestrator(state_dir=state_root)
+    worker_a = build_consultation_vertical_runtime(
+        state_dir=state_root
+    ).unified
+    worker_b = build_consultation_vertical_runtime(
+        state_dir=state_root
+    ).unified
 
     first = _deliver(worker_a, _turn("帮我看看", version=0))
+    first_state = _sqlite_delegate(worker_b).load("cross-worker-session")
     second = _deliver(worker_b, _turn("帮我看看", version=1))
+    second_state = _sqlite_delegate(worker_a).load("cross-worker-session")
     third = _deliver(worker_a, _turn("帮我看看", version=2))
+    third_state = _sqlite_delegate(worker_b).load("cross-worker-session")
 
-    questions = [
+    clarifications = [
         next(
-            data["content"]
+            data
             for event, data in events
-            if event == "message"
+            if event == "clarify"
         )
         for events in (first, second, third)
     ]
-    assert questions[0] != SCOPE_NOTICE
-    assert questions[1] != SCOPE_NOTICE
-    assert questions[2] == SCOPE_NOTICE
+    assert len({
+        item["question"]
+        for item in clarifications
+    }) == 1
+    assert {
+        item["clarification_code"]
+        for item in clarifications
+    } == {ClarificationCode.GOAL.value}
     assert [_terminal_version(events) for events in (first, second, third)] == [
         1,
         2,
         3,
     ]
-    pending = _sqlite_delegate(worker_b).load("cross-worker-session")
-    assert pending is not None
-    assert pending.clarification is not None
-    assert pending.clarification.gap is ClarificationCode.GOAL
-    assert pending.clarification.attempts == 2
-    assert pending.candidates == ()
+    assert first_state is not None
+    assert _clarification(first_state).attempts == 1
+    assert second_state is not None
+    assert _clarification(second_state).attempts == 2
+    assert third_state is not None
+    assert _clarification(third_state).gap is ClarificationCode.GOAL
+    assert _clarification(third_state).attempts == 2
+    assert third_state.recommendation_slot is None
 
     changed_gap = _deliver(
         worker_b,
@@ -697,16 +913,20 @@ def test_cross_worker_clarification_is_bounded_and_success_clears_it(
     )
     changed = _sqlite_delegate(worker_a).load("cross-worker-session")
 
-    assert next(
-        data["content"]
+    changed_clarification = next(
+        data
         for event, data in changed_gap
-        if event == "message"
-    ) != SCOPE_NOTICE
+        if event == "clarify"
+    )
+    assert changed_clarification["question"]
+    assert (
+        changed_clarification["clarification_code"]
+        == ClarificationCode.BUDGET.value
+    )
     assert _terminal_version(changed_gap) == 4
     assert changed is not None
-    assert changed.clarification is not None
-    assert changed.clarification.gap is ClarificationCode.BUDGET
-    assert changed.clarification.attempts == 1
+    assert _clarification(changed).gap is ClarificationCode.BUDGET
+    assert _clarification(changed).attempts == 1
 
     successful = _deliver(
         worker_b,
@@ -716,43 +936,42 @@ def test_cross_worker_clarification_is_bounded_and_success_clears_it(
 
     assert _terminal_version(successful) == 5
     assert saved is not None
-    assert saved.clarification is None
-    assert saved.candidates
+    assert _clarification(saved) is None
+    assert saved.recommendation_slot.candidates
 
 
-def test_clarification_disconnect_does_not_advance_state(
+def test_clarification_state_commits_before_transport_disconnect(
     tmp_path: Path,
 ) -> None:
     state_root = tmp_path / "discard-state"
-    orchestrator = build_runtime_orchestrator(state_dir=state_root)
+    orchestrator = build_consultation_vertical_runtime(
+        state_dir=state_root
+    ).unified
     state = _sqlite_delegate(orchestrator)
 
     clarify = _deliver(
         orchestrator,
-        _turn("第二款呢", version=0),
+        _turn("帮我看看", version=0),
     )
     assert any(
-        event == "message" and data.get("clarify") is True
+        event == "clarify"
         for event, data in clarify
     )
     before = state.load("cross-worker-session")
     assert before is not None
-    assert before.clarification is not None
-    assert before.clarification.gap is ClarificationCode.REFERENCE
-    assert before.clarification.attempts == 1
+    assert _clarification(before).gap is ClarificationCode.GOAL
+    assert _clarification(before).attempts == 1
 
-    interrupted = iter_guide_public_events(
-        orchestrator,
-        _turn(
-            "帮我看看",
-            version=1,
-        ),
-    )
-    assert next(interrupted)[0] == "start"
-    assert next(interrupted)[0] != "end"
+    interrupted_turn = _turn("帮我看看", version=1)
+    interrupted = orchestrator.stream(interrupted_turn)
+    assert next(interrupted).startswith(b"event: start\n")
+    assert not next(interrupted).startswith(b"event: end\n")
     interrupted.close()
 
-    assert state.load("cross-worker-session") == before
+    committed = state.load("cross-worker-session")
+    assert committed is not None
+    assert committed.version == before.version + 1
+    assert _clarification(committed) is not None
 
 
 @pytest.mark.parametrize("first_owner", ["text", "image"])
@@ -762,20 +981,16 @@ def test_text_and_image_share_one_authoritative_sqlite_version_chain(
 ) -> None:
     state_root = tmp_path / f"{first_owner}-image-state"
     session_id = f"cross-{first_owner}-image-session"
-    consultation = build_consultation_vertical_runtime(
-        state_dir=state_root,
-    )
-    profile_owner = consultation.profile_owner(session_id)
-    text = build_runtime_orchestrator(state_dir=state_root)
     image_bundles = ImageBundleService(
         state=InMemoryImageBundleState(max_bundles=2)
     )
-    image = build_image_recommendation_orchestrator(
-        repo_root=REPO_ROOT,
+    consultation = build_consultation_vertical_runtime(
+        state_dir=state_root,
         image_bundle_service=image_bundles,
-        consultation_runtime=consultation,
-        encoder=_StoredVectorEncoder(53),
+        image_encoder=_StoredVectorEncoder(53),
     )
+    profile_owner = consultation.profile_owner(session_id)
+    text = consultation.unified
     image_turn = _image_turn(
         image_bundles,
         session_id=session_id,
@@ -790,9 +1005,21 @@ def test_text_and_image_share_one_authoritative_sqlite_version_chain(
     )
 
     first, second = (
-        (_deliver(text, text_turn), _deliver(image, image_turn))
+        (
+            _deliver(text, text_turn),
+            _deliver_image(
+                consultation.unified,
+                image_turn,
+            ),
+        )
         if first_owner == "text"
-        else (_deliver(image, image_turn), _deliver(text, text_turn))
+        else (
+            _deliver_image(
+                consultation.unified,
+                image_turn,
+            ),
+            _deliver(text, text_turn),
+        )
     )
 
     assert [
@@ -800,14 +1027,13 @@ def test_text_and_image_share_one_authoritative_sqlite_version_chain(
         _terminal_version(second),
     ] == [1, 2]
     assert _sqlite_delegate(text).database_path == (
-        _sqlite_delegate(image).database_path
-    )
-    assert _sqlite_delegate(image).database_path == (
         consultation.conversation_state.database_path
     )
     stored = consultation.conversation_state.load(session_id)
     assert stored is not None
     assert stored.version == 2
+    assert stored.recommendation_slot is not None
+    assert stored.image_slot is not None
 
 
 def test_runtime_sqlite_io_stays_in_threadpool(
@@ -841,27 +1067,22 @@ def test_runtime_sqlite_io_stays_in_threadpool(
         "save",
         recording_save,
     )
-    orchestrator = build_runtime_orchestrator(state_dir=state_root)
+    orchestrator = build_unified_runtime(state_dir=state_root)
 
     async def exercise() -> int:
         event_loop_thread = get_ident()
         events = [
             event
             async for event in iterate_http_events_in_threadpool(
-                iter_guide_public_events(
-                    orchestrator,
+                orchestrator.stream(
                     _turn(
                         "500 元内敏感肌修护精华",
                         session_id="threadpool-session",
                         version=0,
-                    ),
+                    )
                 )
             )
         ]
-        await asyncio.to_thread(
-            commit_http_event_delivery,
-            events[-1],
-        )
         return event_loop_thread
 
     loop_thread = asyncio.run(exercise())
@@ -874,7 +1095,7 @@ def test_no_second_conversation_authority_is_created(
     tmp_path: Path,
 ) -> None:
     state_root = tmp_path / "single-authority-state"
-    text = build_runtime_orchestrator(state_dir=state_root)
+    text = build_unified_runtime(state_dir=state_root)
     consultation = build_consultation_vertical_runtime(
         state_dir=state_root,
     )

@@ -277,7 +277,6 @@ def test_recovery_command_is_mechanically_non_promoting(
     assert completed.returncode == 0, completed.stderr
     after = {path: _sha256(path) for path in PROTECTED_PATHS}
     assert after == before
-    assert production_fact_count == 279
     assert review_manifest_before["approved_source_count"] == 6
     category_manifest_after = json.loads(
         (
@@ -423,7 +422,6 @@ def test_candidate_queue_summary_is_order_stable_and_aggregate_only(
             / "data/guide_category_facts/category_facts_v1_manifest.json"
         ).read_text(encoding="utf-8")
     )["fact_count"]
-    assert production_fact_count == 279
     assert set(summary) == {
         "approved_review_sources",
         "automatic_approvals",

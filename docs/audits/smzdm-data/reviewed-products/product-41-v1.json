@@ -1,0 +1,260 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:41:net_content:30ml-50ml-combo-v1",
+      "field_key": "net_content",
+      "promotion_status": "rejected",
+      "public_text": "30ml+50ml组合装",
+      "review_rationale": "来源是30ml+50ml组合装，Canonical单品规格和参考价SKU均未锁定，不能覆盖展示规格或组合参考价。",
+      "sku_status": "pack_variant_canonical_and_price_unresolved",
+      "source_kind": "product_title_and_parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:6636d9399299129da55b67c637762636b759f2692ce9fb84c2e7a9938077e1f1"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:41:ingredients:niacinamide-tranexamic-acid-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "烟酰胺与传明酸",
+      "review_rationale": "第7张长图明确列出烟酰胺与传明酸；不采纳双通路、黑素模型或抗糖抗氧矩阵机制。",
+      "sku_status": "exact_product_pack_variant",
+      "source_kind": "detail_image",
+      "source_ordinal": 7,
+      "source_refs": [
+        "smzdm-detail-image:eccd7b07ff0df653f28f7912211087fb2dd12d615bd32cd6f922531c9757e38a"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.refreshing",
+      "decision": "map",
+      "fact_id": "reviewed:product:41:texture:watery-gel-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "轻触化水的清透水凝质地",
+      "review_rationale": "第10张长图明确描述轻触化水、清透水凝和易吸收肤感；不采用700人主观认同作为事实依据。",
+      "sku_status": "exact_product_pack_variant",
+      "source_kind": "detail_image",
+      "source_ordinal": 10,
+      "source_refs": [
+        "smzdm-detail-image:6e55219d12452cc45084d1de9a1182e9fee8973b4e8d6c2ee93cc0c261a78dff"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.brightening",
+      "decision": "map",
+      "fact_id": "reviewed:product:41:efficacy:brightening-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "美白与提亮方向",
+      "review_rationale": "产品名称和结构化参数明确美白方向；不保留2小时、28天、百分比或靶点实验结论。",
+      "sku_status": "exact_product_pack_variant",
+      "source_kind": "product_title_and_parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:6636d9399299129da55b67c637762636b759f2692ce9fb84c2e7a9938077e1f1"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:41:usage:press-shake-apply-v1",
+      "field_key": "usage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "按压泵头后摇匀，取2至3滴均匀涂抹面部",
+      "review_rationale": "第11张长图给出当前双仓包装的使用步骤；替换芯和小样的操作不并入正装用法。",
+      "sku_status": "exact_product_pack_variant",
+      "source_kind": "detail_image",
+      "source_ordinal": 11,
+      "source_refs": [
+        "smzdm-detail-image:2b90c42f172c239694888c9a0e1f2b8a295a30b4b1315367c8bf3473ba6c6651"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:41:efficacy:quantified-target-mechanisms-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "时效、百分比与Nrf2/GLO-1靶点机制",
+      "review_rationale": "第2至9张长图包含2小时、28天、人体测试百分比、黑素模型和分子靶点机制，不进入公开事实。",
+      "sku_status": "exact_product_pack_variant",
+      "source_kind": "detail_images",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:dd533a843ddec343cb4c9e5fc01a443f6a6be3eef9990df9b1d5e233a517d2ba",
+        "smzdm-detail-image:dc3b47e46bc1bcb368b3309deb5f4911c2ecb03248f88557175b5917a12672f7",
+        "smzdm-detail-image:3c507b3265a799cdbbf7cd1f5d06d1d85d5fa4bfb51de1e0258911ae0dcdd89d",
+        "smzdm-detail-image:81ea946c65bbaedccdcafdac56d9c101cf6cddc63518617640b4ba06c1937ffd",
+        "smzdm-detail-image:749e18f0be5d93b6f0fe2fbfaefa486d452328a51619b4ce9b998ea02f15f45a"
+      ]
+    }
+  ],
+  "canonical_identity": "珀莱雅双抗焕白净亮精华液",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T18:11:59.815Z",
+  "category_profile": "skincare",
+  "detail_image_count": 14,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 888,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/41/001_2c9cd52480b4d83a.webp",
+      "ordinal": 1,
+      "sha256": "2c9cd52480b4d83aa00514ca2343968b9e13003858fcc5f90fe3faeea47a3d81",
+      "width": 600
+    },
+    {
+      "height": 661,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/41/002_dd533a843ddec343.webp",
+      "ordinal": 2,
+      "sha256": "dd533a843ddec343cb4c9e5fc01a443f6a6be3eef9990df9b1d5e233a517d2ba",
+      "width": 600
+    },
+    {
+      "height": 1161,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/41/003_96552efd36764726.webp",
+      "ordinal": 3,
+      "sha256": "96552efd36764726f38adf511b21889733eccc74becd719639bb2d619287fc60",
+      "width": 600
+    },
+    {
+      "height": 1235,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/41/004_dc3b47e46bc1bcb3.webp",
+      "ordinal": 4,
+      "sha256": "dc3b47e46bc1bcb368b3309deb5f4911c2ecb03248f88557175b5917a12672f7",
+      "width": 600
+    },
+    {
+      "height": 938,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/41/005_31df2ad0f8507a49.webp",
+      "ordinal": 5,
+      "sha256": "31df2ad0f8507a49bc6d5ada26bcf21065c81978346e29a20d75997bbb751a0f",
+      "width": 600
+    },
+    {
+      "height": 1095,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/41/006_3c507b3265a799cd.webp",
+      "ordinal": 6,
+      "sha256": "3c507b3265a799cdbbf7cd1f5d06d1d85d5fa4bfb51de1e0258911ae0dcdd89d",
+      "width": 600
+    },
+    {
+      "height": 1128,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/41/007_eccd7b07ff0df653.webp",
+      "ordinal": 7,
+      "sha256": "eccd7b07ff0df653f28f7912211087fb2dd12d615bd32cd6f922531c9757e38a",
+      "width": 600
+    },
+    {
+      "height": 796,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/41/008_81ea946c65bbaedc.webp",
+      "ordinal": 8,
+      "sha256": "81ea946c65bbaedccdcafdac56d9c101cf6cddc63518617640b4ba06c1937ffd",
+      "width": 600
+    },
+    {
+      "height": 764,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/41/009_749e18f0be5d93b6.webp",
+      "ordinal": 9,
+      "sha256": "749e18f0be5d93b6f0fe2fbfaefa486d452328a51619b4ce9b998ea02f15f45a",
+      "width": 600
+    },
+    {
+      "height": 720,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/41/010_6e55219d12452cc4.webp",
+      "ordinal": 10,
+      "sha256": "6e55219d12452cc45084d1de9a1182e9fee8973b4e8d6c2ee93cc0c261a78dff",
+      "width": 600
+    },
+    {
+      "height": 1328,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/41/011_2b90c42f172c2396.webp",
+      "ordinal": 11,
+      "sha256": "2b90c42f172c239694888c9a0e1f2b8a295a30b4b1315367c8bf3473ba6c6651",
+      "width": 600
+    },
+    {
+      "height": 1064,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/41/012_098e9e0fc3bb51ab.webp",
+      "ordinal": 12,
+      "sha256": "098e9e0fc3bb51abb7b46fd9ef38f2624925651164c200061958a944a3e2e946",
+      "width": 600
+    },
+    {
+      "height": 1094,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/41/013_574921a6f4e582b4.webp",
+      "ordinal": 13,
+      "sha256": "574921a6f4e582b4131c3057dc17ea5e1f5556aa95f834976d15fe364fed1dc9",
+      "width": 600
+    },
+    {
+      "height": 737,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/41/014_42f1b6a16e682508.webp",
+      "ordinal": 14,
+      "sha256": "42f1b6a16e68250882935eedee41c69c170c2a5c632635d5e6abbb4e608775cf",
+      "width": 600
+    }
+  ],
+  "introduction_text": "",
+  "missing_fields": [
+    "net_content",
+    "ingredients_present",
+    "texture"
+  ],
+  "parameter_text": "规格\n30ml+50ml\n产品产地\n中国大陆\n分类\n精华液\n主打成分\n其它成分\n主打功效\n美白\n是否为特殊用途化妆品\n是\n国产/进口\n国产\n规格类型\n组合装\n保质期\n3年",
+  "portfolio_role": "entry_antioxidant_serum",
+  "product_id": 41,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "unresolved",
+    "source_sku": "30ml+50ml combo"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "6636d9399299129da55b67c637762636b759f2692ce9fb84c2e7a9938077e1f1",
+  "source_product_title": "PROYA/珀莱雅 美白焕亮 美白精华  30ml+50ml",
+  "source_title": "PROYA/珀莱雅 美白焕亮 美白精华 30ml+50ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/wyvx6d8/"
+}

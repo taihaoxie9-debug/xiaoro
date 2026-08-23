@@ -16,6 +16,11 @@ UserMessage = Annotated[
     str,
     StringConstraints(strip_whitespace=True, min_length=1, max_length=4000),
 ]
+ImageCapableMessage = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, max_length=4000),
+]
+ImageAction = Literal["identify", "compare"]
 BundleId = Annotated[
     str,
     StringConstraints(
@@ -36,6 +41,18 @@ OwnerToken = Annotated[
 
 class _StrictContract(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
+
+
+class TurnIdentity(_StrictContract):
+    model_config = ConfigDict(
+        extra="forbid",
+        strict=True,
+        frozen=True,
+    )
+
+    session_id: SessionId
+    request_id: str = Field(min_length=1, max_length=256)
+    turn_id: str = Field(min_length=1, max_length=256)
 
 
 class ImageErrorCode(str, Enum):
@@ -87,8 +104,10 @@ class ImageBundleDeleteRequest(_StrictContract):
 
 
 class UserTurn(_StrictContract):
+    identity: TurnIdentity
     session_id: SessionId
-    message: UserMessage
+    message: ImageCapableMessage
+    image_action: ImageAction | None = None
     profile_owner: ProfileOwnerRef | None = None
     image_bundle_id: BundleId | None = None
     image_bundle_version: int | None = Field(default=None, ge=1)
@@ -97,6 +116,10 @@ class UserTurn(_StrictContract):
 
     @model_validator(mode="after")
     def validate_image_bundle_reference(self) -> Self:
+        if self.identity.session_id != self.session_id:
+            raise ValueError(
+                "turn identity session must match user turn session"
+            )
         reference = (
             self.image_bundle_id,
             self.image_bundle_version,
@@ -108,4 +131,20 @@ class UserTurn(_StrictContract):
             raise ValueError(
                 "image bundle id, version, and token must be supplied together"
             )
+        if self.image_action is not None:
+            if self.message:
+                raise ValueError("image action forbids message")
+            if not all(value is not None for value in reference):
+                raise ValueError("image action requires image bundle")
+        elif not self.message:
+            raise ValueError("empty message requires typed image action")
         return self
+
+    @property
+    def question_summary(self) -> str:
+        if self.message:
+            return self.message
+        return {
+            "identify": "识别上传图片中的商品",
+            "compare": "比较上传图片中的商品",
+        }[self.image_action]

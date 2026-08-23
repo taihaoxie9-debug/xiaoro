@@ -35,7 +35,7 @@ from tools.guide_gates.presentation_copy_gate import (
     load_copy_gate_cases,
     summarize_copy_gate,
 )
-from tools.guide_gates.run_official_deepseek_smoke import (
+from tools.guide_gates.private_api_key import (
     DEFAULT_KEY_PATH,
     KeyPrecheckError,
     read_private_api_key,
@@ -49,7 +49,7 @@ DEFAULT_CASES = (
     / "fixtures"
     / "guide"
     / "presentation"
-    / "copy_gate_v2.jsonl"
+    / "copy_gate_v3_production.jsonl"
 )
 COPY_GATE_MAX_TOKENS = 1536
 
@@ -97,7 +97,15 @@ class RealPresentationCopyReport(_StrictFrozenModel):
     prompt_version: str = Field(min_length=1, max_length=160)
     cases_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     case_count: int = Field(ge=0)
+    completed_case_count: int = Field(ge=0)
     provider_call_count: int = Field(ge=0)
+    stopped_early: bool
+    stop_reason: Literal[
+        "hard_violation",
+        "invalid_output",
+        "provider_failure",
+        "adapter_error",
+    ] | None = None
     schema_valid_count: int = Field(ge=0)
     readability_passed_count: int = Field(ge=0)
     fact_coverage_passed_count: int = Field(ge=0)
@@ -166,6 +174,12 @@ def run_real_copy_gate(
     rows: list[RealPresentationCopyResult] = []
     evaluations: list[PresentationCopyGateRow] = []
     provider_call_count = 0
+    stop_reason: Literal[
+        "hard_violation",
+        "invalid_output",
+        "provider_failure",
+        "adapter_error",
+    ] | None = None
     for case in normalized:
         started = perf_counter()
         provider_call_count += 1
@@ -268,6 +282,12 @@ def run_real_copy_gate(
             f"total_tokens={sum(row.total_tokens for row in rows)}",
             flush=True,
         )
+        if status != "ok":
+            stop_reason = status
+            break
+        if evaluation.hard_violation_count:
+            stop_reason = "hard_violation"
+            break
 
     result_bytes = _result_bytes(rows)
     result_hash = sha256(result_bytes).hexdigest()
@@ -286,7 +306,10 @@ def run_real_copy_gate(
         ),
         cases_sha256=_cases_sha256(normalized),
         case_count=len(normalized),
+        completed_case_count=len(rows),
         provider_call_count=provider_call_count,
+        stopped_early=stop_reason is not None,
+        stop_reason=stop_reason,
         schema_valid_count=summary.schema_valid_count,
         readability_passed_count=summary.readability_passed_count,
         fact_coverage_passed_count=(
@@ -336,8 +359,8 @@ def run_real_copy_gate(
         results_sha256=result_hash,
         passed=(
             provider_call_count == len(normalized)
+            and stop_reason is None
             and summary.passed
-            and summary.passed_count == len(normalized)
         ),
     )
     summary_bytes = (
@@ -410,8 +433,7 @@ def replay_real_copy_gate_results(
         passed=(
             bool(normalized)
             and len(evaluations) == len(normalized)
-            and summary.passed_count == len(normalized)
-            and summary.hard_violation_count == 0
+            and summary.passed
         ),
     )
     destination = Path(output_path)

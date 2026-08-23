@@ -1,0 +1,203 @@
+{
+  "schema_version": "guide-copywriter-contract-preflight-v1",
+  "generated_for": "task-12.5-section-derived-copywriter-contract",
+  "old_contract_hash": "c9af56894ad4a507fd8c21973e25effe357eed4db4f658406447e3c7076428bd",
+  "new_contract_hash": "f648c43be0bafe83250688176e9b86c75229caa2b93a4d3920e9bb449e9cedfc",
+  "new_contract_hash_basis": "sha256 of path-NUL-bytes for current_contract_files in listed order",
+  "current_contract_files": [
+    {
+      "path": "app/guide/presentation/copywriter_contracts.py",
+      "sha256": "3ab310317ea9b05a22383a34ef07ca9bc9aaf1b1a7758e2cc382b1f0c3e6b16d"
+    },
+    {
+      "path": "app/guide/presentation/copywriter_validation.py",
+      "sha256": "b3ff87d6f0923e8c422a1abfbab3a4ddd72b536be66f97a8384b588fefd29728"
+    },
+    {
+      "path": "app/guide/presentation/copywriter_fallback.py",
+      "sha256": "acaeb6c1625a3264756ee3024957b0f600b4be9ff3664984e8b25c565ee5707e"
+    },
+    {
+      "path": "app/guide/presentation/copywriter_prompt.py",
+      "sha256": "7f3c9206e2d9a6520c3cf6429710836e461e66365f3294d3412e48bd210fb2c6"
+    },
+    {
+      "path": "app/guide/presentation/narrative_atoms.py",
+      "sha256": "e6aaa609ce0adab411aecc7e36c40cf87ee57e9417d80095fdcc0806901e8265"
+    },
+    {
+      "path": "app/guide/presentation/presentation_packet.py",
+      "sha256": "820c3be17bef656de906a3e44aeb94afac5abf7ffdcc107821ebb51468d63e6a"
+    },
+    {
+      "path": "tools/guide_gates/presentation_copy_gate.py",
+      "sha256": "7edca6db86fd6aad4f39ce6f1a74ca78c2c47adcd0430777aaf55aea1e78dd4a"
+    },
+    {
+      "path": "app/guide/adapters/llm/presentation_copywriter_adapter.py",
+      "sha256": "31ca3dfd9e00e46974b0a593c4c141941906b9ec18117559a0b63817d9ecec23"
+    },
+    {
+      "path": "tools/guide_gates/replay_presentation_copy_contract.py",
+      "sha256": "2a487e02c6b4d5d99687080aa17c15dd8a1cfa6e93d8e78418225201a16ccbeb"
+    },
+    {
+      "path": "tools/guide_data/audit_presentation_fact_admission.py",
+      "sha256": "2eaf43676aec5adbbc07813d831728231991f2e0e1a3bd225a2a2eaa68b7b93c"
+    },
+    {
+      "path": "tools/guide_data/build_copy_gate_v3_production.py",
+      "sha256": "bb5a19f40bbaf66e9b4c7053dc1c29631ec040e8632b1639c9278963635ca1da"
+    }
+  ],
+  "contract_changes": [
+    "Copywriter output is a typed ordered sections list derived from PresentationPacket.section_order.",
+    "Comparison and image comparison permit only a model summary; backend owns comparison rows.",
+    "Single-product suitability and product knowledge bind evidence to their visible answer or judgement section.",
+    "Image identity, clarification, and error are deterministic and do not call the copywriter.",
+    "Allowed facts grant permission only; model coverage is checked against required dimensions visible in model-owned sections.",
+    "The deterministic fallback uses the same typed section contract and prioritizes required dimensions.",
+    "Every writer section now has an explicit content source: summaries, closings, and general knowledge are constraints-only; product, answer, and judgement sections may use approved facts.",
+    "Constraints-only sections reject product fact IDs even where their historic evidence location was visible-product scope.",
+    "Approved facts preserve exact child dimension IDs from ConceptSlotData through narrative atom aggregation, fallback selection, validation, prompt payload, and gate coverage.",
+    "The adapter and compiler reject the retired universal summary/product/closing draft.",
+    "Compact tags are backend-only 2-4 character fact indexes and are outside model coverage.",
+    "The real copywriter runner persists the current result and stops after the first hard failure."
+  ],
+  "affected_responsibilities": [
+    "recommendation",
+    "comparison",
+    "single_product_suitability",
+    "product_knowledge",
+    "general_knowledge",
+    "consultation",
+    "image_identity"
+  ],
+  "local_proof": {
+    "command": "PYTHONPATH=. .venv/bin/pytest -q tests/guide/presentation/test_copywriter_section_contract.py tests/guide/presentation/test_copywriter_contracts.py tests/guide/presentation/test_copywriter_prompt.py tests/guide/presentation/test_copywriter_validation.py tests/guide/presentation/test_copywriter_fallback.py tests/guide/presentation/test_presentation_compiler.py tests/guide/presentation/test_copy_evidence_validation.py tests/guide/presentation/test_public_contracts.py tests/guide/presentation/test_compact_tag_planning.py tests/guide/adapters/test_presentation_copywriter.py tests/guide/application/test_text_presentation_integration.py tests/guide/application/test_image_presentation_integration.py tests/guide/application/test_consultation_presentation_integration.py tests/guide/tools/test_presentation_copy_gate.py tests/guide/tools/test_run_real_presentation_copy_gate.py tests/guide/tools/test_replay_presentation_copy_contract.py tests/guide/runtime/test_frontend_card_binding.py tests/guide/runtime/test_frontend_evidence_rendering.py",
+    "passed_test_count": 231,
+    "compileall_passed": true,
+    "diff_check_passed": true
+  },
+  "focused_release_gate": {
+    "path": "docs/audits/final-release/focused-summary.json",
+    "sha256": "e438df242dfc53df55d849641a5430f52a4edc97469e447cce630a48e8276a1f",
+    "passed": true,
+    "row_count": 6480,
+    "legal_row_failures": 0,
+    "wrong_binding_count": 0,
+    "wrong_processor_count": 0,
+    "wrong_presentation_count": 0,
+    "forbidden_public_text_count": 0
+  },
+  "zero_api_replays": [
+    {
+      "path": "docs/audits/final-release/copywriter-contract-replay/prompt-v8.json",
+      "sha256": "4eaa12c1fa0d05b2600ecd7a6a186f2167fe5dfc8701b2dc16cc509b3a75bcd0",
+      "provider_call_count": 0,
+      "case_count": 20,
+      "legacy_universal_count": 6,
+      "parser_invalid_count": 14,
+      "section_draft_count": 0,
+      "validation_failure_count": 0
+    },
+    {
+      "path": "docs/audits/final-release/copywriter-contract-replay/prompt-v9.json",
+      "sha256": "292c3dd8d113e64714eaa3d16aaf851b474293f3972840dce7219c314c5aa58f",
+      "provider_call_count": 0,
+      "case_count": 20,
+      "legacy_universal_count": 20,
+      "parser_invalid_count": 0,
+      "section_draft_count": 0,
+      "validation_failure_count": 0
+    },
+    {
+      "path": "docs/audits/final-release/copywriter-contract-replay/prompt-v10.json",
+      "sha256": "a83220c8a9d897f3c019830c06c53e960fe3052ec1272816329e3172daeb7918",
+      "provider_call_count": 0,
+      "case_count": 20,
+      "legacy_universal_count": 20,
+      "parser_invalid_count": 0,
+      "section_draft_count": 0,
+      "validation_failure_count": 0
+    },
+    {
+      "path": "docs/audits/final-release/copywriter-contract-replay/prompt-v11.json",
+      "sha256": "c2faad5c6cc0d0ca7abe4648ef7dc0f65aee4d6eb943f2ed996b1d2f20cb15fa",
+      "provider_call_count": 0,
+      "case_count": 20,
+      "legacy_universal_count": 20,
+      "parser_invalid_count": 0,
+      "section_draft_count": 0,
+      "validation_failure_count": 0
+    },
+    {
+      "path": "docs/audits/final-release/copywriter-contract-replay/prompt-v12-partial.json",
+      "sha256": "73d5ef3e1fa5df63b6b460d13693dc25b2291fc1c27a79a4d4d4c77084e8a649",
+      "provider_call_count": 0,
+      "case_count": 12,
+      "legacy_universal_count": 12,
+      "parser_invalid_count": 0,
+      "section_draft_count": 0,
+      "validation_failure_count": 0
+    },
+    {
+      "path": "docs/audits/final-release/copywriter-contract-replay/prompt-v13-smoke.json",
+      "sha256": "05a132d71e1934f6c4acb43872991d6fa5748c85b41a7d547635c8a9c1a07c36",
+      "provider_call_count": 0,
+      "case_count": 1,
+      "legacy_universal_count": 0,
+      "parser_invalid_count": 1,
+      "section_draft_count": 0,
+      "validation_failure_count": 0
+    },
+    {
+      "path": "docs/audits/final-release/copywriter-contract-replay/prompt-v14-smoke-v15.json",
+      "sha256": "631dd45fc0dcab809b4e66797ca85a264ad68db57ffb02d187720ae0aefed6a9",
+      "provider_call_count": 0,
+      "case_count": 1,
+      "legacy_universal_count": 0,
+      "parser_invalid_count": 1,
+      "section_draft_count": 0,
+      "validation_failure_count": 0
+    }
+  ],
+  "historical_conclusion": "The v8-v12 outputs predate the section contract. The single v13 result breached fact placement, and the single v14 result used the section shape but omitted the required winner_claim receipt. Current zero-API replay classifies both as parser-invalid under the v15 contract.",
+  "remaining_known_risks": [
+    "The DeepSeek provider has not yet produced a v15 sections draft with winner_claim receipts.",
+    "No real production call has yet exercised the new exact child-dimension and winner-claim contract.",
+    "No production-equivalent backend SSE or browser run has yet used the new contract."
+  ],
+  "previous_real_batch": {
+    "path": "docs/audits/final-release/copywriter-smoke-v13/summary.json",
+    "prompt_version": "guide-presentation-copy-prompt-v13",
+    "completed_case_count": 1,
+    "provider_call_count": 1,
+    "stopped_early": true,
+    "stop_reason": "hard_violation",
+    "earliest_failure_layer": "public_presentation",
+    "root_cause": "The sections shape lacked a typed content-source boundary, so summary and closing were not mechanically forbidden from carrying product fact IDs.",
+    "shared_repair": "CopywriterSectionSpec.content_source plus constraints-only validation, constraints-only fallback, and exact child-dimension propagation."
+  },
+  "next_real_batch": {
+    "purpose": "bounded copywriter contract smoke only",
+    "fixture": "tests/fixtures/guide/presentation/copy_gate_v3_production.jsonl",
+    "fixture_sha256": "f8c1a08f4487c9bd0908546bac24d6b76efe7d46a230d38d53f55e72bdc40302",
+    "requested_call_count": 20,
+    "provider": "deepseek_official",
+    "model": "deepseek-v4-pro",
+    "prompt_version": "guide-presentation-copy-prompt-v15",
+    "temperature": 0.3,
+    "max_tokens": 1536,
+    "format_repair_attempts": 0,
+    "retry_count": 0,
+    "hard_failure_policy": "Persist the failing result, stop remaining calls, perform zero-API diagnosis, and do not run a prompt-only retry.",
+    "success_requirements": [
+      "all returned drafts use the typed sections contract",
+      "hard_violation_count is zero",
+      "no provider fallback or legacy draft",
+      "at least 18 of 20 cases pass ordinary readability and required-dimension checks"
+    ]
+  },
+  "reason_no_prompt_only_retry_is_proposed": "The prompt now serializes a backend-derived typed section contract. Any new failure must be assigned to the contract, compiler, validator, required-dimension mapping, or reviewed fact boundary before another model call."
+}

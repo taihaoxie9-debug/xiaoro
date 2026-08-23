@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 MATRIX = Path(
-    "tests/fixtures/guide/presentation/frontend_mode_matrix_v1.jsonl"
+    "tests/fixtures/guide/presentation/frontend_mode_matrix_v2.jsonl"
 )
 
 EXPECTED_CASE_IDS = {
@@ -49,18 +49,31 @@ COMPARISON_CASE_IDS = {
     "image-compare-two",
 }
 
-EXPECTED_CARD_RANGES = {
-    "recommend-three": (1, 3),
-    "compare-two": (2, 4),
-    "suitability-one": (1, 1),
-    "followup-product-one": (1, 1),
-    "followup-relative": (1, 3),
-    "revision-products": (1, 3),
-    "knowledge-product-one": (1, 1),
-    "image-identity-one": (1, 1),
-    "image-recommend-three": (1, 3),
-    "image-suitability-one": (1, 1),
-    "image-compare-two": (2, 4),
+PRODUCT_KNOWLEDGE_CASE_IDS = {
+    "knowledge-product-one",
+}
+
+EXPECTED_PRESENTATION_MODES = {
+    "clarify-zero": "clarification",
+    "compare-two": "comparison",
+    "consultation-confirmation-zero": "consultation",
+    "consultation-entry-zero": "consultation",
+    "consultation-medical-zero": "consultation",
+    "consultation-provisional-zero": "consultation",
+    "error-zero": "clarification",
+    "followup-product-one": "product_knowledge",
+    "followup-relative": "comparison",
+    "followup-state-zero": "recommendation",
+    "image-compare-two": "comparison",
+    "image-identity-one": "image_identity",
+    "image-recommend-three": "recommendation",
+    "image-suitability-one": "single_product",
+    "knowledge-general-zero": "general_knowledge",
+    "knowledge-product-one": "product_knowledge",
+    "no-match-zero": "recommendation",
+    "recommend-three": "recommendation",
+    "revision-products": "recommendation",
+    "suitability-one": "single_product",
 }
 
 PUBLIC_MODES = {
@@ -98,6 +111,10 @@ def test_frontend_mode_matrix_covers_every_public_display_family() -> None:
     assert len(rows) == 20
     assert {row["case_id"] for row in rows} == EXPECTED_CASE_IDS
     assert {row["mode"] for row in rows} <= PUBLIC_MODES
+    assert {
+        row["case_id"]: row["presentation_mode"]
+        for row in rows
+    } == EXPECTED_PRESENTATION_MODES
     assert [row["case_id"] for row in rows] == sorted(
         row["case_id"] for row in rows
     )
@@ -108,46 +125,77 @@ def test_mode_matrix_binds_both_card_forms_to_visible_products() -> None:
         visible = row["visible_product_ids"]
         inline = row["inline_card_ids"]
         full = row["full_card_ids"]
+        presentation_mode = row["presentation_mode"]
 
         assert isinstance(visible, list)
         assert isinstance(inline, list)
         assert isinstance(full, list)
         assert len(visible) == len(set(visible))
-        assert inline == visible
         assert full == visible
-        assert set(row["pitfall_product_ids"]).issubset(visible)
+        assert row["pitfall_product_ids"] == []
 
         case_id = row["case_id"]
         if case_id in ZERO_CARD_CASE_IDS:
             assert visible == []
-            assert not any(
-                str(section).startswith("product:")
-                for section in row["section_order"]
-            )
+            assert inline == []
             assert "full_cards" not in row["section_order"]
-            assert "pitfalls" not in row["section_order"]
             continue
 
-        minimum, maximum = EXPECTED_CARD_RANGES[case_id]
-        assert minimum <= len(visible) <= maximum
-        expected_sections = ["summary"]
-        if case_id in COMPARISON_CASE_IDS:
-            expected_sections.append("comparison")
-        expected_sections.extend(
-            f"product:p{index}"
-            for index in range(1, len(visible) + 1)
+        assert visible
+        assert (
+            inline == visible
+            if presentation_mode == "recommendation"
+            else inline == []
         )
-        expected_sections.extend(
-            ["closing", "full_cards", "pitfalls"]
-        )
-        assert row["section_order"] == expected_sections
-        assert "evidence" not in row["section_order"]
+        if presentation_mode == "recommendation":
+            assert row["section_order"] == [
+                "summary",
+                *(
+                    f"product:p{index}"
+                    for index in range(1, len(visible) + 1)
+                ),
+                "closing",
+                "full_cards",
+            ]
+            assert row["advisor_reason"] is True
+            continue
+        if presentation_mode == "comparison":
+            assert row["section_order"] == [
+                "summary",
+                "comparison",
+                "full_cards",
+            ]
+            assert row["advisor_reason"] is False
+            continue
+        if presentation_mode == "single_product":
+            assert row["section_order"] == [
+                "summary",
+                "judgement",
+                "full_cards",
+            ]
+            assert row["advisor_reason"] is False
+            continue
+        if presentation_mode == "product_knowledge":
+            assert row["section_order"] == [
+                "summary",
+                "answer",
+                "full_cards",
+            ]
+            assert row["advisor_reason"] is False
+            continue
+        assert presentation_mode == "image_identity"
+        assert row["section_order"] == [
+            "observation",
+            "full_cards",
+        ]
+        assert row["advisor_reason"] is False
 
 
 def test_mode_matrix_has_explicit_copy_sections_and_thinking_states() -> None:
     for row in _rows():
         assert isinstance(row["copy_schema"], str)
         assert row["copy_schema"]
+        assert row["copy_schema"] == row["presentation_mode"]
         assert isinstance(row["section_order"], list)
         assert row["section_order"]
         assert row["section_order"][0] in {
@@ -155,6 +203,7 @@ def test_mode_matrix_has_explicit_copy_sections_and_thinking_states() -> None:
             "question",
             "observation",
             "error",
+            "general_knowledge",
         }
         assert isinstance(row["thinking_stages"], list)
         assert 0 <= len(row["thinking_stages"]) <= 4

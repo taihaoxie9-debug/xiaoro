@@ -1,0 +1,8 @@
+{"assertion_mode":"ordinary_path_independence","expected_state_change":false,"states":["recommendation_batch","single_product_focus","comparison_batch","consultation"],"walk_id":"walk-01"}
+{"assertion_mode":"ordinary_path_independence","expected_state_change":false,"states":["consultation","comparison_batch","single_product_focus","recommendation_batch"],"walk_id":"walk-02"}
+{"assertion_mode":"ordinary_path_independence","expected_state_change":false,"states":["recommendation_batch","single_product_focus","comparison_batch","consultation","consultation","comparison_batch","single_product_focus","recommendation_batch"],"walk_id":"walk-03"}
+{"assertion_mode":"ordinary_path_independence","expected_state_change":false,"states":["recommendation_batch","single_product_focus","comparison_batch","consultation","recommendation_batch"],"walk_id":"walk-04"}
+{"assertion_mode":"ordinary_path_independence","expected_state_change":false,"states":["comparison_batch","single_product_focus","consultation","recommendation_batch"],"walk_id":"walk-05"}
+{"assertion_mode":"ordinary_path_independence","expected_state_change":false,"states":["single_product_focus","consultation","comparison_batch","single_product_focus","recommendation_batch"],"walk_id":"walk-06"}
+{"assertion_mode":"ordinary_path_independence","expected_state_change":false,"states":["confirmed_image_product","single_product_focus","comparison_batch","consultation"],"walk_id":"walk-07"}
+{"assertion_mode":"ordinary_path_independence","expected_state_change":false,"states":["general_knowledge","recommendation_batch","consultation","comparison_batch"],"walk_id":"walk-08"}

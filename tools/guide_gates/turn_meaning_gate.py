@@ -34,7 +34,18 @@ from app.guide.understanding.contracts import (
     UnderstandingGoal,
 )
 from app.guide.understanding.semantic_contracts import SemanticContext
-from app.guide.understanding.turn_meaning_contracts import TurnMeaning
+from app.guide.understanding.semantic_equivalence import (
+    build_actual_semantic_outcome,
+    derive_semantic_outcome,
+    evaluate_semantic_equivalence,
+)
+from app.guide.understanding.turn_meaning_contracts import (
+    EXPLORE_RECOMMENDATION_BASES,
+    FIT_RECOMMENDATION_BASES,
+    RecommendationMode,
+    RecommendationModeBasis,
+    TurnMeaning,
+)
 
 
 Family = Literal[
@@ -129,8 +140,38 @@ class ExecutionExpectation(_StrictFrozenModel):
     expected_task_mode: TaskMode | None
     expected_topic: TopicCode | None
     must_clarify: bool
+    expected_recommendation_mode: RecommendationMode | None = None
+    expected_recommendation_mode_basis: (
+        RecommendationModeBasis | None
+    ) = None
     expected_transitions: tuple[str, ...] = ()
     expected_final_state: dict[str, JsonValue] | None = None
+
+    @model_validator(mode="after")
+    def validate_recommendation_outcome(self) -> Self:
+        if (self.expected_recommendation_mode is None) != (
+            self.expected_recommendation_mode_basis is None
+        ):
+            raise ValueError(
+                "expected recommendation outcome must be complete"
+            )
+        if (
+            self.expected_recommendation_mode == "explore"
+            and self.expected_recommendation_mode_basis
+            not in EXPLORE_RECOMMENDATION_BASES
+        ):
+            raise ValueError(
+                "expected recommendation basis must be parent-scoped"
+            )
+        if (
+            self.expected_recommendation_mode == "fit"
+            and self.expected_recommendation_mode_basis
+            not in FIT_RECOMMENDATION_BASES
+        ):
+            raise ValueError(
+                "expected recommendation basis must be parent-scoped"
+            )
+        return self
 
 
 class TurnMeaningGateCase(_StrictFrozenModel):
@@ -157,6 +198,10 @@ class TurnMeaningGateRow(_StrictFrozenModel):
     ambiguous_source_atom_count: int = Field(default=0, ge=0)
     binding_passed: bool
     task_plan_passed: bool
+    semantic_equivalence_passed: bool
+    semantic_mismatch_code: str | None = None
+    semantic_expected_outcome: dict[str, JsonValue] | None = None
+    semantic_actual_outcome: dict[str, JsonValue] | None = None
     full_json_equality_used: Literal[False] = False
     unmentioned_state_change_count: int = Field(ge=0)
     unauthorized_state_transition_count: int = Field(ge=0)
@@ -176,6 +221,7 @@ class TurnMeaningGateRow(_StrictFrozenModel):
             invented_source_atom_count=0,
             binding_passed=True,
             task_plan_passed=True,
+            semantic_equivalence_passed=True,
             unmentioned_state_change_count=0,
             unauthorized_state_transition_count=0,
             hard_safety_override_count=0,
@@ -229,6 +275,8 @@ _OPERATION_OVERRIDES = {
         "recommendation",
         "followup",
     ),
+    "img-003-find-similar-third": ("image_identity",),
+    "img-004-find-similar-fourth": ("knowledge",),
     "assess-010-budget-unknown": (
         "assessment",
         "clarification",
@@ -318,6 +366,9 @@ _PREFERENCE_OVERRIDES: dict[
     "rec-011-paraphrase-fragrance": (
         ("fragrance_description", None, "prefer"),
     ),
+    "img-005-sunscreen-package": (
+        ("suitable_skin", None, "prefer"),
+    ),
     "suit-001-sensitive-sunscreen": (
         ("suitable_skin", None, "prefer"),
     ),
@@ -331,6 +382,7 @@ _BUDGET_OVERRIDES = {
     "follow-010-budget-lower": (None, "200"),
 }
 _TASK_MODE_OVERRIDES: dict[str, TaskMode | None] = {
+    "img-004-find-similar-fourth": "knowledge",
     "follow-009-budget-revision": "recommend",
     "follow-010-budget-lower": "clarify",
     "follow-011-skin-revision": "recommend",
@@ -340,6 +392,66 @@ _TASK_MODE_OVERRIDES: dict[str, TaskMode | None] = {
     "clar-010-out-of-scope-weather": "knowledge",
     "clar-011-out-of-scope-code": "knowledge",
     "clar-014-injection-profile": "knowledge",
+}
+_MESSAGE_OVERRIDES = {
+    "rec-006-paraphrase-sunscreen": (
+        "想找一支最适合通勤、挡紫外线又不搓泥的防晒"
+    ),
+    "img-003-find-similar-third": "第三张图里这是什么商品",
+    "img-004-find-similar-fourth": "第四张图里的商品是什么质地",
+    "img-005-sunscreen-package": (
+        "按第一张防晒找一款最适合敏感肌的相似商品"
+    ),
+}
+_RECOMMENDATION_OUTCOME_OVERRIDES: dict[
+    str,
+    tuple[RecommendationMode, RecommendationModeBasis],
+] = {
+    "rec-006-paraphrase-sunscreen": (
+        "fit",
+        "personal_suitability",
+    ),
+    "rec-014-budget-sunscreen": (
+        "explore",
+        "bounded_exploration",
+    ),
+    "img-005-sunscreen-package": (
+        "fit",
+        "personal_suitability",
+    ),
+    "follow-009-budget-revision": (
+        "explore",
+        "bounded_exploration",
+    ),
+    "follow-011-skin-revision": (
+        "explore",
+        "broad_exploration",
+    ),
+}
+_ACTIVE_RECOMMENDATION_OUTCOME_BY_CASE: dict[
+    str,
+    tuple[RecommendationMode, RecommendationModeBasis, int],
+] = {
+    "rec-003-round9-not-too-sweet": (
+        "explore",
+        "broad_exploration",
+        3,
+    ),
+    "rec-015-revision-to-fragrance": (
+        "explore",
+        "broad_exploration",
+        3,
+    ),
+    "follow-009-budget-revision": (
+        "explore",
+        "bounded_exploration",
+        3,
+    ),
+    "follow-011-skin-revision": (
+        "explore",
+        "broad_exploration",
+        3,
+    ),
 }
 
 
@@ -379,6 +491,7 @@ def evaluate_gate_case(
     translation_passed = _translation_matches(case, meaning)
     compiled: StructuredUnderstanding | None = None
     task = None
+    semantic_decision = None
     binding_passed = not case.binding.expected_objects
     task_passed = case.execution.expected_task_mode is None
     unauthorized_count = 0
@@ -399,6 +512,23 @@ def evaluate_gate_case(
                 case.binding.expected_objects
             ).issubset(actual_objects)
             task = plan_task(compiled)
+            expected_outcome = derive_semantic_outcome(
+                expected_case=case,
+            )
+            actual_outcome = build_actual_semantic_outcome(
+                meaning=meaning,
+                compiled=compiled,
+                task=task,
+            )
+            semantic_decision = evaluate_semantic_equivalence(
+                expected=expected_outcome,
+                actual=actual_outcome,
+            )
+            translation_passed = _translation_matches(
+                case,
+                meaning,
+                semantic_decision=semantic_decision,
+            )
             if case.before_state is not None:
                 previous = RecommendationQueryContext.model_validate_json(
                     json.dumps(
@@ -434,8 +564,12 @@ def evaluate_gate_case(
                     expected=case.execution.expected_final_state,
                 )
             task_passed = (
-                case.execution.expected_task_mode is None
-                or task.mode == case.execution.expected_task_mode
+                semantic_decision.passed
+                if case.execution.expected_task_mode is not None
+                else (
+                    case.execution.expected_task_mode is None
+                    or task.mode == case.execution.expected_task_mode
+                )
             )
         except Exception:
             binding_passed = False
@@ -463,6 +597,27 @@ def evaluate_gate_case(
         ambiguous_source_atom_count=ambiguous_count,
         binding_passed=binding_passed,
         task_plan_passed=task_passed,
+        semantic_equivalence_passed=(
+            semantic_decision.passed
+            if semantic_decision is not None
+            else False
+        ),
+        semantic_mismatch_code=(
+            semantic_decision.mismatch_code.value
+            if semantic_decision is not None
+            and semantic_decision.mismatch_code is not None
+            else None
+        ),
+        semantic_expected_outcome=(
+            semantic_decision.expected_outcome.model_dump(mode="json")
+            if semantic_decision is not None
+            else None
+        ),
+        semantic_actual_outcome=(
+            semantic_decision.actual_outcome.model_dump(mode="json")
+            if semantic_decision is not None
+            else None
+        ),
         unmentioned_state_change_count=unmentioned_count,
         unauthorized_state_transition_count=unauthorized_count,
         hard_safety_override_count=0,
@@ -517,6 +672,28 @@ def summarize_gate(
         passed=passed,
         **totals,
     )
+
+
+def _expected_recommendation_outcome(
+    *,
+    case_id: str,
+    family: Family,
+    operations: tuple[str, ...],
+    expected_mode: TaskMode | None,
+) -> tuple[
+    RecommendationMode | None,
+    RecommendationModeBasis | None,
+]:
+    override = _RECOMMENDATION_OUTCOME_OVERRIDES.get(case_id)
+    if override is not None:
+        return override
+    if family == "recommendation":
+        return "explore", "broad_exploration"
+    if family == "image" and "image_similarity" in operations:
+        return "explore", "similar_alternatives"
+    if family == "followup" and expected_mode == "recommend":
+        return "explore", "broad_exploration"
+    return None, None
 
 
 def build_reaudited_rows(
@@ -580,6 +757,8 @@ def build_reaudited_rows(
             required_fields.append("budget_candidates")
         if family == "knowledge":
             required_fields.append("question_meaning")
+        if case_id == "img-004-find-similar-fourth":
+            required_fields.append("question_meaning")
         expected_mode = _TASK_MODE_OVERRIDES.get(
             case_id,
             expected.get(
@@ -587,15 +766,46 @@ def build_reaudited_rows(
                 _MODE_BY_GOAL[expected["goal"]],
             ),
         )
+        recommendation_mode, recommendation_mode_basis = (
+            _expected_recommendation_outcome(
+                case_id=case_id,
+                family=family,
+                operations=tuple(operations),
+                expected_mode=expected_mode,
+            )
+        )
+        context = dict(source["context"])
+        active_outcome = _ACTIVE_RECOMMENDATION_OUTCOME_BY_CASE.get(
+            case_id
+        )
+        if active_outcome is not None:
+            context.update(
+                {
+                    "active_recommendation_mode": active_outcome[0],
+                    "active_recommendation_mode_basis": active_outcome[1],
+                    "active_recommendation_count": active_outcome[2],
+                }
+            )
+        before_state = source.get("before_state")
+        if before_state is not None and active_outcome is not None:
+            before_state = {
+                **before_state,
+                "recommendation_mode": active_outcome[0],
+                "recommendation_mode_basis": active_outcome[1],
+                "recommendation_count": active_outcome[2],
+            }
         gate = {
             "schema_version": "guide-turn-meaning-gate-v1",
             "case_id": case_id,
             "family": family,
-            "message": source["message"],
-            "context": source["context"],
+            "message": _MESSAGE_OVERRIDES.get(
+                case_id,
+                source["message"],
+            ),
+            "context": context,
             "critical": source["critical"],
             "tags": source["tags"],
-            "before_state": source.get("before_state"),
+            "before_state": before_state,
             "translation": {
                 "required_fields": required_fields,
                 "allowed_operation_hints": operations,
@@ -626,7 +836,10 @@ def build_reaudited_rows(
                     if budget_bounds is not None
                     else None
                 ),
-                "require_question_meaning": family == "knowledge",
+                "require_question_meaning": (
+                    family == "knowledge"
+                    or case_id == "img-004-find-similar-fourth"
+                ),
                 "allowed_safety_language": [
                     "ordinary",
                     "unknown",
@@ -657,6 +870,10 @@ def build_reaudited_rows(
             },
             "execution": {
                 "expected_task_mode": expected_mode,
+                "expected_recommendation_mode": recommendation_mode,
+                "expected_recommendation_mode_basis": (
+                    recommendation_mode_basis
+                ),
                 "expected_topic": (
                     "cleanser"
                     if case_id == "assess-001-post-cleanse-tight"
@@ -702,9 +919,16 @@ def write_reaudited_assets(
 def _translation_matches(
     case: TurnMeaningGateCase,
     meaning: TurnMeaning,
+    *,
+    semantic_decision=None,
 ) -> bool:
     expected = case.translation
-    if meaning.operation_hint not in expected.allowed_operation_hints:
+    operation_matches = (
+        semantic_decision.passed
+        if semantic_decision is not None
+        else meaning.operation_hint in expected.allowed_operation_hints
+    )
+    if not operation_matches:
         return False
     if meaning.topic_hint not in expected.allowed_topic_hints:
         return False

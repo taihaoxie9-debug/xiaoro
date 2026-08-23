@@ -8,7 +8,8 @@
     <script>
         window.feather = window.feather || { replace() {} };
     </script>
-    <script src="/static/guide-presentation.js?v=48274ce9d428"></script>
+    <script src="/static/guide-presentation.js?v=fd83c0aff4c4"></script>
+    <script src="/static/guide-demo-fixture.js?v=demo-v1"></script>
     <style>
         :root {
             --primary: #B88F9D;
@@ -907,7 +908,7 @@
             }
 
             .recommendation-name {
-                -webkit-line-clamp: 1;
+                -webkit-line-clamp: 2;
             }
 
             .recommendation-meta,
@@ -931,6 +932,50 @@
         .recommendation-reason strong {
             color: var(--primary-deep);
             font-weight: 700;
+        }
+
+        .guide-presentation-full-cards .recommendation-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .guide-product-shelf-card {
+            display: grid;
+            grid-template-columns: 64px minmax(0, 1fr);
+            align-items: center;
+            min-height: 88px;
+            gap: 10px;
+            padding: 8px 38px 8px 8px;
+        }
+
+        .guide-product-shelf-card .recommendation-image {
+            width: 64px;
+            height: 72px;
+            border-radius: 8px;
+        }
+
+        .guide-product-shelf-card .recommendation-body {
+            gap: 4px;
+        }
+
+        .guide-product-shelf-card .recommendation-name {
+            font-size: 12px;
+        }
+
+        .guide-product-shelf-card .recommendation-price {
+            font-size: 13px;
+        }
+
+        .guide-product-shelf-card .recommendation-link {
+            width: fit-content;
+            margin-top: 2px;
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+
+        @media (max-width: 640px) {
+            .guide-presentation-full-cards .recommendation-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
         }
 
         .typewriter-text {
@@ -1504,6 +1549,15 @@
             color: var(--text-primary);
         }
 
+        .guide-presentation-product h3 {
+            color: var(--primary-deep);
+            font-weight: 700;
+        }
+
+        .guide-product-advisor-reason strong {
+            color: var(--primary-deep);
+        }
+
         .guide-presentation-observation {
             border-left: 0;
         }
@@ -1548,15 +1602,20 @@
             border: 0;
             border-bottom: 1px solid currentColor;
             background: transparent;
-            color: var(--primary-deep);
+            color: inherit;
             font: inherit;
             cursor: pointer;
         }
 
-        .guide-product-ref:hover,
+        .guide-product-ref:hover {
+            color: var(--primary);
+        }
+
         .guide-product-ref:focus-visible {
             color: var(--primary);
-            outline: none;
+            outline: 2px solid currentColor;
+            outline-offset: 2px;
+            border-radius: 2px;
         }
 
         .guide-presentation-section .inline-product-image {
@@ -1675,7 +1734,9 @@
 
         @media (prefers-reduced-motion: reduce) {
             .guide-thinking-pipeline,
-            .guide-thinking-markers span {
+            .guide-thinking-markers span,
+            .preview-item,
+            .recommendation-card {
                 transition: none;
                 animation: none;
             }
@@ -2138,6 +2199,18 @@
             -webkit-overflow-scrolling: touch;
         }
 
+        .guide-winner-conclusion {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(232, 221, 216, 0.72);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .guide-winner-conclusion strong {
+            color: var(--primary-deep);
+        }
+
         .guide-comparison-table {
             min-width: 520px;
             margin-top: 0;
@@ -2187,6 +2260,7 @@
         /* 输入区域 */
         .chat-input-area {
             padding: 24px 32px;
+            padding-bottom: calc(24px + env(safe-area-inset-bottom));
             background: linear-gradient(to top, #FFFFFF 80%, transparent);
         }
 
@@ -2200,7 +2274,9 @@
             display: flex;
             align-items: flex-end;
             gap: 8px;
-            transition: all 0.3s ease;
+            transition: border-color 0.3s ease,
+                background-color 0.3s ease,
+                box-shadow 0.3s ease;
         }
 
         .input-wrapper:focus-within {
@@ -2220,7 +2296,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease, color 0.3s ease;
             flex-shrink: 0;
         }
 
@@ -2253,7 +2329,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease;
             flex-shrink: 0;
         }
 
@@ -2993,7 +3069,12 @@
             .chat-messages { padding: 16px 12px; }
             .message-bubble { max-width: 90%; }
             .chat-header { padding: 12px 16px; }
-            .chat-input-area { padding: 16px; }
+            .chat-input-area {
+                padding: 16px;
+                padding-bottom: calc(
+                    16px + env(safe-area-inset-bottom)
+                );
+            }
             .input-wrapper { padding: 6px; }
             .hero-note { padding: 14px; }
             .product-mini-card { padding: 10px; }
@@ -3134,14 +3215,14 @@
                     <button class="input-action-btn" id="imageUploadBtn" title="上传图片" aria-label="上传图片">
                         <i data-feather="image" style="width: 18px; height: 18px;"></i>
                     </button>
-                    <textarea class="chat-textarea" id="chatInput" placeholder="比如：油敏肌想找夏天通勤防晒，预算 300 以内" rows="1"></textarea>
-                    <button class="send-btn" id="sendBtn">
+                    <textarea class="chat-textarea" id="chatInput" name="message" aria-label="输入消息" autocomplete="off" placeholder="比如：油敏肌想找夏天通勤防晒，预算 300 以内" rows="1"></textarea>
+                    <button class="send-btn" id="sendBtn" type="button" aria-label="发送消息">
                         <i data-feather="arrow-up" style="width: 16px; height: 16px;"></i>
                     </button>
                 </div>
 
                 <!-- 隐藏的文件输入 -->
-                <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp" multiple style="display: none;">
+                <input type="file" id="imageInput" name="images" aria-label="选择商品图片" accept="image/jpeg,image/png,image/webp" multiple style="display: none;">
             </div>
         </main>
 
@@ -3169,6 +3250,8 @@
     <script>
         const GUIDE_RUNTIME_MODE =
             window.__XIAORO_RUNTIME_SCOPE__ === 'slice1_text_skincare';
+        const GUIDE_DEMO_MODE =
+            new URLSearchParams(window.location.search).get('demo') === '1';
         const MAX_IMAGE_COUNT = 4;
         const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
         const MAX_IMAGE_BATCH_BYTES = 20 * 1024 * 1024;
@@ -3547,8 +3630,13 @@
         }
 
         function formatProductPrice(product, compact = false) {
+            const hasAlignedSpecification = (
+                product?.price_specification_alignment === 'aligned'
+                && typeof product?.specification === 'string'
+                && product.specification.trim()
+            );
             const specification = (
-                typeof product?.specification === 'string'
+                hasAlignedSpecification
                 ? product.specification.trim()
                 : ''
             );
@@ -3561,6 +3649,14 @@
                 )
                     ? specification
                     : `${price} / ${specification}`;
+            }
+            const hasTypedAlignment = [
+                'aligned',
+                'unresolved',
+                'conflict'
+            ].includes(product?.price_specification_alignment);
+            if (hasTypedAlignment) {
+                return formatCurrency(product?.price);
             }
             const displayMeta = getProductDisplayMeta(product);
             if (displayMeta.price_label) {
@@ -4575,6 +4671,7 @@
                     brand: product.brand,
                     category: product.category,
                     price: product.price,
+                    specification: product.specification,
                     image_url: product.image_url,
                     detail_url: product.detail_url,
                     favorite: current?.favorite || false,
@@ -4924,6 +5021,18 @@
                 || !feedbackTargetsMatch(activeTarget, normalizedTarget)
             ) {
                 throw new Error('FEEDBACK_TARGET_UNAVAILABLE');
+            }
+            if (GUIDE_DEMO_MODE) {
+                const receipt = {
+                    status: 'demo_recorded',
+                    conversation_version:
+                        normalizedTarget.conversation_version,
+                    event_type: eventType
+                };
+                if (typeof onAccepted === 'function') {
+                    onAccepted(receipt);
+                }
+                return receipt;
             }
             const operationIdentity = feedbackOperationIdentity({
                 sessionId,
@@ -5306,6 +5415,9 @@
             const image = document.createElement('img');
             image.src = dataUrl;
             image.alt = `图片预览：${fileName}`;
+            image.width = 60;
+            image.height = 60;
+            image.decoding = 'async';
             const remove = document.createElement('button');
             remove.className = 'preview-remove';
             remove.type = 'button';
@@ -5856,14 +5968,8 @@
             this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
 
-        function defaultRuntimeImagePrompt(imageCount) {
-            const prompts = {
-                1: '请为这张图片找同品类相似商品',
-                2: '请比较这两张图片对应的商品',
-                3: '请按上传顺序比较这三张图片对应的商品',
-                4: '请按上传顺序比较这四张图片对应的商品'
-            };
-            return prompts[imageCount] || prompts[1];
+        function runtimeImageAction(imageCount) {
+            return imageCount === 1 ? 'identify' : 'compare';
         }
 
         function getRuntimeImageDraftError(imageCount, runtimeMode) {
@@ -6038,6 +6144,7 @@
                 autoScrollToBottom(true);
 
                 typingDiv.className = 'message-wrapper ai typing';
+                typingDiv.dataset.guideRequestId = requestContext.requestId;
                 typingDiv.innerHTML = '<div class="message-bubble"></div>';
                 chatMessages.appendChild(typingDiv);
                 if (GUIDE_RUNTIME_MODE && window.XiaoRoPresentation) {
@@ -6050,7 +6157,8 @@
                             typingDiv,
                             {
                                 mode: 'recommend',
-                                beforeNode: pendingBubble
+                                beforeNode: pendingBubble,
+                                autoAdvanceMs: 1000
                             }
                         );
                 }
@@ -6064,8 +6172,9 @@
                 let effectiveExtraHtml = extraHtml;
                 let imageResults = [];
                 let bundleReference = null;
+                let imageAction = null;
 
-                if (GUIDE_RUNTIME_MODE && images?.length) {
+                if (GUIDE_RUNTIME_MODE && images?.length && !GUIDE_DEMO_MODE) {
                     setImageUploadStatus('正在安全上传图片…', { uploading: true });
                     bundleReference = await uploadImageBundle(
                         images,
@@ -6087,9 +6196,7 @@
                             : bundleReference.message
                     );
                     if (!effectiveText) {
-                        effectiveText = defaultRuntimeImagePrompt(
-                            images.length
-                        );
+                        imageAction = runtimeImageAction(images.length);
                     }
                 }
 
@@ -6135,7 +6242,8 @@
                     liveDecisionProcess,
                     imageResults,
                     bundleReference,
-                    guideThinkingPipeline
+                    guideThinkingPipeline,
+                    imageAction
                 );
             } catch (error) {
                 const ownerChanged = !isActiveChatRequest(requestContext);
@@ -6783,7 +6891,8 @@
             liveDecisionProcess = null,
             imageResults = [],
             bundleReference = null,
-            guideThinkingPipeline = null
+            guideThinkingPipeline = null,
+            imageAction = null
         ) {
             const startedAt = performance.now();
             const sessionId = requestContext.sessionId;
@@ -6802,15 +6911,25 @@
                 bodyPayload.image_bundle_version = bundleReference.version;
                 bodyPayload.image_bundle_token = bundleReference.owner_token;
             }
+            if (imageAction) {
+                bodyPayload.image_action = imageAction;
+            }
             if (!GUIDE_RUNTIME_MODE && Array.isArray(imageResults) && imageResults.length > 0) {
                 bodyPayload.image_results = imageResults;
             }
-            const response = await fetch('/api/v1/chat/stream', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(bodyPayload),
-                signal: requestContext.controller.signal
-            });
+            const response = GUIDE_DEMO_MODE
+                ? window.XiaoRoDemoFixture.createResponse({
+                    message: text,
+                    images,
+                    sessionId,
+                    conversationVersion: getConversationVersion(sessionId)
+                })
+                : await fetch('/api/v1/chat/stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bodyPayload),
+                    signal: requestContext.controller.signal
+                });
 
             if (!isActiveChatRequest(requestContext)) {
                 requestContext.controller.abort();
@@ -6885,6 +7004,7 @@
                 pitfalls: [],
                 decisionProcess: null,
                 intent: null,
+                clarificationReceived: false,
                 categoryProfile: null,
                 guideOwned: false,
                 answerContract: null,
@@ -6909,6 +7029,7 @@
                 deferredPanels.pitfalls = [];
                 deferredPanels.decisionProcess = null;
                 deferredPanels.intent = null;
+                deferredPanels.clarificationReceived = false;
                 deferredPanels.categoryProfile = null;
                 deferredPanels.guideOwned = false;
                 deferredPanels.answerContract = null;
@@ -6956,8 +7077,24 @@
 
             const flushDeferredPanels = () => {
                 if (!isActiveChatRequest(requestContext)) return;
+                const isGuideClarification = (
+                    GUIDE_RUNTIME_MODE
+                    && deferredPanels.intent === 'clarify'
+                    && deferredPanels.clarificationReceived
+                );
+                const hasGuidePresentation = Boolean(
+                    deferredPanels.presentationContract
+                );
+                if (
+                    GUIDE_RUNTIME_MODE
+                    && isGuideClarification === hasGuidePresentation
+                ) {
+                    throw new Error('GUIDE_RESPONSE_CONTRACT_INVALID');
+                }
+                const guideOwnsPresentation = GUIDE_RUNTIME_MODE;
                 const shouldRenderLegacyConsultationUpdates = (
-                    deferredPanels.consultationUpdates.length
+                    !guideOwnsPresentation
+                    && deferredPanels.consultationUpdates.length
                     && !deferredPanels.presentationContract
                 );
                 if (
@@ -6971,18 +7108,24 @@
                     });
                 }
                 deferredPanels.consultationUpdates = [];
-                if (deferredPanels.imageObservations.length) {
+                if (
+                    !guideOwnsPresentation
+                    && deferredPanels.imageObservations.length
+                ) {
                     deferredPanels.imageObservations.forEach(observation =>
                         displayImageObservation(observation)
                     );
-                    deferredPanels.imageObservations = [];
                 }
-                if (deferredPanels.suitabilityData) {
+                deferredPanels.imageObservations = [];
+                if (
+                    !guideOwnsPresentation
+                    && deferredPanels.suitabilityData
+                ) {
                     displayImageSuitability(
                         deferredPanels.suitabilityData
                     );
-                    deferredPanels.suitabilityData = null;
                 }
+                deferredPanels.suitabilityData = null;
                 if (
                     deferredPanels.products.length
                     || deferredPanels.cardDisplayContract
@@ -6997,25 +7140,34 @@
                         deferredPanels.cardDisplayContract
                     );
                     if (!isActiveChatRequest(requestContext)) return;
-                    if (finalProducts.length) {
-                        displayProducts(
-                            finalProducts,
-                            deferredPanels.feedbackTarget,
-                            deferredPanels.cardDisplayContract,
-                            deferredPanels.categoryProfile,
-                            deferredPanels.presentationContract?.mode
-                        );
+                    const contractProducts = bindContractCardData(
+                        finalProducts,
+                        deferredPanels.presentationContract
+                    );
+                    if (contractProducts.length) {
+                        if (guideOwnsPresentation) {
+                            saveProductsToShelf(contractProducts);
+                        } else {
+                            displayProducts(
+                                contractProducts,
+                                deferredPanels.feedbackTarget,
+                                deferredPanels.cardDisplayContract,
+                                deferredPanels.presentationContract
+                            );
+                        }
                     }
                     deferredPanels.products = [];
                     deferredPanels.cardDisplayContract = null;
                 }
-                if (deferredPanels.pitfalls.length) {
-                    displayPitfalls(deferredPanels.pitfalls);
-                    deferredPanels.pitfalls = [];
-                }
                 if (
-                    GUIDE_RUNTIME_MODE
-                    && deferredPanels.presentationContract
+                    !guideOwnsPresentation
+                    && deferredPanels.pitfalls.length
+                ) {
+                    displayPitfalls(deferredPanels.pitfalls);
+                }
+                deferredPanels.pitfalls = [];
+                if (
+                    guideOwnsPresentation
                 ) {
                     deferredPanels.scenarioEvidence = null;
                     deferredPanels.merchantClaims = null;
@@ -7206,7 +7358,14 @@
                             ),
                             formatPrice: product => (
                                 formatProductPrice(product, true)
-                            )
+                            ),
+                            isFavorite: product => Boolean(
+                                getStoredProducts().find(
+                                    item => String(item.id)
+                                        === String(product?.id)
+                                )?.favorite
+                            ),
+                            refreshIcons: () => feather.replace()
                         }
                     ).catch(error => {
                         structuredPresentationError = error;
@@ -7374,18 +7533,25 @@
                     throw new Error('GUIDE_STREAM_TERMINAL_VIOLATION');
                 }
                 if (eventName === 'message') {
-                    if (data.content && !data.done) {
-                        if (
-                            GUIDE_RUNTIME_MODE
-                            && deferredPanels.presentationContract
-                        ) {
-                            fullText += data.content;
-                            displayedText = fullText;
-                            startStructuredPresentation();
-                        } else {
-                            enqueueAssistantText(data.content);
-                        }
+                    if (GUIDE_RUNTIME_MODE) {
+                        throw new Error(
+                            'GUIDE_RESPONSE_CONTRACT_INVALID'
+                        );
                     }
+                    if (data.content && !data.done) {
+                        enqueueAssistantText(data.content);
+                    }
+                } else if (eventName === 'clarify') {
+                    if (
+                        typeof data?.question !== 'string'
+                        || !data.question.trim()
+                    ) {
+                        throw new Error(
+                            'GUIDE_RESPONSE_CONTRACT_INVALID'
+                        );
+                    }
+                    deferredPanels.clarificationReceived = true;
+                    enqueueAssistantText(data.question);
                 } else if (eventName === 'stage') {
                     renderStage(
                         data.message || '正在处理',
@@ -7538,7 +7704,13 @@
                         inlineProducts = (
                             GUIDE_RUNTIME_MODE || deferredPanels.guideOwned
                         )
-                            ? validateGuideTerminalPayload({
+                            ? (
+                                GUIDE_DEMO_MODE
+                                    ? selectContractProducts(
+                                        deferredPanels.products,
+                                        deferredPanels.cardDisplayContract
+                                    )
+                                    : validateGuideTerminalPayload({
                                 intent: deferredPanels.intent,
                                 answerContract:
                                     deferredPanels.answerContract,
@@ -7559,34 +7731,12 @@
                                     deferredPanels.decisionProcess,
                                 imageObservations:
                                     deferredPanels.imageObservations
-                            })
+                                    })
+                            )
                             : deferredPanels.products;
                     } catch (error) {
                         discardDeferredPanels();
                         throw error;
-                    }
-                    if (
-                        deferredPanels.guideOwned
-                        && inlineProducts.length
-                    ) {
-                        deferredPanels.categoryProfile =
-                            resolveCategoryProfileForCards(
-                                inlineProducts,
-                                deferredPanels.categoryProfile
-                            );
-                    }
-                    if (deferredPanels.categoryProfile) {
-                        for (const product of inlineProducts) {
-                            if (!buildCategoryFactsHtml(
-                                product,
-                                deferredPanels.categoryProfile
-                            )) {
-                                discardDeferredPanels();
-                                throw new Error(
-                                    'CATEGORY_FACT_PAYLOAD_INVALID'
-                                );
-                            }
-                        }
                     }
                     if (
                         !Number.isInteger(data.conversation_version)
@@ -7711,13 +7861,53 @@
         function buildDetailedProductReason(p, index) {
             const bits = [];
             const rawReason = (p.rerank_reason || '').trim();
-            if (rawReason && rawReason !== '保持原排序') bits.push(rawReason.replace(/^价格约¥?\d+[.\d]*，/g, '').trim());
-
-            const price = Number(p.price);
-            if (Number.isFinite(price) && price > 0) {
-                bits.push(`参考价约 ${formatCurrency(price)}`);
+            const cleanedReason = rawReason
+                .replace(/^价格约¥?\d+[.\d]*，/g, '')
+                .trim();
+            if (
+                cleanedReason
+                && cleanedReason !== '保持原排序'
+                && !/(参考价|实时价|预算|价格|符合预算)/.test(cleanedReason)
+            ) {
+                bits.push(cleanedReason);
             }
 
+            const matched = Array.isArray(p.matched_efficacies)
+                ? p.matched_efficacies.filter(Boolean).slice(0, 3)
+                : [];
+            if (matched.length) {
+                bits.push(`已审核${matched.join('、')}功效方向`);
+            }
+            const knownFacts = Array.isArray(p.category_facts)
+                ? p.category_facts.filter(fact => (
+                    fact
+                    && fact.state === 'known'
+                    && fact.value != null
+                ))
+                : [];
+            const factValue = fieldKey => {
+                const fact = knownFacts.find(item => (
+                    item.field_key === fieldKey
+                ));
+                if (!fact) return '';
+                return formatCategoryFactValue(fact);
+            };
+            const efficacy = factValue('efficacy');
+            if (efficacy && !matched.length) {
+                bits.push(`功效方向：${efficacy}`);
+            }
+            const ingredients = factValue('ingredients_present');
+            if (ingredients) {
+                bits.push(`核心成分：${ingredients}`);
+            }
+            const skin = factValue('suitable_skin');
+            if (skin) {
+                bits.push(`适合肤质：${skin}`);
+            }
+            const texture = factValue('texture');
+            if (texture) {
+                bits.push(`肤感：${texture}`);
+            }
             const desc = (p.description || '').replace(/\s+/g, ' ').trim();
             if (desc && bits.length < 2) {
                 const sentence = desc
@@ -7727,15 +7917,10 @@
                 if (sentence) bits.push(sentence);
             }
 
-            const linkInfo = getProductLinkInfo(p);
-            if (linkInfo.hasLink && bits.length < 3) {
-                bits.push(linkInfo.isReal ? `${linkInfo.platform}详情可查实时价` : `${linkInfo.platform}入口可核对`);
-            }
-
             const fallbacks = [
-                '更贴近你刚才说的肤质和使用场景。',
-                '和第一款路线不同，可以结合价格和肤感取舍。',
-                '现有信息不多，先结合实际肤感判断。'
+                '可结合品牌主打、核心成分和肤感继续比较。',
+                '和第一款路线不同，可以结合功效与肤感取舍。',
+                '现有信息不多，先结合品牌主打和实际肤感判断。'
             ];
             if (!bits.length) bits.push(
                 fallbacks[index] || '更贴近你刚才说的需求。'
@@ -7752,7 +7937,7 @@
             const label = String(product?.suitable_skin || '');
             if (label === '已确认适配') return '明确适配';
             if (label === '肤质数据缺失') return '适配待确认';
-            return '未限定肤质';
+            return '';
         }
 
         function displayImageObservation(observation) {
@@ -8245,12 +8430,65 @@
             `;
         }
 
-        // 显示商品卡片
-        function displayProducts(products) {
-            const feedbackTarget = arguments[1] ?? null;
-            const cardDisplayContract = arguments[2] ?? null;
-            const expectedCategoryProfile = arguments[3] ?? null;
-            const presentationMode = arguments[4] ?? null;
+        function bindContractCardData(products, presentationContract) {
+            const list = Array.isArray(products) ? products : [];
+            if (!presentationContract) return list;
+            const tagsByProductId = new Map();
+            const visibleProductIds = new Set(
+                presentationContract?.card_display?.visible_product_ids
+            );
+            const compactTags = Array.isArray(
+                presentationContract.compact_tags
+            )
+                ? presentationContract.compact_tags
+                : [];
+            compactTags.forEach(tag => {
+                const productId = Number(tag?.product_id);
+                const label = String(tag?.label || '').trim();
+                if (
+                    !Number.isInteger(productId)
+                    || productId <= 0
+                    || !visibleProductIds.has(productId)
+                    || !label
+                    || !Array.isArray(tag?.fact_ids)
+                    || tag.fact_ids.length === 0
+                ) {
+                    throw new Error('PRESENTATION_COMPACT_TAG_INVALID');
+                }
+                const tags = tagsByProductId.get(productId) || [];
+                if (
+                    tags.length >= 3
+                    || tags.some(item => item.label === label)
+                ) {
+                    throw new Error('PRESENTATION_COMPACT_TAG_INVALID');
+                }
+                tags.push({
+                    label,
+                    fact_ids: [...tag.fact_ids],
+                });
+                tagsByProductId.set(productId, tags);
+            });
+            return list.map(product => {
+                const productId = Number(product?.id);
+                return {
+                    ...product,
+                    display_name: (
+                        product?.display_name || product?.name || ''
+                    ).trim(),
+                    compact_tags: [
+                        ...(tagsByProductId.get(productId) || []),
+                    ],
+                };
+            });
+        }
+
+        // 显示通用底部商品卡：只消费后端合同给出的字段。
+        function displayProducts(
+            products,
+            feedbackTarget = null,
+            cardDisplayContract = null,
+            presentationContract = null,
+        ) {
             if (!products || products.length === 0) return;
             saveProductsToShelf(products);
             const target = normalizeFeedbackTarget(feedbackTarget);
@@ -8259,11 +8497,11 @@
                 : '';
 
             const productsHtml = products.map((p, index) => {
-                const evidenceLabel = getSkinEvidenceLabel(p);
                 const linkInfo = getProductLinkInfo(p);
-                const meta = [p.brand, p.category, linkInfo.platform || p.platform].filter(Boolean).slice(0, 3);
-                const reason = buildDetailedProductReason(p, index);
                 const productId = String(p.id || '').trim();
+                const displayName = (
+                    p.display_name || p.name || '推荐商品'
+                );
                 const fallbackDetailUrl = productId
                     ? getSafeDetailUrl(
                         `/api/v1/search/products/${encodeURIComponent(productId)}`
@@ -8275,10 +8513,8 @@
                     ? `data-detail-url="${escapeHtml(safeDetailUrl)}" role="link" tabindex="0"`
                     : '';
                 const isFavorite = getStoredProducts().find(item => item.id === p.id)?.favorite;
-                const priceMeta = formatProductPriceMeta(p);
-                const imageState = getProductImageState(p);
-                const matchedEfficacies = Array.isArray(p.matched_efficacies)
-                    ? p.matched_efficacies.filter(Boolean).slice(0, 2)
+                const compactTags = Array.isArray(p.compact_tags)
+                    ? p.compact_tags.slice(0, 3)
                     : [];
 
                 return `
@@ -8290,37 +8526,33 @@
                          data-guide-product-id="${escapeHtml(productId)}"
                          data-feedback-product-id="${escapeHtml(productId)}">
                         <button class="recommendation-save ${isFavorite ? 'active' : ''}"
+                                type="button"
+                                aria-label="${isFavorite ? '取消收藏' : '收藏'} ${escapeHtml(displayName)}"
                                 data-favorite-product-id="${escapeHtml(productId)}">
                             <i data-feather="${isFavorite ? 'heart' : 'bookmark'}" style="width:14px;height:14px;"></i>
                         </button>
-                        <span class="recommendation-rank">${index + 1}</span>
                         <img src="${getProductImageAttribute(p, index % 2 ? 'blue' : 'rose')}"
                              class="recommendation-image"
-                             alt="${escapeHtml(p.name || '推荐商品')}"
+                             alt="${escapeHtml(displayName)}"
+                             width="180"
+                             height="118"
+                             loading="lazy"
+                             decoding="async"
                              onerror="this.src='${buildProductPlaceholder('商品', index % 2 ? 'blue' : 'rose')}'">
                         <div class="recommendation-body">
-                            <div class="recommendation-name">${escapeHtml(p.name || '推荐商品')}</div>
-                            <div class="recommendation-asset-note ${imageState.verified ? 'verified' : ''}">${imageState.note}</div>
-                            <div class="recommendation-meta">
-                                ${meta.map(item => `<span class="recommendation-chip">${escapeHtml(item)}</span>`).join('')}
+                            <div class="recommendation-name">${escapeHtml(displayName)}</div>
+                            <div class="recommendation-price-row">
+                                <div class="recommendation-price">${formatProductPrice(p)}</div>
                             </div>
-                            ${matchedEfficacies.length ? `
-                                <div class="recommendation-meta recommendation-efficacies">
-                                    ${matchedEfficacies.map(item => `
-                                        <span class="recommendation-chip">
-                                            已审核${escapeHtml(item)}功效
+                            ${compactTags.length ? `
+                                <div class="recommendation-meta">
+                                    ${compactTags.map(tag => `
+                                        <span class="recommendation-chip recommendation-contract-tag">
+                                            ${escapeHtml(tag.label)}
                                         </span>
                                     `).join('')}
                                 </div>
                             ` : ''}
-                            <div class="recommendation-price-row">
-                                <div>
-                                    <div class="recommendation-price">${formatProductPrice(p)}</div>
-                                    ${priceMeta ? `<div class="recommendation-price-meta">${priceMeta}</div>` : ''}
-                                </div>
-                                <span class="recommendation-score">${escapeHtml(evidenceLabel)}</span>
-                            </div>
-                            <div class="recommendation-reason"><strong>推荐理由：</strong>${escapeHtml(reason)}</div>
                             ${linkInfo.hasLink ? `<a class="recommendation-link" href="${escapeHtml(linkInfo.url)}" data-detail-url="${escapeHtml(linkInfo.url)}" target="_blank" rel="noopener">${escapeHtml(linkLabel)}</a>` : ''}
                         </div>
                     </div>
@@ -8342,24 +8574,7 @@
                     </button>
                 `
                 : '';
-            const shelfTitle = (
-                cardDisplayContract?.mode === 'comparison'
-                || presentationMode === 'image_comparison'
-            )
-                ? '本次对比商品'
-                : (
-                    String(presentationMode || '').startsWith('image_')
-                    ? '本轮识别到的商品'
-                    : (
-                        [
-                            'single_product',
-                            'product_knowledge',
-                            'followup'
-                        ].includes(presentationMode)
-                        ? '本轮提到的商品'
-                        : '为你挑到这些'
-                    )
-                );
+            const shelfTitle = '本轮提到的商品';
 
             addSystemMessage(`
                 <div class="recommendation-panel">

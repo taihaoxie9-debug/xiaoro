@@ -85,6 +85,7 @@ def test_feedback_retry_reuses_one_cryptographic_idempotency_key() -> None:
         f"""
 const {{ webcrypto }} = require('node:crypto');
 const crypto = webcrypto;
+const GUIDE_DEMO_MODE = false;
 const feedbackOperations = new Map();
 const feedbackTargetsBySession = new Map();
 let currentSessionId = 'session-a';
@@ -112,7 +113,10 @@ const receipt = normalizeFeedbackTarget({{
   displayed_product_ids: [91, 38],
   profile_version: null,
 }});
-feedbackTargetsBySession.set('session-a', receipt);
+feedbackTargetsBySession.set(
+  'session-a',
+  new Map([[receipt.conversation_version, receipt]])
+);
 const submission = {{
   sessionId: 'session-a',
   target: receipt,
@@ -150,6 +154,7 @@ def test_feedback_late_response_does_not_mutate_reactivated_session() -> None:
         f"""
 const {{ webcrypto }} = require('node:crypto');
 const crypto = webcrypto;
+const GUIDE_DEMO_MODE = false;
 const feedbackOperations = new Map();
 const feedbackTargetsBySession = new Map();
 let currentSessionId = 'session-a';
@@ -164,7 +169,10 @@ const receipt = normalizeFeedbackTarget({{
   displayed_product_ids: [91, 38],
   profile_version: null,
 }});
-feedbackTargetsBySession.set('session-a', receipt);
+feedbackTargetsBySession.set(
+  'session-a',
+  new Map([[receipt.conversation_version, receipt]])
+);
 let accepted = 0;
 const pending = submitTypedFeedback({{
   sessionId: 'session-a',
@@ -175,11 +183,15 @@ const pending = submitTypedFeedback({{
   onAccepted() {{ accepted += 1; }},
 }});
 currentSessionId = 'session-b';
-feedbackTargetsBySession.set('session-b', normalizeFeedbackTarget({{
+const sessionBReceipt = normalizeFeedbackTarget({{
   conversation_version: 1,
   displayed_product_ids: [55],
   profile_version: null,
-}}));
+}});
+feedbackTargetsBySession.set(
+  'session-b',
+  new Map([[sessionBReceipt.conversation_version, sessionBReceipt]])
+);
 resolveFetch({{
   ok: true,
   async json() {{
@@ -221,16 +233,24 @@ let currentSessionId = 'session-b';
 function getSessionId() {{ return currentSessionId; }}
 async function fetch() {{ throw new Error('unused'); }}
 {sources}
-feedbackTargetsBySession.set('session-a', normalizeFeedbackTarget({{
+const sessionAReceipt = normalizeFeedbackTarget({{
   conversation_version: 4,
   displayed_product_ids: [91, 38],
   profile_version: null,
-}}));
-feedbackTargetsBySession.set('session-b', normalizeFeedbackTarget({{
+}});
+feedbackTargetsBySession.set(
+  'session-a',
+  new Map([[sessionAReceipt.conversation_version, sessionAReceipt]])
+);
+const sessionBReceipt = normalizeFeedbackTarget({{
   conversation_version: 2,
   displayed_product_ids: [55],
   profile_version: null,
-}}));
+}});
+feedbackTargetsBySession.set(
+  'session-b',
+  new Map([[sessionBReceipt.conversation_version, sessionBReceipt]])
+);
 function element(version) {{
   return {{
     closest() {{

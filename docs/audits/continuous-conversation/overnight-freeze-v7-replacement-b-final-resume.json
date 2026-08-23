@@ -1,0 +1,100 @@
+{
+  "schema_version": "guide-overnight-freeze-v7-replacement-b-final-resume",
+  "frozen_at": "2026-08-19",
+  "status": "ready_to_finish_replacement_b_for_failure_classification",
+  "git_head": "16721edcc1afa4dbef51ef847b7c455a17ba4332",
+  "app_and_gate_diff_sha256": "78eb854bd239a0bc13d42bbd415eea3ab83ab9c798b48a0fec19e348a25fde0f",
+  "unchanged_authority": {
+    "prompt_sha256": "f1490e46e92213398bdd9625b32398b0ab00f1102292fcc4cda0614dc6584e3d",
+    "fixture_sha256": "544d6c7a8b6e05a69d695261c68c14cb44710e4a4a41613a893ca960f42c0b76",
+    "manifest_sha256": "a6a36e56bdb992d312b0e2a8ef36f2e4864c1c849a979c6675da4cbda90727d5",
+    "truth_sha256": "05f53fad5e95771b6336ae59f36af53d89754e7d6f78e9a513082036c1a7b27b",
+    "question_bodies_previewed_before_attempt": false
+  },
+  "public_repairs": [
+    {
+      "earliest_owner": "exact_category_parsing",
+      "rule": "parent and child topics within one exact lane reduce through Canonical category-set specificity"
+    },
+    {
+      "earliest_owner": "typed_context_projection",
+      "rule": "an inherited active topic is projected into the downstream CategoryDraft constraint"
+    },
+    {
+      "earliest_owner": "typed_constraint_compilation",
+      "rule": "a validated parent efficacy removal suppresses a same-value exact EfficacyDraft"
+    },
+    {
+      "earliest_owner": "typed_route_transition",
+      "rule": "remove plus add and replace plus remove are correction transitions; standalone remove remains withdrawal"
+    },
+    {
+      "earliest_owner": "scenario_projection",
+      "rule": "typed parent withdrawal suppresses later legacy scenario constraints and their evidence requirements"
+    },
+    {
+      "earliest_owner": "paid_gate_scoring",
+      "rule": "eligible recommendation cards are judged against mechanical truth, and continuation turns may inherit an omitted topic"
+    }
+  ],
+  "verification": {
+    "changed_module_tests_passed": 293,
+    "pre_exam_focused_tests_passed": 6240,
+    "pre_exam_focused_tests_failed": 0,
+    "git_diff_check_passed": true,
+    "compileall_passed": true,
+    "frontend_javascript_syntax_passed": true,
+    "new_wording_regex_count": 0,
+    "new_product_or_fixture_special_case_count": 0
+  },
+  "captured_prefix": {
+    "capture_file": "docs/audits/continuous-conversation/backend-blind-b-replacement-20x5-v2-final/result.json",
+    "capture_sha256": "66b7f04f3c559a4e3a1504aae6b77199f0159c580928a95ed60b4537ac0ce5ed",
+    "logical_turn_count": 78,
+    "provider_call_count": 72,
+    "reused_provider_call_count": 66,
+    "new_provider_call_count": 6,
+    "dependency_skipped_turn_count": 6,
+    "pre_repair_passed_turn_count": 39,
+    "stale_wrong_binding_counter_from_pre_repair_scorer": 3
+  },
+  "zero_api_replay": {
+    "file": "docs/audits/continuous-conversation/backend-blind-b-replacement-zero-api-final78-v7-inherited-topic.json",
+    "sha256": "dc1a045ff5e981214ff26c9820ea45dc396fb4fc1977124e78a4534729e381ec",
+    "provider_call_count": 0,
+    "captured_turn_count": 78,
+    "replayed_turn_count": 78,
+    "passed_turn_count": 45,
+    "passed_trajectory_count": 1,
+    "zero_tolerance_counter_total": 0
+  },
+  "resume_accounting": {
+    "reused_provider_attempts": 72,
+    "remaining_logical_turns": 22,
+    "maximum_new_provider_calls": 22,
+    "maximum_total_provider_attempts": 94,
+    "provider_retry_count": 0,
+    "format_repair_attempts": 0,
+    "single_phase_budget_cny": "3.00",
+    "hard_cost_stop_cny": "28.00"
+  },
+  "qualification_projection": {
+    "current_passed_turn_count": 45,
+    "maximum_possible_passed_turn_count": 67,
+    "required_passed_turn_count": 90,
+    "backend_qualification_mathematically_reachable": false,
+    "remaining_calls_required_for_complete_failure_evidence": true
+  },
+  "release_regression_status": {
+    "last_full_repository_passed": 8444,
+    "last_full_repository_failed": 48,
+    "browser_and_release_blocked": true
+  },
+  "policy": {
+    "same_exam_continuation": true,
+    "new_exam_created": false,
+    "existing_provider_attempt_recalled": false,
+    "finish_for_failure_classification_only": true,
+    "browser_and_release_forbidden_after_failed_backend_threshold": true
+  }
+}

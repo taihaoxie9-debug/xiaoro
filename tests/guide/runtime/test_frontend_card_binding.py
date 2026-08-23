@@ -39,30 +39,28 @@ const state = {{
   presentation: {{
     mode: 'comparison',
     copy_source: 'fallback',
+      winner: {{
+        status: 'insufficient',
+        winner_product_id: null,
+        reason: null,
+        fact_ids: [],
+        dimension_ids: [],
+        tie_reason: null,
+      }},
     sections: [
       {{ kind: 'summary', copy_text: '先看差异' }},
       {{ kind: 'comparison', copy_text: '同口径比较' }},
-      {{
-        kind: 'product',
-        copy_text: '第一款',
-        slot_id: 'p1',
-        product_id: 55,
-        direct_facts: [],
-      }},
-      {{
-        kind: 'product',
-        copy_text: '第二款',
-        slot_id: 'p2',
-        product_id: 57,
-        direct_facts: [],
-      }},
-      {{
-        kind: 'closing',
-        copy_text: '更看重清爽就回看{{{{product:p1}}}}。',
-      }},
-      {{ kind: 'pitfalls' }},
       {{ kind: 'full_cards' }},
-      {{ kind: 'evidence' }},
+    ],
+    comparison_rows: [
+      {{
+        dimension_id: 'brand_positioning',
+        label: '品牌主打',
+        cells: [
+          {{ product_id: 55, value: '轻盈清爽', fact_ids: ['f55'], state: 'known' }},
+          {{ product_id: 57, value: '水润贴肤', fact_ids: ['f57'], state: 'known' }},
+        ],
+      }},
     ],
     card_display: {{
       mode: 'comparison',
@@ -92,10 +90,10 @@ process.stdout.write(JSON.stringify({{
     )
 
     assert result == {
-        "inline": [55, 57],
+        "inline": [],
         "full": [55, 57],
         "images": ["/55.png", "/57.png"],
-        "refs": [{"slot_id": "p1", "product_id": 55}],
+        "refs": [],
     }
 
 
@@ -131,6 +129,11 @@ def test_full_and_inline_cards_prefer_backend_specification() -> None:
     formatter = html[start:end]
 
     assert "product?.specification" in formatter
+    assert (
+        "product?.price_specification_alignment === 'aligned'"
+        in formatter
+    )
+    assert "&& typeof product?.specification === 'string'" in formatter
     assert "formatCurrency(product?.price)" in formatter
     assert " / ${specification}" in formatter
     assert formatter.index("product?.specification") < formatter.index(
@@ -138,14 +141,94 @@ def test_full_and_inline_cards_prefer_backend_specification() -> None:
     )
 
 
-def test_product_shelf_titles_follow_presentation_mode() -> None:
+def test_typed_alignment_blocks_legacy_price_specification_override() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    start = html.index("function formatCurrency(value)")
+    end = html.index(
+        "\n        function formatProductPriceMeta",
+        start,
+    )
+    formatters = html[start:end]
+    result = _node(
+        f"""
+function escapeHtml(value) {{
+  return String(value);
+}}
+function getProductDisplayMeta(product) {{
+  return product.displayMeta || {{}};
+}}
+{formatters}
+const base = {{
+  price: 299,
+  specification: '30ml',
+  displayMeta: {{ price_label: '¥299 / 30ml' }},
+}};
+process.stdout.write(JSON.stringify({{
+  aligned: formatProductPrice({{
+    ...base,
+    price_specification_alignment: 'aligned',
+  }}),
+  conflict: formatProductPrice({{
+    ...base,
+    price_specification_alignment: 'conflict',
+  }}),
+  legacy: formatProductPrice(base),
+}}));
+"""
+    )
+
+    assert result == {
+        "aligned": "¥ 299 / 30ml",
+        "conflict": "¥ 299",
+        "legacy": "¥299 / 30ml",
+    }
+
+
+def test_product_shelf_is_contract_only_and_uses_one_title() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    start = html.index("function displayProducts(")
+    end = html.index(
+        "\n\n        // 显示来源引用",
+        start,
+    )
+    shelf = html[start:end]
+
+    assert "本轮提到的商品" in shelf
+    assert "为你挑到这些" not in shelf
+    assert "本轮识别到的商品" not in shelf
+    assert "本次对比商品" not in shelf
+    assert "p.compact_tags" in shelf
+    assert ".slice(0, 3)" in shelf
+    assert "p.display_name || p.name" in shelf
+    for forbidden in (
+        "buildDetailedProductReason(",
+        "getSkinEvidenceLabel(",
+        "p.rerank_reason",
+        "p.description",
+        "p.category_facts",
+        "p.matched_efficacies",
+        "recommendation-reason",
+        "适配待确认",
+    ):
+        assert forbidden not in shelf
+
+
+def test_product_shelf_has_compact_scoped_card_styles() -> None:
     html = CHAT_HTML.read_text(encoding="utf-8")
 
-    for title in (
-        "为你挑到这些",
-        "本轮提到的商品",
-        "本轮识别到的商品",
-        "本次对比商品",
-    ):
-        assert title in html
-    assert "按需求筛过" not in html
+    assert ".guide-product-shelf-card" in html
+    assert ".guide-presentation-full-cards .recommendation-grid" in html
+    assert (
+        ".guide-product-shelf-card .recommendation-image"
+        in html
+    )
+    assert "grid-template-columns: 64px minmax(0, 1fr)" in html
+
+
+def test_contract_renderer_never_uses_message_as_second_body() -> None:
+    source = MODULE.read_text(encoding="utf-8")
+
+    assert "directAnswer" not in source
+    assert "state.message" not in source[source.index(
+        "function buildPresentationView"
+    ):source.index("\n        function renderRecommendationPresentation")]

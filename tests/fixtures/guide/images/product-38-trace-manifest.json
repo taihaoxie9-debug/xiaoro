@@ -1,0 +1,39 @@
+{
+  "schema_version": "guide-image-trace-fixtures-v1",
+  "product_id": 38,
+  "fixtures": [
+    {
+      "file_name": "product-38-index-control.png",
+      "source_path": "app/static/images/products/jd_v3_100160480140.png",
+      "sha256": "7916573dc1cc11239edea3229f145f00ccfc7716f98d81d220197413cef2d98b",
+      "width": 800,
+      "height": 800,
+      "expected_identity_state": "confirmed",
+      "expected_top_product_id": 38,
+      "expected_earliest_failure_layer": null,
+      "source_identity_status": "canonical_index_control"
+    },
+    {
+      "file_name": "product-38-original.png",
+      "source_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/38/001_4793bb487b52c153.jpg",
+      "sha256": "4793bb487b52c1535d006e9281323ccf2ccc19a87345d167d8f246b66fe3435d",
+      "width": 600,
+      "height": 929,
+      "expected_identity_state": "low_confidence",
+      "expected_top_product_id": 94,
+      "expected_earliest_failure_layer": "visual_retrieval",
+      "source_identity_status": "mislabeled_effaclar_not_product_38"
+    },
+    {
+      "file_name": "product-38-low-resolution.jpg",
+      "source_path": "data/guide_merchant_claims/smzdm_crawl_v1/source_images/38/smzdm_177005703_main_250.jpg",
+      "sha256": "39357629c3bdc39aa8f577bd94c06f1228826dcc2241ee6499b54d9a4dfc5973",
+      "width": 250,
+      "height": 250,
+      "expected_identity_state": "low_confidence",
+      "expected_top_product_id": 145,
+      "expected_earliest_failure_layer": "visual_retrieval",
+      "source_identity_status": "verified_product_38_domain_shift"
+    }
+  ]
+}

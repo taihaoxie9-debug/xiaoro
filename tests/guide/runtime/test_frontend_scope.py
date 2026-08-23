@@ -109,8 +109,21 @@ def _javascript_function_source(
     signature: str,
     next_signature: str,
 ) -> str:
-    start = html.index(signature)
-    end = html.index(next_signature, start)
+    start = html.index(
+        (
+            "function displayProducts("
+            if signature == "function displayProducts(products)"
+            else signature
+        )
+    )
+    end = html.index(
+        (
+            "\n        // 显示通用底部商品卡：只消费后端合同给出的字段。"
+            if next_signature.strip() == "// 显示商品卡片"
+            else next_signature
+        ),
+        start,
+    )
     return html[start:end]
 
 
@@ -145,8 +158,8 @@ def test_chat_page_has_offline_icons_and_runtime_scope_controls() -> None:
     assert "runtimeStatusPill" in html
     assert "slice1_text_skincare" in html
     assert "文本护肤 · 单图识别/适配 · 2–3 图比较" in html
-    assert "matched_efficacies" in html
-    assert "recommendation-efficacies" in html
+    assert "compact_tags" in html
+    assert "recommendation-contract-tag" in html
     assert "lumi_conversation_versions_v1" in html
     assert "getConversationVersion" in html
     assert "setConversationVersion" in html
@@ -161,6 +174,37 @@ def test_consultation_observation_uses_rose_label_without_left_rule() -> None:
     assert "border-left: 0;" in html
     assert ".guide-presentation-observation h3 {" in html
     assert "color: var(--primary-deep);" in html
+
+
+def test_product_title_and_advisor_label_use_rose_accent() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+
+    assert ".guide-presentation-product h3 {" in html
+    assert ".guide-product-advisor-reason strong {" in html
+    assert ".guide-presentation-product h3 {\n            color: var(--primary-deep);" in html
+    assert ".guide-product-advisor-reason strong {\n            color: var(--primary-deep);" in html
+
+
+def test_ordinary_product_references_do_not_inherit_rose_accent() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+
+    assert (
+        ".guide-product-ref {\n"
+        "            margin: 0 3px;\n"
+        "            padding: 0;\n"
+        "            border: 0;\n"
+        "            border-bottom: 1px solid currentColor;\n"
+        "            background: transparent;\n"
+        "            color: inherit;"
+    ) in html
+    assert (
+        ".guide-product-ref:hover {\n"
+        "            color: var(--primary);"
+    ) in html
+    assert (
+        ".guide-product-ref:focus-visible {\n"
+        "            color: var(--primary);"
+    ) in html
 
 
 def test_session_id_source_uses_only_browser_cryptography() -> None:
@@ -652,11 +696,17 @@ def test_clean_runtime_does_not_call_legacy_image_analysis() -> None:
     )
     function_body = html[function_start:function_end]
 
-    assert "if (GUIDE_RUNTIME_MODE && images?.length)" in function_body
+    assert (
+        "if (GUIDE_RUNTIME_MODE && images?.length && !GUIDE_DEMO_MODE)"
+        in function_body
+    )
+    clean_start = function_body.index(
+        "if (GUIDE_RUNTIME_MODE && images?.length && !GUIDE_DEMO_MODE)"
+    )
     clean_branch = function_body[
-        function_body.index("if (GUIDE_RUNTIME_MODE && images?.length)") :
-        function_body.index(
+        clean_start : function_body.index(
             "if (options.resolveImageContext && images?.length)",
+            clean_start,
         )
     ]
     assert "uploadImageBundle(" in clean_branch
@@ -677,7 +727,7 @@ def test_frontend_renders_typed_image_model_and_index_versions() -> None:
         "function displayImageObservation(observation)"
     )
     display_end = html.index(
-        "\n        // 显示商品卡片",
+        "\n        // 显示通用底部商品卡：只消费后端合同给出的字段。",
         display_start,
     )
     display_body = html[display_start:display_end]
@@ -1397,7 +1447,7 @@ process.stdout.write(JSON.stringify({{
     assert "answer" not in category_source
     assert "source_refs" not in category_source
     assert "capabilities" not in category_source
-    assert "expectedCategoryProfile" in display_source
+    assert "expectedCategoryProfile" not in display_source
     assert "buildCategoryFactsHtml(" not in display_source
     assert "categoryFactsHtml" not in display_source
 
@@ -2598,31 +2648,33 @@ process.stdout.write(JSON.stringify(
     assert guard_pos < clear_pos < send_pos
 
 
-def test_runtime_image_default_prompt_matches_bundle_cardinality() -> None:
+def test_runtime_image_action_matches_bundle_cardinality() -> None:
     html = CHAT_HTML.read_text(encoding="utf-8")
     function_source = _javascript_function_source(
         html,
-        "function defaultRuntimeImagePrompt(imageCount)",
+        "function runtimeImageAction(imageCount)",
         "\n\n        function getRuntimeImageDraftError",
     )
     result = _execute_node_json(
         f"""
 {function_source}
 process.stdout.write(JSON.stringify([
-  defaultRuntimeImagePrompt(1),
-  defaultRuntimeImagePrompt(2),
-  defaultRuntimeImagePrompt(3),
-  defaultRuntimeImagePrompt(4),
+  runtimeImageAction(1),
+  runtimeImageAction(2),
+  runtimeImageAction(3),
+  runtimeImageAction(4),
 ]));
 """
     )
 
     assert result == [
-        "请为这张图片找同品类相似商品",
-        "请比较这两张图片对应的商品",
-        "请按上传顺序比较这三张图片对应的商品",
-        "请按上传顺序比较这四张图片对应的商品",
+        "identify",
+        "compare",
+        "compare",
+        "compare",
     ]
+    assert "defaultRuntimeImagePrompt" not in html
+    assert "bodyPayload.image_action = imageAction" in html
 
 
 def test_frontend_buffers_two_image_observations_in_event_order() -> None:

@@ -92,6 +92,36 @@ def _patch_small_locked_weight(
     )
 
 
+def test_deferred_encoder_constructs_without_loading_model(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    loads = 0
+
+    class LoadedEncoder:
+        def __init__(self, spec) -> None:
+            nonlocal loads
+            loads += 1
+            self.model_lock = SimpleNamespace(
+                vector_dimension=spec.vector_dimension,
+                preprocessing_version=spec.preprocessing_version,
+            )
+
+    monkeypatch.setattr(adapter, "OpenClipImageEncoder", LoadedEncoder)
+    encoder = adapter.DeferredOpenClipImageEncoder(
+        adapter.OpenClipModelSpec(
+            weight_path=tmp_path / "open_clip_model.safetensors",
+            device="cpu",
+        )
+    )
+
+    assert loads == 0
+    assert encoder.model_lock.vector_dimension == 512
+    encoder.ensure_ready()
+    encoder.ensure_ready()
+    assert loads == 1
+
+
 def test_cpu_encoder_batches_fp32_512_and_l2_normalizes(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

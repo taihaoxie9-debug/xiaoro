@@ -18,6 +18,7 @@ from app.guide.intent.contracts import (
     TaskConstraint,
 )
 from app.guide.understanding.contracts import (
+    ConstraintChangeDraft,
     EfficacyTarget,
     ExactRevisionConfirmation,
     ExactRevisionOperation,
@@ -75,6 +76,7 @@ def reduce_constraint_state(
     previous: RecommendationQueryContext | None,
     current_constraints: Sequence[BoundConstraint],
     revision_confirmations: Sequence[ExactRevisionConfirmation],
+    semantic_changes: Sequence[ConstraintChangeDraft] = (),
     goal: UnderstandingGoal,
     safety_sensitive: bool = False,
     transition_requested: bool = False,
@@ -108,6 +110,17 @@ def reduce_constraint_state(
         raise TypeError(
             "revision_confirmations must contain exact proofs"
         )
+    if (
+        isinstance(semantic_changes, (str, bytes))
+        or not isinstance(semantic_changes, Sequence)
+        or any(
+            not isinstance(item, ConstraintChangeDraft)
+            for item in semantic_changes
+        )
+    ):
+        raise TypeError(
+            "semantic_changes must contain ConstraintChangeDraft values"
+        )
     if not isinstance(goal, UnderstandingGoal):
         raise TypeError("goal must be an UnderstandingGoal")
     if not isinstance(safety_sensitive, bool):
@@ -116,10 +129,15 @@ def reduce_constraint_state(
         raise TypeError("transition_requested must be bool")
 
     current, issues = _normalize_current(current_constraints)
+    has_current_transition_value = _has_current_transition_value(
+        current,
+        previous=previous,
+    )
     if (
         transition_requested
-        and not current
+        and not has_current_transition_value
         and not revision_confirmations
+        and not semantic_changes
     ):
         _append_issue(
             issues,
@@ -134,6 +152,7 @@ def reduce_constraint_state(
         and (
             goal is UnderstandingGoal.FOLLOWUP
             or bool(revision_confirmations)
+            or bool(semantic_changes)
             or transition_requested
         )
     )
@@ -153,6 +172,12 @@ def reduce_constraint_state(
             proofs=revision_confirmations,
             transitions=transitions,
             issues=issues,
+        )
+        _apply_semantic_changes(
+            state=state,
+            changes=semantic_changes,
+            current=current,
+            transitions=transitions,
         )
 
     for bound in sorted(
@@ -217,7 +242,16 @@ def reduce_constraint_state(
             transition_requested
             and isinstance(constraint, BudgetConstraint)
         )
-        if proof is None and not validated_continuing_budget:
+        semantic_change = _matching_semantic_change(
+            semantic_changes,
+            constraint=constraint,
+            before=before,
+        )
+        if (
+            proof is None
+            and semantic_change is None
+            and not validated_continuing_budget
+        ):
             _append_issue(
                 issues,
                 code="confirm_hard_constraint_revision",
@@ -235,12 +269,25 @@ def reduce_constraint_state(
                 operation="replace",
                 before=before,
                 after=constraint,
-                source_span=bound.source_span,
-                authority=bound.authority,
+                source_span=(
+                    semantic_change.source_span
+                    if semantic_change is not None
+                    else bound.source_span
+                ),
+                authority=(
+                    "validated_semantic"
+                    if semantic_change is not None
+                    else bound.authority
+                ),
             )
         )
         if identity == "category":
             _drop_old_category_scope(state)
+        elif (
+            identity == "efficacy"
+            and isinstance(before, EfficacyConstraint)
+        ):
+            _drop_efficacy_concept(state, before.value)
 
     return ConstraintTransitionResult(
         constraints=tuple(
@@ -291,6 +338,23 @@ def _normalize_current(
     )
 
 
+def _has_current_transition_value(
+    current: Sequence[BoundConstraint],
+    *,
+    previous: RecommendationQueryContext | None,
+) -> bool:
+    for bound in current:
+        constraint = bound.constraint
+        if (
+            isinstance(constraint, CategoryConstraint)
+            and previous is not None
+            and constraint.value.value == previous.category
+        ):
+            continue
+        return True
+    return False
+
+
 def _apply_withdrawals(
     *,
     state: dict[str, TaskConstraint],
@@ -318,6 +382,11 @@ def _apply_withdrawals(
         before = state.pop(identity, None)
         if before is None:
             continue
+        if (
+            proof.target is ExactRevisionTarget.EFFICACY
+            and isinstance(before, EfficacyConstraint)
+        ):
+            _drop_efficacy_concept(state, before.value)
         transitions.append(
             ConstraintTransition(
                 target=identity,
@@ -359,6 +428,62 @@ def _withdrawal_identity(
     return None
 
 
+def _apply_semantic_changes(
+    *,
+    state: dict[str, TaskConstraint],
+    changes: Sequence[ConstraintChangeDraft],
+    current: Sequence[BoundConstraint],
+    transitions: list[ConstraintTransition],
+) -> None:
+    replaced_parents = {
+        change.parent_concept
+        for change in changes
+        if change.requested_change == "replace"
+    }
+    current_efficacies = {
+        bound.constraint.value.value
+        for bound in current
+        if isinstance(bound.constraint, EfficacyConstraint)
+    }
+    for change in changes:
+        if change.requested_change != "remove":
+            continue
+        if change.parent_concept == "ingredient_exclusion":
+            identity = f"exclusion:{change.value.casefold()}"
+        elif (
+            change.parent_concept == "efficacy"
+            and "efficacy" not in replaced_parents
+            and not (
+                current_efficacies
+                and change.value not in current_efficacies
+            )
+        ):
+            identity = "efficacy"
+        else:
+            continue
+        before = state.pop(identity, None)
+        if before is None:
+            continue
+        if (
+            isinstance(before, EfficacyConstraint)
+            and before.value.value != change.value
+        ):
+            state[identity] = before
+            continue
+        if isinstance(before, EfficacyConstraint):
+            _drop_efficacy_concept(state, before.value)
+        transitions.append(
+            ConstraintTransition(
+                target=identity,
+                operation="remove",
+                before=before,
+                after=None,
+                source_span=change.source_span,
+                authority="validated_semantic",
+            )
+        )
+
+
 def _matching_proof(
     proofs: Sequence[ExactRevisionConfirmation],
     *,
@@ -373,6 +498,54 @@ def _matching_proof(
         ),
         None,
     )
+
+
+def _matching_semantic_change(
+    changes: Sequence[ConstraintChangeDraft],
+    *,
+    constraint: TaskConstraint,
+    before: TaskConstraint,
+) -> ConstraintChangeDraft | None:
+    if isinstance(constraint, EfficacyConstraint):
+        parent = "efficacy"
+        value = constraint.value.value
+    elif isinstance(constraint, SkinConstraint):
+        parent = "skin"
+        value = constraint.value.value
+    else:
+        return None
+    explicit = next(
+        (
+            change
+            for change in changes
+            if (
+                change.parent_concept == parent
+                and change.requested_change == "replace"
+                and change.value == value
+            )
+        ),
+        None,
+    )
+    if explicit is not None:
+        return explicit
+    if (
+        parent == "efficacy"
+        and isinstance(before, EfficacyConstraint)
+        and before.value.value != value
+    ):
+        return next(
+            (
+                change
+                for change in changes
+                if (
+                    change.parent_concept == "efficacy"
+                    and change.requested_change == "remove"
+                    and change.value == before.value.value
+                )
+            ),
+            None,
+        )
+    return None
 
 
 def _proof_matches_constraint_value(
@@ -402,6 +575,20 @@ def _drop_old_category_scope(
 ) -> None:
     for identity, constraint in tuple(state.items()):
         if isinstance(constraint, _CATEGORY_SCOPED_TYPES):
+            state.pop(identity)
+
+
+def _drop_efficacy_concept(
+    state: dict[str, TaskConstraint],
+    target: EfficacyTarget,
+) -> None:
+    concept_id = f"efficacy.{target.value}"
+    for identity, constraint in tuple(state.items()):
+        if (
+            isinstance(constraint, ConceptConstraint)
+            and constraint.field_key == "efficacy"
+            and constraint.concept_id == concept_id
+        ):
             state.pop(identity)
 
 

@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 import shutil
+import subprocess
+import sys
 
 import pytest
 
@@ -113,3 +115,50 @@ def test_loader_rejects_runtime_manifest_lock_mismatch(
             inventory_path=inventory,
             review_path=review,
         )
+
+
+def test_review_v2_publisher_cli_is_hash_locked(
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "selection-v2"
+    inventory = Path(
+        "docs/audits/selection-concepts/review-v2/inventory.json"
+    ).resolve()
+    reviews = Path(
+        "docs/audits/selection-concepts/review-v2/reviews.jsonl"
+    ).resolve()
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "tools.guide_data.publish_selection_parent_concepts",
+            "--inventory",
+            str(inventory),
+            "--reviews",
+            str(reviews),
+            "--output-dir",
+            str(output),
+        ],
+        cwd=Path.cwd(),
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    report = json.loads(completed.stdout)
+    assets = load_selection_concept_assets(
+        output / "selection_concepts_v1_manifest.json",
+        expected_manifest_sha256=report["manifest_sha256"],
+        inventory_path=inventory,
+        review_path=reviews,
+    )
+
+    assert report["review_count"] == 191
+    assert report["projection_count"] == 188
+    assert report["concept_count"] == 50
+    assert report["decision_counts"] == {
+        "leave_free": 3,
+        "map": 188,
+    }
+    assert len(assets.projections) == 188

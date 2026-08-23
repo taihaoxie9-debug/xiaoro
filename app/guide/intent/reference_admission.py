@@ -84,6 +84,12 @@ def admit_reference(
     ):
         if not authority.current_batch_available:
             raise ReferenceAdmissionError("unbound")
+        if (
+            mention.batch_size_hint is not None
+            and mention.batch_size_hint
+            != len(authority.candidate_ordinals)
+        ):
+            raise ReferenceAdmissionError("ambiguous")
         return ReferenceDraft(
             kind="current_batch",
             ordinal=None,
@@ -132,7 +138,7 @@ def admit_reference(
                 ordinal=None,
                 source_span=span,
             )
-        if authority.current_item_ordinal is None:
+        if not authority.current_item_available:
             if (
                 not authority.candidate_ordinals
                 and authority.current_image_ordinal is not None
@@ -155,11 +161,17 @@ def admit_reference(
             source_span=span,
         )
     if family == "image":
-        if authority.current_image_ordinal is None:
+        image_ordinal = authority.current_image_ordinal
+        if (
+            image_ordinal is None
+            and len(authority.confirmed_image_ordinals) == 1
+        ):
+            image_ordinal = authority.confirmed_image_ordinals[0]
+        if image_ordinal is None:
             raise ReferenceAdmissionError("unbound")
         return ReferenceDraft(
             kind="image_ordinal",
-            ordinal=authority.current_image_ordinal,
+            ordinal=image_ordinal,
             source_span=span,
         )
     if family == "topic":
@@ -193,7 +205,7 @@ def admit_reference(
         )
     if (
         mention.plurality_hint != "batch"
-        and authority.current_item_ordinal is not None
+        and authority.current_item_available
     ):
         candidates.append(
             ReferenceDraft(

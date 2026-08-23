@@ -1,0 +1,185 @@
+{
+  "schema_version": "guide-presentation-mode-matrix-v2",
+  "modes": [
+    {
+      "mode": "recommendation",
+      "sections": [
+        "summary",
+        "product",
+        "closing",
+        "full_cards",
+        "pitfalls"
+      ],
+      "cards": "one_to_three",
+      "advisor_reason": true,
+      "copywriter_policy": "eligible"
+    },
+    {
+      "mode": "revision",
+      "sections": [
+        "summary",
+        "product",
+        "closing",
+        "full_cards",
+        "pitfalls"
+      ],
+      "cards": "one_to_three",
+      "advisor_reason": true,
+      "copywriter_policy": "eligible"
+    },
+    {
+      "mode": "followup",
+      "sections": [
+        "summary",
+        "product",
+        "closing",
+        "full_cards",
+        "pitfalls"
+      ],
+      "cards": "zero_to_three",
+      "advisor_reason": true,
+      "copywriter_policy": "eligible"
+    },
+    {
+      "mode": "comparison",
+      "sections": [
+        "summary",
+        "comparison",
+        "product",
+        "closing",
+        "full_cards",
+        "pitfalls"
+      ],
+      "cards": "two_to_three",
+      "advisor_reason": true,
+      "copywriter_policy": "eligible"
+    },
+    {
+      "mode": "single_product",
+      "sections": [
+        "summary",
+        "product",
+        "closing",
+        "full_cards",
+        "pitfalls"
+      ],
+      "cards": "one",
+      "advisor_reason": true,
+      "copywriter_policy": "eligible"
+    },
+    {
+      "mode": "product_knowledge",
+      "sections": [
+        "product",
+        "direct_answer",
+        "full_cards"
+      ],
+      "cards": "one",
+      "advisor_reason": false,
+      "copywriter_policy": "eligible"
+    },
+    {
+      "mode": "general_knowledge",
+      "sections": [
+        "general_knowledge"
+      ],
+      "cards": "zero",
+      "advisor_reason": false,
+      "copywriter_policy": "eligible"
+    },
+    {
+      "mode": "consultation",
+      "sections": [
+        "observation",
+        "summary"
+      ],
+      "cards": "zero",
+      "advisor_reason": false,
+      "copywriter_policy": "eligible_or_medical_escalation"
+    },
+    {
+      "mode": "image_identity",
+      "sections": [
+        "summary",
+        "product",
+        "closing",
+        "full_cards",
+        "pitfalls"
+      ],
+      "cards": "one_to_three_confirmed_only",
+      "advisor_reason": true,
+      "copywriter_policy": "eligible"
+    },
+    {
+      "mode": "image_recommendation",
+      "sections": [
+        "summary",
+        "product",
+        "closing",
+        "full_cards",
+        "pitfalls"
+      ],
+      "cards": "one_to_three",
+      "advisor_reason": true,
+      "copywriter_policy": "eligible"
+    },
+    {
+      "mode": "image_suitability",
+      "compiled_mode": "product_knowledge",
+      "sections": [
+        "product",
+        "direct_answer",
+        "full_cards"
+      ],
+      "cards": "one_explicit_image",
+      "advisor_reason": false,
+      "copywriter_policy": "eligible"
+    },
+    {
+      "mode": "image_comparison",
+      "compiled_mode": "comparison",
+      "sections": [
+        "summary",
+        "comparison",
+        "product",
+        "closing",
+        "full_cards",
+        "pitfalls"
+      ],
+      "cards": "two_to_four_in_image_order",
+      "advisor_reason": true,
+      "copywriter_policy": "eligible"
+    },
+    {
+      "mode": "clarification",
+      "sections": [
+        "question"
+      ],
+      "cards": "zero",
+      "advisor_reason": false,
+      "copywriter_policy": "deterministic"
+    },
+    {
+      "mode": "error",
+      "sections": [
+        "error"
+      ],
+      "cards": "zero",
+      "advisor_reason": false,
+      "copywriter_policy": "deterministic"
+    }
+  ],
+  "product_section_order": [
+    "product_title",
+    "g_inline_card",
+    "positioning",
+    "direct_facts",
+    "advisor_reason"
+  ],
+  "fact_roles": {
+    "narrative": "positioning",
+    "direct_fact": "direct_facts",
+    "question_only": "product_or_general_knowledge_direct_answer",
+    "caution": "pitfalls"
+  }
+}

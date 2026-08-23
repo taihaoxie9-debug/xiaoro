@@ -11,7 +11,9 @@ from app.guide.understanding.image_contracts import (
     IdentityEvidenceConsistency,
     IdentityState,
     ImageIdentityObservation,
+    ImageIdentityTrace,
     ObservationState,
+    OcrIdentityTrace,
     OcrIdentityObservation,
     OcrObservationState,
     VisualCandidateObservation,
@@ -45,9 +47,26 @@ class ImageIdentityObserver:
         self,
         request: ImageRetrievalRequest,
     ) -> ImageIdentityObservation:
+        observation, _ = self._observe_once(request)
+        return observation
+
+    def observe_with_trace(
+        self,
+        request: ImageRetrievalRequest,
+    ) -> tuple[ImageIdentityObservation, ImageIdentityTrace]:
+        return self._observe_once(request)
+
+    def _observe_once(
+        self,
+        request: ImageRetrievalRequest,
+    ) -> tuple[ImageIdentityObservation, ImageIdentityTrace]:
         visual = self._visual_observation.observe(request)
         if visual.state is VisualObservationState.UNAVAILABLE:
-            return _unavailable_observation(request.image_id)
+            observation = _unavailable_observation(request.image_id)
+            return observation, self._trace_without_ocr(
+                visual=visual,
+                observation=observation,
+            )
 
         result = visual.result
         if result is None:
@@ -66,7 +85,7 @@ class ImageIdentityObserver:
         )
 
         if not candidates:
-            return _observed_without_ocr(
+            observation = _observed_without_ocr(
                 image_id=request.image_id,
                 result=result,
                 identity_state=IdentityState.NO_CANDIDATE,
@@ -74,13 +93,17 @@ class ImageIdentityObserver:
                 confidence=confidence,
                 margin=margin,
             )
+            return observation, self._trace_without_ocr(
+                visual=visual,
+                observation=observation,
+            )
 
         canonical_product_ids = self._canonical_identities.product_ids
         if any(
             product_id not in canonical_product_ids
             for product_id in candidate_ids
         ):
-            return _observed_without_ocr(
+            observation = _observed_without_ocr(
                 image_id=request.image_id,
                 result=result,
                 identity_state=IdentityState.NON_CANONICAL_CANDIDATE,
@@ -88,9 +111,13 @@ class ImageIdentityObserver:
                 confidence=confidence,
                 margin=margin,
             )
+            return observation, self._trace_without_ocr(
+                visual=visual,
+                observation=observation,
+            )
 
         if candidates[0].similarity < self._policy.minimum_similarity:
-            return _observed_without_ocr(
+            observation = _observed_without_ocr(
                 image_id=request.image_id,
                 result=result,
                 identity_state=IdentityState.LOW_CONFIDENCE,
@@ -98,18 +125,9 @@ class ImageIdentityObserver:
                 confidence=confidence,
                 margin=margin,
             )
-
-        if margin is not None and not _meets_minimum_margin(
-            margin,
-            self._policy.minimum_margin,
-        ):
-            return _observed_without_ocr(
-                image_id=request.image_id,
-                result=result,
-                identity_state=IdentityState.AMBIGUOUS_CANDIDATES,
-                candidate_ids=candidate_ids,
-                confidence=confidence,
-                margin=margin,
+            return observation, self._trace_without_ocr(
+                visual=visual,
+                observation=observation,
             )
 
         top_product_id = candidates[0].product_id
@@ -117,7 +135,7 @@ class ImageIdentityObserver:
             top_product_id
         )
         if canonical_identity is None:
-            return _observed_without_ocr(
+            observation = _observed_without_ocr(
                 image_id=request.image_id,
                 result=result,
                 identity_state=(
@@ -127,9 +145,13 @@ class ImageIdentityObserver:
                 confidence=confidence,
                 margin=margin,
             )
+            return observation, self._trace_without_ocr(
+                visual=visual,
+                observation=observation,
+            )
 
         if margin is None:
-            return _observed_without_ocr(
+            observation = _observed_without_ocr(
                 image_id=request.image_id,
                 result=result,
                 identity_state=IdentityState.INSUFFICIENT_CANDIDATES,
@@ -137,17 +159,25 @@ class ImageIdentityObserver:
                 confidence=confidence,
                 margin=margin,
             )
+            return observation, self._trace_without_ocr(
+                visual=visual,
+                observation=observation,
+            )
 
-        ocr = self._ocr_observation.observe(
+        ocr, ocr_diagnostic = self._ocr_observation.observe_with_trace(
             request,
             canonical_identity,
         )
-        identity_state = (
-            IdentityState.OCR_CONFLICT
-            if _has_ocr_conflict(ocr)
-            else IdentityState.CONFIRMED
-        )
-        return _observed_with_ocr(
+        if _has_ocr_conflict(ocr):
+            identity_state = IdentityState.OCR_CONFLICT
+        elif not _meets_minimum_margin(
+            margin,
+            self._policy.minimum_margin,
+        ) and not _has_ocr_identity_support(ocr):
+            identity_state = IdentityState.AMBIGUOUS_CANDIDATES
+        else:
+            identity_state = IdentityState.CONFIRMED
+        observation = _observed_with_ocr(
             image_id=request.image_id,
             result=result,
             ocr=ocr,
@@ -160,6 +190,29 @@ class ImageIdentityObserver:
             candidate_ids=candidate_ids,
             confidence=confidence,
             margin=margin,
+        )
+        return observation, ImageIdentityTrace(
+            visual=visual,
+            ocr_observation=ocr,
+            ocr_diagnostic=ocr_diagnostic,
+            observation=observation,
+            minimum_similarity=self._policy.minimum_similarity,
+            minimum_margin=self._policy.minimum_margin,
+        )
+
+    def _trace_without_ocr(
+        self,
+        *,
+        visual: VisualCandidateObservation,
+        observation: ImageIdentityObservation,
+    ) -> ImageIdentityTrace:
+        return ImageIdentityTrace(
+            visual=visual,
+            ocr_observation=_not_run_ocr_observation(),
+            ocr_diagnostic=_not_run_ocr_trace(),
+            observation=observation,
+            minimum_similarity=self._policy.minimum_similarity,
+            minimum_margin=self._policy.minimum_margin,
         )
 
 
@@ -176,6 +229,19 @@ def _has_ocr_conflict(observation: OcrIdentityObservation) -> bool:
     return (
         observation.state is OcrObservationState.OBSERVED
         and IdentityEvidenceConsistency.CONFLICT
+        in (
+            observation.brand_consistency,
+            observation.product_name_consistency,
+        )
+    )
+
+
+def _has_ocr_identity_support(
+    observation: OcrIdentityObservation,
+) -> bool:
+    return (
+        observation.state is OcrObservationState.OBSERVED
+        and IdentityEvidenceConsistency.CONSISTENT
         in (
             observation.brand_consistency,
             observation.product_name_consistency,
@@ -220,20 +286,32 @@ def _observed_without_ocr(
     return _observed_with_ocr(
         image_id=image_id,
         result=result,
-        ocr=OcrIdentityObservation(
-            state=OcrObservationState.NOT_RUN,
-            brand_consistency=(
-                IdentityEvidenceConsistency.NOT_CHECKED
-            ),
-            product_name_consistency=(
-                IdentityEvidenceConsistency.NOT_CHECKED
-            ),
-        ),
+        ocr=_not_run_ocr_observation(),
         identity_state=identity_state,
         confirmed_product_id=None,
         candidate_ids=candidate_ids,
         confidence=confidence,
         margin=margin,
+    )
+
+
+def _not_run_ocr_observation() -> OcrIdentityObservation:
+    return OcrIdentityObservation(
+        state=OcrObservationState.NOT_RUN,
+        brand_consistency=IdentityEvidenceConsistency.NOT_CHECKED,
+        product_name_consistency=(
+            IdentityEvidenceConsistency.NOT_CHECKED
+        ),
+    )
+
+
+def _not_run_ocr_trace() -> OcrIdentityTrace:
+    return OcrIdentityTrace(
+        engine="not_run",
+        engine_version=None,
+        minimum_evidence_confidence=0.9,
+        lines=(),
+        evidence_line_count=0,
     )
 
 

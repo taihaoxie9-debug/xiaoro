@@ -1,0 +1,60 @@
+{
+  "schema_version": "guide-overnight-freeze-v5-replacement-b-resume",
+  "frozen_at": "2026-08-19",
+  "status": "ready_to_resume_unconsumed_replacement_b_turns",
+  "git_head": "16721edcc1afa4dbef51ef847b7c455a17ba4332",
+  "app_and_gate_diff_sha256": "dc6b590d6b0c3f1fde0d1413ce58b96aa6d3b7efc32fe815c5906f66013b1fc4",
+  "unchanged_authority": {
+    "prompt_sha256": "f1490e46e92213398bdd9625b32398b0ab00f1102292fcc4cda0614dc6584e3d",
+    "fixture_sha256": "544d6c7a8b6e05a69d695261c68c14cb44710e4a4a41613a893ca960f42c0b76",
+    "manifest_sha256": "a6a36e56bdb992d312b0e2a8ef36f2e4864c1c849a979c6675da4cbda90727d5",
+    "truth_sha256": "05f53fad5e95771b6336ae59f36af53d89754e7d6f78e9a513082036c1a7b27b",
+    "question_bodies_previewed_by_main_agent": false
+  },
+  "runner_repair": {
+    "runner_sha256": "ce31e7bbbb93476e221289ad1354930e63bd208a06492f361ef38eb6a64b0199",
+    "earliest_owner": "paid_gate_control",
+    "observed_failure": "one provider invalid_output was atomically captured but terminated the whole command and the resume path rejected ordinary failed prefixes",
+    "rule": "invalid_output and forbidden_output score the failed turn, mark remaining dependent turns in that trajectory as unexecuted translation failures, continue independent trajectories, and never recall the failed provider turn",
+    "provider_retry_count": 0,
+    "format_repair_attempts": 0,
+    "focused_tests_passed": 55,
+    "full_zero_api_regression_passed": 6240,
+    "full_zero_api_regression_failed": 0
+  },
+  "captured_prefix": {
+    "capture_file": "docs/audits/continuous-conversation/backend-blind-b-replacement-20x5-v2/result.json",
+    "capture_sha256": "38a50059f55adbd510fdfcab004ca5af899c67cf4a3cce7de393014a2ba19d9a",
+    "provider_call_count": 39,
+    "captured_turn_count": 39,
+    "passed_turn_count": 18,
+    "invalid_output_count": 1,
+    "zero_tolerance_counter_total": 0
+  },
+  "zero_api_replay": {
+    "file": "docs/audits/continuous-conversation/backend-blind-b-replacement-zero-api-prefix-v1.json",
+    "sha256": "ba022e2eb521fea8406b5ac6e513ca9e05795ded454899183a5a7c8023973127",
+    "provider_call_count": 0,
+    "replayed_turn_count": 39,
+    "passed_turn_count": 18,
+    "failure_counts_match_capture": true,
+    "zero_tolerance_counter_total": 0
+  },
+  "resume_accounting": {
+    "reused_provider_attempts": 39,
+    "dependent_unexecuted_turns": 1,
+    "maximum_new_provider_calls": 60,
+    "maximum_total_provider_attempts": 99,
+    "logical_scored_turns": 100,
+    "semantic_call_cap_after_resume_and_browser": 711,
+    "global_semantic_call_cap": 752,
+    "single_phase_budget_cny": "3.00",
+    "hard_cost_stop_cny": "28.00"
+  },
+  "policy": {
+    "same_exam_continuation": true,
+    "new_exam_created": false,
+    "failed_turn_recalled": false,
+    "browser_and_release_remain_blocked_until_final_score": true
+  }
+}

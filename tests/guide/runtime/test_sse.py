@@ -2,28 +2,28 @@ import asyncio
 import threading
 
 import anyio
+import pytest
 
-from app.guide.application import chat_api_adapter
 from app.guide_runtime import sse
 
 
-def test_runtime_uses_public_guide_event_name_without_legacy_alias() -> None:
-    assert (
-        sse.iter_guide_public_events
-        is chat_api_adapter.iter_guide_public_events
+def test_runtime_forwards_only_exact_preencoded_bytes() -> None:
+    frames = (
+        bytes(b'event: start\ndata: {"session_id":"runtime"}\n\n'),
+        bytes(b'event: end\ndata: {"conversation_version":1}\n\n'),
     )
-    retired_name = "_".join(
-        ("iter", "slice1", "guide", "legacy", "sse", "events")
+    forwarded = tuple(sse._validated_frames(frames))
+
+    assert forwarded == frames
+    assert all(
+        actual is expected
+        for actual, expected in zip(forwarded, frames, strict=True)
     )
-    assert not hasattr(
-        chat_api_adapter,
-        retired_name,
-    )
+    with pytest.raises(TypeError, match="pre-encoded SSE bytes"):
+        tuple(sse._validated_frames((("start", {}),)))
 
 
-def test_anyio_cancel_waits_for_next_before_close_and_discards_event(
-    monkeypatch,
-) -> None:
+def test_anyio_cancel_waits_for_next_before_close_and_drops_frame() -> None:
     started = threading.Event()
     cancellation_requested = threading.Event()
     release = threading.Event()
@@ -31,15 +31,17 @@ def test_anyio_cancel_waits_for_next_before_close_and_discards_event(
     close_called = threading.Event()
     closed = threading.Event()
     close_before_next_finished = []
-    discarded = []
     delivered = []
     cancellation_propagated = []
+    frame = bytes(
+        b'event: end\ndata: {"conversation_version":1}\n\n'
+    )
 
     def events():
         try:
             started.set()
             release.wait()
-            yield "end", {"conversation_version": 1}
+            yield frame
         finally:
             closed.set()
 
@@ -65,11 +67,6 @@ def test_anyio_cancel_waits_for_next_before_close_and_discards_event(
             finally:
                 close_called.set()
 
-    monkeypatch.setattr(
-        sse,
-        "discard_http_event_delivery",
-        discarded.append,
-    )
     stream = sse.iterate_http_events_in_threadpool(ObservedEvents())
     cancel_scope = []
 
@@ -107,9 +104,6 @@ def test_anyio_cancel_waits_for_next_before_close_and_discards_event(
     assert closed.is_set()
     assert cancellation_propagated == [True]
     assert delivered == []
-    assert discarded == [
-        ("end", {"conversation_version": 1}),
-    ]
 
 
 def test_cancel_waits_for_inflight_next_before_closing_generator() -> None:
@@ -121,7 +115,7 @@ def test_cancel_waits_for_inflight_next_before_closing_generator() -> None:
         try:
             started.set()
             release.wait()
-            yield "message", {"content": "late"}
+            yield bytes(b'event: message\ndata: {"content":"late"}\n\n')
         finally:
             closed.set()
 
@@ -161,23 +155,17 @@ def test_cancel_waits_for_inflight_next_before_closing_generator() -> None:
     assert closed_by_adapter is True
 
 
-def test_cancel_discards_event_returned_by_inflight_next(
-    monkeypatch,
-) -> None:
+def test_cancel_does_not_deliver_frame_returned_by_inflight_next() -> None:
     started = threading.Event()
     release = threading.Event()
-    discarded = []
+    delivered = []
 
     def events():
         started.set()
         release.wait()
-        yield "end", {"conversation_version": 1}
-
-    monkeypatch.setattr(
-        sse,
-        "discard_http_event_delivery",
-        discarded.append,
-    )
+        yield bytes(
+            b'event: end\ndata: {"conversation_version":1}\n\n'
+        )
 
     async def exercise():
         stream = sse.iterate_http_events_in_threadpool(events())
@@ -186,13 +174,11 @@ def test_cancel_discards_event_returned_by_inflight_next(
         pending.cancel()
         release.set()
         try:
-            await pending
+            delivered.append(await pending)
         except asyncio.CancelledError:
             pass
         await stream.aclose()
 
     asyncio.run(exercise())
 
-    assert discarded == [
-        ("end", {"conversation_version": 1}),
-    ]
+    assert delivered == []

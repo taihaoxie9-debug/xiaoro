@@ -350,7 +350,11 @@ def persist_confirmed_consultation_profile(
     if owner is None:
         raise ProfilePersistenceRejected("anonymous_snapshot")
 
-    consultation = authoritative.consultation
+    consultation = (
+        authoritative.consultation_slot.state
+        if authoritative.consultation_slot is not None
+        else None
+    )
     assessment = (
         consultation.confirmable_assessment
         if consultation is not None

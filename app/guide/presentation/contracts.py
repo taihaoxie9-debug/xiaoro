@@ -1,4 +1,5 @@
 from decimal import Decimal
+import re
 from typing import Literal, Self
 
 from pydantic import (
@@ -29,6 +30,11 @@ class ProductCardFacts(_StrictContract):
     product_id: int
     category_profile: CategoryProfile
     category_fields: tuple[AuthorizedCategoryFact, ...]
+    price_specification_alignment: Literal[
+        "aligned",
+        "unresolved",
+        "conflict",
+    ] = "aligned"
     variant_scope: str | None = Field(
         default=None,
         min_length=1,
@@ -39,15 +45,53 @@ class ProductCardFacts(_StrictContract):
         min_length=1,
         max_length=160,
     )
+    display_name: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=512,
+    )
     name: str | None
     brand: str | None
     category: str | None
     price: Decimal | None
+    efficacy: tuple[str, ...] | None = None
+    efficacy_state: Literal[
+        "known",
+        "unknown",
+        "conflict",
+        "not_applicable",
+    ] = "unknown"
+    suitable_skin: tuple[str, ...] | None = None
+    suitable_skin_state: Literal[
+        "known",
+        "unknown",
+        "conflict",
+        "not_applicable",
+    ] = "unknown"
+    ingredients_present: tuple[str, ...] | None = None
+    ingredients_present_state: Literal[
+        "known",
+        "unknown",
+        "conflict",
+        "not_applicable",
+    ] = "unknown"
     image_url: str | None = None
     detail_url: str | None = None
     platform: str | None = None
     image_source_sha256: str | None = None
     fact_warnings: list[str]
+
+    @field_validator(
+        "efficacy",
+        "suitable_skin",
+        "ingredients_present",
+        mode="before",
+    )
+    @classmethod
+    def freeze_direct_display_values(cls, value: object) -> object:
+        if isinstance(value, list):
+            return tuple(value)
+        return value
 
     @model_validator(mode="after")
     def validate_category_fields(self) -> Self:
@@ -69,6 +113,47 @@ class ProductCardFacts(_StrictContract):
         if field_keys != tuple(sorted(set(field_keys))):
             raise ValueError(
                 "category fields must be sorted and unique"
+            )
+        for value, state, field_name in (
+            (
+                self.efficacy,
+                self.efficacy_state,
+                "efficacy",
+            ),
+            (
+                self.suitable_skin,
+                self.suitable_skin_state,
+                "suitable_skin",
+            ),
+            (
+                self.ingredients_present,
+                self.ingredients_present_state,
+                "ingredients_present",
+            ),
+        ):
+            if state == "known":
+                if value is None:
+                    raise ValueError(
+                        f"{field_name} requires value when known"
+                    )
+                if not value or any(
+                    type(item) is not str
+                    or not item
+                    or item != item.strip()
+                    for item in value
+                ):
+                    raise ValueError(
+                        f"{field_name} values must be nonempty strings"
+                    )
+            elif value is not None:
+                raise ValueError(
+                    f"{field_name} forbids value unless known"
+                )
+        if self.display_name is None and self.name is not None:
+            object.__setattr__(
+                self,
+                "display_name",
+                self.name.strip() or None,
             )
         return self
 
@@ -104,6 +189,11 @@ class ProductCard(_StrictContract):
     product_id: int
     category_profile: CategoryProfile
     category_facts: tuple[DisplayCategoryFact, ...]
+    price_specification_alignment: Literal[
+        "aligned",
+        "unresolved",
+        "conflict",
+    ] = "aligned"
     variant_scope: str | None = Field(
         default=None,
         min_length=1,
@@ -113,6 +203,11 @@ class ProductCard(_StrictContract):
         default=None,
         min_length=1,
         max_length=160,
+    )
+    display_name: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=512,
     )
     name: str | None
     brand: str | None
@@ -160,6 +255,28 @@ class ProductCard(_StrictContract):
                 "name",
                 " ".join(parts) or f"商品 {self.product_id}",
             )
+        current_display_name = (self.display_name or "").strip()
+        if current_display_name in _UNUSABLE_PRODUCT_NAMES:
+            object.__setattr__(self, "display_name", self.name)
+        if (
+            self.price_specification_alignment != "aligned"
+            and self.specification is not None
+        ):
+            raise ValueError(
+                "unbound public card forbids specification"
+            )
+        specification = (self.specification or "").strip()
+        if specification:
+            token = re.compile(
+                rf"(?<![0-9A-Za-z]){re.escape(specification)}"
+                r"(?![0-9A-Za-z])",
+                flags=re.IGNORECASE,
+            )
+            for title in (self.display_name, self.name):
+                if title is not None and token.search(title):
+                    raise ValueError(
+                        "public product title contains specification"
+                    )
         return self
 
 
@@ -176,8 +293,8 @@ class CardDisplayContract(_StrictContract):
         "recommendation",
         "comparison",
     ]
-    visible_product_ids: tuple[int, ...] = Field(max_length=3)
-    max_cards: int = Field(ge=0, le=3)
+    visible_product_ids: tuple[int, ...] = Field(max_length=4)
+    max_cards: int = Field(ge=0, le=4)
     reason: Literal[
         "product",
         "recommendation",
@@ -210,10 +327,10 @@ class CardDisplayContract(_StrictContract):
             raise ValueError("single mode requires one product")
         if (
             self.mode == "recommendation"
-            and not 1 <= count <= 3
+            and not 1 <= count <= 4
         ):
             raise ValueError(
-                "recommendation requires one to three products"
+                "recommendation requires one to four products"
             )
         if self.mode == "comparison" and not 2 <= count <= 3:
             raise ValueError(

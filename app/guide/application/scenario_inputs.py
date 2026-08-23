@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import assert_never
+from collections.abc import Collection, Sequence
+from typing import Literal, assert_never
 
 from app.guide.application.query_context import (
     task_plan_to_query_context,
@@ -25,19 +26,44 @@ from app.guide.retrieval.scenario_contracts import (
 from app.guide.retrieval.scenario_rules import (
     compile_scenario_requirements,
 )
-from app.guide.understanding.scenario_parsing import parse_scenarios
+from app.guide.understanding.scenario_parsing import (
+    ScenarioCode,
+    ScenarioObservation,
+)
+
+_SCENARIO_PARENT_BY_CODE = {
+    ScenarioCode.REPAIR: "efficacy",
+    ScenarioCode.SENSITIVE_PERIOD: "skin",
+}
 
 
 def build_scenario_inputs(
     task: TaskPlan,
     *,
-    message: str,
+    scenarios: Sequence[ScenarioObservation],
+    suppressed_constraint_parents: Collection[
+        Literal["efficacy", "skin"]
+    ] = (),
 ) -> ScenarioInputBundle:
     if task.mode != "recommend":
         raise ValueError("scenario inputs require recommend task")
+    suppressed = frozenset(suppressed_constraint_parents)
+    if not suppressed <= {"efficacy", "skin"}:
+        raise ValueError("unsupported scenario constraint parent")
+    if (
+        isinstance(scenarios, (str, bytes))
+        or not isinstance(scenarios, Sequence)
+        or any(
+            not isinstance(item, ScenarioObservation)
+            for item in scenarios
+        )
+    ):
+        raise TypeError(
+            "scenarios must be typed scenario observations"
+        )
 
-    scenarios = parse_scenarios(message)
-    projection = compile_scenario_requirements(scenarios)
+    typed_scenarios = tuple(scenarios)
+    projection = compile_scenario_requirements(typed_scenarios)
     effective_constraints = [
         item.model_copy(deep=True)
         for item in task.constraints
@@ -50,6 +76,8 @@ def build_scenario_inputs(
     for constraint in projection.constraints:
         if constraint.kind in explicit_kinds:
             status = "shadowed_by_explicit"
+        elif constraint.kind in suppressed:
+            status = "suppressed_by_withdrawal"
         else:
             effective_constraints.append(
                 _to_task_constraint(constraint)
@@ -71,14 +99,32 @@ def build_scenario_inputs(
     return ScenarioInputBundle(
         query=ScenarioQueryInput(
             query_context=query_context,
-            scenarios=scenarios,
+            scenarios=list(typed_scenarios),
             scenario_resolutions=resolutions,
-            evidence_requirements=projection.evidence_requirements,
+            evidence_requirements=[
+                item
+                for item in projection.evidence_requirements
+                if (
+                    _SCENARIO_PARENT_BY_CODE.get(
+                        item.source.scenario
+                    )
+                    not in suppressed
+                )
+            ],
         ),
         decision=ScenarioDecisionInput(
             constraints=effective_constraints,
             scenario_resolutions=resolutions,
-            evidence_requirements=projection.evidence_requirements,
+            evidence_requirements=[
+                item
+                for item in projection.evidence_requirements
+                if (
+                    _SCENARIO_PARENT_BY_CODE.get(
+                        item.source.scenario
+                    )
+                    not in suppressed
+                )
+            ],
         ),
     )
 

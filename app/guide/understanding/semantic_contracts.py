@@ -15,6 +15,12 @@ from app.guide.understanding.contracts import (
     TopicCode,
     UnderstandingGoal,
 )
+from app.guide.understanding.turn_meaning_contracts import (
+    EXPLORE_RECOMMENDATION_BASES,
+    FIT_RECOMMENDATION_BASES,
+    RecommendationMode,
+    RecommendationModeBasis,
+)
 
 
 class _StrictModel(BaseModel):
@@ -322,6 +328,17 @@ class SemanticContext(_StrictModel):
     conversation_version: int = Field(ge=0)
     active_topic: TopicCode | None
     active_dialogue: ActiveDialogue | None = None
+    active_recommendation_mode: RecommendationMode | None = Field(
+        default=None,
+    )
+    active_recommendation_mode_basis: (
+        RecommendationModeBasis | None
+    ) = None
+    active_recommendation_count: int | None = Field(
+        default=None,
+        ge=1,
+        le=4,
+    )
     awaiting_reply: bool = False
     visible_candidate_count: int = Field(ge=0, le=4)
     focused_candidate_ordinal: int | None = Field(
@@ -329,7 +346,12 @@ class SemanticContext(_StrictModel):
         ge=1,
         le=4,
     )
+    current_item_available: bool = False
     image_count: int = Field(default=0, ge=0, le=4)
+    confirmed_image_ordinals: tuple[int, ...] = Field(
+        default_factory=tuple,
+        max_length=4,
+    )
     focused_image_ordinal: int | None = Field(
         default=None,
         ge=1,
@@ -347,6 +369,38 @@ class SemanticContext(_StrictModel):
 
     @model_validator(mode="after")
     def validate_typed_context(self) -> Self:
+        recommendation_outcome = (
+            self.active_recommendation_mode,
+            self.active_recommendation_mode_basis,
+            self.active_recommendation_count,
+        )
+        if any(value is not None for value in recommendation_outcome):
+            if any(value is None for value in recommendation_outcome):
+                raise ValueError(
+                    "active recommendation outcome must be complete"
+                )
+            if (
+                self.active_recommendation_mode == "fit"
+                and (
+                    self.active_recommendation_count != 1
+                    or self.active_recommendation_mode_basis
+                    not in FIT_RECOMMENDATION_BASES
+                )
+            ):
+                raise ValueError(
+                    "active recommendation outcome must be parent-scoped"
+                )
+            if (
+                self.active_recommendation_mode == "explore"
+                and (
+                    self.active_recommendation_count == 1
+                    or self.active_recommendation_mode_basis
+                    not in EXPLORE_RECOMMENDATION_BASES
+                )
+            ):
+                raise ValueError(
+                    "active recommendation outcome must be parent-scoped"
+                )
         if (
             self.focused_candidate_ordinal is not None
             and self.focused_candidate_ordinal
@@ -361,6 +415,18 @@ class SemanticContext(_StrictModel):
         ):
             raise ValueError(
                 "focused image ordinal must reference a current image"
+            )
+        if (
+            self.confirmed_image_ordinals
+            != tuple(sorted(set(self.confirmed_image_ordinals)))
+            or any(
+                not 1 <= ordinal <= self.image_count
+                for ordinal in self.confirmed_image_ordinals
+            )
+        ):
+            raise ValueError(
+                "confirmed image ordinals must be sorted, unique, and "
+                "reference current images"
             )
         if len(self.active_constraint_kinds) != len(
             set(self.active_constraint_kinds)

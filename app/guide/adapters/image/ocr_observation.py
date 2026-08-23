@@ -18,8 +18,10 @@ from app.guide.retrieval.image_contracts import ImageRetrievalRequest
 from app.guide.understanding.image_contracts import (
     CanonicalIdentity,
     IdentityEvidenceConsistency,
+    OcrIdentityTrace,
     OcrIdentityObservation,
     OcrObservationState,
+    OcrTraceLine,
 )
 
 
@@ -73,36 +75,57 @@ class RapidOcrObservationAdapter:
         request: ImageRetrievalRequest,
         canonical_identity: CanonicalIdentity,
     ) -> OcrIdentityObservation:
+        observation, _ = self.observe_with_trace(
+            request,
+            canonical_identity,
+        )
+        return observation
+
+    def observe_with_trace(
+        self,
+        request: ImageRetrievalRequest,
+        canonical_identity: CanonicalIdentity,
+    ) -> tuple[OcrIdentityObservation, OcrIdentityTrace]:
         try:
             with image_inference_slot():
                 engine = self._get_engine()
                 if engine is None:
-                    return _unavailable_observation()
+                    return (
+                        _unavailable_observation(),
+                        _rapidocr_trace(()),
+                    )
                 output = engine(request.content)
             lines = _parse_rapidocr_text_lines(output)
         except Exception:
-            return _unavailable_observation()
+            return (
+                _unavailable_observation(),
+                _rapidocr_trace(()),
+            )
 
         evidence_lines = tuple(
             line
             for line in lines
             if line.confidence >= MINIMUM_IDENTITY_EVIDENCE_CONFIDENCE
         )
+        trace = _rapidocr_trace(lines)
         if not evidence_lines:
-            return _unavailable_observation()
+            return _unavailable_observation(), trace
 
-        return OcrIdentityObservation(
-            state=OcrObservationState.OBSERVED,
-            brand_consistency=_identity_consistency(
-                canonical_identity.brand,
-                evidence_lines,
-                labels=_BRAND_LABELS,
+        return (
+            OcrIdentityObservation(
+                state=OcrObservationState.OBSERVED,
+                brand_consistency=_identity_consistency(
+                    canonical_identity.brand,
+                    evidence_lines,
+                    labels=_BRAND_LABELS,
+                ),
+                product_name_consistency=_identity_consistency(
+                    canonical_identity.product_name,
+                    evidence_lines,
+                    labels=_PRODUCT_NAME_LABELS,
+                ),
             ),
-            product_name_consistency=_identity_consistency(
-                canonical_identity.product_name,
-                evidence_lines,
-                labels=_PRODUCT_NAME_LABELS,
-            ),
+            trace,
         )
 
     def _get_engine(self) -> _RapidOcrEngine | None:
@@ -131,16 +154,61 @@ class NotConfiguredOcrObservationAdapter:
         request: ImageRetrievalRequest,
         canonical_identity: CanonicalIdentity,
     ) -> OcrIdentityObservation:
+        observation, _ = self.observe_with_trace(
+            request,
+            canonical_identity,
+        )
+        return observation
+
+    def observe_with_trace(
+        self,
+        request: ImageRetrievalRequest,
+        canonical_identity: CanonicalIdentity,
+    ) -> tuple[OcrIdentityObservation, OcrIdentityTrace]:
         del request, canonical_identity
-        return OcrIdentityObservation(
-            state=OcrObservationState.NOT_CONFIGURED,
-            brand_consistency=(
-                IdentityEvidenceConsistency.NOT_CHECKED
+        return (
+            OcrIdentityObservation(
+                state=OcrObservationState.NOT_CONFIGURED,
+                brand_consistency=(
+                    IdentityEvidenceConsistency.NOT_CHECKED
+                ),
+                product_name_consistency=(
+                    IdentityEvidenceConsistency.NOT_CHECKED
+                ),
             ),
-            product_name_consistency=(
-                IdentityEvidenceConsistency.NOT_CHECKED
+            OcrIdentityTrace(
+                engine="not_configured",
+                engine_version=None,
+                minimum_evidence_confidence=(
+                    MINIMUM_IDENTITY_EVIDENCE_CONFIDENCE
+                ),
+                lines=(),
+                evidence_line_count=0,
             ),
         )
+
+
+def _rapidocr_trace(
+    lines: tuple[_ParsedOcrLine, ...],
+) -> OcrIdentityTrace:
+    return OcrIdentityTrace(
+        engine=APPROVED_RAPIDOCR_DISTRIBUTION,
+        engine_version=APPROVED_RAPIDOCR_VERSION,
+        minimum_evidence_confidence=(
+            MINIMUM_IDENTITY_EVIDENCE_CONFIDENCE
+        ),
+        lines=tuple(
+            OcrTraceLine(
+                text=line.text,
+                confidence=line.confidence,
+            )
+            for line in lines
+        ),
+        evidence_line_count=sum(
+            line.confidence >= MINIMUM_IDENTITY_EVIDENCE_CONFIDENCE
+            for line in lines
+        ),
+    )
 
 
 def _build_approved_engine() -> _RapidOcrEngine:

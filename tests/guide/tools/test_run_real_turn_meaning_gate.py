@@ -33,10 +33,33 @@ def _catalog() -> ConceptPreferenceCatalog:
 
 
 def _meaning(case) -> TurnMeaning:
+    operation = (
+        case.translation.allowed_operation_hints[0].value
+    )
+    recommendation_mode = (
+        case.execution.expected_recommendation_mode
+        if operation in {"recommendation", "image_similarity"}
+        else None
+    )
+    recommendation_basis = (
+        case.execution.expected_recommendation_mode_basis
+        if recommendation_mode is not None
+        else None
+    )
     return TurnMeaning.model_validate(
         {
-            "operation_hint": (
-                case.translation.allowed_operation_hints[0].value
+            "operation_hint": operation,
+            "recommendation_mode": recommendation_mode,
+            "recommendation_count": (
+                1 if recommendation_mode == "fit" else None
+            ),
+            "recommendation_mode_basis": (
+                {
+                    "basis": recommendation_basis,
+                    "source_text": case.message,
+                }
+                if recommendation_basis is not None
+                else None
             ),
             "topic_hint": (
                 case.translation.allowed_topic_hints[0].value

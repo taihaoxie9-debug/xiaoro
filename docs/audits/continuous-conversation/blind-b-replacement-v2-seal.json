@@ -1,0 +1,73 @@
+{
+  "schema_version": "guide-continuous-blind-b-replacement-seal-v2",
+  "sealed_at": "2026-08-19",
+  "status": "sealed",
+  "authorization": {
+    "user_approved_replacement": true,
+    "replacement_for_invalid_blind_b": true,
+    "blind_c_created": false
+  },
+  "system_freeze": {
+    "file": "docs/audits/continuous-conversation/overnight-freeze-v4-replacement-b-sealed.json",
+    "sha256": "28e3955971e3fdbc997216ccec378af99ee55c5610c34734506fc400f53ea45c"
+  },
+  "paper": {
+    "fixture_file": "tests/fixtures/guide/conversation/continuous_blind_b_replacement_20x5_v2.jsonl",
+    "fixture_sha256": "544d6c7a8b6e05a69d695261c68c14cb44710e4a4a41613a893ca960f42c0b76",
+    "manifest_file": "tests/fixtures/guide/conversation/continuous_blind_b_replacement_20x5_v2_manifest.json",
+    "manifest_sha256": "a6a36e56bdb992d312b0e2a8ef36f2e4864c1c849a979c6675da4cbda90727d5",
+    "mechanical_truth_file": "tests/fixtures/guide/conversation/continuous_blind_b_replacement_20x5_v2_truth.json",
+    "mechanical_truth_sha256": "05f53fad5e95771b6336ae59f36af53d89754e7d6f78e9a513082036c1a7b27b",
+    "trajectory_count": 20,
+    "turn_count": 100,
+    "unique_normalized_message_count": 100,
+    "self_only_trajectory_count": 20
+  },
+  "truth": {
+    "canonical_product_count": 103,
+    "paper_product_count": 13,
+    "unsupported_product_count": 0,
+    "fact_field_assertion_count": 345,
+    "unknown_required_field_count": 0,
+    "required_field_missing_source_ref_count": 0,
+    "eligible_subset_turn_count": 16,
+    "exact_identity_turn_count": 44,
+    "cardless_turn_count": 40,
+    "runtime_image_fixture_count": 2,
+    "historical_or_seen_collision_count": 0
+  },
+  "difficulty": {
+    "ordinary_trajectory_count": 14,
+    "moderate_trajectory_count": 4,
+    "complex_trajectory_count": 2
+  },
+  "reviews": {
+    "authoring_summary_file": "docs/audits/continuous-conversation/blind-b-replacement-v2-authoring-summary.json",
+    "authoring_summary_sha256": "105bd38bc08daad100aca56b2b1199ea75dbcc1ac7fbc1db255e701a6e1239e4",
+    "first_independent_review_file": "docs/audits/continuous-conversation/blind-b-replacement-v2-independent-review-v1.json",
+    "first_independent_review_sha256": "4ff961291ac5c4e6b84a8caf8d52245eee3e32c8def70b65eac6ab1a1bfe07d4",
+    "first_independent_review_status": "failed_and_revised",
+    "second_independent_review_file": "docs/audits/continuous-conversation/blind-b-replacement-v2-independent-review-v2.json",
+    "second_independent_review_sha256": "63847fe7f0a898579a6e849fb481334514007fa97e615c664be88362f52405ba",
+    "second_independent_review_status": "pass",
+    "question_bodies_previewed_by_main_agent": false
+  },
+  "qualification": {
+    "minimum_passed_turns": 90,
+    "minimum_passed_complete_trajectories": 18,
+    "maximum_zero_tolerance_counter_total": 0,
+    "semantic_retry_count": 0,
+    "format_repair_attempts": 0,
+    "single_phase_budget_cny": "3.00"
+  },
+  "verification": {
+    "replacement_gate_tests_passed": 46,
+    "full_zero_api_regression_passed": 6238,
+    "git_diff_check_passed": true
+  },
+  "seal_policy": {
+    "paper_manifest_truth_code_prompt_or_data_edit_invalidates_seal": true,
+    "paper_may_open_once": true,
+    "browser_and_release_remain_blocked_until_pass": true
+  }
+}

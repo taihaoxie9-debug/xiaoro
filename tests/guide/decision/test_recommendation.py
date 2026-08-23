@@ -35,7 +35,7 @@ from app.guide.understanding.contracts import (
     SkinTarget,
     TopicCode,
 )
-from app.guide.understanding.text_understanding import understand_text
+from tests.guide.legacy_text_understanding import understand_text
 
 
 _TASK32_OUTER_EXCLUSION_CUES = (
@@ -1306,6 +1306,19 @@ def test_exclusion_known_present_is_excluded() -> None:
             absences=(),
         )
     ], exclude="酒精")
+    assert result.ordered_product_ids == []
+    assert evaluation(result, 1).disposition == "excluded_exclusion_match"
+
+
+def test_exclusion_matches_canonical_ingredient_descendant() -> None:
+    result = decide_with([
+        _suncare_facts(
+            1,
+            ingredients=("水", "乙醇"),
+            absences=(),
+        )
+    ], exclude="酒精")
+
     assert result.ordered_product_ids == []
     assert evaluation(result, 1).disposition == "excluded_exclusion_match"
 

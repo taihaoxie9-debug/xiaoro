@@ -162,6 +162,11 @@ class GeneralKnowledgeBlock(_StrictFrozenModel):
     title: str = Field(min_length=1, max_length=256)
     section_title: str = Field(min_length=1, max_length=256)
     exact_text: str = Field(min_length=1, max_length=4000)
+    public_text: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=4000,
+    )
     source_path: str = Field(min_length=1, max_length=512)
     source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     block_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
@@ -202,6 +207,11 @@ class GeneralKnowledgeBlock(_StrictFrozenModel):
     def validate_block(self) -> Self:
         if self.exact_text != self.exact_text.strip():
             raise ValueError("knowledge exact text must be trimmed")
+        if (
+            self.public_text is not None
+            and self.public_text != self.public_text.strip()
+        ):
+            raise ValueError("knowledge public text must be trimmed")
         if self.review_rationale != self.review_rationale.strip():
             raise ValueError("knowledge review rationale must be trimmed")
         if self.block_sha256 != hashlib.sha256(
@@ -238,6 +248,10 @@ class GeneralKnowledgeBlock(_StrictFrozenModel):
                 raise ValueError(
                     "general answer forbids medical escalation use"
                 )
+            if self.public_text is None:
+                raise ValueError(
+                    "general answer requires reviewed public text"
+                )
         elif self.review_decision == "escalation_only":
             if "answer" in self.allowed_uses:
                 raise ValueError(
@@ -250,6 +264,10 @@ class GeneralKnowledgeBlock(_StrictFrozenModel):
                 raise ValueError(
                     "escalation-only block requires escalation citation"
                 )
+            if self.public_text is not None:
+                raise ValueError(
+                    "non-answer knowledge forbids public text"
+                )
         elif self.review_decision == "product_specific_redirect":
             if "answer" in self.allowed_uses:
                 raise ValueError("product redirect forbids answer")
@@ -257,8 +275,14 @@ class GeneralKnowledgeBlock(_StrictFrozenModel):
                 raise ValueError(
                     "product redirect forbids medical escalation"
                 )
+            if self.public_text is not None:
+                raise ValueError(
+                    "non-answer knowledge forbids public text"
+                )
         elif self.allowed_uses:
             raise ValueError("rejected block forbids allowed uses")
+        elif self.public_text is not None:
+            raise ValueError("rejected block forbids public text")
         return self
 
 
@@ -353,7 +377,7 @@ class GeneralKnowledgeManifest(_StrictFrozenModel):
 
 
 class GeneralKnowledgeQuery(_StrictFrozenModel):
-    raw_question: str = Field(min_length=1, max_length=4000)
+    retrieval_query: str = Field(min_length=1, max_length=4000)
     question_meaning: str = Field(min_length=1, max_length=512)
     topic: TopicCode | None
     safety_sensitive: bool
@@ -379,8 +403,8 @@ class GeneralKnowledgeQuery(_StrictFrozenModel):
 
     @model_validator(mode="after")
     def validate_query(self) -> Self:
-        if self.raw_question != self.raw_question.strip():
-            raise ValueError("knowledge question must be trimmed")
+        if self.retrieval_query != self.retrieval_query.strip():
+            raise ValueError("knowledge retrieval query must be trimmed")
         if self.question_meaning != self.question_meaning.strip():
             raise ValueError("knowledge meaning must be trimmed")
         if (

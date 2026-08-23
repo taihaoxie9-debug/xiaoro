@@ -31,20 +31,6 @@ class GuideLlmConfigError(ValueError):
 
 
 @dataclass(frozen=True, slots=True)
-class GuideRuntimeFlags:
-    unified_router: bool
-
-    @classmethod
-    def from_environment(cls) -> Self:
-        return cls(
-            unified_router=_read_bool(
-                "GUIDE_UNIFIED_ROUTER_ENABLED",
-                default=False,
-            )
-        )
-
-
-@dataclass(frozen=True, slots=True)
 class GuideLlmConfig:
     api_key: str | None = field(repr=False)
     base_url: str
@@ -178,18 +164,6 @@ def _read_model() -> str | None:
             GuideLlmConfigErrorCode.INVALID_MODEL
         )
     return value
-
-
-def _read_bool(name: str, *, default: bool) -> bool:
-    raw_value = os.environ.get(name)
-    if raw_value is None:
-        return default
-    value = raw_value.strip().casefold()
-    if value == "true":
-        return True
-    if value == "false":
-        return False
-    raise ValueError(f"{name} must be true or false")
 
 
 def _read_float(

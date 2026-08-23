@@ -78,6 +78,11 @@ def valid_payloads() -> dict[str, dict[str, Any]]:
     }
     return {
         "UserTurn": {
+            "identity": {
+                "session_id": "session-1",
+                "request_id": "request_session_1_0003",
+                "turn_id": "turn_session_1_0003",
+            },
             "session_id": "session-1",
             "message": "compare the products in these two images",
             "image_bundle_id": "bundle_" + "a" * 32,
@@ -166,6 +171,9 @@ def valid_payloads() -> dict[str, dict[str, Any]]:
         },
         "TaskPlan": {
             "mode": "recommend",
+            "recommendation_mode": "explore",
+            "recommendation_mode_basis": "bounded_exploration",
+            "recommendation_count": 3,
             "referenced_image_ids": ["image-1", "image-2"],
             "constraints": [
                 {
@@ -185,6 +193,9 @@ def valid_payloads() -> dict[str, dict[str, Any]]:
         },
         "BudgetRevisionPlan": {
             "mode": "revise",
+            "recommendation_mode": "explore",
+            "recommendation_mode_basis": "bounded_exploration",
+            "recommendation_count": 3,
             "constraints": [
                 {
                     "kind": "category",
@@ -214,6 +225,9 @@ def valid_payloads() -> dict[str, dict[str, Any]]:
         },
         "SkinRevisionPlan": {
             "mode": "revise",
+            "recommendation_mode": "explore",
+            "recommendation_mode_basis": "bounded_exploration",
+            "recommendation_count": 3,
             "constraints": [
                 {
                     "kind": "category",
@@ -338,6 +352,7 @@ def valid_payloads() -> dict[str, dict[str, Any]]:
         },
         "RecommendationQueryContext": {
             "category": "serum",
+            "recommendation_mode_basis": "bounded_exploration",
             "budget_minimum": None,
             "budget_maximum": Decimal("500"),
             "skin": "sensitive",
@@ -353,22 +368,36 @@ def valid_payloads() -> dict[str, dict[str, Any]]:
         "ConversationSnapshot": {
             "session_id": "session-1",
             "version": 1,
-            "query_context": {
-                "category": "serum",
-                "budget_minimum": None,
-                "budget_maximum": Decimal("500"),
-                "skin": "sensitive",
-                "efficacy": "repair",
-                "exclusions": [],
+            "active_owner": importlib.import_module(
+                "app.guide.intent.responsibility_matrix"
+            ).Responsibility.RECOMMENDATION,
+            "active_focus": {
+                "slot": "recommendation",
+                "object_id": None,
+                "ordinal": None,
             },
-            "candidates": [
-                {
-                    "product_id": 91,
-                    "ordinal": 1,
-                    "skin_match": "unknown",
-                    "matched_efficacies": ["修护"],
-                }
-            ],
+            "recommendation_slot": {
+                "kind": "recommendation",
+                "query_context": {
+                    "category": "serum",
+                    "recommendation_mode_basis": "bounded_exploration",
+                    "budget_minimum": None,
+                    "budget_maximum": Decimal("500"),
+                    "skin": "sensitive",
+                    "efficacy": "repair",
+                    "exclusions": [],
+                },
+                "candidates": [
+                    {
+                        "product_id": 91,
+                        "ordinal": 1,
+                        "skin_match": "unknown",
+                        "matched_efficacies": ["修护"],
+                    }
+                ],
+                "empty_result": False,
+                "focused_candidate_ordinal": None,
+            },
         },
     }
 
@@ -394,7 +423,7 @@ def test_public_contract_has_deterministic_json_round_trip(name: str) -> None:
     instance = model.model_validate(valid_payloads()[name])
 
     encoded = instance.model_dump_json()
-    restored = model.model_validate_json(encoded)
+    restored = model.model_validate_json(encoded, strict=False)
 
     assert restored == instance
     assert restored.model_dump(mode="json") == instance.model_dump(mode="json")

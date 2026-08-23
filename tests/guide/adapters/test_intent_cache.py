@@ -24,12 +24,6 @@ from app.guide.understanding.semantic_contracts import (
     SemanticIntentProposal,
     SemanticGoal,
 )
-from app.guide.understanding.semantic_detail_contracts import (
-    RecommendationDetails,
-)
-from app.guide.understanding.semantic_route_contracts import (
-    SemanticRouteProposal,
-)
 
 
 def _context(
@@ -145,62 +139,6 @@ def test_fingerprint_isolates_provider_model_prompt_and_context() -> None:
             confirmed_profile_fields=(ConfirmedProfileField.SKIN_TYPE,)
         )
     ).fingerprint() != baseline.fingerprint()
-
-
-def test_route_and_detail_cache_keys_never_collide() -> None:
-    route = _key(
-        stage="route",
-        result_schema=SemanticRouteProposal,
-        prompt_version="guide-semantic-route-prompt-v1",
-    )
-    detail = _key(
-        stage="detail:recommendation",
-        result_schema=RecommendationDetails,
-        prompt_version="guide-semantic-detail-prompt-v1",
-    )
-
-    assert route.stage == "route"
-    assert detail.stage == "detail:recommendation"
-    assert route.schema_version == SemanticRouteProposal.schema_version
-    assert detail.schema_version == RecommendationDetails.schema_version
-    assert route.fingerprint() != detail.fingerprint()
-
-
-def test_detail_cache_identity_includes_validated_route() -> None:
-    first_route = SemanticRouteProposal.model_validate_json(
-        (
-            '{"goal":"recommendation","topic":"sunscreen",'
-            '"detail_stage":"recommendation","confidence":0.9,'
-            '"clarification_hint":null}'
-        ),
-        strict=True,
-    )
-    second_route = first_route.model_copy(
-        update={"topic": TopicCode.SERUM}
-    )
-    common = {
-        "stage": "detail:recommendation",
-        "result_schema": RecommendationDetails,
-        "provider": "siliconflow",
-        "base_url": "https://api.siliconflow.cn/v1",
-        "model": "deepseek-ai/DeepSeek-V3.2",
-        "prompt_version": "guide-semantic-detail-prompt-v1",
-        "message": "推荐一个",
-        "context": _context(),
-        "temperature": 0.0,
-        "max_tokens": 128,
-    }
-
-    first = build_intent_cache_key(
-        **common,
-        stage_identity=first_route,
-    )
-    second = build_intent_cache_key(
-        **common,
-        stage_identity=second_route,
-    )
-
-    assert first.fingerprint() != second.fingerprint()
 
 
 def test_fingerprint_isolates_thinking_mode() -> None:

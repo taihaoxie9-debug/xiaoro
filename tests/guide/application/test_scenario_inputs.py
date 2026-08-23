@@ -11,6 +11,7 @@ from app.guide.decision.recommendation import decide_recommendation
 from app.guide.intent.contracts import (
     BudgetConstraint,
     CategoryConstraint,
+    EfficacyConstraint,
     SkinConstraint,
     TaskPlan,
 )
@@ -21,7 +22,8 @@ from app.guide.understanding.contracts import (
     SkinTarget,
     TopicCode,
 )
-from app.guide.understanding.text_understanding import understand_text
+from app.guide.understanding.scenario_parsing import parse_scenarios
+from tests.guide.legacy_text_understanding import understand_text
 
 
 class MemoryFacts:
@@ -53,7 +55,9 @@ def test_explicit_turn_constraints_remain_authoritative_over_scenario() -> None:
 
     inputs = build_scenario_inputs(
         task,
-        message="300 到 500 元干性修护精华，敏感期出差用",
+        scenarios=parse_scenarios(
+            "300 到 500 元干性修护精华，敏感期出差用"
+        ),
     )
 
     assert inputs.query.query_context.category == "serum"
@@ -88,6 +92,9 @@ def test_repair_scenario_adds_auditable_existing_decision_constraint() -> None:
     build_scenario_inputs = scenario_api()
     task = TaskPlan(
         mode="recommend",
+        recommendation_mode="explore",
+        recommendation_mode_basis="broad_exploration",
+        recommendation_count=3,
         referenced_image_ids=[],
         constraints=[
             CategoryConstraint(value=TopicCode.SERUM),
@@ -97,7 +104,10 @@ def test_repair_scenario_adds_auditable_existing_decision_constraint() -> None:
         clarification=None,
     )
 
-    inputs = build_scenario_inputs(task, message="最近处于修护期")
+    inputs = build_scenario_inputs(
+        task,
+        scenarios=parse_scenarios("最近处于修护期"),
+    )
     result = decide_recommendation(
         MemoryFacts(
             [
@@ -137,10 +147,44 @@ def test_repair_scenario_adds_auditable_existing_decision_constraint() -> None:
     )
 
 
+def test_typed_parent_withdrawal_suppresses_legacy_scenario_constraint() -> None:
+    build_scenario_inputs = scenario_api()
+    task = TaskPlan(
+        mode="recommend",
+        recommendation_mode="explore",
+        recommendation_mode_basis="broad_exploration",
+        recommendation_count=3,
+        referenced_image_ids=[],
+        constraints=[
+            CategoryConstraint(value=TopicCode.SERUM),
+            BudgetConstraint(maximum=Decimal("500")),
+        ],
+        required_evidence=["canonical_product"],
+        clarification=None,
+    )
+
+    inputs = build_scenario_inputs(
+        task,
+        scenarios=parse_scenarios("当前修护不再作为硬条件"),
+        suppressed_constraint_parents={"efficacy"},
+    )
+
+    assert not any(
+        isinstance(item, EfficacyConstraint)
+        for item in inputs.decision.constraints
+    )
+    assert inputs.decision.scenario_resolutions[0].status == (
+        "suppressed_by_withdrawal"
+    )
+
+
 def test_sensitive_period_unknown_fact_is_not_pass_or_winner() -> None:
     build_scenario_inputs = scenario_api()
     task = TaskPlan(
         mode="recommend",
+        recommendation_mode="explore",
+        recommendation_mode_basis="broad_exploration",
+        recommendation_count=3,
         referenced_image_ids=[],
         constraints=[
             CategoryConstraint(value=TopicCode.SERUM),
@@ -149,7 +193,10 @@ def test_sensitive_period_unknown_fact_is_not_pass_or_winner() -> None:
         clarification=None,
     )
 
-    inputs = build_scenario_inputs(task, message="最近处于敏感期")
+    inputs = build_scenario_inputs(
+        task,
+        scenarios=parse_scenarios("最近处于敏感期"),
+    )
     result = decide_recommendation(
         MemoryFacts(
             [
@@ -174,8 +221,9 @@ def test_scenario_inputs_are_strict_and_deterministically_serializable() -> None
     build_scenario_inputs = scenario_api()
     task = plan_task(understand_text("500 元内干性户外防晒"))
 
-    first = build_scenario_inputs(task, message="500 元内干性户外防晒")
-    second = build_scenario_inputs(task, message="500 元内干性户外防晒")
+    scenarios = parse_scenarios("500 元内干性户外防晒")
+    first = build_scenario_inputs(task, scenarios=scenarios)
+    second = build_scenario_inputs(task, scenarios=scenarios)
 
     assert first.model_dump_json() == second.model_dump_json()
     assert {

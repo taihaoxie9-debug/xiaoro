@@ -56,6 +56,11 @@ def _block_payload(
         "title": "防晒怎么选",
         "section_title": "关键成分与原理",
         "exact_text": exact_text,
+        "public_text": (
+            exact_text
+            if review_decision == "general_answer"
+            else None
+        ),
         "source_path": "data/knowledge_docs/06-防晒怎么选.md",
         "source_sha256": "a" * 64,
         "block_sha256": hashlib.sha256(
@@ -97,6 +102,12 @@ def _block_identity(payload: dict[str, object]) -> dict[str, object]:
 def _block(**overrides: object) -> GeneralKnowledgeBlock:
     payload = _block_payload()
     payload.update(overrides)
+    if "public_text" not in overrides:
+        payload["public_text"] = (
+            payload["exact_text"]
+            if payload["review_decision"] == "general_answer"
+            else None
+        )
     return GeneralKnowledgeBlock.model_validate(
         {
             "knowledge_id": general_knowledge_id(
@@ -240,7 +251,7 @@ def test_terms_and_query_source_refs_are_sorted_unique() -> None:
         match="prior knowledge IDs must be sorted and unique",
     ):
         GeneralKnowledgeQuery(
-            raw_question="那敏感肌呢",
+            retrieval_query="那敏感肌呢",
             question_meaning="询问敏感肌如何使用",
             topic=None,
             safety_sensitive=False,
@@ -268,7 +279,7 @@ def test_rejected_blocks_cannot_enter_retrieval_packets() -> None:
 
 def test_query_and_packet_order_are_deterministic() -> None:
     query = GeneralKnowledgeQuery(
-        raw_question="SPF和PA分别是什么意思",
+        retrieval_query="SPF和PA分别是什么意思",
         question_meaning="询问SPF和PA含义",
         topic="sunscreen",
         safety_sensitive=False,

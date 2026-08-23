@@ -17,12 +17,7 @@
             'comparison',
             'single_product',
             'product_knowledge',
-            'followup',
-            'revision',
-            'image_identity',
-            'image_recommendation',
-            'image_suitability',
-            'image_comparison'
+            'image_identity'
         ]);
         const THINKING_STAGES = Object.freeze({
             recommend: ['understanding', 'retrieval', 'decision', 'copy'],
@@ -109,7 +104,7 @@
                 || (
                     contract.mode === 'recommendation'
                     && ids.length >= 1
-                    && ids.length <= 3
+                    && ids.length <= 4
                 )
                 || (
                     contract.mode === 'comparison'
@@ -143,6 +138,106 @@
             }));
         }
 
+        function validateWinner(
+            winner,
+            mode,
+            visibleProductIds,
+            recommendationMode = null
+        ) {
+            if (!winner || typeof winner !== 'object') {
+                if (![
+                    'recommendation',
+                    'comparison'
+                ].includes(mode)) {
+                    return { status: 'not_applicable' };
+                }
+                throw new Error('PRESENTATION_WINNER_INVALID');
+            }
+            const status = winner.status;
+            if (mode === 'recommendation') {
+                if (
+                    recommendationMode === 'explore'
+                    && status !== 'not_applicable'
+                ) {
+                    throw new Error('PRESENTATION_WINNER_INVALID');
+                }
+                if (recommendationMode === 'explore') {
+                    if (
+                        winner.winner_product_id !== null
+                        && winner.winner_product_id !== undefined
+                        || winner.reason !== null
+                        && winner.reason !== undefined
+                        || winner.tie_reason !== null
+                        && winner.tie_reason !== undefined
+                        || !Array.isArray(winner.fact_ids)
+                        || winner.fact_ids.length
+                        || !Array.isArray(winner.dimension_ids)
+                        || winner.dimension_ids.length
+                    ) {
+                        throw new Error(
+                            'PRESENTATION_WINNER_INVALID'
+                        );
+                    }
+                    return clone(winner);
+                }
+                if (
+                    recommendationMode !== 'fit'
+                    || status !== 'selected'
+                    || !Number.isInteger(winner.winner_product_id)
+                    || winner.winner_product_id !== visibleProductIds[0]
+                    || typeof winner.reason !== 'string'
+                    || !winner.reason.trim()
+                    || !Array.isArray(winner.fact_ids)
+                    || winner.fact_ids.length === 0
+                ) {
+                    throw new Error('PRESENTATION_WINNER_INVALID');
+                }
+                return clone(winner);
+            }
+            if (mode !== 'comparison') {
+                if (status !== 'not_applicable') {
+                    throw new Error('PRESENTATION_WINNER_INVALID');
+                }
+                return clone(winner);
+            }
+            if (![
+                'selected',
+                'tied',
+                'insufficient'
+            ].includes(status)) {
+                throw new Error('PRESENTATION_WINNER_INVALID');
+            }
+            if (status === 'selected') {
+                if (
+                    !Number.isInteger(winner.winner_product_id)
+                    || !visibleProductIds.includes(
+                        winner.winner_product_id
+                    )
+                    || typeof winner.reason !== 'string'
+                    || !winner.reason.trim()
+                    || !Array.isArray(winner.fact_ids)
+                    || winner.fact_ids.length === 0
+                ) {
+                    throw new Error('PRESENTATION_WINNER_INVALID');
+                }
+            } else if (
+                winner.winner_product_id !== null
+                && winner.winner_product_id !== undefined
+            ) {
+                throw new Error('PRESENTATION_WINNER_INVALID');
+            }
+            if (
+                status === 'tied'
+                && (
+                    typeof winner.tie_reason !== 'string'
+                    || !winner.tie_reason.trim()
+                )
+            ) {
+                throw new Error('PRESENTATION_WINNER_INVALID');
+            }
+            return clone(winner);
+        }
+
         function validatePresentation(presentation, cardDisplay) {
             if (
                 !presentation
@@ -174,14 +269,32 @@
             const productIds = productSections.map(
                 section => Number(section.product_id)
             );
-            if (!sameIds(productIds, cardDisplay.visible_product_ids)) {
+            const allowsProductSections = [
+                'recommendation',
+                'image_identity'
+            ].includes(presentation.mode);
+            if (
+                allowsProductSections
+                && !sameIds(
+                    productIds,
+                    cardDisplay.visible_product_ids
+                )
+            ) {
+                throw new Error(
+                    'PRESENTATION_CARD_CONTRACT_MISMATCH'
+                );
+            }
+            if (
+                !allowsProductSections
+                && productSections.length
+            ) {
                 throw new Error(
                     'PRESENTATION_CARD_CONTRACT_MISMATCH'
                 );
             }
             if (
                 !PRODUCT_MODES.has(presentation.mode)
-                && productSections.length
+                && cardDisplay.visible_product_ids.length
             ) {
                 throw new Error('PRESENTATION_CONTRACT_INVALID');
             }
@@ -192,6 +305,90 @@
                     );
                 }
             });
+            const comparisonRows = Array.isArray(
+                presentation.comparison_rows
+            )
+                ? presentation.comparison_rows
+                : [];
+            const recommendationMode = presentation.recommendation_mode;
+            if (
+                presentation.mode === 'recommendation'
+                && !['explore', 'fit'].includes(recommendationMode)
+            ) {
+                throw new Error(
+                    'PRESENTATION_RECOMMENDATION_MODE_INVALID'
+                );
+            }
+            if (
+                presentation.mode !== 'recommendation'
+                && recommendationMode !== null
+                && recommendationMode !== undefined
+            ) {
+                throw new Error('PRESENTATION_CONTRACT_INVALID');
+            }
+            if (
+                recommendationMode === 'fit'
+                && cardDisplay.visible_product_ids.length !== 1
+            ) {
+                throw new Error(
+                    'PRESENTATION_CARD_CONTRACT_MISMATCH'
+                );
+            }
+            const winner = validateWinner(
+                presentation.winner,
+                presentation.mode,
+                cardDisplay.visible_product_ids,
+                recommendationMode
+            );
+            if (presentation.mode === 'recommendation') {
+                const closingSections = presentation.sections.filter(
+                    section => section?.kind === 'closing'
+                );
+                if (closingSections.length !== 1) {
+                    throw new Error('PRESENTATION_CONTRACT_INVALID');
+                }
+                const closingCopy = closingSections[0].copy_text;
+                if (
+                    recommendationMode === 'fit'
+                    && closingCopy !== null
+                    && closingCopy !== undefined
+                ) {
+                    throw new Error('PRESENTATION_CONTRACT_INVALID');
+                }
+                if (
+                    recommendationMode === 'explore'
+                    && (
+                        typeof closingCopy !== 'string'
+                        || !closingCopy.trim()
+                    )
+                ) {
+                    throw new Error('PRESENTATION_CONTRACT_INVALID');
+                }
+            }
+            if (presentation.mode === 'comparison') {
+                if (!comparisonRows.length) {
+                    throw new Error('PRESENTATION_CONTRACT_INVALID');
+                }
+                comparisonRows.forEach(row => {
+                    const cellIds = Array.isArray(row?.cells)
+                        ? row.cells.map(cell => Number(cell?.product_id))
+                        : [];
+                    if (
+                        typeof row?.label !== 'string'
+                        || !row.label.trim()
+                        || !sameIds(
+                            cellIds,
+                            cardDisplay.visible_product_ids
+                        )
+                    ) {
+                        throw new Error(
+                            'PRESENTATION_CARD_CONTRACT_MISMATCH'
+                        );
+                    }
+                });
+            } else if (comparisonRows.length) {
+                throw new Error('PRESENTATION_CONTRACT_INVALID');
+            }
             return clone(presentation);
         }
 
@@ -305,6 +502,13 @@
                 throw new Error('PRESENTATION_PRODUCT_MISSING');
             }
             return selected;
+        }
+
+        function publicProductName(product, fallback = '推荐商品') {
+            const displayName = String(
+                product?.display_name || product?.name || ''
+            ).trim();
+            return displayName || fallback;
         }
 
         function substituteProductSlots(text, slots) {
@@ -432,30 +636,13 @@
                         });
                     });
             });
-            const directAnswerModes = new Set([
-                'product_knowledge',
-                'general_knowledge',
-                'consultation'
-            ]);
-            let sections = clone(presentation.sections);
-            let directAnswer = directAnswerModes.has(presentation.mode)
-                ? String(state.message || '')
-                : '';
-            if (
-                presentation.mode === 'general_knowledge'
-                && directAnswer
-            ) {
-                sections = sections.map(section => (
-                    section.kind === 'general_knowledge'
-                        ? { ...section, copy_text: directAnswer }
-                        : section
-                ));
-                directAnswer = '';
-            }
             return {
                 mode: presentation.mode,
+                recommendationMode: (
+                    presentation.recommendation_mode || null
+                ),
                 copySource: presentation.copy_source,
-                sections,
+                sections: clone(presentation.sections),
                 products,
                 inlineCardIds: productSections.map(
                     section => section.product_id
@@ -464,7 +651,11 @@
                     ...presentation.card_display.visible_product_ids
                 ],
                 productRefs: refs,
-                directAnswer
+                comparisonRows: clone(
+                    presentation.comparison_rows || []
+                ),
+                winner: clone(presentation.winner),
+                compactTags: clone(presentation.compact_tags || [])
             };
         }
 
@@ -491,19 +682,14 @@
         function renderFollowupPresentation(state) {
             return buildPresentationView(
                 state,
-                ['followup', 'revision']
+                ['recommendation']
             );
         }
 
         function renderImagePresentation(state) {
             return buildPresentationView(
                 state,
-                [
-                    'image_identity',
-                    'image_recommendation',
-                    'image_suitability',
-                    'image_comparison'
-                ]
+                ['image_identity']
             );
         }
 
@@ -536,10 +722,7 @@
             if (mode === 'general_knowledge') {
                 return renderGeneralKnowledgePresentation(state);
             }
-            if (mode === 'followup' || mode === 'revision') {
-                return renderFollowupPresentation(state);
-            }
-            if (String(mode || '').startsWith('image_')) {
+            if (mode === 'image_identity') {
                 return renderImagePresentation(state);
             }
             if (mode === 'consultation') {
@@ -574,8 +757,9 @@
                 button.dataset.guideProductRef = String(
                     token.product_id
                 );
-                button.textContent = (
-                    product.name || `商品 ${token.product_id}`
+                button.textContent = publicProductName(
+                    product,
+                    `商品 ${token.product_id}`
                 );
                 parent.appendChild(button);
             });
@@ -600,7 +784,11 @@
                 ? helpers.getImageUrl(product)
                 : String(product.image_url || '');
             if (imageUrl) image.src = imageUrl;
-            image.alt = product.name || '推荐商品';
+            image.alt = publicProductName(product);
+            image.width = 112;
+            image.height = 114;
+            image.loading = 'lazy';
+            image.decoding = 'async';
             visual.appendChild(image);
 
             const info = documentRef.createElement('div');
@@ -613,7 +801,7 @@
             }
             const name = documentRef.createElement('strong');
             name.className = 'guide-inline-product-name';
-            name.textContent = product.name || '推荐商品';
+            name.textContent = publicProductName(product);
             const rule = documentRef.createElement('span');
             rule.className = 'guide-inline-product-rule';
             const price = documentRef.createElement('span');
@@ -641,6 +829,158 @@
             return figure;
         }
 
+        function createShelfProductCard(
+            documentRef,
+            product,
+            compactTags,
+            helpers
+        ) {
+            const card = documentRef.createElement('article');
+            card.className = (
+                'recommendation-card guide-product-shelf-card'
+            );
+            card.dataset.guideCardForm = 'shelf';
+            card.dataset.guideProductId = String(product.id);
+
+            const detailUrl = helpers.getDetailUrl
+                ? helpers.getDetailUrl(product)
+                : '';
+            if (detailUrl) {
+                card.dataset.detailUrl = detailUrl;
+                card.setAttribute('role', 'link');
+                card.setAttribute('tabindex', '0');
+            }
+
+            const favorite = documentRef.createElement('button');
+            favorite.type = 'button';
+            favorite.className = 'recommendation-save';
+            favorite.dataset.favoriteProductId = String(product.id);
+            const isFavorite = Boolean(
+                helpers.isFavorite?.(product)
+            );
+            if (isFavorite) {
+                favorite.className += ' active';
+            }
+            const favoriteAction = isFavorite ? '取消收藏' : '收藏';
+            favorite.setAttribute(
+                'aria-label',
+                `${favoriteAction} ${publicProductName(product)}`
+            );
+            favorite.setAttribute('title', favoriteAction);
+            const favoriteIcon = documentRef.createElement('i');
+            favoriteIcon.setAttribute(
+                'data-feather',
+                isFavorite ? 'heart' : 'bookmark'
+            );
+            favorite.appendChild(favoriteIcon);
+
+            const image = documentRef.createElement('img');
+            image.className = 'recommendation-image';
+            image.src = helpers.getImageUrl
+                ? helpers.getImageUrl(product)
+                : String(product.image_url || '');
+            image.alt = publicProductName(product);
+            image.width = 180;
+            image.height = 118;
+            image.loading = 'lazy';
+            image.decoding = 'async';
+
+            const body = documentRef.createElement('div');
+            body.className = 'recommendation-body';
+            const name = documentRef.createElement('div');
+            name.className = 'recommendation-name';
+            name.textContent = publicProductName(product);
+            const price = documentRef.createElement('div');
+            price.className = 'recommendation-price';
+            price.textContent = helpers.formatPrice
+                ? helpers.formatPrice(product)
+                : String(product.price ?? '价格待确认');
+            body.append(name, price);
+
+            if (compactTags.length) {
+                const tags = documentRef.createElement('div');
+                tags.className = 'recommendation-meta';
+                compactTags.forEach(tag => {
+                    const chip = documentRef.createElement('span');
+                    chip.className = (
+                        'recommendation-chip recommendation-contract-tag'
+                    );
+                    chip.textContent = tag.label;
+                    tags.appendChild(chip);
+                });
+                body.appendChild(tags);
+            }
+
+            if (detailUrl) {
+                const link = documentRef.createElement('a');
+                link.className = (
+                    'recommendation-link guide-product-detail-link'
+                );
+                link.href = detailUrl;
+                link.target = '_blank';
+                link.rel = 'noopener';
+                link.dataset.detailUrl = detailUrl;
+                link.textContent = '去商品页查实时价';
+                body.appendChild(link);
+            }
+
+            card.append(favorite, image, body);
+            return card;
+        }
+
+        function createProductShelf(
+            documentRef,
+            view,
+            productsById,
+            helpers
+        ) {
+            if (!view.fullCardIds.length) {
+                return null;
+            }
+            const section = documentRef.createElement('section');
+            section.className = (
+                'guide-presentation-section guide-presentation-full-cards'
+            );
+            section.dataset.sectionKind = 'full_cards';
+            const title = documentRef.createElement('h3');
+            title.textContent = '本轮提到的商品';
+            const grid = documentRef.createElement('div');
+            grid.className = 'recommendation-grid';
+            const tagsByProductId = new Map();
+            view.compactTags.forEach(tag => {
+                const productId = Number(tag?.product_id);
+                if (
+                    !Number.isInteger(productId)
+                    || !productsById.has(productId)
+                    || typeof tag?.label !== 'string'
+                    || !tag.label
+                ) {
+                    return;
+                }
+                const tags = tagsByProductId.get(productId) || [];
+                if (tags.length < 3) {
+                    tags.push({ label: tag.label });
+                }
+                tagsByProductId.set(productId, tags);
+            });
+            view.fullCardIds.forEach(productId => {
+                const product = productsById.get(productId);
+                if (!product) {
+                    throw new Error('PRESENTATION_PRODUCT_MISSING');
+                }
+                grid.appendChild(
+                    createShelfProductCard(
+                        documentRef,
+                        product,
+                        tagsByProductId.get(productId) || [],
+                        helpers
+                    )
+                );
+            });
+            section.append(title, grid);
+            return section;
+        }
+
         function createDirectFacts(documentRef, directFacts) {
             const facts = documentRef.createElement('dl');
             (Array.isArray(directFacts) ? directFacts : []).forEach(
@@ -661,52 +1001,17 @@
 
         function createComparisonTable(
             documentRef,
-            sections,
+            comparisonRows,
+            visibleProductIds,
             productsById
         ) {
-            const productSections = sections.filter(
-                section => section.kind === 'product'
-            );
-            if (productSections.length < 2) return null;
-
-            const rows = [];
-            const positioning = productSections.map(
-                section => String(section.copy_text || '').trim()
-            );
-            if (positioning.every(Boolean)) {
-                rows.push({
-                    label: '品牌主打',
-                    values: positioning
-                });
+            if (
+                !Array.isArray(comparisonRows)
+                || !Array.isArray(visibleProductIds)
+                || comparisonRows.length === 0
+            ) {
+                return null;
             }
-
-            const firstFacts = Array.isArray(
-                productSections[0].direct_facts
-            )
-                ? productSections[0].direct_facts
-                : [];
-            const visitedLabels = new Set();
-            firstFacts.forEach(fact => {
-                const label = String(fact?.label || '').trim();
-                if (!label || visitedLabels.has(label)) return;
-                visitedLabels.add(label);
-                const values = productSections.map(section => {
-                    const matching = (
-                        Array.isArray(section.direct_facts)
-                            ? section.direct_facts
-                            : []
-                    ).find(item => (
-                        String(item?.label || '').trim() === label
-                    ));
-                    return String(
-                        matching?.display_value || ''
-                    ).trim();
-                });
-                if (values.every(Boolean)) {
-                    rows.push({ label, values });
-                }
-            });
-            if (!rows.length) return null;
 
             const wrapper = documentRef.createElement('div');
             wrapper.className = 'guide-comparison-scroll';
@@ -721,32 +1026,43 @@
             dimensionHeading.setAttribute('scope', 'col');
             dimensionHeading.textContent = '对比项';
             headRow.appendChild(dimensionHeading);
-            productSections.forEach((section, index) => {
-                const product = productsById.get(section.product_id);
+            visibleProductIds.forEach((productId, index) => {
+                const product = productsById.get(productId);
                 if (!product) {
                     throw new Error('PRESENTATION_PRODUCT_MISSING');
                 }
                 const heading = documentRef.createElement('th');
                 heading.setAttribute('scope', 'col');
-                heading.textContent = (
-                    product.name
-                    || product.display_name
-                    || `商品 ${index + 1}`
+                heading.textContent = publicProductName(
+                    product,
+                    `商品 ${index + 1}`
                 );
                 headRow.appendChild(heading);
             });
             head.appendChild(headRow);
 
             const body = documentRef.createElement('tbody');
-            rows.forEach(row => {
+            comparisonRows.forEach(row => {
                 const tableRow = documentRef.createElement('tr');
                 const label = documentRef.createElement('th');
                 label.setAttribute('scope', 'row');
                 label.textContent = row.label;
                 tableRow.appendChild(label);
-                row.values.forEach(value => {
+                const cellsByProductId = new Map(
+                    row.cells.map(cell => [
+                        Number(cell.product_id),
+                        cell
+                    ])
+                );
+                visibleProductIds.forEach(productId => {
+                    const contractCell = cellsByProductId.get(productId);
+                    if (!contractCell) {
+                        throw new Error(
+                            'PRESENTATION_CARD_CONTRACT_MISMATCH'
+                        );
+                    }
                     const cell = documentRef.createElement('td');
-                    cell.textContent = value;
+                    cell.textContent = contractCell.value;
                     tableRow.appendChild(cell);
                 });
                 body.appendChild(tableRow);
@@ -754,6 +1070,47 @@
             table.append(head, body);
             wrapper.appendChild(table);
             return wrapper;
+        }
+
+        function createWinnerConclusion(
+            documentRef,
+            winner,
+            productsById,
+            labelText = '综合判断：'
+        ) {
+            if (!winner || winner.status === 'not_applicable') {
+                return null;
+            }
+            const block = documentRef.createElement('div');
+            block.className = 'guide-winner-conclusion';
+            block.dataset.guideWinnerStatus = winner.status;
+            const text = documentRef.createElement('span');
+            if (winner.status === 'selected') {
+                const product = productsById.get(
+                    Number(winner.winner_product_id)
+                );
+                if (!product) {
+                    throw new Error('PRESENTATION_PRODUCT_MISSING');
+                }
+                text.textContent = (
+                    `${publicProductName(product, '当前胜出商品')}。`
+                    + `${winner.reason}`
+                );
+            } else if (winner.status === 'tied') {
+                text.textContent = (
+                    `暂不指定唯一首选。${winner.tie_reason}`
+                );
+            } else {
+                text.textContent = '现有事实不足以指定唯一首选。';
+            }
+            if (labelText) {
+                const label = documentRef.createElement('strong');
+                label.textContent = labelText;
+                block.append(label, text);
+            } else {
+                block.appendChild(text);
+            }
+            return block;
         }
 
         function compactEvidenceText(value, limit = 96) {
@@ -943,9 +1300,21 @@
                 }));
 
             view.sections.forEach((section, index) => {
-                if (['pitfalls', 'full_cards', 'evidence'].includes(
+                if (['pitfalls', 'evidence'].includes(
                     section.kind
                 )) {
+                    return;
+                }
+                if (section.kind === 'full_cards') {
+                    const shelf = createProductShelf(
+                        documentRef,
+                        view,
+                        productsById,
+                        helpers
+                    );
+                    if (shelf) {
+                        rootNode.appendChild(shelf);
+                    }
                     return;
                 }
                 const sectionNode = documentRef.createElement('section');
@@ -966,7 +1335,10 @@
                         section.product_id
                     );
                     const title = documentRef.createElement('h3');
-                    title.textContent = product.name || `商品 ${index + 1}`;
+                    title.textContent = publicProductName(
+                        product,
+                        `商品 ${index + 1}`
+                    );
                     sectionNode.append(
                         title,
                         createInlineProductCard(
@@ -975,7 +1347,13 @@
                             helpers
                         )
                     );
-                } else if (section.kind === 'closing') {
+                } else if (
+                    section.kind === 'closing'
+                    && (
+                        view.mode !== 'recommendation'
+                        || view.recommendationMode === 'fit'
+                    )
+                ) {
                     const title = documentRef.createElement('h3');
                     title.textContent = '综合推荐';
                     sectionNode.appendChild(title);
@@ -1002,11 +1380,35 @@
                 if (section.kind === 'comparison') {
                     const comparisonTable = createComparisonTable(
                         documentRef,
-                        view.sections,
+                        view.comparisonRows,
+                        view.fullCardIds,
                         productsById
                     );
                     if (comparisonTable) {
                         sectionNode.appendChild(comparisonTable);
+                    }
+                    const winner = createWinnerConclusion(
+                        documentRef,
+                        view.winner,
+                        productsById
+                    );
+                    if (winner) {
+                        sectionNode.appendChild(winner);
+                    }
+                }
+                if (
+                    section.kind === 'closing'
+                    && view.recommendationMode === 'fit'
+                    && view.winner?.status === 'selected'
+                ) {
+                    const winner = createWinnerConclusion(
+                        documentRef,
+                        view.winner,
+                        productsById,
+                        ''
+                    );
+                    if (winner) {
+                        sectionNode.appendChild(winner);
                     }
                 }
 
@@ -1035,26 +1437,9 @@
                     }
                 }
                 rootNode.appendChild(sectionNode);
-                if (
-                    index === 0
-                    && view.directAnswer
-                    && view.directAnswer !== section.copy_text
-                ) {
-                    const directAnswer = documentRef.createElement(
-                        'section'
-                    );
-                    directAnswer.className = (
-                        'guide-presentation-section '
-                        + 'guide-presentation-direct-answer'
-                    );
-                    directAnswer.dataset.sectionKind = 'direct_answer';
-                    const directCopy = documentRef.createElement('p');
-                    directCopy.textContent = view.directAnswer;
-                    directAnswer.appendChild(directCopy);
-                    rootNode.appendChild(directAnswer);
-                }
             });
             container.replaceChildren(rootNode);
+            helpers.refreshIcons?.();
             return view;
         }
 
@@ -1125,8 +1510,9 @@
                     button.dataset.guideProductRef = String(
                         token.product_id
                     );
-                    button.textContent = (
-                        product.name || `商品 ${token.product_id}`
+                    button.textContent = publicProductName(
+                        product,
+                        `商品 ${token.product_id}`
                     );
                     parent.appendChild(button);
                 }
@@ -1138,9 +1524,21 @@
                 index += 1
             ) {
                 const section = view.sections[index];
-                if (['full_cards', 'pitfalls', 'evidence'].includes(
+                if (['pitfalls', 'evidence'].includes(
                     section.kind
                 )) {
+                    continue;
+                }
+                if (section.kind === 'full_cards') {
+                    const shelf = createProductShelf(
+                        documentRef,
+                        view,
+                        productsById,
+                        options
+                    );
+                    if (shelf) {
+                        rootNode.appendChild(shelf);
+                    }
                     continue;
                 }
                 const sectionNode = documentRef.createElement('section');
@@ -1166,8 +1564,9 @@
                         section.product_id
                     );
                     const title = documentRef.createElement('h3');
-                    title.textContent = (
-                        product.name || `商品 ${index + 1}`
+                    title.textContent = publicProductName(
+                        product,
+                        `商品 ${index + 1}`
                     );
                     const card = createInlineProductCard(
                         documentRef,
@@ -1179,7 +1578,12 @@
                     options.onInlineCard?.(section.product_id);
                 } else {
                     const titleByKind = {
-                        closing: '综合推荐',
+                        closing: (
+                            view.mode !== 'recommendation'
+                            || view.recommendationMode === 'fit'
+                        )
+                            ? '综合推荐'
+                            : null,
                         comparison: '对比结论',
                         observation: '当前观察'
                     };
@@ -1200,11 +1604,35 @@
                 if (section.kind === 'comparison') {
                     const comparisonTable = createComparisonTable(
                         documentRef,
-                        view.sections,
+                        view.comparisonRows,
+                        view.fullCardIds,
                         productsById
                     );
                     if (comparisonTable) {
                         sectionNode.appendChild(comparisonTable);
+                    }
+                    const winner = createWinnerConclusion(
+                        documentRef,
+                        view.winner,
+                        productsById
+                    );
+                    if (winner) {
+                        sectionNode.appendChild(winner);
+                    }
+                }
+                if (
+                    section.kind === 'closing'
+                    && view.recommendationMode === 'fit'
+                    && view.winner?.status === 'selected'
+                ) {
+                    const winner = createWinnerConclusion(
+                        documentRef,
+                        view.winner,
+                        productsById,
+                        ''
+                    );
+                    if (winner) {
+                        sectionNode.appendChild(winner);
                     }
                 }
 
@@ -1232,25 +1660,8 @@
                     }
                 }
 
-                if (
-                    index === 0
-                    && view.directAnswer
-                    && view.directAnswer !== section.copy_text
-                ) {
-                    const directAnswer = documentRef.createElement(
-                        'section'
-                    );
-                    directAnswer.className = (
-                        'guide-presentation-section '
-                        + 'guide-presentation-direct-answer'
-                    );
-                    directAnswer.dataset.sectionKind = 'direct_answer';
-                    const directCopy = documentRef.createElement('p');
-                    directAnswer.appendChild(directCopy);
-                    rootNode.appendChild(directAnswer);
-                    await emitCopy(directCopy, view.directAnswer);
-                }
             }
+            options.refreshIcons?.();
             return view;
         }
 
@@ -1309,7 +1720,9 @@
                 mode: options.mode || 'recommend',
                 stages,
                 current: 0,
-                summary: ''
+                summary: '',
+                autoAdvanceMs: Number(options.autoAdvanceMs || 0),
+                autoAdvanceTimer: null
             };
             if (
                 options.beforeNode
@@ -1320,18 +1733,54 @@
                 container.appendChild(element);
             }
             renderThinking(controller);
+            scheduleThinkingAutoAdvance(controller);
             return controller;
+        }
+
+        function clearThinkingAutoAdvance(controller) {
+            if (!controller?.autoAdvanceTimer) return;
+            if (typeof clearTimeout === 'function') {
+                clearTimeout(controller.autoAdvanceTimer);
+            }
+            controller.autoAdvanceTimer = null;
+        }
+
+        function scheduleThinkingAutoAdvance(controller) {
+            if (
+                !controller?.element
+                || !controller.stages?.length
+                || !Number.isFinite(controller.autoAdvanceMs)
+                || controller.autoAdvanceMs <= 0
+                || controller.current >= controller.stages.length - 1
+                || typeof setTimeout !== 'function'
+            ) {
+                return;
+            }
+            clearThinkingAutoAdvance(controller);
+            controller.autoAdvanceTimer = setTimeout(() => {
+                controller.autoAdvanceTimer = null;
+                if (!controller.element?.isConnected) return;
+                controller.current = Math.min(
+                    controller.current + 1,
+                    controller.stages.length - 1
+                );
+                controller.summary = '';
+                renderThinking(controller);
+                scheduleThinkingAutoAdvance(controller);
+            }, controller.autoAdvanceMs);
         }
 
         function setThinkingMode(controller, mode) {
             if (!controller?.element) return controller;
             const stages = thinkingStagesForMode(mode);
             if (!stages.length) return controller;
+            clearThinkingAutoAdvance(controller);
             controller.mode = mode;
             controller.stages = stages;
             controller.current = 0;
             controller.summary = '';
             renderThinking(controller);
+            scheduleThinkingAutoAdvance(controller);
             return controller;
         }
 
@@ -1355,6 +1804,9 @@
             );
             controller.summary = String(summary || '');
             renderThinking(controller);
+            if (controller.current >= controller.stages.length - 1) {
+                clearThinkingAutoAdvance(controller);
+            }
             return controller;
         }
 
@@ -1363,6 +1815,7 @@
             options = {}
         ) {
             if (!controller?.element) return;
+            clearThinkingAutoAdvance(controller);
             const element = controller.element;
             element.dataset.firstCharacter = (
                 options.firstCharacter === true ? 'true' : 'false'

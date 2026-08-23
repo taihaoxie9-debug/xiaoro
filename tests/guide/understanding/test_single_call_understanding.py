@@ -1,17 +1,18 @@
 from __future__ import annotations
 
+import app.guide.understanding.single_call_understanding as single_call_module
+
 from app.guide.intent.concept_preferences import (
     ConceptCatalogEntry,
     ConceptPreferenceCatalog,
 )
 from app.guide.retrieval.category_profiles import CategoryProfile
-from app.guide.understanding.contracts import (
-    TopicCode,
-    UnderstandingGoal,
-)
 from app.guide.understanding.semantic_contracts import SemanticContext
 from app.guide.understanding.single_call_understanding import (
     SingleCallUnderstanding,
+)
+from app.guide.understanding.text_understanding import (
+    ExactOnlyTextUnderstanding,
 )
 from app.guide.understanding.turn_meaning_contracts import TurnMeaning
 
@@ -79,33 +80,74 @@ def test_single_call_understanding_invokes_model_once() -> None:
         concept_catalog=_concept_catalog(),
     )
 
-    result = understanding.understand(
+    result = understanding.translate(
         "推荐清爽防晒",
         context=_context(),
     )
 
     assert semantic.calls == 1
-    assert result.goal is UnderstandingGoal.RECOMMENDATION
-    assert result.topic is TopicCode.SUNSCREEN
-    assert result.preference_drafts[0].value == "清爽"
+    assert result.operation_hint == "recommendation"
+    assert result.topic_hint == "sunscreen"
+    assert result.preference_candidates[0].raw_text == "清爽"
 
 
-def test_translate_returns_meaning_and_compilation_from_same_call() -> None:
+def test_provider_success_translation_returns_only_turn_meaning_without_compiling(
+    monkeypatch,
+) -> None:
     semantic = FakeTurnMeaningPort()
     understanding = SingleCallUnderstanding(
         semantic=semantic,
         concept_catalog=_concept_catalog(),
     )
 
-    meaning, compiled = understanding.translate(
+    def reject_hidden_compiler(**kwargs):
+        del kwargs
+        raise AssertionError("translation must not compile")
+
+    monkeypatch.setattr(
+        single_call_module,
+        "compile_turn_meaning",
+        reject_hidden_compiler,
+        raising=False,
+    )
+
+    meaning = understanding.translate(
         "推荐清爽防晒",
         context=_context(),
     )
 
     assert semantic.calls == 1
+    assert type(meaning) is TurnMeaning
     assert meaning.operation_hint == "recommendation"
-    assert compiled.goal is UnderstandingGoal.RECOMMENDATION
-    assert compiled.topic is TopicCode.SUNSCREEN
+
+
+def test_provider_failure_translation_returns_exact_turn_meaning_without_compiling(
+    monkeypatch,
+) -> None:
+    understanding = SingleCallUnderstanding(
+        semantic=FakeTurnMeaningPort(fail=True),
+        concept_catalog=_concept_catalog(),
+    )
+
+    def reject_hidden_compiler(**kwargs):
+        del kwargs
+        raise AssertionError("translation fallback must not compile")
+
+    monkeypatch.setattr(
+        single_call_module,
+        "compile_turn_meaning",
+        reject_hidden_compiler,
+        raising=False,
+    )
+
+    meaning = understanding.translate(
+        "推荐清爽防晒",
+        context=_context(),
+    )
+
+    assert type(meaning) is TurnMeaning
+    assert meaning.operation_hint == "clarification"
+    assert meaning.question_meaning == "推荐清爽防晒"
 
 
 def test_single_call_provider_failure_fails_closed() -> None:
@@ -115,29 +157,22 @@ def test_single_call_provider_failure_fails_closed() -> None:
         concept_catalog=_concept_catalog(),
     )
 
-    result = understanding.understand(
+    result = understanding.translate(
         "推荐清爽防晒",
         context=_context(),
     )
 
     assert semantic.calls == 1
-    assert result.goal is UnderstandingGoal.CLARIFICATION
-    assert result.uncertainties
+    assert result.operation_hint == "clarification"
 
 
-def test_closed_exact_control_skips_model() -> None:
-    semantic = FakeTurnMeaningPort()
-    understanding = SingleCallUnderstanding(
-        semantic=semantic,
-        concept_catalog=_concept_catalog(),
-    )
+def test_exact_only_translation_returns_fallback_turn_meaning() -> None:
+    understanding = ExactOnlyTextUnderstanding()
 
-    result = understanding.understand(
+    result = understanding.translate(
         "后来改选洁面！！！",
         context=_context(),
-        semantic_required=False,
     )
 
-    assert semantic.calls == 0
-    assert result.goal is UnderstandingGoal.RECOMMENDATION
-    assert result.topic is TopicCode.CLEANSER
+    assert type(result) is TurnMeaning
+    assert result.operation_hint == "clarification"

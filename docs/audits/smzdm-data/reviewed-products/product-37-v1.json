@@ -1,0 +1,146 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:37:net_content:75ml-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "75ml",
+      "review_rationale": "来源标题、参数表、第1张长图和Canonical均为75ml；参考价SKU仍未解析，因此只确认规格，不与价格组合。",
+      "sku_status": "source_and_canonical_sku_exact_price_unresolved",
+      "source_kind": "title_parameter_and_detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-browser-body:7415e1c0ccf6a6300794888da4f25824824d1b0b1687f045f925da983a0050eb",
+        "smzdm-detail-image:0a490589104c13af79b7c36bc851932a34f4684262043a3504efdc25a411e74d"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:37:ingredients:botanical-extracts-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "鸢尾、灵芝、鱼腥草与玫瑰茄发酵产物提取物",
+      "review_rationale": "商品介绍与第2张长图共同出现这些植物来源成分；不采纳微循环、NK细胞或朗格汉斯细胞机制。",
+      "sku_status": "exact_product_and_specification",
+      "source_kind": "product_introduction_and_detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-browser-body:7415e1c0ccf6a6300794888da4f25824824d1b0b1687f045f925da983a0050eb",
+        "smzdm-detail-image:f0c385c4035efaae363453c8b0cc4995bf4ecdc47b513bd5ea6a2f9effa90549"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.silky",
+      "decision": "map",
+      "fact_id": "reviewed:product:37:texture:silky-emulsion-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "亲肤凝乳质地，吸收快、肤感丝滑",
+      "review_rationale": "商品介绍直接描述凝乳质地、快速吸收和丝滑肤感，可作为新的跨商品丝滑质地方向候选。",
+      "sku_status": "exact_product_and_specification",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:7415e1c0ccf6a6300794888da4f25824824d1b0b1687f045f925da983a0050eb"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:37:efficacy:cellular-mechanisms-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "微循环、免疫细胞活性与损伤愈合机制",
+      "review_rationale": "商品介绍将植物成分延伸到微循环、NK细胞、朗格汉斯细胞和损伤愈合，这些机制不进入公开事实。",
+      "sku_status": "exact_product_and_specification",
+      "source_kind": "product_introduction_and_detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-browser-body:7415e1c0ccf6a6300794888da4f25824824d1b0b1687f045f925da983a0050eb",
+        "smzdm-detail-image:f0c385c4035efaae363453c8b0cc4995bf4ecdc47b513bd5ea6a2f9effa90549"
+      ]
+    }
+  ],
+  "canonical_identity": "资生堂红腰子面部精华75ml",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "75ml",
+  "captured_at": "2026-08-19T18:11:28.518Z",
+  "category_profile": "skincare",
+  "detail_image_count": 3,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 1200,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/37/001_0a490589104c13af.webp",
+      "ordinal": 1,
+      "sha256": "0a490589104c13af79b7c36bc851932a34f4684262043a3504efdc25a411e74d",
+      "width": 600
+    },
+    {
+      "height": 1200,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/37/002_f0c385c4035efaae.webp",
+      "ordinal": 2,
+      "sha256": "f0c385c4035efaae363453c8b0cc4995bf4ecdc47b513bd5ea6a2f9effa90549",
+      "width": 600
+    },
+    {
+      "height": 1200,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/37/003_495764c05e4889db.webp",
+      "ordinal": 3,
+      "sha256": "495764c05e4889db5ebc2adf27cb386144b25b34d981301d846d34f328319ff4",
+      "width": 600
+    }
+  ],
+  "introduction_text": "SHISEIDO 资生堂是日本著名化妆品品牌，由福原有信于1872年创立。其产品包括护肤，彩妆，美发，香水四大系列，受到各年龄层女性的追捧。红妍肌活精华露是资生堂的明星产品，21年迎来了全新第三代升级版，带来了红脉微循环技术，不仅帮助肌肤增强抵御力，更加强损伤修护、促进肌底自循环。独家的ULTIMUNE复合物，富含β-葡聚糖，与白鸢尾精萃、灵芝精萃协同，加强朗格汉斯细胞活性，平衡肌肤表面菌群，强化肌肤的天然屏障；新增的玫瑰茄发酵产物提取物，帮助增强NK细胞（自然杀伤细胞）活性，加速老化坏死细胞的代谢，促进损伤愈合；鱼腥草提取物中富含多种黄酮和酚类物质，有效提升毛细血管活性，促进肌肤微循环，加速朗格汉斯细胞和NK细胞在体内的传递，更快修护肌肤问题。第三代红腰子精华可以有效改善泛红、闭口、粗糙等肌肤问题，亲肤脂质精华凝乳质地，快速吸收、肤感丝滑，保湿力充足，全新的银色波浪腰线设计，与前代版本一眼区分。",
+  "missing_fields": [
+    "net_content",
+    "ingredients_present",
+    "texture"
+  ],
+  "parameter_text": "规格\n75ml\n产品产地\n日本\n分类\n精华液\n主打成分\n植物提取物\n主打功效\n修复;补水;细致毛孔;保湿\n是否为特殊用途化妆品\n否\n国产/进口\n进口\n质地\n液体\n规格类型\n正常规格\n保质期\n3年\n适合肤质\n混合性;油性;干性;中性\n适用人群\n成人",
+  "portfolio_role": "entry_repair_serum",
+  "product_id": 37,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "75ml",
+    "display_specification": "75ml",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "75ml"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "7415e1c0ccf6a6300794888da4f25824824d1b0b1687f045f925da983a0050eb",
+  "source_product_title": "SHISEIDO 资生堂 红妍肌活精华露 75ml",
+  "source_title": "SHISEIDO 资生堂 红妍肌活精华露 75ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/60d14rd/"
+}

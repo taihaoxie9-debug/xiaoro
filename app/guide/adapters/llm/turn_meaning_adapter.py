@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from decimal import Decimal
+import json
 import logging
 from typing import Self
 
@@ -27,6 +28,7 @@ from app.guide.adapters.llm.turn_meaning_prompt import (
     build_turn_meaning_messages,
 )
 from app.guide.understanding.semantic_contracts import SemanticContext
+from app.guide.understanding.source_grounding import ground_unique_text
 from app.guide.understanding.turn_meaning_contracts import TurnMeaning
 
 
@@ -35,6 +37,7 @@ logger = logging.getLogger(__name__)
 
 class TurnMeaningAdapterBase:
     prompt_version = TURN_MEANING_PROMPT_VERSION
+    response_tool_name: str | None = None
 
     def __init__(
         self,
@@ -111,12 +114,77 @@ class TurnMeaningAdapterBase:
                 )
             )
             try:
-                meaning = TurnMeaning.model_validate_json(
-                    completion.content,
+                payload = json.loads(completion.content)
+                if not isinstance(payload, dict):
+                    raise ValueError(
+                        "turn meaning output must be a JSON object"
+                    )
+                expected_keys = set(TurnMeaning.model_fields)
+                actual_keys = set(payload)
+                if actual_keys != expected_keys:
+                    extra_keys = actual_keys - expected_keys
+                    code = (
+                        SemanticProviderFailureCode.FORBIDDEN_OUTPUT
+                        if extra_keys
+                        else SemanticProviderFailureCode.INVALID_OUTPUT
+                    )
+                    raise SemanticProviderFailure(
+                        code,
+                        diagnostic=(
+                            "turn meaning output keys do not match schema"
+                        ),
+                        raw_content=completion.content,
+                        trace_id=completion.trace_id,
+                        usage=SemanticTokenUsage.model_validate(
+                            completion.usage,
+                            strict=True,
+                        ),
+                    )
+                meaning = TurnMeaning.model_validate(
+                    payload,
                     strict=True,
                 )
-            except ValidationError as error:
-                code = validation_failure_code(error)
+                if meaning.recommendation_mode_basis is not None:
+                    ground_unique_text(
+                        message.strip(),
+                        meaning.recommendation_mode_basis.source_text,
+                    )
+                if (
+                    meaning.recommendation_mode == "fit"
+                    and not _has_usable_fit_signal(
+                        meaning,
+                        context=context,
+                    )
+                ):
+                    meaning = TurnMeaning.model_validate(
+                        {
+                            **meaning.model_dump(mode="python"),
+                            "recommendation_mode": "explore",
+                            "recommendation_count": None,
+                            "recommendation_mode_basis": {
+                                "basis": "broad_exploration",
+                                "source_text": (
+                                    meaning.recommendation_mode_basis
+                                    .source_text
+                                ),
+                            },
+                        },
+                        strict=True,
+                    )
+                if (
+                    meaning.operation_hint
+                    in {"recommendation", "image_similarity"}
+                    and meaning.recommendation_mode is None
+                ):
+                    raise ValueError(
+                        "provider recommendation requires recommendation_mode"
+                    )
+            except (json.JSONDecodeError, TypeError, ValueError) as error:
+                code = (
+                    validation_failure_code(error)
+                    if isinstance(error, ValidationError)
+                    else SemanticProviderFailureCode.INVALID_OUTPUT
+                )
                 self._log_failure(code)
                 raise SemanticProviderFailure(
                     code,
@@ -169,7 +237,8 @@ class TurnMeaningAdapterBase:
         try:
             try:
                 completion = self._client.request(
-                    self._request_body(messages)
+                    self._request_body(messages),
+                    tool_name=self.response_tool_name,
                 )
             except SemanticProviderFailure as failure:
                 self._log_failure(
@@ -227,6 +296,29 @@ class TurnMeaningAdapterBase:
 
     def __exit__(self, *args: object) -> None:
         self.close()
+
+
+def _has_usable_fit_signal(
+    meaning: TurnMeaning,
+    *,
+    context: SemanticContext,
+) -> bool:
+    non_selection_observations = {
+        "current_budget_unknown",
+        "goal_unclear",
+        "topic_unclear",
+        "reference_unclear",
+    }
+    return bool(
+        context.confirmed_profile_fields
+        or meaning.preference_candidates
+        or meaning.relative_candidates
+        or meaning.constraint_changes
+        or any(
+            item.code not in non_selection_observations
+            for item in meaning.observation_candidates
+        )
+    )
 
 
 __all__ = ["TurnMeaningAdapterBase"]

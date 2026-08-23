@@ -1,0 +1,175 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:112:net-content:37ml-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "37ml",
+      "review_rationale": "来源标题、参数、Canonical与参考价SKU均为37ml，规格价格完成同SKU对齐。",
+      "sku_status": "exact_product_exact_37ml_aligned",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:07cfd941672961d681edb46d125cbfad0918e3dad4de68df7abc95fe62c97462"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:112:shade:skin-tone-v1",
+      "field_key": "shade",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "肤色款",
+      "review_rationale": "参数表明确色号颜色为肤色；只作当前37ml版本的单品色调知识。",
+      "sku_status": "exact_product_exact_37ml_aligned",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:07cfd941672961d681edb46d125cbfad0918e3dad4de68df7abc95fe62c97462"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:112:finish:even-bright-v1",
+      "field_key": "finish",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "匀净肤色、透亮自然气色",
+      "review_rationale": "长图第1张直接写肤色匀净更透亮、匀肤无瑕与通透柔光；现有底妆父概念没有准确的透亮妆前收尾，因此保留为单品知识。",
+      "sku_status": "exact_product_exact_37ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:fe5de1fcccbe2d35d80bc093c10370afadc4c677c375496dadc93f7f68253c41"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.lightweight",
+      "decision": "map",
+      "fact_id": "reviewed:product:112:texture:light-cream-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "轻盈乳霜质地",
+      "review_rationale": "长图第2张明确写轻盈乳霜质地，可映射轻薄质地方向；不把油皮、干皮宣传升级为硬适配。",
+      "sku_status": "exact_product_exact_37ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:1809384266226cb98f849d4db625477c314cc5fa2df453c745cea2e154c1280a"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "longevity.longwear",
+      "decision": "map",
+      "fact_id": "reviewed:product:112:longevity:color-control-lock-v1",
+      "field_key": "longevity",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "智慧控色粉末，持久锁妆方向",
+      "review_rationale": "长图第2张明确写智慧控色粉末与持久锁妆，长图第4张写妆面持久精致；没有量化时长，因此只映射普通持妆方向。",
+      "sku_status": "exact_product_exact_37ml_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:1809384266226cb98f849d4db625477c314cc5fa2df453c745cea2e154c1280a",
+        "smzdm-detail-image:d307d231453be719ff02452e24ebb4f5a4727da016bbccd7dc5431e7289ab494"
+      ]
+    }
+  ],
+  "canonical_identity": "CPB肌肤之钥长管隔离",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "37ml",
+  "captured_at": "2026-08-19T21:54:21.567Z",
+  "category_profile": "base_makeup",
+  "detail_image_count": 4,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 865,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/112/001_fe5de1fcccbe2d35.jpg",
+      "ordinal": 1,
+      "sha256": "fe5de1fcccbe2d35d80bc093c10370afadc4c677c375496dadc93f7f68253c41",
+      "width": 600
+    },
+    {
+      "height": 866,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/112/002_1809384266226cb9.jpg",
+      "ordinal": 2,
+      "sha256": "1809384266226cb98f849d4db625477c314cc5fa2df453c745cea2e154c1280a",
+      "width": 600
+    },
+    {
+      "height": 866,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/112/003_0013e24f04417116.jpg",
+      "ordinal": 3,
+      "sha256": "0013e24f04417116551cc5acc1c2c694e7dad74dbc9bf7a7aa492d6f05492f0d",
+      "width": 600
+    },
+    {
+      "height": 865,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/112/004_d307d231453be719.jpg",
+      "ordinal": 4,
+      "sha256": "d307d231453be719ff02452e24ebb4f5a4727da016bbccd7dc5431e7289ab494",
+      "width": 600
+    }
+  ],
+  "introduction_text": "",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "finish",
+    "texture"
+  ],
+  "parameter_text": "规格\n37ml\n色号颜色\n肤色",
+  "portfolio_role": "luxury_primer",
+  "product_id": 112,
+  "review_field_policy": [
+    "net_content",
+    "shade",
+    "finish",
+    "coverage",
+    "longevity",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "37ml",
+    "display_specification": "37ml",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "aligned",
+    "reference_price_sku": "37ml",
+    "source_sku": "37ml"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "07cfd941672961d681edb46d125cbfad0918e3dad4de68df7abc95fe62c97462",
+  "source_product_title": "CPB/肌肤之钥 长管隔离霜 37ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "CPB/肌肤之钥 长管隔离霜 37ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/jz3gmp7/"
+}

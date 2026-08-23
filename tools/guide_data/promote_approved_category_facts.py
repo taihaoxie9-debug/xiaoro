@@ -584,6 +584,7 @@ def _build_facts_bytes(
                 provisional.model_dump(
                     mode="json",
                     exclude={"fact_id"},
+                    exclude_none=True,
                 )
             )
         )

@@ -14,8 +14,12 @@ _NON_TEXT = re.compile(r"[^0-9a-z\u3400-\u9fff]+", re.IGNORECASE)
 _ASCII_WORD = re.compile(r"[0-9a-z]+", re.IGNORECASE)
 _CJK = re.compile(r"[\u3400-\u9fff]")
 _SAFETY_CAVEAT = (
-    "现有相关内容属于商家安全宣称，未经强证据核实，"
-    "不能作为安全保证或硬筛依据。"
+    "这段内容是品牌给出的安全说明，"
+    "不能把它当作个人安全保证。"
+)
+_SAFETY_GAP_CAVEAT = (
+    "这款没有足以确认该安全问题的信息，"
+    "不能把它当作个人安全保证。"
 )
 _EVIDENCE_LIMIT = re.compile(
     r"(?:不支持|未(?:显示|披露|给出|说明)|"
@@ -228,9 +232,7 @@ class ProductEvidenceRetriever:
             ):
                 safety_caveats = (_SAFETY_CAVEAT,)
             else:
-                safety_caveats = (
-                    "当前商品证据不足以确认该安全问题，不能据此作安全保证。",
-                )
+                safety_caveats = (_SAFETY_GAP_CAVEAT,)
         missing_aspects = (
             ()
             if selected
@@ -548,8 +550,8 @@ def _include_unresolved_variant_relations(
             for block, object_value in related_rows
         )
         ambiguity_reasons.append(
-            f"已审核证据包含多个{label}变体：{details}。"
-            "当前问题未限定具体规格，请核对所选或收到的版本。"
+            f"这款有多个{label}变体：{details}。"
+            "购买前请核对所选或收到的具体规格。"
         )
     ordered.sort(
         key=lambda item: (-item.score, item.evidence.evidence_id)

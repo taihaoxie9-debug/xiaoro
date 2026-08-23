@@ -7,6 +7,10 @@ from app.guide.adapters.catalog import CanonicalProductReader
 from app.guide.adapters.catalog.seed_product_assets import (
     load_seed_product_assets,
 )
+from app.guide.application.consultation_chat_flow import (
+    ConsultationChatFlow,
+)
+from app.guide.application.unified_guide_flow import UnifiedGuideFlow
 from app.guide_runtime.composition import (
     compose_text_recommendation_orchestrator,
 )
@@ -45,11 +49,15 @@ def orchestrator(
     real_product_assets,
     conversation_state,
 ):
-    return compose_text_recommendation_orchestrator(
+    text = compose_text_recommendation_orchestrator(
         real_reader,
         product_assets=real_product_assets,
-        conversation_state=conversation_state,
+    )
+    return UnifiedGuideFlow(
         understanding=exact_echo_understanding(),
+        text_processor=text,
+        consultation_processor=ConsultationChatFlow(),
+        conversation_state=conversation_state,
     )
 
 
@@ -62,8 +70,12 @@ class BrokenReader:
 
 @pytest.fixture
 def broken_orchestrator(conversation_state):
-    return compose_text_recommendation_orchestrator(
+    text = compose_text_recommendation_orchestrator(
         BrokenReader(),
-        conversation_state=conversation_state,
+    )
+    return UnifiedGuideFlow(
         understanding=exact_echo_understanding(),
+        text_processor=text,
+        consultation_processor=ConsultationChatFlow(),
+        conversation_state=conversation_state,
     )

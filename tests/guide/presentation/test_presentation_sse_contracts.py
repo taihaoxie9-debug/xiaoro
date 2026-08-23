@@ -18,7 +18,9 @@ def _recommendation_event() -> dict[str, object]:
     return {
         "event": "presentation_contract",
         "data": {
+            "responsibility": "recommendation",
             "mode": "recommendation",
+            "recommendation_mode": "explore",
             "copy_source": "model",
             "sections": [
                 {
@@ -70,14 +72,18 @@ def _recommendation_event() -> dict[str, object]:
                     "product_id": None,
                     "direct_facts": [],
                 },
-                {
-                    "kind": "pitfalls",
-                    "copy_text": None,
-                    "slot_id": None,
-                    "product_id": None,
-                    "direct_facts": [],
-                },
             ],
+            "comparison_rows": [],
+            "winner": {
+                "status": "not_applicable",
+                "winner_product_id": None,
+                "reason": None,
+                "fact_ids": [],
+                "dimension_ids": [],
+                "tie_reason": None,
+            },
+            "visible_product_ids": [55, 57],
+            "compact_tags": [],
             "card_display": {
                 "mode": "recommendation",
                 "visible_product_ids": [55, 57],

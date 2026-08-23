@@ -179,10 +179,18 @@ class CategoryFactReader:
         capabilities = set(
             policies[facts[0].source_class].capabilities
         )
+        if facts[0].capability_limit is not None:
+            capabilities.intersection_update(
+                facts[0].capability_limit
+            )
         for fact in facts[1:]:
             capabilities.intersection_update(
                 policies[fact.source_class].capabilities
             )
+            if fact.capability_limit is not None:
+                capabilities.intersection_update(
+                    fact.capability_limit
+                )
         value = next(iter(values.values()))
         if definition.value_type == "string_list":
             value = tuple(value)

@@ -6,6 +6,8 @@ from app.guide.application.contracts import UserTurn
 from app.guide.feedback.contracts import (
     ClarificationProgress,
     ConversationSnapshot,
+    PendingClarificationSlot,
+    PendingReplySlot,
     PendingTurn,
 )
 from app.guide.feedback.consultation_state import (
@@ -41,19 +43,53 @@ def validate_conversation_state_transition(
     replacement: ConversationSnapshot,
 ) -> None:
     _validate_clarification_transition(
-        current.clarification if current is not None else None,
-        replacement.clarification,
+        _clarification(current),
+        _clarification(replacement),
     )
     _validate_pending_turn_transition(
-        current.pending_turn if current is not None else None,
-        replacement.pending_turn,
+        _pending_turn(current),
+        _pending_turn(replacement),
     )
-    previous = current.consultation if current is not None else None
+    previous = (
+        current.consultation_slot.state
+        if current is not None
+        and current.consultation_slot is not None
+        else None
+    )
     _validate_consultation_transition(
         previous,
-        replacement.consultation,
+        (
+            replacement.consultation_slot.state
+            if replacement.consultation_slot is not None
+            else None
+        ),
         replacement_version=replacement.version,
     )
+
+
+def _clarification(
+    snapshot: ConversationSnapshot | None,
+) -> ClarificationProgress | None:
+    if (
+        snapshot is None
+        or not isinstance(
+            snapshot.reply_slot,
+            PendingClarificationSlot,
+        )
+    ):
+        return None
+    return snapshot.reply_slot.value
+
+
+def _pending_turn(
+    snapshot: ConversationSnapshot | None,
+) -> PendingTurn | None:
+    if (
+        snapshot is None
+        or not isinstance(snapshot.reply_slot, PendingReplySlot)
+    ):
+        return None
+    return snapshot.reply_slot.value
 
 
 def _validate_clarification_transition(

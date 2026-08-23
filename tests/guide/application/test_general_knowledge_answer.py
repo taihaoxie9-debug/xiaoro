@@ -33,7 +33,7 @@ def _query(
     safety_sensitive: bool = False,
 ) -> GeneralKnowledgeQuery:
     return GeneralKnowledgeQuery(
-        raw_question=raw_question,
+        retrieval_query=raw_question,
         question_meaning=question_meaning,
         topic=None,
         safety_sensitive=safety_sensitive,
@@ -48,7 +48,7 @@ def _retriever() -> GeneralKnowledgeRetriever:
     )
 
 
-def test_renderer_uses_only_audited_exact_excerpts() -> None:
+def test_renderer_uses_only_reviewed_public_text() -> None:
     packet = _retriever().retrieve(
         _query(
             "SPF和PA分别是什么意思",
@@ -65,14 +65,45 @@ def test_renderer_uses_only_audited_exact_excerpts() -> None:
         packet.hits[0].block.knowledge_id
     )
     assert rendered.data.citations[0].title == "防晒怎么选"
-    assert rendered.data.citations[0].exact_excerpt == (
-        packet.hits[0].block.exact_text
+    assert rendered.data.citations[0].public_excerpt == (
+        packet.hits[0].block.public_text
     )
-    assert packet.hits[0].block.exact_text in rendered.message
-    assert "通用教育资料" in rendered.message
+    assert packet.hits[0].block.public_text in rendered.message
+    assert "通用知识" in rendered.message
     assert str(Path.cwd()) not in rendered.message
     assert packet.hits[0].block.source_sha256 not in rendered.message
     assert packet.hits[0].block.block_sha256 not in rendered.message
+
+
+def test_renderer_uses_reviewed_public_text_not_raw_exact_text() -> None:
+    packet = _retriever().retrieve(
+        _query(
+            "SPF和PA分别是什么意思",
+            "询问SPF和PA防晒指标的含义",
+        )
+    )
+    first = packet.hits[0]
+    public_block = first.block.model_copy(
+        update={
+            "exact_text": "RAW INTERNAL SOURCE",
+            "public_text": "SPF表示对UVB防护能力的标注。",
+        }
+    )
+    packet = packet.model_copy(
+        update={
+            "hits": (
+                first.model_copy(update={"block": public_block}),
+            )
+        }
+    )
+
+    rendered = render_general_knowledge_answer(packet)
+
+    assert "SPF表示对UVB防护能力的标注" in rendered.message
+    assert "RAW INTERNAL SOURCE" not in rendered.message
+    assert rendered.data.citations[0].public_excerpt == (
+        "SPF表示对UVB防护能力的标注。"
+    )
 
 
 def test_renderer_marks_medical_escalation_without_diagnosis() -> None:
@@ -140,8 +171,8 @@ def test_no_hit_returns_explicit_evidence_gap() -> None:
 
     assert rendered.data.citations == []
     assert rendered.data.medical_escalation is False
-    assert "没有足够相关证据" in rendered.message
-    assert "暂不编造结论" in rendered.message
+    assert "暂时没有足够信息" in rendered.message
+    assert "不确定的结论" in rendered.message
 
 
 def test_general_knowledge_sse_contract_rejects_unknown_fields() -> None:
@@ -149,7 +180,7 @@ def test_general_knowledge_sse_contract_rejects_unknown_fields() -> None:
         knowledge_id="a" * 64,
         title="防晒怎么选",
         section_title="怎么选",
-        exact_excerpt="SPF针对UVB。",
+        public_excerpt="SPF针对UVB。",
         source_path="data/knowledge_docs/06-防晒怎么选.md",
         review_decision="general_answer",
     )

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+import json
 import os
 from pathlib import Path
 import sqlite3
@@ -9,7 +10,10 @@ from typing import Iterator
 from app.guide.adapters.state.trusted_sqlite_storage import (
     TrustedSqliteStorage,
 )
-from app.guide.feedback.contracts import ConversationSnapshot
+from app.guide.feedback.contracts import (
+    ConversationSnapshot,
+    migrate_legacy_conversation_snapshot_payload,
+)
 from app.guide.feedback.ports import (
     ConversationStateConflict,
     ConversationStateCorrupt,
@@ -19,7 +23,7 @@ from app.guide.feedback.profile_contracts import ProfileOwnerRef
 
 
 _APPLICATION_ID = 0x58524356
-_SCHEMA_VERSION = 1
+_SCHEMA_VERSION = 2
 
 _CONVERSATIONS_SCHEMA = """
 CREATE TABLE conversations (
@@ -98,6 +102,15 @@ class SqliteConversationState:
             raise ValueError(
                 "expected_version must be a non-negative integer"
             )
+        try:
+            snapshot = ConversationSnapshot.model_validate(
+                snapshot.model_dump(mode="python"),
+                strict=True,
+            )
+        except (TypeError, ValueError):
+            raise ConversationStateCorrupt(
+                snapshot.session_id
+            ) from None
         with self._transaction(snapshot.session_id) as connection:
             current = self._load(connection, snapshot.session_id)
             current_version = current.version if current is not None else 0
@@ -228,7 +241,14 @@ class SqliteConversationState:
         created: bool,
     ) -> None:
         if not created:
-            self._validate_schema(connection)
+            self._validate_schema(
+                connection,
+                allowed_versions={1, _SCHEMA_VERSION},
+            )
+            if connection.execute(
+                "PRAGMA user_version"
+            ).fetchone() == (1,):
+                self._migrate_v1_to_v2(connection)
         journal_mode = connection.execute(
             "PRAGMA journal_mode = WAL"
         ).fetchone()
@@ -248,10 +268,17 @@ class SqliteConversationState:
             except BaseException:
                 connection.rollback()
                 raise
-        self._validate_schema(connection)
+        self._validate_schema(
+            connection,
+            allowed_versions={_SCHEMA_VERSION},
+        )
 
     @staticmethod
-    def _validate_schema(connection: sqlite3.Connection) -> None:
+    def _validate_schema(
+        connection: sqlite3.Connection,
+        *,
+        allowed_versions: set[int],
+    ) -> None:
         if connection.execute("PRAGMA quick_check").fetchall() != [("ok",)]:
             raise sqlite3.DatabaseError(
                 "conversation state integrity check failed"
@@ -259,8 +286,10 @@ class SqliteConversationState:
         if (
             connection.execute("PRAGMA application_id").fetchone()
             != (_APPLICATION_ID,)
-            or connection.execute("PRAGMA user_version").fetchone()
-            != (_SCHEMA_VERSION,)
+            or connection.execute(
+                "PRAGMA user_version"
+            ).fetchone()[0]
+            not in allowed_versions
         ):
             raise sqlite3.DatabaseError(
                 "conversation state schema version is incompatible"
@@ -284,6 +313,65 @@ class SqliteConversationState:
             raise sqlite3.DatabaseError(
                 "conversation state schema is incompatible"
             )
+
+    @staticmethod
+    def _migrate_v1_to_v2(
+        connection: sqlite3.Connection,
+    ) -> None:
+        connection.execute("BEGIN IMMEDIATE")
+        try:
+            rows = connection.execute(
+                """
+                SELECT session_id, snapshot_json
+                FROM conversations
+                ORDER BY session_id
+                """
+            ).fetchall()
+            for session_id, snapshot_json in rows:
+                raw_payload = json.loads(snapshot_json)
+                if not isinstance(raw_payload, dict):
+                    raise ValueError(
+                        "snapshot payload must be an object"
+                    )
+                migrated = (
+                    migrate_legacy_conversation_snapshot_payload(
+                        raw_payload
+                    )
+                )
+                snapshot = ConversationSnapshot.model_validate_json(
+                    json.dumps(
+                        migrated,
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                    ),
+                    strict=True,
+                )
+                owner_scope, owner_subject_id = (
+                    SqliteConversationState._owner_columns(snapshot)
+                )
+                connection.execute(
+                    """
+                    UPDATE conversations
+                    SET
+                        owner_scope = ?,
+                        owner_subject_id = ?,
+                        snapshot_json = ?
+                    WHERE session_id = ?
+                    """,
+                    (
+                        owner_scope,
+                        owner_subject_id,
+                        snapshot.model_dump_json(),
+                        session_id,
+                    ),
+                )
+            connection.execute(
+                f"PRAGMA user_version = {_SCHEMA_VERSION}"
+            )
+            connection.commit()
+        except BaseException:
+            connection.rollback()
+            raise
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
@@ -372,8 +460,18 @@ class SqliteConversationState:
         if row is None:
             return None
         try:
-            snapshot = ConversationSnapshot.model_validate_json(row[3])
-        except (TypeError, ValueError):
+            raw_payload = json.loads(row[3])
+            if not isinstance(raw_payload, dict):
+                raise ValueError("snapshot payload must be an object")
+            snapshot = ConversationSnapshot.model_validate_json(
+                json.dumps(
+                    raw_payload,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                ),
+                strict=True,
+            )
+        except (json.JSONDecodeError, TypeError, ValueError):
             raise ConversationStateCorrupt(session_id) from None
         owner_scope, owner_subject_id = (
             SqliteConversationState._owner_columns(snapshot)

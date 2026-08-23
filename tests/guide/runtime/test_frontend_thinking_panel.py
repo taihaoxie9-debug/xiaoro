@@ -64,6 +64,98 @@ process.stdout.write(JSON.stringify(Object.fromEntries(
     assert all(len(stages) <= 4 for stages in result.values())
 
 
+def test_thinking_pipeline_auto_advances_to_final_stage() -> None:
+    result = _node(
+        f"""
+let timers = [];
+globalThis.setTimeout = (callback, ms) => {{
+  timers.push({{ callback, ms }});
+  return timers.length;
+}};
+globalThis.clearTimeout = id => {{
+  const index = Number(id) - 1;
+  if (timers[index]) timers[index].cancelled = true;
+}};
+const guide = require({json.dumps(str(MODULE))});
+class FakeNode {{
+  constructor(tagName, ownerDocument) {{
+    this.tagName = String(tagName || '').toUpperCase();
+    this.ownerDocument = ownerDocument;
+    this.children = [];
+    this.childNodes = this.children;
+    this.dataset = {{}};
+    this.className = '';
+    this.parentNode = null;
+    this.textContent = '';
+    this.isConnected = true;
+  }}
+  appendChild(node) {{
+    node.parentNode = this;
+    this.children.push(node);
+    return node;
+  }}
+  insertBefore(node, beforeNode) {{
+    node.parentNode = this;
+    const index = this.children.indexOf(beforeNode);
+    if (index >= 0) this.children.splice(index, 0, node);
+    else this.children.push(node);
+    return node;
+  }}
+  replaceChildren(...nodes) {{
+    this.children = [];
+    this.childNodes = this.children;
+    nodes.forEach(node => this.appendChild(node));
+  }}
+  setAttribute(name, value) {{
+    this[name] = String(value);
+  }}
+}}
+class FakeDocument {{
+  createElement(tagName) {{
+    return new FakeNode(tagName, this);
+  }}
+}}
+function flushOne() {{
+  const next = timers.find(item => !item.cancelled && !item.done);
+  if (!next) return false;
+  next.done = true;
+  next.callback();
+  return true;
+}}
+const documentRef = new FakeDocument();
+const container = documentRef.createElement('div');
+const controller = guide.createThinkingPipeline(container, {{
+  mode: 'recommend',
+  autoAdvanceMs: 1000,
+}});
+const initial = controller.current;
+flushOne();
+const afterOne = controller.current;
+flushOne();
+const afterTwo = controller.current;
+flushOne();
+const afterThree = controller.current;
+flushOne();
+const afterFour = controller.current;
+process.stdout.write(JSON.stringify({{
+  initial,
+  afterOne,
+  afterTwo,
+  afterThree,
+  afterFour,
+  timerDelays: timers.map(item => item.ms),
+}}));
+"""
+    )
+
+    assert result["initial"] == 0
+    assert result["afterOne"] == 1
+    assert result["afterTwo"] == 2
+    assert result["afterThree"] == 3
+    assert result["afterFour"] == 3
+    assert result["timerDelays"][:3] == [1000, 1000, 1000]
+
+
 def test_chat_wires_immediate_stage_driven_first_character_dismissal() -> None:
     html = CHAT_HTML.read_text(encoding="utf-8")
     module_version = sha256(MODULE.read_bytes()).hexdigest()[:12]

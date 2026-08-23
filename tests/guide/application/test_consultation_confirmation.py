@@ -141,6 +141,27 @@ def test_confirmation_is_pure_transition_for_external_conversation_cas(
     assert "profile" not in output.model_dump()
 
 
+def test_prevalidated_confirmation_transition_accepts_no_message() -> None:
+    from app.guide.application.consultation_confirmation import (
+        confirm_prevalidated_conclusion,
+    )
+
+    _, _, pending = _stage()
+
+    confirmed = confirm_prevalidated_conclusion(
+        pending.next_consultation,
+        current_conversation_version=pending.output.conversation_version,
+        source_turn_id="turn_prevalidated_confirm_0001",
+        expected_skin_target="dry",
+        expected_conclusion_source_turn_id="turn_assessment_000001",
+    )
+
+    assert confirmed.output.conclusion.confirmed_by_user is True
+    assert confirmed.output.confirmation_source_turn_id == (
+        "turn_prevalidated_confirm_0001"
+    )
+
+
 def test_confirmation_uses_only_caller_authoritative_conversation_version(
 ) -> None:
     from app.guide.application.consultation_confirmation import (

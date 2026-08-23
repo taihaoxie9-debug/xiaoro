@@ -19,7 +19,7 @@ _FIXTURE = Path(
     "tests/fixtures/guide/intent/turn_meaning_gate_v1.jsonl"
 )
 _REVIEW = Path(
-    "docs/audits/semantic-turn-meaning/fixture_review_v1.jsonl"
+    "tests/fixtures/guide/intent/turn_meaning_gate_review_v1.jsonl"
 )
 
 
@@ -32,6 +32,12 @@ def _catalog() -> ConceptPreferenceCatalog:
 def _meaning(**updates) -> TurnMeaning:
     payload = {
         "operation_hint": "recommendation",
+        "recommendation_mode": "explore",
+        "recommendation_count": 3,
+        "recommendation_mode_basis": {
+            "basis": "broad_exploration",
+            "source_text": "推荐",
+        },
         "topic_hint": None,
         "reference_mentions": [],
         "product_mentions": [],
@@ -43,6 +49,27 @@ def _meaning(**updates) -> TurnMeaning:
         "safety_language": "ordinary",
     }
     payload.update(updates)
+    if payload["operation_hint"] == "image_similarity":
+        payload.update(
+            {
+                "recommendation_mode": "explore",
+                "recommendation_count": None,
+                "recommendation_mode_basis": {
+                    "basis": "similar_alternatives",
+                    "source_text": payload["reference_mentions"][0][
+                        "raw_text"
+                    ],
+                },
+            }
+        )
+    elif payload["operation_hint"] != "recommendation":
+        payload.update(
+            {
+                "recommendation_mode": None,
+                "recommendation_count": None,
+                "recommendation_mode_basis": None,
+            }
+        )
     return TurnMeaning.model_validate(payload, strict=True)
 
 
@@ -141,7 +168,142 @@ def test_equivalent_image_raw_text_is_scored_by_binding_not_json() -> None:
     assert result.translation_passed
     assert result.source_grounded
     assert result.binding_passed
+    assert result.semantic_actual_outcome is not None
+    assert result.semantic_actual_outcome["recommendation_mode"] == (
+        "explore"
+    )
+    assert result.semantic_actual_outcome[
+        "recommendation_mode_basis"
+    ] == "similar_alternatives"
     assert result.full_json_equality_used is False
+
+
+def test_product_knowledge_reference_accepts_followup_operation() -> None:
+    case = next(
+        case
+        for case in load_gate_cases(_FIXTURE)
+        if case.case_id == "know-012-candidate-reference"
+    )
+    meaning = _meaning(
+        operation_hint="followup",
+        topic_hint="sunscreen",
+        continuity_hint="continue",
+        reference_mentions=[
+            {
+                "raw_text": "第二款",
+                "object_family_hint": "product",
+                "ordinal_hint": 2,
+                "plurality_hint": "single",
+            }
+        ],
+        question_meaning="第二款提到的水感质地是什么意思",
+    )
+
+    result = evaluate_gate_case(
+        case=case,
+        meaning=meaning,
+        concept_catalog=_catalog(),
+        provider_call_count=1,
+    )
+
+    assert result.translation_passed
+    assert result.binding_passed
+    assert result.task_plan_passed
+
+
+def test_budget_revision_accepts_recommendation_operation() -> None:
+    case = next(
+        case
+        for case in load_gate_cases(_FIXTURE)
+        if case.case_id == "follow-009-budget-revision"
+    )
+    meaning = _meaning(
+        operation_hint="recommendation",
+        recommendation_mode="explore",
+        recommendation_count=None,
+        recommendation_mode_basis={
+            "basis": "bounded_exploration",
+            "source_text": "三百以内",
+        },
+        topic_hint="sunscreen",
+        continuity_hint="continue",
+        budget_candidates=[
+            {
+                "raw_text": "三百以内",
+                "relation": "maximum",
+                "minimum": None,
+                "maximum": "300",
+            }
+        ],
+        preference_candidates=[
+            {
+                "field_key": "ingredient_exclusion",
+                "concept_id": None,
+                "polarity": "avoid",
+                "raw_text": "酒精",
+                "strength": "ordinary",
+            }
+        ],
+    )
+
+    result = evaluate_gate_case(
+        case=case,
+        meaning=meaning,
+        concept_catalog=_catalog(),
+        provider_call_count=1,
+    )
+
+    assert result.translation_passed
+    assert result.task_plan_passed
+
+
+def test_referenced_constraint_followup_does_not_hide_recommendation_route() -> None:
+    case = next(
+        case
+        for case in load_gate_cases(_FIXTURE)
+        if case.case_id == "follow-012-alcohol-followup"
+    )
+    meaning = _meaning(
+        operation_hint="recommendation",
+        recommendation_count=None,
+        recommendation_mode_basis={
+            "basis": "broad_exploration",
+            "source_text": "第二款",
+        },
+        topic_hint="serum",
+        continuity_hint="continue",
+        reference_mentions=[
+            {
+                "raw_text": "第二款",
+                "object_family_hint": "product",
+                "ordinal_hint": 2,
+                "plurality_hint": "single",
+            }
+        ],
+        preference_candidates=[
+            {
+                "field_key": "ingredient_exclusion",
+                "concept_id": None,
+                "polarity": "avoid",
+                "raw_text": "酒精",
+                "strength": "ordinary",
+            }
+        ],
+        question_meaning="询问第二款产品是否不含酒精",
+    )
+
+    result = evaluate_gate_case(
+        case=case,
+        meaning=meaning,
+        concept_catalog=_catalog(),
+        provider_call_count=1,
+    )
+
+    assert not result.translation_passed
+    assert result.binding_passed
+    assert not result.task_plan_passed
+    assert result.semantic_equivalence_passed is False
+    assert result.semantic_mismatch_code == "responsibility"
 
 
 def test_extra_unasserted_semantics_do_not_fail_translation() -> None:
@@ -152,6 +314,12 @@ def test_extra_unasserted_semantics_do_not_fail_translation() -> None:
     )
     meaning = _meaning(
         operation_hint="recommendation",
+        recommendation_mode="fit",
+        recommendation_count=1,
+        recommendation_mode_basis={
+            "basis": "personal_suitability",
+            "source_text": "最适合",
+        },
         topic_hint="sunscreen",
         preference_candidates=[
             {

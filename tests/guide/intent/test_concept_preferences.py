@@ -76,6 +76,9 @@ def _plan(
     return plan_task(
         StructuredUnderstanding(
             goal=UnderstandingGoal.RECOMMENDATION,
+            recommendation_mode="explore",
+            recommendation_mode_basis="broad_exploration",
+            recommendation_count=3,
             topic=TopicCode.SKINCARE,
             observations=[],
             exact_constraints=[

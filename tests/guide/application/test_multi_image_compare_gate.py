@@ -11,7 +11,6 @@ from types import SimpleNamespace
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
-from app.guide.application.contracts import UserTurn
 from app.guide.decision.contracts import DecisionProductFacts, FactState
 from app.guide.decision.multi_image_compare_contracts import (
     MultiImageCompareDecisionResult,
@@ -141,16 +140,11 @@ def _authorization_request(
     owner_token: str = _OWNER_TOKEN,
 ):
     subject = _subject()
-    turn = UserTurn(
+    return subject.MultiImageCompareBundleAuthorizationRequest(
         session_id=session_id,
-        message="比较这几款",
-        image_bundle_id=bundle_id,
-        image_bundle_version=version,
-        image_bundle_token=owner_token,
-        conversation_version=0,
-    )
-    return subject.MultiImageCompareBundleAuthorizationRequest.from_user_turn(
-        turn
+        bundle_id=bundle_id,
+        version=version,
+        owner_token=owner_token,
     )
 
 
@@ -413,9 +407,15 @@ def _prepare(gate, context, authorization=None):
     )
 
 
-def test_authorization_request_is_typed_from_user_turn_without_token_repr() -> None:
+def test_authorization_request_is_direct_typed_input_without_token_repr(
+) -> None:
+    subject = _subject()
     request = _authorization_request()
 
+    assert not hasattr(
+        subject.MultiImageCompareBundleAuthorizationRequest,
+        "from_user_turn",
+    )
     assert request.bundle_id == _BUNDLE_ID
     assert request.version == 1
     assert request.session_id == _SESSION_ID

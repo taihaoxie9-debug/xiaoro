@@ -10,7 +10,7 @@ from pydantic import (
     model_validator,
 )
 
-from app.guide.application.contracts import OwnerToken, UserTurn
+from app.guide.application.contracts import OwnerToken
 from app.guide.decision.multi_image_compare import (
     MultiImageCompareDecisionFoundation,
     MultiImageCompareDecisionPort,
@@ -103,26 +103,6 @@ class MultiImageCompareBundleAuthorizationRequest(_StrictFrozen):
     bundle_id: OpaqueBundleId
     version: int = Field(ge=1)
     owner_token: OwnerToken = Field(repr=False)
-
-    @classmethod
-    def from_user_turn(
-        cls,
-        turn: UserTurn,
-    ) -> MultiImageCompareBundleAuthorizationRequest:
-        if (
-            turn.image_bundle_id is None
-            or turn.image_bundle_version is None
-            or turn.image_bundle_token is None
-        ):
-            raise ValueError(
-                "multi-image comparison requires image bundle credentials"
-            )
-        return cls(
-            session_id=turn.session_id,
-            bundle_id=turn.image_bundle_id,
-            version=turn.image_bundle_version,
-            owner_token=turn.image_bundle_token,
-        )
 
 
 class MultiImageCompareBundleAuthorizationPort(Protocol):

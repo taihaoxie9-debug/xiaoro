@@ -21,6 +21,7 @@ def _authority() -> SemanticRouteBindingAuthority:
         SemanticContext(
             visible_candidate_count=2,
             image_count=1,
+            confirmed_image_ordinals=(1,),
             conversation_version=2,
             active_topic=TopicCode.SUNSCREEN,
             active_dialogue="consultation",
@@ -46,10 +47,24 @@ def test_prompt_uses_one_universal_schema_and_compact_catalog() -> None:
         ),
     )
 
-    assert TURN_MEANING_PROMPT_VERSION == "guide-turn-meaning-prompt-v17"
+    assert TURN_MEANING_PROMPT_VERSION == "guide-turn-meaning-prompt-v35"
     assert "operation_hint" in system["content"]
+    assert "recommendation_mode" in system["content"]
+    assert "recommendation_count" in system["content"]
+    assert "recommendation_mode_basis" in system["content"]
+    assert "explore|fit" in system["content"]
+    assert "broad_exploration" in system["content"]
+    assert "similar_alternatives" in system["content"]
+    assert "single_best_request" in system["content"]
+    assert "best_among_candidates" in system["content"]
+    assert (
+        "Generic recommendation verbs, categories, budgets, and needs"
+        in system["content"]
+    )
     assert "continuity_hint" in system["content"]
     assert "subject_scope_hint" in system["content"]
+    assert "pending_response_hint" in system["content"]
+    assert "constraint_changes" in system["content"]
     assert "relative_candidates" in system["content"]
     assert "consultation_hypothesis" in system["content"]
     assert "next_observation_gap" in system["content"]
@@ -59,6 +74,10 @@ def test_prompt_uses_one_universal_schema_and_compact_catalog() -> None:
     assert "Never invent a location, trigger, duration, or severity" in (
         system["content"]
     )
+    assert (
+        "For an explicit correction such as not X, but Y, emit present=false"
+    ) in system["content"]
+    assert "present=true for Y" in system["content"]
     assert "Emit every listed key" in system["content"]
     assert "recommendation means selecting or finding products" in (
         system["content"]
@@ -96,7 +115,48 @@ def test_prompt_uses_one_universal_schema_and_compact_catalog() -> None:
         system["content"]
     )
     assert "Never copy concept_id into field_key" in system["content"]
+    assert "ingredient_exclusion is a closed parent concept" in (
+        system["content"]
+    )
+    assert (
+        "ingredient_exclusion is allowed only when the message names an"
+    ) in system["content"]
+    assert "ingredient or ingredient family" in system["content"]
+    assert (
+        "fragrance_description for scent profile and notes"
+    ) in system["content"]
+    assert (
+        "rinse_behavior for after-rinse skin feel"
+    ) in system["content"]
+    assert "must be only the ingredient target" in (
+        system["content"]
+    )
+    assert "parent_concept, requested_change, raw_text" in (
+        system["content"]
+    )
+    assert "ingredient_exclusion|efficacy|skin" in system["content"]
+    assert "normalized_value" in system["content"]
+    assert "affirm|reject|correct|supplement|replace_task|unknown" in (
+        system["content"]
+    )
+    assert "requested_change: remove|replace" in system["content"]
+    assert "remove identifies the old active value being withdrawn" in (
+        system["content"]
+    )
+    assert "replace identifies the new value named by raw_text" in (
+        system["content"]
+    )
+    assert "emit remove for the old value and emit the new targets" in (
+        system["content"]
+    )
+    assert "Never emit add/retain/replace" in system["content"]
     assert "seasonal belongs in trigger, never qualifier" in (
+        system["content"]
+    )
+    assert "persistent belongs only in duration, never qualifier" in (
+        system["content"]
+    )
+    assert "recent is never an allowed duration; use current" in (
         system["content"]
     )
     assert "are always JSON arrays" in system["content"]
@@ -127,10 +187,23 @@ def test_prompt_uses_one_universal_schema_and_compact_catalog() -> None:
     assert "A complete selection request that supplies its own category" in (
         system["content"]
     )
+    assert "releases or dismisses the active candidate batch" in (
+        system["content"]
+    )
+    assert "uses new_task, never return_to_focus" in system["content"]
     assert "Explicitly returning to an earlier preserved focus" in (
         system["content"]
     )
     assert "Pending confirmation or rejection" in system["content"]
+    assert "affirm is valid only when no budget candidate is emitted" in (
+        system["content"]
+    )
+    assert "a new source-grounded budget relation requires correct" in (
+        system["content"]
+    )
+    assert "Repeating a rejected proposal's number under negation" in (
+        system["content"]
+    )
     assert "followup and continue are forbidden" in system["content"]
     assert "A pending rejection without a new numeric amount emits no" in (
         system["content"]
@@ -141,7 +214,30 @@ def test_prompt_uses_one_universal_schema_and_compact_catalog() -> None:
     assert "A question about the currently identified image product uses" in (
         system["content"]
     )
+    assert "A confirmed image identity is a bound product" in (
+        system["content"]
+    )
+    assert "image_identity is allowed only when product identity" in (
+        system["content"]
+    )
+    assert "confirmed_image_ordinals" in system["content"]
+    assert "must never use image_identity" in system["content"]
+    assert "asking, confirming, or repeating its product name" in (
+        system["content"]
+    )
+    assert "price, budget fit, SPF/PA, ingredients, safety, usage" in (
+        system["content"]
+    )
     assert "whether a bound product or image fits" in system["content"]
+    assert (
+        "updates a suitability conclusion for a\nbound product or image"
+        in system["content"]
+    )
+    assert (
+        "standalone definition, distinction, mechanism, or general safety "
+        "question"
+        in system["content"]
+    )
     assert "next_observation_gap must be null outside assessment" in (
         system["content"]
     )
@@ -150,6 +246,10 @@ def test_prompt_uses_one_universal_schema_and_compact_catalog() -> None:
         "next_observation_gap"
     ) in system["content"]
     assert "Use the supplied binding_authority" in system["content"]
+    assert "batch_size_hint" in system["content"]
+    assert "A requested batch smaller than the visible batch is ambiguous" in (
+        system["content"]
+    )
     assert (
         "When active_dialogue=consultation and awaiting_reply=true"
         in system["content"]
@@ -188,7 +288,6 @@ def test_prompt_uses_one_universal_schema_and_compact_catalog() -> None:
     for forbidden in (
         "product_id",
         "candidate_id",
-        "add/retain/replace/remove",
         "TaskPlan",
     ):
         assert forbidden in system["content"]
@@ -201,7 +300,9 @@ def test_prompt_uses_one_universal_schema_and_compact_catalog() -> None:
             "awaiting_reply": True,
             "candidate_ordinals": [1, 2],
             "current_batch_available": True,
+            "confirmed_image_ordinals": [1],
             "current_image_ordinal": None,
+            "current_item_available": True,
             "current_item_ordinal": 1,
             "current_topic": "sunscreen",
             "image_ordinals": [1],

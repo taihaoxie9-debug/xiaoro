@@ -854,10 +854,10 @@ def test_one_character_descriptor_cannot_dominate_capacity_question() -> None:
         for item in packet.selected
     )
     assert packet.ambiguity_reasons == (
-        "已审核证据包含多个容量规格变体："
+        "这款有多个容量规格变体："
         "中文标签所示100ml经典版本为100ml；"
         "买家照片所示N°5 EDP 35ml喷雾为35ml / 1.2 fl. oz.。"
-        "当前问题未限定具体规格，请核对所选或收到的版本。",
+        "购买前请核对所选或收到的具体规格。",
     )
 
 
@@ -981,8 +981,8 @@ def test_safety_query_returns_transcript_with_fail_closed_caveat() -> None:
         "safety_transcript"
     )
     assert packet.safety_caveats == (
-        "现有相关内容属于商家安全宣称，未经强证据核实，"
-        "不能作为安全保证或硬筛依据。",
+        "这段内容是品牌给出的安全说明，"
+        "不能把它当作个人安全保证。",
     )
 
 
@@ -1004,8 +1004,28 @@ def test_safety_query_nominates_transcript_across_plain_paraphrase() -> None:
         packet.selected[0].evidence.exact_text
     )
     assert packet.safety_caveats == (
-        "现有相关内容属于商家安全宣称，未经强证据核实，"
-        "不能作为安全保证或硬筛依据。",
+        "这段内容是品牌给出的安全说明，"
+        "不能把它当作个人安全保证。",
+    )
+
+
+def test_safety_query_without_safety_transcript_stays_natural() -> None:
+    packet = ProductEvidenceRetriever(_reader()).retrieve(
+        EvidenceQuery(
+            product_ids=(120,),
+            raw_question="孕期用它一定安全吗？",
+            question_meaning="询问孕期使用是否安全",
+            safety_sensitive=True,
+        )
+    )
+
+    assert not any(
+        item.evidence.management_label == "safety_transcript"
+        for item in packet.selected
+    )
+    assert packet.safety_caveats == (
+        "这款没有足以确认该安全问题的信息，"
+        "不能把它当作个人安全保证。",
     )
 
 

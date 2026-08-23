@@ -47,20 +47,20 @@ PILOT_IDS = {
     CategoryProfile.FRAGRANCE: frozenset({120, 121}),
 }
 EXPECTED_UNKNOWN_BY_PROFILE = {
-    CategoryProfile.SKINCARE: 40,
-    CategoryProfile.SUNCARE: 49,
-    CategoryProfile.BASE_MAKEUP: 48,
-    CategoryProfile.COLOR_MAKEUP: 52,
-    CategoryProfile.CLEANSER: 45,
-    CategoryProfile.FRAGRANCE: 32,
+    CategoryProfile.SKINCARE: 38,
+    CategoryProfile.SUNCARE: 45,
+    CategoryProfile.BASE_MAKEUP: 39,
+    CategoryProfile.COLOR_MAKEUP: 46,
+    CategoryProfile.CLEANSER: 43,
+    CategoryProfile.FRAGRANCE: 25,
 }
 EXPECTED_APPROVED_BY_PROFILE = {
-    CategoryProfile.SKINCARE: 4,
-    CategoryProfile.SUNCARE: 7,
-    CategoryProfile.BASE_MAKEUP: 4,
-    CategoryProfile.COLOR_MAKEUP: 2,
-    CategoryProfile.CLEANSER: 3,
-    CategoryProfile.FRAGRANCE: 4,
+    CategoryProfile.SKINCARE: 6,
+    CategoryProfile.SUNCARE: 11,
+    CategoryProfile.BASE_MAKEUP: 13,
+    CategoryProfile.COLOR_MAKEUP: 8,
+    CategoryProfile.CLEANSER: 5,
+    CategoryProfile.FRAGRANCE: 11,
 }
 
 
@@ -142,8 +142,8 @@ def test_production_asset_contains_verified_full_catalog_facts() -> None:
 
     assert assets.pilot_ids == expected_ids
     assert len(expected_ids) == 12
-    assert assets.manifest.fact_count == 279
-    assert len(assets.facts) == 279
+    assert assets.manifest.fact_count == 508
+    assert len(assets.facts) == 508
     assert assets.manifest.facts_sha256 != EMPTY_SHA256
     assert assets.manifest.facts_file == (
         f"category_facts_v1.{assets.manifest.facts_sha256}.jsonl"
@@ -157,7 +157,7 @@ def test_production_asset_contains_verified_full_catalog_facts() -> None:
     assert not (ASSET_ROOT / "category_facts_v1.jsonl").exists()
     assert expected_ids.intersection(
         fact.product_id for fact in assets.facts
-    ) == {38, 57, 69, 79, 80, 86, 91, 103, 114, 120}
+    ) == expected_ids
 
     canonical_reader = _canonical_reader()
     for profile, product_ids in PILOT_IDS.items():
@@ -214,7 +214,7 @@ def test_pilot_coverage_tracks_promoted_and_unknown_fields(
         assert stats.conflict == 0
 
     report_text = generated_report.read_text(encoding="utf-8")
-    assert "`approved=24`" in report_text
+    assert "`approved=54`" in report_text
     assert "`conflict=0`" in report_text
     assert "`336/111`" in report_text
     assert "unrelated to this pilot coverage report" in report_text

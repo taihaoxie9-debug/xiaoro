@@ -33,15 +33,20 @@ def plan_followup(
             clarification="会话状态已变化，请基于最新结果重试。",
             clarification_code=ClarificationCode.REFERENCE,
         )
+    candidates = (
+        snapshot.recommendation_slot.candidates
+        if snapshot.recommendation_slot is not None
+        else ()
+    )
     if (
         draft.action is FollowupAction.ORDINAL_REFERENCE
         and draft.ordinal is not None
-        and draft.ordinal > len(snapshot.candidates)
+        and draft.ordinal > len(candidates)
     ):
         return FollowupPlan(
             mode="clarify",
             clarification=(
-                f"上一轮只展示了 {len(snapshot.candidates)} 款，"
+                f"上一轮只展示了 {len(candidates)} 款，"
                 f"没有第 {draft.ordinal} 款。"
             ),
             clarification_code=ClarificationCode.REFERENCE,

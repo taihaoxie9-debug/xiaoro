@@ -306,6 +306,59 @@ def confirm_provisional_conclusion(
     expected_skin_target: SkinTargetValue,
     expected_conclusion_source_turn_id: str,
 ) -> ConsultationConfirmationTransition:
+    assessment, conclusion = _validated_confirmation_state(
+        consultation,
+        expected_skin_target=expected_skin_target,
+        expected_conclusion_source_turn_id=(
+            expected_conclusion_source_turn_id
+        ),
+    )
+    validate_explicit_confirmation(
+        message,
+        expected_skin_target=conclusion.skin_target,
+    )
+    return _build_confirmation_transition(
+        consultation,
+        assessment=assessment,
+        conclusion=conclusion,
+        current_conversation_version=current_conversation_version,
+        source_turn_id=source_turn_id,
+    )
+
+
+def confirm_prevalidated_conclusion(
+    consultation: ConsultationSubstate,
+    *,
+    current_conversation_version: int,
+    source_turn_id: str,
+    expected_skin_target: SkinTargetValue,
+    expected_conclusion_source_turn_id: str,
+) -> ConsultationConfirmationTransition:
+    assessment, conclusion = _validated_confirmation_state(
+        consultation,
+        expected_skin_target=expected_skin_target,
+        expected_conclusion_source_turn_id=(
+            expected_conclusion_source_turn_id
+        ),
+    )
+    return _build_confirmation_transition(
+        consultation,
+        assessment=assessment,
+        conclusion=conclusion,
+        current_conversation_version=current_conversation_version,
+        source_turn_id=source_turn_id,
+    )
+
+
+def _validated_confirmation_state(
+    consultation: ConsultationSubstate,
+    *,
+    expected_skin_target: SkinTargetValue,
+    expected_conclusion_source_turn_id: str,
+) -> tuple[
+    ConfirmableConsultationAssessment,
+    ProvisionalConsultationConclusion,
+]:
     assessment = consultation.confirmable_assessment
     if assessment is None:
         raise ConsultationConfirmationRejected("missing_provisional")
@@ -333,11 +386,17 @@ def confirm_provisional_conclusion(
         raise ConsultationConfirmationRejected(
             "mismatched_confirmation"
         )
-    validate_explicit_confirmation(
-        message,
-        expected_skin_target=conclusion.skin_target,
-    )
+    return assessment, conclusion
 
+
+def _build_confirmation_transition(
+    consultation: ConsultationSubstate,
+    *,
+    assessment: ConfirmableConsultationAssessment,
+    conclusion: ProvisionalConsultationConclusion,
+    current_conversation_version: int,
+    source_turn_id: str,
+) -> ConsultationConfirmationTransition:
     confirmed_conclusion = ProvisionalConsultationConclusion(
         **{
             **conclusion.model_dump(),

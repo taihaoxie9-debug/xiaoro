@@ -147,7 +147,6 @@ def _multiprocess_rate_uploads(
     service = CountingBundleService()
     client = TestClient(
         create_app(
-            orchestrator=object(),
             image_bundle_service=service,
         )
     )
@@ -288,7 +287,6 @@ async def _asgi_post(
 def test_declared_oversized_multipart_is_rejected_before_receive() -> None:
     service = RecordingBundleService()
     app = create_app(
-        orchestrator=object(),
         image_bundle_service=service,
     )
     boundary = "declared-limit"
@@ -324,7 +322,6 @@ def test_declared_oversized_multipart_is_rejected_before_receive() -> None:
 def test_chunked_oversized_multipart_stops_before_full_stream() -> None:
     service = RecordingBundleService()
     app = create_app(
-        orchestrator=object(),
         image_bundle_service=service,
     )
     boundary = "chunked-limit"
@@ -393,7 +390,7 @@ def test_chunked_limit_closes_all_spooled_multipart_files(
 
     status_code, _, _, _ = asyncio.run(
         _asgi_post(
-            create_app(orchestrator=object()),
+            create_app(),
             body=body,
             headers=[
                 (
@@ -442,9 +439,7 @@ def test_multipart_structure_limits_are_public_413_errors(
     fields: list[tuple[str, str]],
 ) -> None:
     boundary = "structure-limit"
-    response = TestClient(
-        create_app(orchestrator=object())
-    ).post(
+    response = TestClient(create_app()).post(
         "/api/v1/chat/image-bundles",
         content=_multipart(
             boundary=boundary,
@@ -465,7 +460,6 @@ def test_multipart_structure_limits_are_public_413_errors(
 def test_upload_rate_limit_runs_before_bundle_creation() -> None:
     service = CountingBundleService()
     app = create_app(
-        orchestrator=object(),
         image_bundle_service=service,
     )
     client = TestClient(app)
@@ -615,7 +609,6 @@ def test_invalid_rate_state_configuration_returns_controlled_503(
 
     response = TestClient(
         create_app(
-            orchestrator=object(),
             image_bundle_service=service,
         ),
         raise_server_exceptions=False,
@@ -656,7 +649,6 @@ def test_corrupt_rate_state_database_returns_controlled_503(
 
     response = TestClient(
         create_app(
-            orchestrator=object(),
             image_bundle_service=service,
         ),
         raise_server_exceptions=False,
@@ -697,7 +689,6 @@ def test_default_upload_lock_directory_canonicalizes_temp_root_alias(
 
     response = TestClient(
         create_app(
-            orchestrator=object(),
             image_bundle_service=CountingBundleService(),
         )
     ).post(
@@ -737,7 +728,6 @@ def test_macos_tmp_upload_lock_directory_is_canonicalized(
     try:
         response = TestClient(
             create_app(
-                orchestrator=object(),
                 image_bundle_service=CountingBundleService(),
             )
         ).post(
@@ -771,7 +761,6 @@ def test_unsafe_configured_upload_lock_directory_returns_controlled_503(
 
     response = TestClient(
         create_app(
-            orchestrator=object(),
             image_bundle_service=service,
         ),
         raise_server_exceptions=False,
@@ -802,7 +791,6 @@ def test_unresolvable_upload_lock_directory_returns_controlled_503(
 
     response = TestClient(
         create_app(
-            orchestrator=object(),
             image_bundle_service=service,
         ),
         raise_server_exceptions=False,
@@ -824,7 +812,12 @@ def test_unresolvable_upload_lock_directory_returns_controlled_503(
 
 def test_unavailable_default_temp_directory_returns_controlled_503(
     monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
+    from app.guide_runtime.composition import (
+        build_consultation_vertical_runtime,
+    )
+
     monkeypatch.delenv(
         request_limits.IMAGE_UPLOAD_LOCK_DIR_ENV,
         raising=False,
@@ -839,10 +832,14 @@ def test_unavailable_default_temp_directory_returns_controlled_503(
         unavailable_temp_directory,
     )
     service = CountingBundleService()
+    consultation_runtime = build_consultation_vertical_runtime(
+        state_dir=tmp_path / "conversation-state",
+        image_bundle_service=service,
+    )
 
     response = TestClient(
         create_app(
-            orchestrator=object(),
+            consultation_runtime=consultation_runtime,
             image_bundle_service=service,
         ),
         raise_server_exceptions=False,
@@ -875,7 +872,6 @@ def test_upload_admission_is_independent_from_saturated_inference_domain(
     service = CountingBundleService()
     client = TestClient(
         create_app(
-            orchestrator=object(),
             image_bundle_service=service,
         )
     )
@@ -907,7 +903,6 @@ def test_upload_concurrency_is_host_wide_and_rejects_before_service(
     )
     service = BlockingBundleService()
     app = create_app(
-        orchestrator=object(),
         image_bundle_service=service,
     )
     content = _jpeg()

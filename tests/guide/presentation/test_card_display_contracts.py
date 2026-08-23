@@ -37,6 +37,7 @@ def _card(product_id: int) -> ProductCard:
         ("single", [91], "recommendation"),
         ("recommendation", [91, 38], "recommendation"),
         ("recommendation", [55, 57, 54], "recommendation"),
+        ("recommendation", [51, 52, 53, 54], "recommendation"),
         ("comparison", [53, 55], "comparison"),
         ("comparison", [53, 55, 57], "comparison"),
     ],
@@ -192,6 +193,7 @@ def test_card_display_contract_rejects_ambiguous_shapes(payload) -> None:
         ([91], "single"),
         ([91, 38], "recommendation"),
         ([55, 57, 54], "recommendation"),
+        ([51, 52, 53, 54], "recommendation"),
     ],
 )
 def test_recommendation_card_display_uses_exact_card_order(

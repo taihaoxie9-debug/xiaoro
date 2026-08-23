@@ -1,0 +1,100 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:86:shade:see-sheer-grapefruit-v1",
+      "field_key": "shade",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "See Sheer 水漾西柚色",
+      "review_rationale": "来源标题、参数和商品介绍均明确See Sheer为水漾西柚色，可保留为家族单品选色知识。",
+      "sku_status": "family_page_see_sheer_3g_numeric_alias_unresolved",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:c2a2bba890d226cf85bc79b74555d7617ed00c258ba942ed3565340082e37c60"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:86:finish:luster-moist-v1",
+      "field_key": "finish",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "LUSTER 水漾润泽、镜面妆效",
+      "review_rationale": "参数写润泽与润泽/镜面，商品介绍明确See Sheer属于LUSTER水漾润泽质地；当前尚无发布后的彩妆父概念，因此保留为单品知识。",
+      "sku_status": "family_page_see_sheer_3g_numeric_alias_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:c2a2bba890d226cf85bc79b74555d7617ed00c258ba942ed3565340082e37c60"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:86:shade:520-alias-binding-v1",
+      "field_key": "shade",
+      "promotion_status": "rejected",
+      "public_text": "See Sheer等同于当前520精确SKU",
+      "review_rationale": "SMZDM来源只出现See Sheer色名，没有出现520数字别名，不能仅凭现有Canonical把两者视为已完成精确SKU绑定。",
+      "sku_status": "numeric_alias_not_present_in_source",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:c2a2bba890d226cf85bc79b74555d7617ed00c258ba942ed3565340082e37c60"
+      ]
+    }
+  ],
+  "canonical_identity": "魅可（M.A.C）口红子弹头 See Sheer 520（商品编号4564136）",
+  "canonical_sku_scope": "canonical_single_shade_pending_source",
+  "canonical_specification": "520 See Sheer 3g",
+  "captured_at": "2026-08-19T22:00:48.819Z",
+  "category_profile": "color_makeup",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "detail_images": [],
+  "introduction_text": "M·A·C魅可的子弹头唇膏属于唇膏界的标志性产品，有着经典的香草奶油味，颜色丰富、精准，极具专业性。质地主要分有八大类，不同质地的显色度、滋润度、妆效都不相同，目的是为了满足不同人群的妆容需要。1.LUSTER水漾润泽，代表色为see sheer；2.FROST珠光；3.CREAMSHEEN奶油光泽；4.AMPLEFIED显色丰润，代表色为vegas volt；5.SATIN丝绒；6.MATTE哑光，代表色为chili、diva、lady danger；7.RETRO MATTE极致哑光，代表色为Ruby woo。8.GLAZE水润光滑。",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "color_family",
+    "finish"
+  ],
+  "parameter_text": "色号颜色\n#See Sheer水漾西柚色\n规格\n3g\n色系\n粉色系\n国产/进口\n进口\n商品名称\nM.A.C唇膏\n产品产地\n欧美\n是否为特殊用途化妆品\n非特殊化妆品\n规格类型\n正常规格\n质地\n润泽\n保质期\n3年\n妆效\n润泽/镜面\n功效\n易上色",
+  "portfolio_role": "sheer_lipstick",
+  "product_id": 86,
+  "review_field_policy": [
+    "shade",
+    "color_family",
+    "finish",
+    "color_payoff",
+    "longevity"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "520 See Sheer 3g",
+    "display_specification": null,
+    "identity_status": "family",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "520 See Sheer 3g",
+    "source_sku": "See Sheer 3g"
+  },
+  "source_match": "family",
+  "source_page_text_sha256": "c2a2bba890d226cf85bc79b74555d7617ed00c258ba942ed3565340082e37c60",
+  "source_product_title": "M·A·C 魅可 水漾润泽唇膏 #See Sheer水漾西柚色 3g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "M·A·C 魅可 水漾润泽唇膏 #See Sheer水漾西柚色 3g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/v11evo8/"
+}

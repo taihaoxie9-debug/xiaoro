@@ -211,6 +211,7 @@ def test_repair_evidence_and_category_are_surfaced_without_inference() -> None:
             product_id=91,
             category_profile=CategoryProfile.SKINCARE,
             category_fields=(),
+            display_name="玉泽皮肤屏障修护精华乳",
             name="玉泽皮肤屏障修护精华乳50ml",
             brand="玉泽",
             category="精华",
@@ -225,6 +226,142 @@ def test_repair_evidence_and_category_are_surfaced_without_inference() -> None:
     ).structured_events[0]
     assert card.category == "精华"
     assert card.matched_efficacies == ["修护"]
+    assert card.display_name == "玉泽皮肤屏障修护精华乳"
+    assert card.specification is None
+
+
+def test_canonical_direct_display_fields_reach_product_card() -> None:
+    decision = DecisionResult(
+        ordered_product_ids=[35],
+        winner_status=WinnerStatus.INSUFFICIENT_FOR_WINNER,
+        winner_product_id=None,
+        evaluations=[
+            CandidateEvaluation(
+                product_id=35,
+                disposition="eligible",
+                price=Decimal("1050"),
+                skin_match="unknown",
+                efficacy_match="matched",
+                matched_efficacies=["抗皱"],
+                reasons=["hard_constraints_passed"],
+            )
+        ],
+        comparison_dimensions=["skin_match", "efficacy_match", "price"],
+        risk_findings=[],
+        evidence_refs=["category=serum"],
+        tie_reason=None,
+    )
+    facts = {
+        35: ProductCardFacts(
+            product_id=35,
+            category_profile=CategoryProfile.SKINCARE,
+            category_fields=(),
+            efficacy=("抗皱", "淡化细纹", "紧致", "保湿"),
+            efficacy_state="known",
+            suitable_skin=("多种肤质适用",),
+            suitable_skin_state="known",
+            ingredients_present=("玻色因", "透明质酸"),
+            ingredients_present_state="known",
+            name="修丽可聚糖多重丰盈精华液",
+            brand="修丽可",
+            category="精华",
+            price=Decimal("1050"),
+            fact_warnings=[],
+        )
+    }
+
+    card = build()[0](
+        decision,
+        product_facts=facts,
+    ).structured_events[0]
+
+    assert [
+        (fact.field_key, fact.label, fact.value, fact.state)
+        for fact in card.category_facts
+    ] == [
+        (
+            "efficacy",
+            "功效",
+            ("抗皱", "淡化细纹", "紧致", "保湿"),
+            "known",
+        ),
+        (
+            "ingredients_present",
+            "确认含有成分",
+            ("玻色因", "透明质酸"),
+            "known",
+        ),
+        (
+            "suitable_skin",
+            "适用肤质",
+            ("多种肤质适用",),
+            "known",
+        ),
+    ]
+
+
+def test_canonical_efficacy_merges_with_existing_display_efficacy() -> None:
+    decision = DecisionResult(
+        ordered_product_ids=[35],
+        winner_status=WinnerStatus.INSUFFICIENT_FOR_WINNER,
+        winner_product_id=None,
+        evaluations=[
+            CandidateEvaluation(
+                product_id=35,
+                disposition="eligible",
+                price=Decimal("1050"),
+                skin_match="unknown",
+                efficacy_match="matched",
+                matched_efficacies=["抗皱"],
+                reasons=["hard_constraints_passed"],
+            )
+        ],
+        comparison_dimensions=["skin_match", "efficacy_match", "price"],
+        risk_findings=[],
+        evidence_refs=["category=serum"],
+        tie_reason=None,
+    )
+    facts = {
+        35: ProductCardFacts(
+            product_id=35,
+            category_profile=CategoryProfile.SKINCARE,
+            category_fields=(
+                _category_field(
+                    field_key="efficacy",
+                    value=("充盈", "改善凹陷观感"),
+                    state="known",
+                    capabilities=frozenset({"evidence", "display"}),
+                    source_class=SourceClass.MERCHANT_PARAMETER,
+                    category_profile=CategoryProfile.SKINCARE,
+                ),
+            ),
+            efficacy=("抗皱", "淡化细纹", "紧致", "保湿"),
+            efficacy_state="known",
+            name="修丽可聚糖多重丰盈精华液",
+            brand="修丽可",
+            category="精华",
+            price=Decimal("1050"),
+            fact_warnings=[],
+        )
+    }
+
+    card = build()[0](
+        decision,
+        product_facts=facts,
+    ).structured_events[0]
+    efficacy = next(
+        fact for fact in card.category_facts
+        if fact.field_key == "efficacy"
+    )
+
+    assert efficacy.value == (
+        "充盈",
+        "改善凹陷观感",
+        "抗皱",
+        "淡化细纹",
+        "紧致",
+        "保湿",
+    )
 
 
 def test_reviewed_specification_and_variant_scope_reach_product_card() -> None:
@@ -250,6 +387,59 @@ def test_reviewed_specification_and_variant_scope_reach_product_card() -> None:
 
     assert card.variant_scope == "60ml常规装"
     assert card.specification == "60ml"
+
+
+@pytest.mark.parametrize("alignment", ["unresolved", "conflict"])
+def test_public_card_removes_unbound_specification(
+    alignment: str,
+) -> None:
+    from app.guide.presentation.response_planning import (
+        build_product_card,
+    )
+
+    facts = _facts()[57].model_copy(
+        update={
+            "price_specification_alignment": alignment,
+            "specification": "60ml",
+        },
+        deep=True,
+    )
+
+    card = build_product_card(facts, skin_match="unknown")
+
+    assert card.specification is None
+    assert card.price_specification_alignment == alignment
+
+
+@pytest.mark.parametrize(
+    ("name", "display_name"),
+    [
+        ("修护精华 50ml", "修护精华"),
+        ("修护精华", "修护精华 50ml"),
+    ],
+)
+def test_public_product_title_forbids_exact_specification_token(
+    name: str,
+    display_name: str,
+) -> None:
+    from app.guide.presentation.response_planning import (
+        build_product_card,
+    )
+
+    facts = _facts()[57].model_copy(
+        update={
+            "display_name": display_name,
+            "name": name,
+            "specification": "50ml",
+        },
+        deep=True,
+    )
+
+    with pytest.raises(
+        ValidationError,
+        match="public product title contains specification",
+    ):
+        build_product_card(facts, skin_match="unknown")
 
 
 def test_unusable_name_uses_readable_brand_category_fallback() -> None:

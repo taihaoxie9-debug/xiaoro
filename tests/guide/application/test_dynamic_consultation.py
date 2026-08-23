@@ -1,23 +1,10 @@
 from __future__ import annotations
 
-from app.guide.adapters.state import InMemoryConversationState
-from app.guide.application.consultation_coordinator import (
-    ConsultationApplicationCoordinator,
-)
-from app.guide.application.consultation_chat_flow import (
-    ConsultationChatFlow,
-)
 from app.guide.application.dynamic_consultation import (
-    advance_dynamic_consultation,
+    advance_dynamic_consultation as advance_prepared_consultation,
+    prepare_dynamic_consultation_evidence,
 )
-from app.guide.feedback.profile_contracts import ProfileOwnerRef
 from app.guide.understanding.turn_meaning_contracts import TurnMeaning
-
-
-_OWNER = ProfileOwnerRef(
-    scope="anonymous_browser",
-    subject_id="dynamic_consultation_owner_0123456789",
-)
 
 
 def _meaning(
@@ -28,6 +15,7 @@ def _meaning(
     conditions: tuple[str, ...] = (),
     support: tuple[str, ...] = (),
     next_gap: str | None = None,
+    pending_response_hint: str = "unknown",
 ) -> TurnMeaning:
     return TurnMeaning.model_validate(
         {
@@ -35,6 +23,7 @@ def _meaning(
             "topic_hint": "skincare",
             "continuity_hint": "continue",
             "subject_scope_hint": "self",
+            "pending_response_hint": pending_response_hint,
             "reference_mentions": [],
             "product_mentions": [],
             "budget_candidates": [],
@@ -81,6 +70,72 @@ def _observation(
         "duration": duration,
         "severity": severity,
     }
+
+
+def advance_dynamic_consultation(
+    *,
+    previous,
+    message: str,
+    meaning: TurnMeaning,
+    source_turn_id: str,
+    conversation_version: int,
+):
+    evidence = prepare_dynamic_consultation_evidence(
+        message=message,
+        meaning=meaning,
+        source_turn_id=source_turn_id,
+    )
+    return advance_prepared_consultation(
+        previous=previous,
+        evidence=evidence,
+        source_turn_id=source_turn_id,
+        conversation_version=conversation_version,
+    )
+
+
+def test_prepared_consultation_evidence_has_no_raw_message_field() -> None:
+    evidence = prepare_dynamic_consultation_evidence(
+        message="换季会泛红",
+        meaning=_meaning(
+            observations=(
+                _observation(
+                    "obs_red",
+                    code="redness",
+                    raw_text="换季会泛红",
+                    trigger="seasonal",
+                ),
+            ),
+            conditions=("redness",),
+            support=("obs_red",),
+            next_gap="persistence_or_trigger",
+        ),
+        source_turn_id="turn_prepared_consultation_0001",
+    )
+
+    assert tuple(type(evidence).model_fields) == (
+        "observations",
+        "hypothesis",
+        "next_observation_gap",
+        "pending_response_hint",
+        "confirmation_status",
+    )
+    assert [item.source_text for item in evidence.observations] == [
+        "换季会泛红"
+    ]
+
+
+def test_confirmation_is_validated_before_processor_execution() -> None:
+    evidence = prepare_dynamic_consultation_evidence(
+        message="确认我是混合皮",
+        meaning=_meaning(
+            observations=(),
+            pending_response_hint="affirm",
+        ),
+        source_turn_id="turn_prepared_confirmation_0001",
+        expected_skin_target="combination",
+    )
+
+    assert evidence.confirmation_status == "affirmed"
 
 
 def test_multi_observation_turn_asks_one_largest_gap() -> None:
@@ -507,145 +562,3 @@ def test_invented_observation_source_is_not_stored() -> None:
     assert [item.source_text for item in result.observations] == [
         "换季会泛红"
     ]
-
-
-def test_coordinator_confirms_dynamic_profile_with_separate_tendencies(
-) -> None:
-    state = InMemoryConversationState()
-    coordinator = ConsultationApplicationCoordinator(
-        conversation_state=state,
-    )
-    message = (
-        "鼻子额头容易油，两颊洗完会紧，平时保湿不痛，"
-        "换季会红，也没有破皮"
-    )
-    provisional = coordinator.handle_dynamic_turn(
-        session_id="dynamic-consultation-profile",
-        conversation_version=0,
-        message=message,
-        meaning=_meaning(
-            observations=(
-                _observation(
-                    "obs_oil",
-                    code="oiliness",
-                    raw_text="鼻子额头容易油",
-                    location="t_zone",
-                    duration="recurrent",
-                ),
-                _observation(
-                    "obs_tight",
-                    code="tightness",
-                    raw_text="两颊洗完会紧",
-                    location="cheeks",
-                    trigger="post_cleanse",
-                ),
-                _observation(
-                    "obs_tolerance",
-                    code="product_tolerance",
-                    raw_text="平时保湿不痛",
-                    present=False,
-                ),
-                _observation(
-                    "obs_red",
-                    code="redness",
-                    raw_text="换季会红",
-                    trigger="seasonal",
-                    duration="recurrent",
-                ),
-                _observation(
-                    "obs_damage",
-                    code="broken_skin",
-                    raw_text="没有破皮",
-                    present=False,
-                ),
-            ),
-            base_skin="combination",
-            tendencies=("seasonal_redness",),
-            conditions=("redness",),
-            support=(
-                "obs_oil",
-                "obs_tight",
-                "obs_tolerance",
-                "obs_red",
-                "obs_damage",
-            ),
-            next_gap="confirmation",
-        ),
-        source_turn_id="turn_dynamic_coordinator_0001",
-        profile_owner=_OWNER,
-    )
-
-    assert provisional.intent == "consultation_provisional"
-    assert provisional.conversation_version == 1
-    assert provisional.conclusion is not None
-    assert provisional.conclusion.skin_target == "combination"
-    assert provisional.conclusion.stable_tendencies == (
-        "seasonal_redness",
-    )
-    assert provisional.conclusion.current_conditions == ("redness",)
-    provisional_copy = ConsultationChatFlow._message(provisional)
-    assert "更接近混合性肤质" in provisional_copy
-    assert "换季容易泛红" in provisional_copy
-    assert "当前还有泛红" in provisional_copy
-    assert "观察依据与不确定项" not in provisional_copy
-
-    confirmed = coordinator.handle_turn(
-        session_id="dynamic-consultation-profile",
-        conversation_version=provisional.conversation_version,
-        message="我确认是混合皮",
-        source_turn_id="turn_dynamic_coordinator_0002",
-        profile_owner=_OWNER,
-    )
-
-    assert confirmed is not None
-    assert confirmed.intent == "consultation_confirmation"
-    assert confirmed.session_profile is not None
-    assert confirmed.session_profile.base_skin is not None
-    assert confirmed.session_profile.base_skin.value == "combination"
-    assert [
-        item.value
-        for item in confirmed.session_profile.stable_tendencies
-    ] == ["seasonal_redness"]
-    assert [
-        item.value
-        for item in confirmed.session_profile.current_conditions
-    ] == ["redness"]
-
-
-def test_coordinator_records_dynamic_breakage_as_terminal_safety() -> None:
-    state = InMemoryConversationState()
-    coordinator = ConsultationApplicationCoordinator(
-        conversation_state=state,
-    )
-    result = coordinator.handle_dynamic_turn(
-        session_id="dynamic-consultation-safety",
-        conversation_version=0,
-        message="现在有一点破皮",
-        meaning=_meaning(
-            observations=(
-                _observation(
-                    "obs_broken",
-                    code="broken_skin",
-                    raw_text="有一点破皮",
-                    severity="moderate",
-                ),
-            ),
-            conditions=("broken_skin",),
-            support=("obs_broken",),
-            next_gap="active_damage_risk",
-        ),
-        source_turn_id="turn_dynamic_coordinator_0003",
-        profile_owner=_OWNER,
-    )
-
-    assert result.intent == "consultation_medical_escalation"
-    assert result.conversation_version == 1
-    assert result.stop_skincare_advice
-    assert [item.code for item in result.escalation_triggers] == [
-        "broken_skin"
-    ]
-    stored = state.load("dynamic-consultation-safety")
-    assert stored is not None
-    assert stored.version == 1
-    assert stored.consultation is not None
-    assert stored.consultation.medical_escalation is not None

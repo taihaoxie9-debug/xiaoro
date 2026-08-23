@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Self
+from typing import Literal, Self
 
 from pydantic import (
     BaseModel,
@@ -12,6 +12,11 @@ from pydantic import (
 )
 
 from app.guide.feedback.consultation_state import ConsultationSubstate
+from app.guide.application.consultation_confirmation import (
+    ConsultationConfirmationRejected,
+    SkinTargetValue,
+    validate_explicit_confirmation,
+)
 from app.guide.understanding.consultation_contracts import (
     ConsultationObservation,
     ProvisionalConsultationConclusion,
@@ -37,6 +42,7 @@ from app.guide.understanding.turn_meaning_contracts import (
     TurnMeaning,
     TurnNextObservationGap,
     TurnObservationCandidate,
+    TurnPendingResponseHint,
 )
 
 
@@ -156,20 +162,91 @@ class DynamicConsultationResult(BaseModel):
         return self
 
 
+class PreparedConsultationEvidence(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
+
+    observations: tuple[ConsultationObservation, ...] = Field(
+        default_factory=tuple,
+        max_length=16,
+    )
+    hypothesis: TurnConsultationHypothesis | None = None
+    next_observation_gap: TurnNextObservationGap | None = None
+    pending_response_hint: TurnPendingResponseHint = "unknown"
+    confirmation_status: Literal[
+        "not_applicable",
+        "affirmed",
+        "rejected",
+        "unresolved",
+    ] = "not_applicable"
+
+    @field_validator("observations", mode="before")
+    @classmethod
+    def freeze_observations(cls, value: object) -> object:
+        return tuple(value) if isinstance(value, list) else value
+
+
+def prepare_dynamic_consultation_evidence(
+    *,
+    message: str,
+    meaning: TurnMeaning,
+    source_turn_id: str,
+    expected_skin_target: SkinTargetValue | None = None,
+) -> PreparedConsultationEvidence:
+    if not isinstance(message, str) or not message.strip():
+        raise ValueError("message must be nonempty")
+    if type(meaning) is not TurnMeaning:
+        raise TypeError("meaning must be an exact TurnMeaning")
+    if not isinstance(source_turn_id, str) or not source_turn_id:
+        raise ValueError("source_turn_id must be nonempty")
+    confirmation_status: Literal[
+        "not_applicable",
+        "affirmed",
+        "rejected",
+        "unresolved",
+    ] = "not_applicable"
+    if meaning.pending_response_hint == "reject":
+        confirmation_status = "rejected"
+    elif meaning.pending_response_hint == "affirm":
+        if expected_skin_target is None:
+            confirmation_status = "unresolved"
+        else:
+            try:
+                validate_explicit_confirmation(
+                    message,
+                    expected_skin_target=expected_skin_target,
+                )
+            except ConsultationConfirmationRejected:
+                confirmation_status = "unresolved"
+            else:
+                confirmation_status = "affirmed"
+    return PreparedConsultationEvidence(
+        observations=_admit_observations(
+            message=message,
+            candidates=meaning.observation_candidates,
+            source_turn_id=source_turn_id,
+        ),
+        hypothesis=meaning.consultation_hypothesis,
+        next_observation_gap=meaning.next_observation_gap,
+        pending_response_hint=meaning.pending_response_hint,
+        confirmation_status=confirmation_status,
+    )
+
+
 def advance_dynamic_consultation(
     *,
     previous: ConsultationSubstate | None,
-    message: str,
-    meaning: TurnMeaning,
+    evidence: PreparedConsultationEvidence,
     source_turn_id: str,
     conversation_version: int,
 ) -> DynamicConsultationResult:
     if previous is not None and type(previous) is not ConsultationSubstate:
         raise TypeError("previous must be a ConsultationSubstate or None")
-    if not isinstance(message, str) or not message.strip():
-        raise ValueError("message must be nonempty")
-    if type(meaning) is not TurnMeaning:
-        raise TypeError("meaning must be an exact TurnMeaning")
+    if type(evidence) is not PreparedConsultationEvidence:
+        raise TypeError(
+            "evidence must be PreparedConsultationEvidence"
+        )
+    if not isinstance(source_turn_id, str) or not source_turn_id:
+        raise ValueError("source_turn_id must be nonempty")
     if (
         not isinstance(conversation_version, int)
         or isinstance(conversation_version, bool)
@@ -179,11 +256,7 @@ def advance_dynamic_consultation(
     if previous is not None and previous.medical_escalation is not None:
         raise ValueError("terminal consultation cannot advance")
 
-    admitted = _admit_observations(
-        message=message,
-        candidates=meaning.observation_candidates,
-        source_turn_id=source_turn_id,
-    )
+    admitted = evidence.observations
     observations = _merge_observations(
         previous.observations if previous is not None else (),
         admitted,
@@ -194,7 +267,7 @@ def advance_dynamic_consultation(
         if item.observation_id is not None
     }
     hypothesis = _admit_hypothesis(
-        meaning.consultation_hypothesis,
+        evidence.hypothesis,
         admitted_ids=admitted_ids,
     )
     base_skin = _accepted_base_skin(
@@ -222,7 +295,7 @@ def advance_dynamic_consultation(
     ready_for_confirmation = False
     if not stop_skincare_advice:
         next_gap = _select_next_gap(
-            meaning.next_observation_gap,
+            evidence.next_observation_gap,
             observations=observations,
             base_skin=base_skin,
         )
@@ -757,5 +830,7 @@ def _build_conclusion(
 
 __all__ = [
     "DynamicConsultationResult",
+    "PreparedConsultationEvidence",
     "advance_dynamic_consultation",
+    "prepare_dynamic_consultation_evidence",
 ]

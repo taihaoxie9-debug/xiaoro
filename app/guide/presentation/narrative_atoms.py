@@ -7,41 +7,12 @@ from app.guide.presentation.copywriter_contracts import ApprovedSoftFact
 from app.guide.presentation.copywriter_validation import (
     is_safe_soft_fact_text,
 )
+from app.guide.presentation.fact_admission import (
+    presentation_fact_role,
+)
 
 
 MAX_NARRATIVE_ATOMS = 8
-
-_ALLOWED_FIELDS = frozenset({
-    "texture",
-    "finish",
-    "tone_effect",
-    "film_speed",
-    "makeup_compatibility",
-    "water_resistance",
-    "friction_resistance",
-    "usage_context",
-    "usage_scenario",
-    "efficacy",
-    "suitable_skin",
-    "skin_concern",
-    "target_audience",
-    "coverage",
-    "color_family",
-    "color_payoff",
-    "shade",
-    "makeup_effect",
-    "makeup_style",
-    "fragrance_description",
-    "fragrance_family",
-    "fragrance_notes",
-    "top_notes",
-    "heart_notes",
-    "cleansing_power",
-    "rinse_behavior",
-    "cleansing_requirement",
-    "double_cleanse",
-    "surfactant_type",
-})
 
 _FIELD_GROUP = {
     "tone_effect": "finish",
@@ -61,21 +32,28 @@ _FIELD_PRIORITY = {
     "usage_context": 3,
     "water_resistance": 4,
     "friction_resistance": 5,
-    "suitable_skin": 6,
-    "efficacy": 7,
-    "skin_concern": 8,
-    "coverage": 9,
-    "color_family": 10,
-    "color_payoff": 11,
-    "shade": 12,
-    "makeup_style": 13,
-    "fragrance_description": 14,
-    "fragrance_family": 15,
-    "cleansing_power": 16,
-    "rinse_behavior": 17,
-    "cleansing_requirement": 18,
-    "double_cleanse": 19,
-    "surfactant_type": 20,
+    "longevity": 6,
+    "product_form": 7,
+    "suitable_skin": 8,
+    "application_area": 9,
+    "efficacy": 10,
+    "ingredients_present": 11,
+    "claimed_ingredients": 12,
+    "skin_concern": 13,
+    "coverage": 14,
+    "mask_material": 15,
+    "concentration": 16,
+    "color_family": 17,
+    "color_payoff": 18,
+    "shade": 19,
+    "makeup_style": 20,
+    "fragrance_description": 21,
+    "fragrance_family": 22,
+    "cleansing_power": 23,
+    "rinse_behavior": 24,
+    "cleansing_requirement": 25,
+    "double_cleanse": 26,
+    "surfactant_type": 27,
 }
 
 _ATTRIBUTION_PRIORITY = {
@@ -105,8 +83,12 @@ def build_narrative_atoms(
     ] = defaultdict(list)
     for fact in facts:
         if (
-            fact.field_key not in _ALLOWED_FIELDS
-            or not is_safe_soft_fact_text(fact.plain_meaning)
+            presentation_fact_role(fact.field_key) != "narrative"
+            or not is_safe_soft_fact_text(
+                fact.plain_meaning,
+                attribution=fact.attribution,
+                field_key=fact.field_key,
+            )
         ):
             continue
         field = _FIELD_GROUP.get(fact.field_key, fact.field_key)
@@ -144,6 +126,17 @@ def _merge(
         fact_id=f"atom:{sha256(payload).hexdigest()}",
         product_id=ordered[0].product_id,
         field_key=field_key,
+        dimension_ids=tuple(
+            dict.fromkeys(
+                _normalize_dimension_id(
+                    dimension_id,
+                    source_field=item.field_key,
+                    target_field=field_key,
+                )
+                for item in ordered
+                for dimension_id in item.dimension_ids
+            )
+        ),
         plain_meaning="；".join(values),
         attribution=ordered[0].attribution,
         source_refs=tuple(sorted({
@@ -151,7 +144,23 @@ def _merge(
             for item in ordered
             for ref in item.source_refs
         })),
+        generic_copy_allowed=all(
+            item.generic_copy_allowed
+            for item in ordered
+        ),
     )
+
+
+def _normalize_dimension_id(
+    dimension_id: str,
+    *,
+    source_field: str,
+    target_field: str,
+) -> str:
+    if source_field == target_field:
+        return dimension_id
+    suffix = dimension_id.removeprefix(source_field)
+    return f"{target_field}{suffix}"
 
 
 __all__ = ["MAX_NARRATIVE_ATOMS", "build_narrative_atoms"]

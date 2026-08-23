@@ -1,20 +1,46 @@
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator
-from datetime import UTC, datetime
-import logging
-from uuid import uuid4
-
-from app.guide.application.consultation_coordinator import (
-    ConsultationApplicationCoordinator,
+from app.guide.application.consultation_contracts import (
     ConsultationApplicationResult,
 )
-from app.guide.application.contracts import UserTurn
+from app.guide.application.consultation_assessment import (
+    assess_consultation,
+)
+from app.guide.application.consultation_confirmation import (
+    confirm_prevalidated_conclusion,
+    record_medical_escalation,
+)
+from app.guide.application.dynamic_consultation import (
+    advance_dynamic_consultation,
+)
+from app.guide.application.execution_contracts import (
+    ClarificationLaneState,
+    ConversationStateDelta,
+    ExecutionResult,
+    LaneMutation,
+    PresentationTerminal,
+    ProcessorExecutionInput,
+    ProfileLanePatch,
+)
+from app.guide.feedback.consultation_state import (
+    ConfirmableConsultationAssessment,
+    ConsultationSubstate,
+    RecordedMedicalEscalation,
+)
+from app.guide.feedback.contracts import ConversationSnapshot
 from app.guide.feedback.ports import (
     ConversationStateConflict,
-    ConversationStatePort,
-    SessionLockPort,
 )
+from app.guide.feedback.profile_contracts import ProfileOwnerRef
+from app.guide.feedback.session_profile import (
+    BaseSkinUpdate,
+    CurrentConditionUpdate,
+    SessionProfile,
+    SessionProfileUpdate,
+    StableTendencyUpdate,
+    reduce_session_profile,
+)
+from app.guide.intent.unified_turn_router import UnifiedRouteDecision
 from app.guide.presentation.presentation_compiler import (
     PresentationCompileInputs,
     PresentationCompiler,
@@ -22,6 +48,7 @@ from app.guide.presentation.presentation_compiler import (
 from app.guide.presentation.presentation_packet import (
     build_presentation_packet,
 )
+from app.guide.presentation.contracts import CardDisplayContract
 from app.guide.presentation.sse_events import (
     AnswerContractData,
     AnswerContractEvent,
@@ -30,199 +57,403 @@ from app.guide.presentation.sse_events import (
     ConsultationObservationEvent,
     ConsultationProvisionalData,
     ConsultationProvisionalEvent,
-    EndData,
-    EndEvent,
-    ErrorData,
-    ErrorEvent,
     IntentData,
     IntentEvent,
     MedicalEscalationData,
     MedicalEscalationEvent,
-    MessageData,
-    MessageEvent,
     ProfileConfirmationData,
     ProfileConfirmationEvent,
-    PresentationContractEvent,
     SseEvent,
     StageData,
     StageEvent,
-    StartData,
-    StartEvent,
 )
-from app.guide.understanding.turn_meaning_contracts import TurnMeaning
+from app.guide.understanding.consultation_escalation import (
+    ConsultationEscalationInput,
+)
 
-
-logger = logging.getLogger(__name__)
 
 
 class ConsultationChatFlow:
     def __init__(
         self,
         *,
-        coordinator: ConsultationApplicationCoordinator,
-        conversation_state: ConversationStatePort,
-        session_locks: SessionLockPort,
         presentation_compiler: PresentationCompiler | None = None,
-        clock: Callable[[], datetime] | None = None,
     ) -> None:
-        self._coordinator = coordinator
-        self._conversation_state = conversation_state
-        self._session_locks = session_locks
         self._presentation_compiler = (
             presentation_compiler
             if presentation_compiler is not None
             else PresentationCompiler(copywriter=None)
         )
-        self._clock = clock or (lambda: datetime.now(UTC))
 
-    def claims(self, turn: UserTurn) -> bool:
-        owner = turn.profile_owner
-        if owner is None:
-            return False
-        return self._coordinator.claims_turn(
-            session_id=turn.session_id,
-            conversation_version=turn.conversation_version,
-            message=turn.message,
-            source_turn_id=self._source_turn_id(),
-            profile_owner=owner,
-        )
-
-    def has_session(self, turn: UserTurn) -> bool:
-        snapshot = self._conversation_state.load(turn.session_id)
-        if snapshot is None:
-            return False
-        if snapshot.profile_owner != turn.profile_owner:
-            raise ConversationStateConflict(turn.session_id)
-        return snapshot.consultation is not None
-
-    def has_dynamic_session(self, turn: UserTurn) -> bool:
-        snapshot = self._conversation_state.load(turn.session_id)
-        if snapshot is None:
-            return False
-        if snapshot.profile_owner != turn.profile_owner:
-            raise ConversationStateConflict(turn.session_id)
-        consultation = snapshot.consultation
-        return (
-            consultation is not None
-            and any(
-                observation.observation_id is not None
-                for observation in consultation.observations
-            )
-        )
-
-    def has_authority(self, turn: UserTurn) -> bool:
-        """Return whether this shared Guide state owns the requested version."""
-        snapshot = self._conversation_state.load(turn.session_id)
-        if snapshot is None:
-            return False
-        if (
-            snapshot.profile_owner != turn.profile_owner
-            or snapshot.version != turn.conversation_version
-        ):
-            raise ConversationStateConflict(turn.session_id)
-        return True
-
-    def stream(self, turn: UserTurn) -> Iterator[SseEvent]:
-        yield StartEvent(data=StartData(session_id=turn.session_id))
-        with self._session_locks.hold(turn.session_id):
-            try:
-                result = self._coordinator.handle_turn(
-                    session_id=turn.session_id,
-                    conversation_version=turn.conversation_version,
-                    message=turn.message,
-                    source_turn_id=self._source_turn_id(),
-                    profile_owner=self._require_owner(turn),
-                    confirmed_at=self._clock(),
-                )
-                if result is None:
-                    raise RuntimeError(
-                        "consultation flow received an unowned turn"
-                    )
-                buffered = list(self._result_events(result))
-            except ConversationStateConflict:
-                latest = self._conversation_state.load(turn.session_id)
-                buffered = [
-                    ErrorEvent(
-                        data=ErrorData(
-                            code="CONSULTATION_INTERNAL_ERROR",
-                            message="轻问诊暂时不可用，请稍后重试。",
-                        )
-                    )
-                ]
-                if latest is not None:
-                    logger.info(
-                        "consultation conversation conflict at version %s",
-                        latest.version,
-                    )
-            except Exception:
-                logger.exception("consultation flow failed closed")
-                buffered = [
-                    ErrorEvent(
-                        data=ErrorData(
-                            code="CONSULTATION_INTERNAL_ERROR",
-                            message="轻问诊暂时不可用，请稍后重试。",
-                        )
-                    )
-                ]
-        yield from buffered
-
-    def stream_meaning(
+    def execute(
         self,
-        turn: UserTurn,
-        *,
-        meaning: TurnMeaning,
-    ) -> Iterator[SseEvent]:
-        if type(meaning) is not TurnMeaning:
-            raise TypeError("meaning must be an exact TurnMeaning")
-        yield StartEvent(data=StartData(session_id=turn.session_id))
-        with self._session_locks.hold(turn.session_id):
-            try:
-                result = self._coordinator.handle_dynamic_turn(
-                    session_id=turn.session_id,
-                    conversation_version=turn.conversation_version,
-                    message=turn.message,
-                    meaning=meaning,
-                    source_turn_id=self._source_turn_id(),
-                    profile_owner=self._require_owner(turn),
-                    confirmed_at=self._clock(),
-                )
-                buffered = list(self._result_events(result))
-            except ConversationStateConflict:
-                latest = self._conversation_state.load(turn.session_id)
-                buffered = [
-                    ErrorEvent(
-                        data=ErrorData(
-                            code="CONSULTATION_INTERNAL_ERROR",
-                            message="轻问诊暂时不可用，请稍后重试。",
-                        )
-                    )
-                ]
-                if latest is not None:
-                    logger.info(
-                        "dynamic consultation conflict at version %s",
-                        latest.version,
-                    )
-            except Exception:
-                logger.exception(
-                    "dynamic consultation flow failed closed"
-                )
-                buffered = [
-                    ErrorEvent(
-                        data=ErrorData(
-                            code="CONSULTATION_INTERNAL_ERROR",
-                            message="轻问诊暂时不可用，请稍后重试。",
-                        )
-                    )
-                ]
-        yield from buffered
+        execution_input: ProcessorExecutionInput,
+    ) -> ExecutionResult:
+        if type(execution_input) is not ProcessorExecutionInput:
+            raise TypeError(
+                "execution_input must be an exact ProcessorExecutionInput"
+            )
+        snapshot = execution_input.current_snapshot
+        route_decision = execution_input.decision
+        evidence = execution_input.routing_evidence
+        consultation_evidence = evidence.consultation
+        conversation_version = evidence.conversation_version
+        session_id = execution_input.turn_identity.session_id
+        profile_owner = self._require_owner(evidence.profile_owner)
+        if (
+            snapshot is not None
+            and type(snapshot) is not ConversationSnapshot
+        ):
+            raise TypeError(
+                "snapshot must be a ConversationSnapshot or None"
+            )
+        if type(route_decision) is not UnifiedRouteDecision:
+            raise TypeError(
+                "route_decision must be UnifiedRouteDecision"
+            )
+        if route_decision.processor not in {
+            "consultation",
+            "safety_escalation",
+        }:
+            raise ValueError(
+                "consultation execution requires consultation ownership"
+            )
+        if snapshot is not None:
+            if (
+                snapshot.session_id != session_id
+                or snapshot.profile_owner != profile_owner
+                or snapshot.version != conversation_version
+            ):
+                raise ConversationStateConflict(session_id)
 
-    def _result_events(
+        source_turn_id = execution_input.turn_identity.turn_id
+        previous = (
+            snapshot.consultation_slot.state
+            if snapshot is not None
+            and snapshot.consultation_slot is not None
+            else None
+        )
+        if (
+            previous is not None
+            and previous.medical_escalation is not None
+        ):
+            assessment = previous.medical_escalation.assessment
+            result = ConsultationApplicationResult(
+                intent="consultation_medical_escalation",
+                conversation_version=conversation_version + 1,
+                observations=previous.observations,
+                conclusion=assessment.conclusion,
+                escalation_triggers=assessment.escalation_triggers,
+                stop_skincare_advice=True,
+                card_display_contract=self._zero_cards(),
+            )
+            return self._execution_result(
+                result,
+                route_decision=route_decision,
+                consultation=previous,
+                profile_owner=profile_owner,
+                replace_consultation=False,
+            )
+        if (
+            previous is not None
+            and previous.confirmable_assessment is not None
+            and previous.medical_escalation is None
+            and not consultation_evidence.observations
+        ):
+            return self._execute_confirmation_turn(
+                execution_input,
+                snapshot=snapshot,
+                route_decision=route_decision,
+                source_turn_id=source_turn_id,
+            )
+        dynamic = advance_dynamic_consultation(
+            previous=previous,
+            evidence=consultation_evidence,
+            source_turn_id=source_turn_id,
+            conversation_version=conversation_version + 1,
+        )
+        changed = (
+            previous is None
+            or previous != dynamic.next_consultation
+        )
+        consultation = dynamic.next_consultation
+        replace_consultation = True
+        if (
+            dynamic.stop_skincare_advice
+            or dynamic.ready_for_confirmation
+        ):
+            conclusion = dynamic.conclusion
+            if conclusion is None:
+                raise RuntimeError(
+                    "consultation assessment requires conclusion"
+                )
+            if (
+                dynamic.stop_skincare_advice
+                and previous is not None
+                and previous.confirmable_assessment is not None
+            ):
+                assessment = assess_consultation(
+                    previous,
+                    current_conversation_version=(
+                        conversation_version
+                    ),
+                    conclusion_source_turn_id=source_turn_id,
+                    escalation=ConsultationEscalationInput(
+                        triggers=list(dynamic.escalation_triggers),
+                    ),
+                ).confirmable_assessment
+                if (
+                    previous.confirmable_assessment
+                    .conclusion.confirmed_by_user
+                ):
+                    consultation = previous
+                    replace_consultation = False
+                else:
+                    consultation = record_medical_escalation(
+                        previous,
+                        current_conversation_version=(
+                            conversation_version
+                        ),
+                        assessment=assessment,
+                    ).next_consultation
+            else:
+                assessment = ConfirmableConsultationAssessment(
+                    assessment_kind=(
+                        "medical_escalation"
+                        if dynamic.stop_skincare_advice
+                        else "provisional"
+                    ),
+                    observation_set_version=(
+                        conversation_version + 1
+                        if changed
+                        else conversation_version
+                    ),
+                    observations=consultation.observations,
+                    conclusion=conclusion,
+                    conclusion_source_turn_id=source_turn_id,
+                    escalation_triggers=dynamic.escalation_triggers,
+                    stop_skincare_advice=(
+                        dynamic.stop_skincare_advice
+                    ),
+                )
+                medical = (
+                    RecordedMedicalEscalation(
+                        recorded_at_conversation_version=(
+                            conversation_version + 1
+                        ),
+                        assessment=assessment,
+                    )
+                    if dynamic.stop_skincare_advice
+                    else None
+                )
+                consultation = ConsultationSubstate(
+                    started_at_conversation_version=(
+                        consultation.started_at_conversation_version
+                    ),
+                    observations=consultation.observations,
+                    confirmable_assessment=assessment,
+                    medical_escalation=medical,
+                )
+            result = ConsultationApplicationResult(
+                intent=(
+                    "consultation_medical_escalation"
+                    if dynamic.stop_skincare_advice
+                    else "consultation_provisional"
+                ),
+                conversation_version=conversation_version + 1,
+                observations=consultation.observations,
+                conclusion=assessment.conclusion,
+                escalation_triggers=assessment.escalation_triggers,
+                stop_skincare_advice=assessment.stop_skincare_advice,
+                card_display_contract=self._zero_cards(),
+            )
+        else:
+            result = ConsultationApplicationResult(
+                intent=(
+                    "consultation_entry"
+                    if previous is None and not dynamic.observations
+                    else (
+                        "consultation_answer"
+                        if changed
+                        else "consultation_clarification"
+                    )
+                ),
+                conversation_version=conversation_version + 1,
+                observations=dynamic.observations,
+                next_question=dynamic.next_question,
+                reason=(
+                    "answer_required"
+                    if not changed and snapshot is not None
+                    else None
+                ),
+                card_display_contract=self._zero_cards(),
+            )
+        return self._execution_result(
+            result,
+            route_decision=route_decision,
+            consultation=consultation,
+            profile_owner=profile_owner,
+            replace_consultation=replace_consultation,
+        )
+
+    def _execute_confirmation_turn(
+        self,
+        execution_input: ProcessorExecutionInput,
+        *,
+        snapshot: ConversationSnapshot,
+        route_decision: UnifiedRouteDecision,
+        source_turn_id: str,
+    ) -> ExecutionResult:
+        evidence = execution_input.routing_evidence
+        consultation_evidence = evidence.consultation
+        conversation_version = evidence.conversation_version
+        profile_owner = self._require_owner(evidence.profile_owner)
+        consultation_slot = snapshot.consultation_slot
+        if consultation_slot is None:
+            raise ValueError(
+                "consultation confirmation requires consultation state"
+            )
+        consultation = consultation_slot.state
+        assessment = consultation.confirmable_assessment
+        if assessment is None:
+            raise ValueError(
+                "consultation confirmation requires assessment"
+            )
+        if consultation_evidence.confirmation_status == "rejected":
+            result = ConsultationApplicationResult(
+                intent="consultation_rejection",
+                conversation_version=conversation_version + 1,
+                observations=consultation.observations,
+                reason="rejected_by_user",
+                card_display_contract=self._zero_cards(),
+            )
+            return self._execution_result(
+                result,
+                route_decision=route_decision,
+                consultation=consultation,
+                profile_owner=profile_owner,
+                replace_consultation=False,
+            )
+        if consultation_evidence.confirmation_status != "affirmed":
+            result = ConsultationApplicationResult(
+                intent="consultation_clarification",
+                conversation_version=conversation_version + 1,
+                observations=consultation.observations,
+                reason="confirmation_required",
+                card_display_contract=self._zero_cards(),
+            )
+            return self._execution_result(
+                result,
+                route_decision=route_decision,
+                consultation=consultation,
+                profile_owner=profile_owner,
+                replace_consultation=False,
+            )
+        skin_target = assessment.conclusion.skin_target
+        if skin_target is None:
+            raise ValueError(
+                "consultation confirmation requires skin target"
+            )
+        if assessment.conclusion.confirmed_by_user:
+            profile_patch = None
+            profile = snapshot.session_profile
+            if profile is None:
+                updates = self._profile_updates_for_conclusion(
+                    assessment.conclusion
+                )
+                profile_patch = ProfileLanePatch(
+                    profile_owner=profile_owner,
+                    updates=updates,
+                    subject_scope="self",
+                    source_turn_id=(
+                        consultation.confirmation_source_turn_id
+                        or source_turn_id
+                    ),
+                )
+                profile = reduce_session_profile(
+                    previous=SessionProfile(),
+                    updates=profile_patch.updates,
+                    subject_scope=profile_patch.subject_scope,
+                    source_turn_id=profile_patch.source_turn_id,
+                    conversation_version=conversation_version + 1,
+                ).profile
+            result = ConsultationApplicationResult(
+                intent="consultation_confirmation",
+                conversation_version=conversation_version + 1,
+                observations=consultation.observations,
+                conclusion=assessment.conclusion,
+                session_profile=profile,
+                card_display_contract=self._zero_cards(),
+            )
+            return self._execution_result(
+                result,
+                route_decision=route_decision,
+                consultation=consultation,
+                profile_owner=profile_owner,
+                profile_patch=profile_patch,
+                replace_consultation=False,
+            )
+        transition = confirm_prevalidated_conclusion(
+            consultation,
+            current_conversation_version=conversation_version,
+            source_turn_id=source_turn_id,
+            expected_skin_target=skin_target,
+            expected_conclusion_source_turn_id=(
+                assessment.conclusion_source_turn_id
+            ),
+        )
+        updates = self._profile_updates_for_conclusion(
+            transition.output.conclusion
+        )
+        profile = reduce_session_profile(
+            previous=snapshot.session_profile or SessionProfile(),
+            updates=updates,
+            subject_scope="self",
+            source_turn_id=source_turn_id,
+            conversation_version=conversation_version + 1,
+        ).profile
+        result = ConsultationApplicationResult(
+            intent="consultation_confirmation",
+            conversation_version=conversation_version + 1,
+            observations=transition.next_consultation.observations,
+            conclusion=transition.output.conclusion,
+            session_profile=profile,
+            card_display_contract=self._zero_cards(),
+        )
+        return self._execution_result(
+            result,
+            route_decision=route_decision,
+            consultation=transition.next_consultation,
+            profile_owner=profile_owner,
+            profile_patch=ProfileLanePatch(
+                profile_owner=profile_owner,
+                updates=updates,
+                subject_scope="self",
+                source_turn_id=source_turn_id,
+            ),
+        )
+
+
+
+
+
+
+
+
+    def _execution_result(
         self,
         result: ConsultationApplicationResult,
-    ) -> Iterator[SseEvent]:
+        *,
+        route_decision: UnifiedRouteDecision,
+        consultation: ConsultationSubstate,
+        profile_owner: ProfileOwnerRef,
+        profile_patch: ProfileLanePatch | None = None,
+        replace_consultation: bool = True,
+    ) -> ExecutionResult:
         message = self._message(result)
         packet = build_presentation_packet(
             mode="consultation",
+            responsibility=route_decision.responsibility,
             user_need_summary=message,
             winner_status="NOT_APPLICABLE",
             card_display=result.card_display_contract,
@@ -232,44 +463,132 @@ class ConsultationChatFlow:
             merchant_claims=(),
             pitfalls=(),
         )
-        presentation_event = PresentationContractEvent(
-            data=self._presentation_compiler.compile(
-                PresentationCompileInputs(
-                    packet=packet,
-                    card_display=result.card_display_contract,
-                    copywriter_policy=(
-                        "medical_escalation"
-                        if result.intent
-                        == "consultation_medical_escalation"
-                        else "eligible"
-                    ),
+        presentation = self._presentation_compiler.compile(
+            PresentationCompileInputs(
+                packet=packet,
+                card_display=result.card_display_contract,
+                copywriter_policy=(
+                    "medical_escalation"
+                    if result.intent
+                    == "consultation_medical_escalation"
+                    else "eligible"
+                ),
+            )
+        )
+        return ExecutionResult(
+            decision=route_decision,
+            state_delta=ConversationStateDelta(
+                profile_owner=profile_owner,
+                consultation=(
+                    LaneMutation[ConsultationSubstate](
+                        action="replace",
+                        value=consultation,
+                    )
+                    if replace_consultation
+                    else LaneMutation[ConsultationSubstate](
+                        action="preserve"
+                    )
+                ),
+                clarification=LaneMutation[
+                    ClarificationLaneState
+                ](
+                    action="clear",
+                    reason="resolved by consultation",
+                ),
+                profile=(
+                    LaneMutation[ProfileLanePatch](
+                        action="replace",
+                        value=profile_patch,
+                    )
+                    if profile_patch is not None
+                    else LaneMutation[ProfileLanePatch](
+                        action="preserve"
+                    )
+                ),
+            ),
+            terminal=PresentationTerminal(data=presentation),
+            audit_events=(
+                StageEvent(
+                    data=StageData(
+                        stage="state",
+                        summary="已读取轻问诊观察与确认状态。",
+                    )
+                ),
+                IntentEvent(data=IntentData(mode=result.intent)),
+                self._typed_result_event(result),
+                AnswerContractEvent(
+                    data=AnswerContractData(
+                        product_count=0,
+                        winner_status="NOT_APPLICABLE",
+                        has_unknown_skin=False,
+                    )
+                ),
+                CardDisplayContractEvent(
+                    data=result.card_display_contract
+                ),
+            ),
+        )
+
+    @staticmethod
+    def _profile_updates_for_conclusion(
+        conclusion,
+    ) -> tuple[SessionProfileUpdate, ...]:
+        skin_target = conclusion.skin_target
+        if skin_target is None:
+            raise ValueError(
+                "confirmed consultation requires a base skin direction"
+            )
+        if skin_target == "oily_sensitive":
+            updates: list[SessionProfileUpdate] = [
+                BaseSkinUpdate(
+                    value="oily",
+                    confirmation="confirmed",
+                ),
+                StableTendencyUpdate(
+                    value="sensitivity",
+                    confirmation="confirmed",
+                ),
+            ]
+        elif skin_target == "sensitive":
+            updates = [
+                StableTendencyUpdate(
+                    value="sensitivity",
+                    confirmation="confirmed",
                 )
+            ]
+        else:
+            updates = [
+                BaseSkinUpdate(
+                    value=skin_target,
+                    confirmation="confirmed",
+                )
+            ]
+        existing_tendencies = {
+            item.value
+            for item in updates
+            if isinstance(item, StableTendencyUpdate)
+        }
+        updates.extend(
+            StableTendencyUpdate(
+                value=value,
+                confirmation="confirmed",
             )
+            for value in conclusion.stable_tendencies
+            if value not in existing_tendencies
         )
-        yield StageEvent(
-            data=StageData(
-                stage="state",
-                summary="已读取轻问诊观察与确认状态。",
-            )
+        updates.extend(
+            CurrentConditionUpdate(value=value)
+            for value in conclusion.current_conditions
         )
-        yield IntentEvent(data=IntentData(mode=result.intent))
-        yield self._typed_result_event(result)
-        yield AnswerContractEvent(
-            data=AnswerContractData(
-                product_count=0,
-                winner_status="NOT_APPLICABLE",
-                has_unknown_skin=False,
-            )
-        )
-        yield CardDisplayContractEvent(
-            data=result.card_display_contract
-        )
-        yield presentation_event
-        yield MessageEvent(data=MessageData(content=message))
-        yield EndEvent(
-            data=EndData(
-                conversation_version=result.conversation_version
-            )
+        return tuple(updates)
+
+    @staticmethod
+    def _zero_cards() -> CardDisplayContract:
+        return CardDisplayContract(
+            mode="none",
+            visible_product_ids=(),
+            max_cards=0,
+            reason=None,
         )
 
     @staticmethod
@@ -398,11 +717,9 @@ class ConsultationChatFlow:
         return "已确认结论，并按补空规则写入长期画像。"
 
     @staticmethod
-    def _source_turn_id() -> str:
-        return f"turn_{uuid4().hex}"
-
-    @staticmethod
-    def _require_owner(turn: UserTurn):
-        if turn.profile_owner is None:
+    def _require_owner(
+        profile_owner: ProfileOwnerRef | None,
+    ) -> ProfileOwnerRef:
+        if profile_owner is None:
             raise ValueError("consultation requires a profile owner")
-        return turn.profile_owner
+        return profile_owner

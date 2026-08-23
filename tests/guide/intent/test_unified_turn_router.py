@@ -6,17 +6,26 @@ import pytest
 
 from app.guide.feedback.contracts import (
     ClarificationProgress,
+    ConsultationSlotState,
     ConversationSnapshot,
     DisplayedCandidateRef,
+    ImageSlotState,
+    KnowledgeSlotState,
     PendingBudgetRange,
+    PendingClarificationSlot,
     PendingRecommendationContext,
+    PendingReplySlot,
     PendingTurn,
+    ProductSlotState,
     RecommendationQueryContext,
+    RecommendationSlotState,
 )
+from app.guide.feedback.consultation_state import ConsultationSubstate
 from app.guide.feedback.focus_state import (
+    ActiveFocus,
     ConfirmedImageProductRef,
-    FocusState,
 )
+from app.guide.intent.responsibility_matrix import Responsibility
 from app.guide.intent.unified_turn_router import route_unified_turn
 from app.guide.retrieval.product_name_resolver import (
     ResolvedProductBinding,
@@ -115,41 +124,121 @@ def _snapshot(
     pending_turn: PendingTurn | None = None,
     confirmed_images: tuple[ConfirmedImageProductRef, ...] = (),
 ) -> ConversationSnapshot:
+    candidates = tuple(
+        DisplayedCandidateRef(
+            product_id=product_id,
+            ordinal=index,
+            skin_match="unknown",
+            matched_efficacies=(),
+        )
+        for index, product_id in enumerate(product_ids, start=1)
+    )
+    focused_candidate_ordinal = (
+        product_ids.index(current_product_id) + 1
+        if current_product_id in product_ids
+        else None
+    )
+    product_slot = (
+        ProductSlotState(
+            products=candidates,
+            focused_product_id=current_product_id,
+        )
+        if (
+            processor in {"comparison", "product_knowledge"}
+            or (
+                current_product_id is not None
+                and processor != "image_identity"
+            )
+        )
+        else None
+    )
+    image_focus_ordinal = next(
+        (
+            item.image_ordinal
+            for item in confirmed_images
+            if item.product_id == current_product_id
+        ),
+        None,
+    )
+    image_slot = (
+        ImageSlotState(
+            confirmed_products=confirmed_images,
+            focused_image_ordinal=image_focus_ordinal,
+        )
+        if confirmed_images
+        else None
+    )
+    owner = {
+        "recommendation": Responsibility.RECOMMENDATION,
+        "comparison": Responsibility.COMPARISON,
+        "product_knowledge": Responsibility.PRODUCT_KNOWLEDGE,
+        "general_knowledge": Responsibility.GENERAL_KNOWLEDGE,
+        "consultation": Responsibility.CONSULTATION,
+        "image_identity": Responsibility.IMAGE_IDENTITY,
+        "clarification": Responsibility.CLARIFICATION,
+        "safety_escalation": Responsibility.SAFETY_ESCALATION,
+    }[processor]
+    active_focus = {
+        "recommendation": ActiveFocus(
+            slot="recommendation",
+            ordinal=focused_candidate_ordinal,
+        ),
+        "comparison": ActiveFocus(
+            slot="product",
+            object_id=current_product_id,
+        ),
+        "product_knowledge": ActiveFocus(
+            slot="product",
+            object_id=current_product_id,
+        ),
+        "general_knowledge": ActiveFocus(slot="knowledge"),
+        "consultation": ActiveFocus(slot="consultation"),
+        "image_identity": ActiveFocus(
+            slot="image",
+            object_id=current_product_id,
+            ordinal=image_focus_ordinal,
+        ),
+        "clarification": ActiveFocus(slot="reply"),
+        "safety_escalation": ActiveFocus(slot="consultation"),
+    }[processor]
     return ConversationSnapshot(
         session_id="router-session",
         version=2,
-        query_context=RecommendationQueryContext(
-            category="sunscreen",
-            budget_minimum=None,
-            budget_maximum=Decimal("500"),
-            skin=None,
-            efficacy=None,
-            exclusions=(),
+        active_owner=owner,
+        active_focus=active_focus,
+        recommendation_slot=RecommendationSlotState(
+            query_context=RecommendationQueryContext(
+                category="sunscreen",
+                recommendation_mode_basis="broad_exploration",
+                budget_minimum=None,
+                budget_maximum=Decimal("500"),
+                skin=None,
+                efficacy=None,
+                exclusions=(),
+            ),
+            candidates=candidates,
+            focused_candidate_ordinal=focused_candidate_ordinal,
         ),
-        candidates=tuple(
-            DisplayedCandidateRef(
-                product_id=product_id,
-                ordinal=index,
-                skin_match="unknown",
-                matched_efficacies=(),
+        product_slot=product_slot,
+        image_slot=image_slot,
+        consultation_slot=(
+            ConsultationSlotState(
+                state=ConsultationSubstate(
+                    started_at_conversation_version=1,
+                ),
             )
-            for index, product_id in enumerate(product_ids, start=1)
-        ),
-        focused_candidate_ordinal=(
-            product_ids.index(current_product_id) + 1
-            if current_product_id in product_ids
+            if processor in {"consultation", "safety_escalation"}
             else None
         ),
-        pending_turn=pending_turn,
-        focus_state=FocusState(
-            active_processor=processor,
-            current_product_id=current_product_id,
-            confirmed_image_products=confirmed_images,
-            current_knowledge_topic=(
-                "视黄醇"
-                if processor == "general_knowledge"
-                else None
-            ),
+        knowledge_slot=(
+            KnowledgeSlotState(question="视黄醇是什么")
+            if processor == "general_knowledge"
+            else None
+        ),
+        reply_slot=(
+            PendingReplySlot(value=pending_turn)
+            if pending_turn is not None
+            else None
         ),
     )
 
@@ -168,6 +257,60 @@ def test_recommendation_ordinal_routes_to_product_knowledge() -> None:
     assert decision.continuity == "continue"
     assert decision.focus_source == "candidate_batch"
     assert [item.product_id for item in decision.product_bindings] == [55]
+
+
+@pytest.mark.parametrize(
+    ("message", "operation", "references"),
+    [
+        (
+            "回到刚才的推荐，第一款和第二款哪个更适合我？",
+            "suitability",
+            (
+                _reference("candidate_ordinal", 1),
+                _reference("candidate_ordinal", 2),
+            ),
+        ),
+        (
+            "前面那两款按我的情况怎么选？",
+            "recommendation",
+            (_reference("current_batch"),),
+        ),
+        (
+            "这两款里更适合我的是哪支？",
+            "suitability",
+            (_reference("current_batch"),),
+        ),
+    ],
+)
+def test_current_batch_suitability_maps_to_comparison(
+    message: str,
+    operation: str,
+    references: tuple[ReferenceDraft, ...],
+) -> None:
+    decision = route_unified_turn(
+        meaning=_meaning(
+            operation,
+            continuity="return_to_focus",
+        ).model_copy(
+            update={"question_meaning": message},
+            deep=True,
+        ),
+        understanding=_understanding(
+            UnderstandingGoal.COMPARISON,
+            references=references,
+        ).model_copy(
+            update={"question_meaning": message},
+            deep=True,
+        ),
+        snapshot=_snapshot(product_ids=(51, 55)),
+    )
+
+    assert decision.responsibility is Responsibility.COMPARISON
+    assert decision.processor == "comparison"
+    assert [item.product_id for item in decision.product_bindings] == [
+        51,
+        55,
+    ]
 
 
 def test_unbound_general_knowledge_replaces_non_knowledge_focus() -> None:
@@ -256,7 +399,7 @@ def test_return_to_focus_current_item_overrides_redundant_alias_issue(
     assert [item.product_id for item in decision.product_bindings] == [38]
 
 
-def test_nonreturn_current_item_does_not_override_alias_issue() -> None:
+def test_continuing_current_item_overrides_scanned_alias_issue() -> None:
     understanding = _understanding(
         UnderstandingGoal.FOLLOWUP,
         references=(_reference("current_item"),),
@@ -283,8 +426,31 @@ def test_nonreturn_current_item_does_not_override_alias_issue() -> None:
         product_resolution_issue="missing_reference",
     )
 
-    assert decision.processor == "clarification"
-    assert decision.clarification_code is ClarificationCode.REFERENCE
+    assert decision.processor == "product_knowledge"
+    assert decision.continuity == "continue"
+    assert decision.focus_source == "current_product"
+    assert [item.product_id for item in decision.product_bindings] == [38]
+
+
+def test_return_to_focus_current_item_overrides_scanned_ambiguous_alias() -> None:
+    decision = route_unified_turn(
+        meaning=_meaning("followup", continuity="return_to_focus"),
+        understanding=_understanding(
+            UnderstandingGoal.FOLLOWUP,
+            references=(_reference("current_item"),),
+        ),
+        snapshot=_snapshot(
+            processor="general_knowledge",
+            product_ids=(38,),
+            current_product_id=38,
+        ),
+        product_resolution_issue="ambiguous_reference",
+    )
+
+    assert decision.processor == "product_knowledge"
+    assert decision.continuity == "return_to_focus"
+    assert decision.focus_source == "current_product"
+    assert [item.product_id for item in decision.product_bindings] == [38]
 
 
 def test_named_product_comparison_replaces_noncomparison_focus() -> None:
@@ -370,6 +536,175 @@ def test_current_batch_comparison_can_continue_noncomparison_focus() -> None:
     assert decision.focus_source == "candidate_batch"
 
 
+def test_batch_suitability_return_from_consultation_routes_to_comparison(
+) -> None:
+    decision = route_unified_turn(
+        meaning=_meaning(
+            "suitability",
+            continuity="return_to_focus",
+        ),
+        understanding=_understanding(
+            UnderstandingGoal.SUITABILITY,
+            references=(_reference("current_batch"),),
+            topic=TopicCode.SERUM,
+        ),
+        snapshot=_snapshot(
+            processor="consultation",
+            product_ids=(38, 91),
+        ),
+    )
+
+    assert decision.processor == "comparison"
+    assert decision.continuity == "return_to_focus"
+    assert decision.focus_source == "candidate_batch"
+    assert [item.product_id for item in decision.product_bindings] == [
+        38,
+        91,
+    ]
+
+
+def test_two_candidate_ordinals_suitability_uses_matrix_comparison(
+) -> None:
+    decision = route_unified_turn(
+        meaning=_meaning("suitability", continuity="continue"),
+        understanding=_understanding(
+            UnderstandingGoal.SUITABILITY,
+            references=(
+                _reference("candidate_ordinal", 1),
+                _reference("candidate_ordinal", 2),
+            ),
+            topic=TopicCode.SERUM,
+        ),
+        snapshot=_snapshot(product_ids=(38, 91, 34)),
+    )
+
+    assert decision.responsibility is Responsibility.COMPARISON
+    assert decision.processor == "comparison"
+    assert decision.presentation_mode == "comparison"
+    assert [item.product_id for item in decision.product_bindings] == [
+        38,
+        91,
+    ]
+
+
+def test_one_candidate_suitability_uses_single_product_responsibility(
+) -> None:
+    decision = route_unified_turn(
+        meaning=_meaning("suitability", continuity="continue"),
+        understanding=_understanding(
+            UnderstandingGoal.SUITABILITY,
+            references=(_reference("candidate_ordinal", 1),),
+            topic=TopicCode.SERUM,
+        ),
+        snapshot=_snapshot(product_ids=(38, 91)),
+    )
+
+    assert (
+        decision.responsibility
+        is Responsibility.SINGLE_PRODUCT_SUITABILITY
+    )
+    assert decision.processor == "product_knowledge"
+    assert decision.presentation_mode == "single_product"
+
+
+def test_two_image_ordinals_suitability_uses_matrix_comparison() -> None:
+    images = (
+        ConfirmedImageProductRef(image_ordinal=1, product_id=53),
+        ConfirmedImageProductRef(image_ordinal=2, product_id=55),
+    )
+    decision = route_unified_turn(
+        meaning=_meaning("suitability", continuity="continue"),
+        understanding=_understanding(
+            UnderstandingGoal.SUITABILITY,
+            references=(
+                _reference("image_ordinal", 1),
+                _reference("image_ordinal", 2),
+            ),
+        ),
+        snapshot=_snapshot(confirmed_images=images),
+    )
+
+    assert decision.responsibility is Responsibility.COMPARISON
+    assert decision.processor == "comparison"
+    assert [item.product_id for item in decision.product_bindings] == [
+        53,
+        55,
+    ]
+
+
+def test_two_candidate_knowledge_uses_comparison_responsibility() -> None:
+    decision = route_unified_turn(
+        meaning=_meaning("knowledge", continuity="continue"),
+        understanding=_understanding(
+            UnderstandingGoal.KNOWLEDGE,
+            references=(
+                _reference("candidate_ordinal", 1),
+                _reference("candidate_ordinal", 2),
+            ),
+            topic=TopicCode.SERUM,
+        ),
+        snapshot=_snapshot(product_ids=(38, 91)),
+    )
+
+    assert decision.responsibility is Responsibility.COMPARISON
+    assert decision.processor == "comparison"
+
+
+def test_new_recommendation_drops_released_current_batch() -> None:
+    decision = route_unified_turn(
+        meaning=_meaning("recommendation", continuity="new_task"),
+        understanding=_understanding(
+            UnderstandingGoal.RECOMMENDATION,
+            references=(_reference("current_batch"),),
+            topic=TopicCode.SERUM,
+        ),
+        snapshot=_snapshot(
+            processor="comparison",
+            product_ids=(34, 38),
+        ),
+    )
+
+    assert decision.processor == "recommendation"
+    assert decision.continuity == "replace_task"
+    assert decision.focus_source == "none"
+    assert decision.product_bindings == ()
+
+
+def test_new_recommendation_keeps_only_new_explicit_product() -> None:
+    understanding = _understanding(
+        UnderstandingGoal.RECOMMENDATION,
+        references=(_reference("current_batch"),),
+        topic=TopicCode.SERUM,
+    ).model_copy(
+        update={
+            "product_mentions": [
+                ProductMentionDraft(
+                    text="新商品",
+                    source_span=SourceSpan(start=3, end=6),
+                ),
+            ],
+        },
+        deep=True,
+    )
+
+    decision = route_unified_turn(
+        meaning=_meaning("recommendation", continuity="new_task"),
+        understanding=understanding,
+        snapshot=_snapshot(
+            processor="comparison",
+            product_ids=(34, 38),
+        ),
+        product_bindings=(_binding(91),),
+    )
+
+    assert decision.processor == "recommendation"
+    assert decision.continuity == "replace_task"
+    assert decision.focus_source == "explicit_product"
+    assert [
+        binding.product_id for binding in decision.product_bindings
+    ] == [91]
+
+
 def test_general_knowledge_to_retained_product_restores_focus() -> None:
     decision = route_unified_turn(
         meaning=_meaning("followup", continuity="continue"),
@@ -414,9 +749,13 @@ def test_explicit_product_resolves_reference_clarification_as_supplement(
     snapshot = ConversationSnapshot(
         session_id="router-session",
         version=1,
-        clarification=ClarificationProgress(
-            gap=ClarificationCode.REFERENCE,
-            attempts=1,
+        active_owner=Responsibility.CLARIFICATION,
+        active_focus=ActiveFocus(slot="reply"),
+        reply_slot=PendingClarificationSlot(
+            value=ClarificationProgress(
+                gap=ClarificationCode.REFERENCE,
+                attempts=1,
+            ),
         ),
     )
     understanding = _understanding(
@@ -661,7 +1000,7 @@ def test_active_consultation_claims_ambiguous_continuation() -> None:
         ("image_similarity", "recommendation"),
     ),
 )
-def test_confirmed_image_reuses_standard_processor(
+def test_confirmed_image_routes_to_selected_processor(
     operation: str,
     expected_processor: str,
 ) -> None:
@@ -895,7 +1234,37 @@ def test_single_image_unbound_second_object_still_clarifies() -> None:
     assert decision.clarification_code is ClarificationCode.REFERENCE
 
 
-def test_multiple_current_images_route_to_standard_comparison() -> None:
+def test_multiple_current_images_do_not_override_recommendation() -> None:
+    images = (
+        ConfirmedImageProductRef(
+            image_ordinal=1,
+            product_id=53,
+        ),
+        ConfirmedImageProductRef(
+            image_ordinal=2,
+            product_id=55,
+        ),
+    )
+
+    decision = route_unified_turn(
+        meaning=_meaning("recommendation", continuity="new_task"),
+        understanding=_understanding(
+            UnderstandingGoal.RECOMMENDATION,
+            topic=TopicCode.SUNSCREEN,
+        ),
+        snapshot=None,
+        current_image_products=images,
+    )
+
+    assert decision.processor == "recommendation"
+    assert decision.focus_source == "confirmed_image"
+    assert [item.product_id for item in decision.product_bindings] == [
+        53,
+        55,
+    ]
+
+
+def test_multiple_current_images_need_explicit_comparison_operation() -> None:
     images = (
         ConfirmedImageProductRef(
             image_ordinal=1,
@@ -917,12 +1286,74 @@ def test_multiple_current_images_route_to_standard_comparison() -> None:
         current_image_products=images,
     )
 
-    assert decision.processor == "comparison"
+    assert decision.processor == "clarification"
+    assert decision.focus_source == "none"
+    assert decision.product_bindings == ()
+
+
+def test_multiple_current_images_route_to_image_comparison_when_explicit(
+) -> None:
+    images = (
+        ConfirmedImageProductRef(
+            image_ordinal=1,
+            product_id=53,
+        ),
+        ConfirmedImageProductRef(
+            image_ordinal=2,
+            product_id=55,
+        ),
+    )
+
+    decision = route_unified_turn(
+        meaning=_meaning("comparison", continuity="continue"),
+        understanding=_understanding(
+            UnderstandingGoal.COMPARISON,
+            topic=TopicCode.SUNSCREEN,
+        ),
+        snapshot=None,
+        current_image_products=images,
+    )
+
+    assert decision.processor == "image_comparison"
     assert decision.focus_source == "confirmed_image"
     assert [item.product_id for item in decision.product_bindings] == [
         53,
         55,
     ]
+
+
+def test_specific_ordinal_inside_current_batch_overrides_batch() -> None:
+    decision = route_unified_turn(
+        meaning=_meaning("knowledge", continuity="continue"),
+        understanding=_understanding(
+            UnderstandingGoal.KNOWLEDGE,
+            references=(
+                _reference("current_batch"),
+                _reference("candidate_ordinal", 2),
+            ),
+        ),
+        snapshot=_snapshot(product_ids=(51, 55, 101)),
+    )
+
+    assert decision.processor == "product_knowledge"
+    assert decision.focus_source == "candidate_batch"
+    assert [item.product_id for item in decision.product_bindings] == [55]
+
+
+def test_explicit_product_inside_current_batch_overrides_batch() -> None:
+    decision = route_unified_turn(
+        meaning=_meaning("knowledge", continuity="continue"),
+        understanding=_understanding(
+            UnderstandingGoal.KNOWLEDGE,
+            references=(_reference("current_batch"),),
+        ),
+        snapshot=_snapshot(product_ids=(51, 55, 101)),
+        product_bindings=(_binding(55),),
+    )
+
+    assert decision.processor == "product_knowledge"
+    assert decision.focus_source == "explicit_product"
+    assert [item.product_id for item in decision.product_bindings] == [55]
 
 
 def test_comparison_adds_third_and_rejects_fourth() -> None:
@@ -968,6 +1399,8 @@ def test_comparison_adds_third_and_rejects_fourth() -> None:
         (("replace",), "correct"),
         (("remove",), "withdraw"),
         (("add",), "supplement"),
+        (("remove", "add"), "correct"),
+        (("replace", "remove"), "correct"),
     ),
 )
 def test_constraint_operations_control_continuity(
@@ -1014,6 +1447,7 @@ def _pending() -> PendingTurn:
         resume_mode="recommendation",
         resume_context=PendingRecommendationContext(
             category="serum",
+            recommendation_mode_basis="broad_exploration",
         ),
         proposed_budget=PendingBudgetRange(
             minimum=Decimal("900"),

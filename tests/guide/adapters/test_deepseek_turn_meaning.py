@@ -40,7 +40,16 @@ class SequenceTransport(httpx.BaseTransport):
 def _payload(**updates) -> dict[str, object]:
     payload = {
         "operation_hint": "recommendation",
+        "recommendation_mode": "explore",
+        "recommendation_count": 3,
+        "recommendation_mode_basis": {
+            "basis": "broad_exploration",
+            "source_text": "推荐",
+        },
         "topic_hint": "sunscreen",
+        "continuity_hint": "new_task",
+        "subject_scope_hint": "self",
+        "pending_response_hint": "unknown",
         "reference_mentions": [],
         "product_mentions": [],
         "budget_candidates": [],
@@ -54,7 +63,10 @@ def _payload(**updates) -> dict[str, object]:
                 "strength": "ordinary",
             }
         ],
+        "constraint_changes": [],
         "relative_candidates": [],
+        "consultation_hypothesis": None,
+        "next_observation_gap": None,
         "question_meaning": "推荐清爽防晒",
         "safety_language": "ordinary",
     }
@@ -63,13 +75,23 @@ def _payload(**updates) -> dict[str, object]:
 
 
 def _response(content: str | None = None) -> httpx.Response:
+    arguments = content or json.dumps(_payload())
     return httpx.Response(
         200,
         json={
             "choices": [
                 {
                     "message": {
-                        "content": content or json.dumps(_payload())
+                        "tool_calls": [
+                            {
+                                "id": "call_turn_meaning",
+                                "type": "function",
+                                "function": {
+                                    "name": "emit_turn_meaning",
+                                    "arguments": arguments,
+                                },
+                            }
+                        ]
                     }
                 }
             ],
@@ -130,9 +152,87 @@ def test_deepseek_turn_meaning_uses_exactly_one_request() -> None:
     assert transport.request_count == 1
     body = transport.bodies[0]
     assert body["thinking"] == {"type": "disabled"}
-    assert body["response_format"] == {"type": "json_object"}
+    assert "response_format" not in body
+    assert body["tool_choice"] == {
+        "type": "function",
+        "function": {"name": "emit_turn_meaning"},
+    }
     assert body["stream"] is False
     assert len(body["messages"]) == 2
+
+
+def test_deepseek_turn_meaning_uses_strict_tool_arguments_contract() -> None:
+    content = json.dumps(_payload(), ensure_ascii=False)
+    transport = SequenceTransport([
+        httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {
+                        "message": {
+                            "tool_calls": [
+                                {
+                                    "id": "call_turn_meaning",
+                                    "type": "function",
+                                    "function": {
+                                        "name": "emit_turn_meaning",
+                                        "arguments": content,
+                                    },
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 20,
+                    "completion_tokens": 10,
+                    "total_tokens": 30,
+                },
+            },
+        )
+    ])
+    adapter = _adapter(transport)
+
+    result = adapter.propose_with_result(
+        "推荐清爽防晒",
+        _context(),
+    )
+
+    assert result.meaning.recommendation_mode == "explore"
+    body = transport.bodies[0]
+    assert "response_format" not in body
+    assert body["tool_choice"] == {
+        "type": "function",
+        "function": {"name": "emit_turn_meaning"},
+    }
+    tool = body["tools"][0]["function"]
+    assert tool["name"] == "emit_turn_meaning"
+    assert tool["strict"] is True
+    parameters = tool["parameters"]
+    assert parameters["type"] == "object"
+    assert parameters["additionalProperties"] is False
+    variants = parameters["anyOf"]
+    assert len(variants) == 3
+    fit_variant = next(
+        variant
+        for variant in variants
+        if variant["properties"]["recommendation_mode"].get("enum")
+        == ["fit"]
+    )
+    assert fit_variant["properties"]["recommendation_count"] == {
+        "enum": [1],
+        "type": "integer",
+    }
+    assert set(
+        fit_variant["properties"]["recommendation_mode_basis"][
+            "properties"
+        ]["basis"]["enum"]
+    ) == {
+        "single_best_request",
+        "personal_suitability",
+        "profile_match_choice",
+        "best_among_candidates",
+    }
 
 
 def test_deepseek_turn_meaning_allows_multi_observation_output_budget(
@@ -163,6 +263,16 @@ def test_deepseek_turn_meaning_allows_multi_observation_output_budget(
     [
         "{not-json",
         json.dumps({**_payload(), "product_id": 55}),
+        json.dumps({
+            key: value
+            for key, value in _payload().items()
+            if key != "recommendation_mode"
+        }),
+        json.dumps({
+            key: value
+            for key, value in _payload().items()
+            if key != "next_observation_gap"
+        }),
     ],
 )
 def test_deepseek_invalid_output_fails_without_repair(
@@ -185,4 +295,91 @@ def test_deepseek_invalid_output_fails_without_repair(
     assert caught.value.trace_id == "unavailable"
     assert caught.value.usage is not None
     assert caught.value.usage.total_tokens == 30
+    assert transport.request_count == 1
+
+
+def test_deepseek_rejects_ungrounded_recommendation_mode_basis() -> None:
+    content = json.dumps(
+        _payload(
+            recommendation_mode="fit",
+            recommendation_count=1,
+            recommendation_mode_basis={
+                "basis": "single_best_request",
+                "source_text": "唯一最适合",
+            },
+        )
+    )
+    transport = SequenceTransport([_response(content)])
+    adapter = _adapter(transport)
+
+    with pytest.raises(SemanticProviderFailure) as caught:
+        adapter.propose(
+            "给我推荐 500 内的防晒",
+            _context(),
+        )
+
+    assert (
+        caught.value.code
+        is SemanticProviderFailureCode.INVALID_OUTPUT
+    )
+    assert transport.request_count == 1
+
+
+def test_deepseek_normalizes_unsupported_fit_to_explore_basis() -> None:
+    content = json.dumps(
+        _payload(
+            recommendation_mode="fit",
+            recommendation_count=1,
+            recommendation_mode_basis={
+                "basis": "single_best_request",
+                "source_text": "给我推荐",
+            },
+            preference_candidates=[],
+        )
+    )
+    transport = SequenceTransport([_response(content)])
+    adapter = _adapter(transport)
+
+    meaning = adapter.propose(
+        "给我推荐 500 内的防晒",
+        _context(),
+    )
+
+    assert meaning.recommendation_mode == "explore"
+    assert meaning.recommendation_count is None
+    assert meaning.recommendation_mode_basis is not None
+    assert meaning.recommendation_mode_basis.basis == (
+        "broad_exploration"
+    )
+    assert meaning.recommendation_mode_basis.source_text == "给我推荐"
+    assert transport.request_count == 1
+
+
+def test_deepseek_accepts_source_grounded_fit_with_usable_signal() -> None:
+    content = json.dumps(
+        _payload(
+            recommendation_mode="fit",
+            recommendation_count=1,
+            recommendation_mode_basis={
+                "basis": "single_best_request",
+                "source_text": "一款最适合",
+            },
+        )
+    )
+    transport = SequenceTransport([_response(content)])
+    adapter = _adapter(transport)
+
+    meaning = adapter.propose(
+        "给我推荐一款最适合清爽肤感的防晒",
+        _context(),
+    )
+
+    assert meaning.recommendation_mode == "fit"
+    assert meaning.recommendation_mode_basis is not None
+    assert meaning.recommendation_mode_basis.basis == (
+        "single_best_request"
+    )
+    assert meaning.recommendation_mode_basis.source_text == (
+        "一款最适合"
+    )
     assert transport.request_count == 1

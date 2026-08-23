@@ -24,7 +24,7 @@ from app.guide.adapters.llm.deepseek_intent import (
 )
 from app.guide.adapters.llm.provider_common import OpenAIJsonClient
 from app.guide.understanding.colloquial_budget import parse_colloquial_budget
-from tools.guide_gates.run_official_deepseek_smoke import read_private_api_key
+from tools.guide_gates.private_api_key import read_private_api_key
 
 
 PilotGoal = Literal[

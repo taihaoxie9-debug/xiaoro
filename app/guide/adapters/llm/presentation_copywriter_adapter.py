@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from decimal import Decimal
+import json
 import logging
 import math
 from time import perf_counter
@@ -25,10 +26,16 @@ from app.guide.adapters.llm.provider_common import (
 from app.guide.presentation.copywriter_contracts import (
     CopywriterDraft,
     PresentationPacket,
+    section_copy_blocks_include_winner_claim,
 )
 from app.guide.presentation.copywriter_prompt import (
     PRESENTATION_COPY_PROMPT_VERSION,
     build_presentation_copy_messages,
+)
+from app.guide.presentation.copywriter_references import (
+    CopywriterReferenceError,
+    bind_copywriter_fact_attribution,
+    expand_copywriter_evidence_references,
 )
 
 
@@ -133,8 +140,48 @@ class PresentationCopywriterAdapterBase:
             strict=True,
         )
         try:
-            draft = CopywriterDraft.model_validate_json(
-                completion.content,
+            raw_output = json.loads(completion.content)
+        except (TypeError, json.JSONDecodeError):
+            raw_output = None
+        if not _has_exact_output_shape(raw_output):
+            code = SemanticProviderFailureCode.INVALID_OUTPUT
+            self._log_failure(code)
+            raise SemanticProviderFailure(
+                code,
+                raw_content=completion.content,
+                trace_id=completion.trace_id,
+                usage=usage,
+            ) from None
+        try:
+            raw_output = expand_copywriter_evidence_references(
+                packet,
+                raw_output,
+            )
+            raw_output = bind_copywriter_fact_attribution(
+                packet,
+                raw_output,
+            )
+        except CopywriterReferenceError:
+            code = SemanticProviderFailureCode.INVALID_OUTPUT
+            self._log_failure(code)
+            raise SemanticProviderFailure(
+                code,
+                raw_content=completion.content,
+                trace_id=completion.trace_id,
+                usage=usage,
+            ) from None
+        if not section_copy_blocks_include_winner_claim(raw_output):
+            code = SemanticProviderFailureCode.INVALID_OUTPUT
+            self._log_failure(code)
+            raise SemanticProviderFailure(
+                code,
+                raw_content=completion.content,
+                trace_id=completion.trace_id,
+                usage=usage,
+            )
+        try:
+            draft = CopywriterDraft.model_validate(
+                raw_output,
                 strict=True,
             )
         except ValidationError as error:
@@ -146,6 +193,15 @@ class PresentationCopywriterAdapterBase:
                 trace_id=completion.trace_id,
                 usage=usage,
             ) from None
+        if draft.summary_copy is not None:
+            code = SemanticProviderFailureCode.FORBIDDEN_OUTPUT
+            self._log_failure(code)
+            raise SemanticProviderFailure(
+                code,
+                raw_content=completion.content,
+                trace_id=completion.trace_id,
+                usage=usage,
+            )
         logger.info(
             "Guide presentation copy call succeeded "
             "provider=%s model=%s trace_id=%s",
@@ -230,6 +286,47 @@ class PresentationCopywriterAdapterBase:
 
     def __exit__(self, *args: object) -> None:
         self.close()
+
+
+def _has_exact_output_shape(raw: object) -> bool:
+    if not isinstance(raw, dict):
+        return False
+    if set(raw) == {
+        "mode",
+        "summary_copy",
+        "product_copy",
+        "closing_copy",
+    }:
+        return True
+    if set(raw) != {"mode", "sections"}:
+        return False
+    sections = raw["sections"]
+    if not isinstance(sections, list):
+        return False
+    for section in sections:
+        if (
+            not isinstance(section, dict)
+            or set(section)
+            != {"kind", "slot_id", "content", "advisor_reason"}
+            or not _has_exact_copy_block_shape(section["content"])
+        ):
+            return False
+        advisor_reason = section["advisor_reason"]
+        if (
+            advisor_reason is not None
+            and not _has_exact_copy_block_shape(advisor_reason)
+        ):
+            return False
+    return True
+
+
+def _has_exact_copy_block_shape(raw: object) -> bool:
+    return isinstance(raw, dict) and set(raw) == {
+        "text",
+        "winner_claim",
+        "used_fact_ids",
+        "used_constraint_ids",
+    }
 
 
 __all__ = [

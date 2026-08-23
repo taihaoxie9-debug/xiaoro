@@ -25,7 +25,7 @@ from app.guide.intent.concept_preferences import (
 )
 from app.guide.understanding.turn_meaning_contracts import TurnMeaning
 from app.guide_runtime.composition import build_selection_concept_assets
-from tools.guide_gates.run_official_deepseek_smoke import (
+from tools.guide_gates.private_api_key import (
     DEFAULT_KEY_PATH,
     KeyPrecheckError,
     read_private_api_key,

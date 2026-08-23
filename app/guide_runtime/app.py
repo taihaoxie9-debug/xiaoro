@@ -32,7 +32,6 @@ from app.guide.adapters.state.sqlite_feedback_event_store import (
     FeedbackEventStoreCorrupt,
 )
 from app.guide.feedback.delivery import (
-    FeedbackDeliveryTracker,
     FeedbackEventReceipt,
     FeedbackEventSubmission,
 )
@@ -47,21 +46,12 @@ from app.guide.application.contracts import (
     ImageBundleDeleteRequest,
     ImageBundleUploadReceipt,
 )
-from app.guide.application.chat_api_adapter import (
-    GuidePublicEventError,
-    PublicEventCommitConversationState,
-    collect_guide_chat_response,
-    commit_http_event_delivery,
-    discard_http_event_delivery,
-)
 from app.guide.session_contract import SessionId
 from app.guide_runtime.composition import (
     REPO_ROOT,
     build_consultation_vertical_runtime,
     build_feedback_service,
     build_image_bundle_service,
-    build_image_recommendation_runtime,
-    build_runtime_orchestrator,
 )
 from app.guide_runtime.contracts import ChatStreamRequest
 from app.guide_runtime.feedback_http import (
@@ -72,14 +62,10 @@ from app.guide_runtime.image_http import (
     create_image_bundle_from_uploads,
     delete_image_bundle,
 )
-from app.guide_runtime.llm_config import GuideRuntimeFlags
 from app.guide_runtime.request_limits import ChatBodyLimitRoute
 from app.guide_runtime.sse import (
     DeliveryStreamingResponse,
-    encode_sse,
     iterate_http_events_in_threadpool,
-    iterate_terminal_delivery_chunks,
-    iter_finalized_http_events,
     iter_http_events,
 )
 
@@ -109,8 +95,6 @@ def _conversation_state_health(
     orchestrator,
 ) -> tuple[str, dict[str, str] | None]:
     state = getattr(orchestrator, "_conversation_state", None)
-    if isinstance(state, PublicEventCommitConversationState):
-        state = state._delegate
     if not isinstance(state, SqliteConversationState):
         return "custom", None
     database_path = state.database_path
@@ -125,26 +109,41 @@ def _conversation_state_health(
 
 def create_app(
     *,
-    orchestrator=None,
     consultation_runtime=None,
     image_bundle_service=None,
-    image_runtime=None,
     feedback_service=None,
     repo_root: Path = REPO_ROOT,
 ) -> FastAPI:
-    runtime_flags = GuideRuntimeFlags.from_environment()
-    runtime_orchestrator = orchestrator or build_runtime_orchestrator(
-        repo_root
+    requested_image_bundles = (
+        image_bundle_service or build_image_bundle_service()
     )
+    runtime_consultation = (
+        consultation_runtime
+        if consultation_runtime is not None
+        else build_consultation_vertical_runtime(
+            repo_root,
+            image_bundle_service=requested_image_bundles,
+        )
+    )
+    if (
+        image_bundle_service is not None
+        and runtime_consultation.image_bundle_service
+        is not image_bundle_service
+    ):
+        raise ValueError(
+            "guide runtime and HTTP image bundle service must match"
+        )
+    runtime_orchestrator = runtime_consultation.unified
     (
         conversation_state_kind,
         conversation_state_path,
     ) = _conversation_state_health(runtime_orchestrator)
     runtime_image_bundles = (
-        image_bundle_service or build_image_bundle_service()
+        runtime_consultation.image_bundle_service
     )
     static_root = repo_root / "app" / "static"
     chat_path = static_root / "chat.html"
+    recording_chat_path = static_root / "recording-v1" / "chat.html"
     demo_path = static_root / "demo.html"
     app = FastAPI(
         title="XiaoRo Guide Runtime",
@@ -154,11 +153,11 @@ def create_app(
     )
     app.router.route_class = ChatBodyLimitRoute
     app.state.orchestrator = runtime_orchestrator
+    app.state.guide_runtime = runtime_consultation
     app.state.conversation_state_kind = conversation_state_kind
     app.state.conversation_state_path = conversation_state_path
-    app.state.runtime_flags = runtime_flags
-    app.state.consultation_runtime = consultation_runtime
     app.state.image_bundle_service = runtime_image_bundles
+    app.state.image_runtime = runtime_consultation.image_runtime
     app.state.feedback_service = feedback_service
     feedback_service_lock = Lock()
 
@@ -172,39 +171,6 @@ def create_app(
             return app.state.feedback_service
 
     app.mount("/static", StaticFiles(directory=static_root), name="static")
-    consultation_runtime_lock = Lock()
-
-    def get_consultation_runtime():
-        current = app.state.consultation_runtime
-        if current is not None:
-            return current
-        with consultation_runtime_lock:
-            if app.state.consultation_runtime is None:
-                app.state.consultation_runtime = (
-                    build_consultation_vertical_runtime(repo_root)
-                )
-            return app.state.consultation_runtime
-
-    app.state.image_runtime = (
-        build_image_recommendation_runtime(
-            repo_root=repo_root,
-            image_bundle_service=runtime_image_bundles,
-            consultation_runtime_provider=get_consultation_runtime,
-        )
-        if image_runtime is None
-        else image_runtime
-    )
-
-    def active_consultation_for(payload: ChatStreamRequest):
-        if payload.has_legacy_image_payload:
-            return None
-        if (
-            payload.has_image_bundle_reference
-            and not app.state.runtime_flags.unified_router
-        ):
-            return None
-        return get_consultation_runtime()
-
     @app.get("/")
     def root() -> RedirectResponse:
         return RedirectResponse(url="/chat", status_code=307)
@@ -218,18 +184,14 @@ def create_app(
             ),
             "runtime": "guide",
             "scope": RUNTIME_SCOPE,
-            "turn_router": (
-                "unified_v1"
-                if app.state.runtime_flags.unified_router
-                else "legacy"
-            ),
+            "turn_router": "unified_v1",
             "capabilities": list(RUNTIME_CAPABILITIES),
             "conversation_state": app.state.conversation_state_kind,
             "conversation_state_path": (
                 app.state.conversation_state_path
             ),
             "consultation_state": "sqlite_cas",
-            "profile_state": "sqlite_fill_only_cas",
+            "profile_state": "session_only_conversation_cas",
             "image_runtime": (
                 "healthy" if image_health.healthy else "unhealthy"
             ),
@@ -250,7 +212,12 @@ def create_app(
 
     @app.get("/chat")
     def chat(request: Request) -> HTMLResponse:
-        html = chat_path.read_text(encoding="utf-8")
+        page_path = (
+            recording_chat_path
+            if request.query_params.get("demo") == "recording-v1"
+            else chat_path
+        )
+        html = page_path.read_text(encoding="utf-8")
         scope = (
             '<script>window.__XIAORO_RUNTIME_SCOPE__='
             f'"{RUNTIME_SCOPE}";</script>'
@@ -300,43 +267,17 @@ def create_app(
         )
 
         async def generate():
-            tracker = FeedbackDeliveryTracker()
-            events = iter_finalized_http_events(
-                iter_http_events(
-                    app.state.orchestrator,
-                    normalized_payload,
-                    app.state.image_bundle_service,
-                    app.state.image_runtime,
-                    active_consultation_for(normalized_payload),
-                    profile_owner=actor_session.actor.owner,
-                    unified_router_enabled=(
-                        app.state.runtime_flags.unified_router
-                    ),
-                )
+            frames = iter_http_events(
+                app.state.orchestrator,
+                normalized_payload,
+                profile_owner=actor_session.actor.owner,
             )
-            async for public_event in iterate_http_events_in_threadpool(
-                events
+            async for frame in iterate_http_events_in_threadpool(
+                frames
             ):
-                event, data = public_event
                 if await request.is_disconnected():
-                    discard_http_event_delivery(public_event)
                     return
-                tracker.observe(event, data)
-                if event == "end":
-                    async for chunk in (
-                        iterate_terminal_delivery_chunks(
-                            public_event,
-                            actor=actor_session.actor,
-                            completion=tracker.completion(),
-                            feedback_service_provider=(
-                                get_feedback_service
-                            ),
-                            logger=logger,
-                        )
-                    ):
-                        yield chunk
-                    return
-                yield encode_sse(event, data)
+                yield frame
 
         response = DeliveryStreamingResponse(
             generate(),
@@ -451,113 +392,6 @@ def create_app(
                     "message": "反馈服务暂时不可用，请稍后重试。",
                 },
             ) from None
-
-    @app.post("/api/v1/chat/message")
-    async def chat_message(
-        request: Request,
-        payload: ChatStreamRequest,
-    ) -> JSONResponse:
-        session_id = payload.session_id or f"guide-{uuid4().hex}"
-        normalized_payload = payload.model_copy(
-            update={"session_id": session_id},
-            deep=True,
-        )
-        actor_session = resolve_feedback_actor_session(
-            request,
-            authorized_session_id=session_id,
-        )
-
-        def collect_events():
-            return list(
-                iter_finalized_http_events(
-                    iter_http_events(
-                        app.state.orchestrator,
-                        normalized_payload,
-                        app.state.image_bundle_service,
-                        app.state.image_runtime,
-                        active_consultation_for(normalized_payload),
-                        profile_owner=actor_session.actor.owner,
-                        unified_router_enabled=(
-                            app.state.runtime_flags.unified_router
-                        ),
-                    )
-                )
-            )
-
-        events = await run_in_threadpool(collect_events)
-        try:
-            response_payload = collect_guide_chat_response(
-                events,
-                session_id=session_id,
-                conversation_version=payload.conversation_version,
-            )
-            await run_in_threadpool(
-                commit_http_event_delivery,
-                events[-1],
-            )
-        except GuidePublicEventError as error:
-            unavailable = error.code in {
-                "GUIDE_INTERNAL_ERROR",
-                "GUIDE_EVENT_CONTRACT_INVALID",
-                "IMAGE_RETRIEVAL_UNAVAILABLE",
-            }
-            response = JSONResponse(
-                {
-                    "detail": {
-                        "code": error.code,
-                        "message": error.message,
-                    }
-                },
-                status_code=(
-                    status.HTTP_503_SERVICE_UNAVAILABLE
-                    if unavailable
-                    else status.HTTP_400_BAD_REQUEST
-                ),
-            )
-        except Exception:
-            response = JSONResponse(
-                {
-                    "detail": {
-                        "code": "GUIDE_INTERNAL_ERROR",
-                        "message": "推荐暂时不可用，请稍后重试。",
-                    }
-                },
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
-        else:
-            tracker = FeedbackDeliveryTracker()
-            for event, data in events:
-                tracker.observe(event, data)
-            receipt = None
-            completion = tracker.completion()
-            if completion is not None:
-                try:
-                    service = await run_in_threadpool(
-                        get_feedback_service
-                    )
-                    receipt = await run_in_threadpool(
-                        partial(
-                            service.register_completed,
-                            actor=actor_session.actor,
-                            completion=completion,
-                        )
-                    )
-                except Exception:
-                    logger.exception(
-                        "feedback target registration failed"
-                    )
-            response_payload["feedback_target"] = (
-                receipt.model_dump(mode="json")
-                if receipt is not None
-                else None
-            )
-            response = JSONResponse(response_payload)
-        set_feedback_session_cookie(
-            response,
-            actor_session,
-            secure=request.url.scheme == "https",
-        )
-        return response
 
     @app.post(
         "/api/v1/chat/image-bundles",
