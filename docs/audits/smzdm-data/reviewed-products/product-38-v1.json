@@ -1,0 +1,130 @@
+{
+  "candidate_facts": [],
+  "canonical_identity": "理肤泉新B5多效修护精华",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T18:57:43.429Z",
+  "category_profile": "skincare",
+  "detail_image_count": 12,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 929,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/38/001_4793bb487b52c153.jpg",
+      "ordinal": 1,
+      "sha256": "4793bb487b52c1535d006e9281323ccf2ccc19a87345d167d8f246b66fe3435d",
+      "width": 600
+    },
+    {
+      "height": 788,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/38/002_7d5efa46b26aedbd.jpg",
+      "ordinal": 2,
+      "sha256": "7d5efa46b26aedbde5ad5aa1efffa236ccd64e1f0819c8fe1f7f34c816b2e7b6",
+      "width": 600
+    },
+    {
+      "height": 801,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/38/003_966a6eea2b6b24b9.jpg",
+      "ordinal": 3,
+      "sha256": "966a6eea2b6b24b96d80a193d406784889af5051645c70b979aa4f06cb013a17",
+      "width": 600
+    },
+    {
+      "height": 804,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/38/004_cec6cd91099622ae.jpg",
+      "ordinal": 4,
+      "sha256": "cec6cd91099622aefdf6525d769c11f6702aacc3d79fabeefea71fc08a8d8a25",
+      "width": 600
+    },
+    {
+      "height": 957,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/38/005_8e9f192381c64673.jpg",
+      "ordinal": 5,
+      "sha256": "8e9f192381c64673f86ac99b77a78399f48630af5a7d185c034c85ee74c9121a",
+      "width": 600
+    },
+    {
+      "height": 1039,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/38/006_6e4a6b7396d7831e.jpg",
+      "ordinal": 6,
+      "sha256": "6e4a6b7396d7831e52288f92983b7d907ca9ed1c33c995651546d96352b638d0",
+      "width": 600
+    },
+    {
+      "height": 532,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/38/007_cbaa311cd09f1bb0.jpg",
+      "ordinal": 7,
+      "sha256": "cbaa311cd09f1bb08fdb45d98745ed205cbf68cea4c75a3c5978840ce7d62b0a",
+      "width": 600
+    },
+    {
+      "height": 675,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/38/008_a525ece90bcc408a.jpg",
+      "ordinal": 8,
+      "sha256": "a525ece90bcc408a5de0b2a06033d9fd1ecaa4679aa8b0d838780068e2b50a14",
+      "width": 600
+    },
+    {
+      "height": 634,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/38/009_57de2fde29a27d2f.jpg",
+      "ordinal": 9,
+      "sha256": "57de2fde29a27d2ffca8726f76e9984515e20f6825f2252365bc0699d4d7267c",
+      "width": 600
+    },
+    {
+      "height": 524,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/38/010_017aa47cf7cfb170.jpg",
+      "ordinal": 10,
+      "sha256": "017aa47cf7cfb1701e47355c0ee255fdae634125300d640e6fa4f9cfc476a4af",
+      "width": 600
+    },
+    {
+      "height": 598,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/38/011_45178bd6441d8a49.jpg",
+      "ordinal": 11,
+      "sha256": "45178bd6441d8a4917530e7dcc2a1198a1f779099574ff647cbac137b1e3a736",
+      "width": 600
+    },
+    {
+      "height": 991,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/38/012_b7676d3f55c26ab9.jpg",
+      "ordinal": 12,
+      "sha256": "b7676d3f55c26ab97e3b803d13a2c6daf55d1057bfc77c5b3dd2fe999b66214f",
+      "width": 600
+    }
+  ],
+  "introduction_text": "",
+  "missing_fields": [
+    "net_content",
+    "texture"
+  ],
+  "parameter_text": "规格\n30ml",
+  "portfolio_role": "barrier_serum",
+  "product_id": 38,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "detail_images"
+  ],
+  "review_status": "no_promotion",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "unresolved",
+    "source_sku": "30ml_with_mixed_product_images"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "317de2e3f8361b9dd570628354b229b290724b1aa7d7ff45ce607f449c7ac395",
+  "source_product_title": "LA ROCHE-POSAY 理肤泉 B5多效修复精华液 30ml",
+  "source_title": "LA ROCHE-POSAY 理肤泉 B5多效修复精华液 30ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/e51xd73/"
+}

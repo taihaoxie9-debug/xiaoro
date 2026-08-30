@@ -1,0 +1,86 @@
+{
+  "card_display": {
+    "max_cards": 1,
+    "mode": "single",
+    "reason": "product",
+    "visible_product_ids": [
+      38
+    ]
+  },
+  "compact_tags": [],
+  "comparison_rows": [],
+  "copy_source": "authoritative",
+  "mode": "image_identity",
+  "recommendation_mode": null,
+  "requested_comparison_dimensions": [],
+  "responsibility": "image_identity",
+  "sections": [
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "已确认图片里的商品是理肤泉新B5多效修护精华。",
+      "direct_facts": [],
+      "kind": "observation",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [
+        {
+          "display_value": "维生素原B5（泛醇）",
+          "fact_id": "category:38:ingredients_present",
+          "label": "核心成分"
+        },
+        {
+          "display_value": "舒缓泛红、修护、补水保湿、舒缓",
+          "fact_id": "category:38:efficacy",
+          "label": "功效方向"
+        }
+      ],
+      "kind": "product",
+      "product_id": 38,
+      "slot_id": "p1",
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "full_cards",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    }
+  ],
+  "telemetry": {
+    "completion_tokens": 0,
+    "fallback_reason": null,
+    "latency_ms": 0,
+    "model": "deterministic",
+    "prompt_tokens": 0,
+    "provider": "code",
+    "total_tokens": 0
+  },
+  "visible_product_ids": [
+    38
+  ],
+  "winner": {
+    "dimension_ids": [],
+    "fact_ids": [],
+    "reason": null,
+    "status": "not_applicable",
+    "tie_reason": null,
+    "winner_product_id": null
+  }
+}

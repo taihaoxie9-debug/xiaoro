@@ -1,0 +1,21 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "image_bundle_id": "bundle_30LLRyUNfQyp37YGAld_WaDKWygwiobe",
+    "image_bundle_token": "owner_jLSFNAsDog5yGKlY2MFN1obQjQmglIIE8AjkatEVXCg",
+    "image_bundle_version": 1,
+    "message": "给我找一款最适合油敏肌、换季泛红时用的相似精华",
+    "session_id": "session_fc439f7e-7597-4ef0-ba24-607655450613",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035481678_36cen1g7",
+  "request_message": "给我找一款最适合油敏肌、换季泛红时用的相似精华",
+  "turn_id": "demo-image-fit-recommendation-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "给我找一款最适合油敏肌、换季泛红时用的相似精华",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

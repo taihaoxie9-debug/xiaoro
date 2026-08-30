@@ -1,0 +1,253 @@
+{
+  "card_display": {
+    "max_cards": 3,
+    "mode": "recommendation",
+    "reason": "recommendation",
+    "visible_product_ids": [
+      56,
+      58,
+      53
+    ]
+  },
+  "compact_tags": [
+    {
+      "fact_ids": [
+        "card:56:texture:soft_display"
+      ],
+      "label": "水润轻薄",
+      "product_id": 56
+    },
+    {
+      "fact_ids": [
+        "card:56:film_speed:soft_display"
+      ],
+      "label": "快干",
+      "product_id": 56
+    },
+    {
+      "fact_ids": [
+        "769d4811d6593762a53888965bfa4d88c2ec7ad85c0ea4c15dd7b1503c9d5bfd"
+      ],
+      "label": "高防水",
+      "product_id": 56
+    },
+    {
+      "fact_ids": [
+        "card:58:efficacy:soft_display"
+      ],
+      "label": "防晒",
+      "product_id": 58
+    },
+    {
+      "fact_ids": [
+        "69cf2424c1da6de8cb5b935fd7f5099ee4ce06c03fb313450122c4d23bfe0b7c"
+      ],
+      "label": "自然哑光",
+      "product_id": 58
+    },
+    {
+      "fact_ids": [
+        "card:58:film_speed:soft_display"
+      ],
+      "label": "快干",
+      "product_id": 58
+    }
+  ],
+  "comparison_rows": [],
+  "copy_source": "model",
+  "mode": "recommendation",
+  "recommendation_mode": "explore",
+  "requested_comparison_dimensions": [],
+  "responsibility": "recommendation",
+  "sections": [
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "已按预算上限 200 更新筛选，其余要求保持不变。",
+      "direct_facts": [],
+      "kind": "summary",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [
+        "turn:category:746292a1373092b267d1b47dc314963e0050b01635e01b2748a131bf465b486f",
+        "turn:budget:a2644bf4ff4dbf325b7b45c51b9595c14b0138ff2f6ae17044695fbcd262412b"
+      ],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": "质地水润轻薄，妆效跟妆服帖不搓泥，防水性高，成膜快干，适合妆前使用。",
+      "advisor_used_constraint_ids": [
+        "turn:category:746292a1373092b267d1b47dc314963e0050b01635e01b2748a131bf465b486f",
+        "turn:budget:a2644bf4ff4dbf325b7b45c51b9595c14b0138ff2f6ae17044695fbcd262412b"
+      ],
+      "advisor_used_fact_ids": [
+        "atom:a45ddbed7e441476198cf9760316f88b919322578e4cc875904fbd9e78b8e551",
+        "atom:7bbc0191a8e940990241814f4614602edb3c668ef64281b47d03842311125ffb",
+        "atom:a2a0248236100a09e99543a5ed685f597acb2b26a7cbc0978fbd79976f5b8ccb",
+        "atom:9dc4747933c41f7a6eec2a252f212dcb16ac0b62bd20604a686495a6b8f6824a",
+        "atom:bdc1c4a93a7968e99e1a13036db959748522f44d0b236236cb6b3345b76f2132"
+      ],
+      "copy_text": "水润轻薄，跟妆服帖不搓泥，高防水，快干，适合妆前防晒。",
+      "direct_facts": [
+        {
+          "display_value": "水润轻薄",
+          "fact_id": "atom:1c5be297dadd63026779cd54b841e90ad69988a9dabe4c0379826c28d568613e",
+          "label": "品牌主打"
+        },
+        {
+          "display_value": "水润轻薄",
+          "fact_id": "category:56:texture",
+          "label": "质地"
+        },
+        {
+          "display_value": "防晒,防水,抗辐射",
+          "fact_id": "category:56:efficacy",
+          "label": "功效方向"
+        }
+      ],
+      "kind": "product",
+      "product_id": 56,
+      "slot_id": "p1",
+      "used_constraint_ids": [
+        "turn:category:746292a1373092b267d1b47dc314963e0050b01635e01b2748a131bf465b486f",
+        "turn:budget:a2644bf4ff4dbf325b7b45c51b9595c14b0138ff2f6ae17044695fbcd262412b"
+      ],
+      "used_fact_ids": [
+        "atom:a45ddbed7e441476198cf9760316f88b919322578e4cc875904fbd9e78b8e551",
+        "atom:7bbc0191a8e940990241814f4614602edb3c668ef64281b47d03842311125ffb",
+        "atom:a2a0248236100a09e99543a5ed685f597acb2b26a7cbc0978fbd79976f5b8ccb",
+        "atom:9dc4747933c41f7a6eec2a252f212dcb16ac0b62bd20604a686495a6b8f6824a",
+        "atom:bdc1c4a93a7968e99e1a13036db959748522f44d0b236236cb6b3345b76f2132"
+      ]
+    },
+    {
+      "advisor_reason": "质地轻薄强流动性的微黄色乳液，妆效自然哑光，防水性40分钟浴后SPF41，浴后下降率19.6%，成膜快干。",
+      "advisor_used_constraint_ids": [
+        "turn:category:746292a1373092b267d1b47dc314963e0050b01635e01b2748a131bf465b486f",
+        "turn:budget:a2644bf4ff4dbf325b7b45c51b9595c14b0138ff2f6ae17044695fbcd262412b"
+      ],
+      "advisor_used_fact_ids": [
+        "atom:58a7f2c622c01fda96d583c871cc07a042c70361af15750e00cbc6bf13e099eb",
+        "atom:2cd690b61f599230c6ce32af2f90c8b5c6fcd37e5d37f76316c221695432af48",
+        "atom:ec9c913b68567e865b8ac4d702f4eb4a85b704e316f43c79a31418583f478eb8",
+        "atom:00e93950e5038a94c5acb72afbf859e70d15c56911b2810b53298026af8937ed"
+      ],
+      "copy_text": "轻薄强流动性的微黄色乳液，自然哑光，40分钟浴后SPF41，浴后下降率19.6%，快干。",
+      "direct_facts": [
+        {
+          "display_value": "轻薄强流动性的微黄色乳液",
+          "fact_id": "atom:9b63f9c9fc4adcbc22eee439d9ce95705611eecb7c078d2309fecdc848b1264e",
+          "label": "品牌主打"
+        },
+        {
+          "display_value": "轻薄强流动性的微黄色乳液",
+          "fact_id": "category:58:texture",
+          "label": "质地"
+        },
+        {
+          "display_value": "防晒",
+          "fact_id": "category:58:efficacy",
+          "label": "功效方向"
+        }
+      ],
+      "kind": "product",
+      "product_id": 58,
+      "slot_id": "p2",
+      "used_constraint_ids": [
+        "turn:category:746292a1373092b267d1b47dc314963e0050b01635e01b2748a131bf465b486f",
+        "turn:budget:a2644bf4ff4dbf325b7b45c51b9595c14b0138ff2f6ae17044695fbcd262412b"
+      ],
+      "used_fact_ids": [
+        "atom:58a7f2c622c01fda96d583c871cc07a042c70361af15750e00cbc6bf13e099eb",
+        "atom:2cd690b61f599230c6ce32af2f90c8b5c6fcd37e5d37f76316c221695432af48",
+        "atom:ec9c913b68567e865b8ac4d702f4eb4a85b704e316f43c79a31418583f478eb8",
+        "atom:00e93950e5038a94c5acb72afbf859e70d15c56911b2810b53298026af8937ed"
+      ]
+    },
+    {
+      "advisor_reason": "质地清爽自然肤感，防水防汗成膜方向。",
+      "advisor_used_constraint_ids": [
+        "turn:category:746292a1373092b267d1b47dc314963e0050b01635e01b2748a131bf465b486f",
+        "turn:budget:a2644bf4ff4dbf325b7b45c51b9595c14b0138ff2f6ae17044695fbcd262412b"
+      ],
+      "advisor_used_fact_ids": [
+        "atom:67e529dec87512c5f70644f5d92b816dfba102ee573626b3feb1be0dd5769ba2",
+        "atom:0abe862b7ffee7e568c52963d6b9fbf69667f02a59f63dba1db5efd2f7e5bf79"
+      ],
+      "copy_text": "清爽自然肤感，防水防汗成膜方向。",
+      "direct_facts": [
+        {
+          "display_value": "清爽自然肤感",
+          "fact_id": "category:53:texture",
+          "label": "质地"
+        },
+        {
+          "display_value": "防水防汗成膜方向",
+          "fact_id": "category:53:water_resistance",
+          "label": "防水性"
+        }
+      ],
+      "kind": "product",
+      "product_id": 53,
+      "slot_id": "p3",
+      "used_constraint_ids": [
+        "turn:category:746292a1373092b267d1b47dc314963e0050b01635e01b2748a131bf465b486f",
+        "turn:budget:a2644bf4ff4dbf325b7b45c51b9595c14b0138ff2f6ae17044695fbcd262412b"
+      ],
+      "used_fact_ids": [
+        "atom:67e529dec87512c5f70644f5d92b816dfba102ee573626b3feb1be0dd5769ba2",
+        "atom:0abe862b7ffee7e568c52963d6b9fbf69667f02a59f63dba1db5efd2f7e5bf79"
+      ]
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "如需进一步调整预算或其他要求，可以继续告诉我。",
+      "direct_facts": [],
+      "kind": "closing",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [
+        "turn:category:746292a1373092b267d1b47dc314963e0050b01635e01b2748a131bf465b486f",
+        "turn:budget:a2644bf4ff4dbf325b7b45c51b9595c14b0138ff2f6ae17044695fbcd262412b"
+      ],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "full_cards",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    }
+  ],
+  "telemetry": {
+    "completion_tokens": 751,
+    "fallback_reason": null,
+    "latency_ms": 6798.592749983072,
+    "model": "deepseek-v4-pro",
+    "prompt_tokens": 2031,
+    "provider": "deepseek_official",
+    "total_tokens": 2782
+  },
+  "visible_product_ids": [
+    56,
+    58,
+    53
+  ],
+  "winner": {
+    "dimension_ids": [],
+    "fact_ids": [],
+    "reason": null,
+    "status": "not_applicable",
+    "tie_reason": null,
+    "winner_product_id": null
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 1,
+    "message": "功效仍然优先修护屏障，但肤感改成更水润，还是只要一款",
+    "session_id": "session_bf2fc5cf-7506-451c-a611-d1aece1ec830",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035375547_txl76wln",
+  "request_message": "功效仍然优先修护屏障，但肤感改成更水润，还是只要一款",
+  "turn_id": "demo-fit-recommendation-t2",
+  "url": "/api/v1/chat/stream",
+  "user_message": "功效仍然优先修护屏障，但肤感改成更水润，还是只要一款",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

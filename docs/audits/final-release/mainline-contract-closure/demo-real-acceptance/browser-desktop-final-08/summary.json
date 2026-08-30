@@ -1,0 +1,312 @@
+{
+  "base_url": "http://127.0.0.1:8841",
+  "invalid_clarification_count": 0,
+  "passed": true,
+  "schema_version": "guide-mainline-contract-browser-audit-v1",
+  "trajectories": [
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "demo-explore-recommendation",
+      "turn_count": 3,
+      "turns": [
+        {
+          "directory": "demo-explore-recommendation/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        },
+        {
+          "directory": "demo-explore-recommendation/t2",
+          "release_counters": {
+            "copywriter_fallback_count": 1,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 1,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t2"
+        },
+        {
+          "directory": "demo-explore-recommendation/t3",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t3"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "demo-fit-recommendation",
+      "turn_count": 3,
+      "turns": [
+        {
+          "directory": "demo-fit-recommendation/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 1,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 1,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        },
+        {
+          "directory": "demo-fit-recommendation/t2",
+          "release_counters": {
+            "copywriter_fallback_count": 1,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 1,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t2"
+        },
+        {
+          "directory": "demo-fit-recommendation/t3",
+          "release_counters": {
+            "copywriter_fallback_count": 1,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 1,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t3"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "demo-product-knowledge",
+      "turn_count": 3,
+      "turns": [
+        {
+          "directory": "demo-product-knowledge/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        },
+        {
+          "directory": "demo-product-knowledge/t2",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t2"
+        },
+        {
+          "directory": "demo-product-knowledge/t3",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t3"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "demo-comparison",
+      "turn_count": 3,
+      "turns": [
+        {
+          "directory": "demo-comparison/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        },
+        {
+          "directory": "demo-comparison/t2",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t2"
+        },
+        {
+          "directory": "demo-comparison/t3",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t3"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "demo-image-identity",
+      "turn_count": 3,
+      "turns": [
+        {
+          "directory": "demo-image-identity/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        },
+        {
+          "directory": "demo-image-identity/t2",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t2"
+        },
+        {
+          "directory": "demo-image-identity/t3",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t3"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "demo-image-fit-recommendation",
+      "turn_count": 3,
+      "turns": [
+        {
+          "directory": "demo-image-fit-recommendation/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        },
+        {
+          "directory": "demo-image-fit-recommendation/t2",
+          "release_counters": {
+            "copywriter_fallback_count": 1,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 1,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t2"
+        },
+        {
+          "directory": "demo-image-fit-recommendation/t3",
+          "release_counters": {
+            "copywriter_fallback_count": 1,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 1,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t3"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "demo-image-comparison",
+      "turn_count": 3,
+      "turns": [
+        {
+          "directory": "demo-image-comparison/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        },
+        {
+          "directory": "demo-image-comparison/t2",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t2"
+        },
+        {
+          "directory": "demo-image-comparison/t3",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t3"
+        }
+      ]
+    }
+  ],
+  "trajectory_set": "demo",
+  "turn_count": 21,
+  "viewport": "desktop"
+}

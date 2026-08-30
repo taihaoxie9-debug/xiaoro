@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "理肤泉新B5多效修护精华的质地适合什么肤质？",
+    "session_id": "session_884490db-1380-4899-a551-f475db72a1e2",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035400675_zsv4b1t6",
+  "request_message": "理肤泉新B5多效修护精华的质地适合什么肤质？",
+  "turn_id": "demo-product-knowledge-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "理肤泉新B5多效修护精华的质地适合什么肤质？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

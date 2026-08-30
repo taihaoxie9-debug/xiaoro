@@ -1,0 +1,206 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:99:net-content:100ml-source-variant-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "100ml来源变体",
+      "review_rationale": "长图第1和第4张瓶身都明确为100ml；Canonical仍覆盖多个包装规格，参考价SKU未确认，不能与价格组合。",
+      "sku_status": "exact_product_100ml_variant_canonical_pack_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:12c712da0002bfd06d9caaf6b6de4838718a327219ebf84a5624bd80a745341a",
+        "smzdm-detail-image:43ce87261a9240bf132936ca23de92dbfc096e15ea493d75616e9a776f8cbc95"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:99:ingredients:black-tea-honey-locust-ceramide-ha-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "毛里求斯红茶精萃、蜂蜜刺槐籽提取物、神经酰胺NP与透明质酸钠",
+      "review_rationale": "长图第3张逐项列出四类成分；不保留磨皮、淡纹或紧致等机理扩写。",
+      "sku_status": "exact_product_100ml_variant_canonical_pack_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:3cb850dbbe4a90ba9d1bdf2048c03bf0c54bbc85a5111e13bed11cc2ce19f57e"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:99:texture:cooling-mashed-potato-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "冰激凌般沁凉的土豆泥质地，带清新茶香",
+      "review_rationale": "长图第4张直接描述沁凉土豆泥质地和清新茶香；这是涂抹式面膜特征，不映射普通面霜质地父概念。",
+      "sku_status": "exact_product_100ml_variant_canonical_pack_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 4,
+      "source_refs": [
+        "smzdm-detail-image:43ce87261a9240bf132936ca23de92dbfc096e15ea493d75616e9a776f8cbc95"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:99:usage:dry-face-five-ten-minutes-v1",
+      "field_key": "usage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "洁面后在干燥面部均匀涂抹，停留5至10分钟后冲洗，每周使用3至4次",
+      "review_rationale": "长图第6张给出完整的洁面、干燥、涂抹、停留、冲洗和频次步骤；未把眼下60秒方法并入普通全脸用法。",
+      "sku_status": "exact_product_100ml_variant_canonical_pack_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 6,
+      "source_refs": [
+        "smzdm-detail-image:b2b6a721d81bd3912236e68979058890fb80b8fea08350841b83b14b724be0d3"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.hydration",
+      "decision": "map",
+      "fact_id": "reviewed:product:99:efficacy:hydration-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "保湿水润方向",
+      "review_rationale": "长图第3张明确把神经酰胺NP和透明质酸钠对应到保持水润；只保留非量化保湿方向。",
+      "sku_status": "exact_product_100ml_variant_canonical_pack_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:3cb850dbbe4a90ba9d1bdf2048c03bf0c54bbc85a5111e13bed11cc2ce19f57e"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:99:efficacy:instant-percent-wrinkle-pore-fatigue-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "单次即时百分比、毛孔细纹、泡泡眼与28天疲惫感结论",
+      "review_rationale": "单次和28天量化展示缺少可独立审计的完整试验资料，不能提升为公开产品效果。",
+      "sku_status": "exact_product_100ml_variant_canonical_pack_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 2,
+      "source_refs": [
+        "smzdm-detail-image:ad938ca63922a9a4a38a08e152e97e478082bfc47b3ff7f7d738ce60995af958",
+        "smzdm-detail-image:16ad92ae7ee67ca03a4771e367e2cf8ab2aaca9af60bae0be0688e0dde3ab658"
+      ]
+    }
+  ],
+  "canonical_identity": "红茶凝时焕颜面膜",
+  "canonical_sku_scope": "catalogued_mask_pack_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T19:00:38.375Z",
+  "category_profile": "skincare",
+  "detail_image_count": 7,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 1403,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/99/001_12c712da0002bfd0.jpg",
+      "ordinal": 1,
+      "sha256": "12c712da0002bfd06d9caaf6b6de4838718a327219ebf84a5624bd80a745341a",
+      "width": 600
+    },
+    {
+      "height": 728,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/99/002_ad938ca63922a9a4.jpg",
+      "ordinal": 2,
+      "sha256": "ad938ca63922a9a4a38a08e152e97e478082bfc47b3ff7f7d738ce60995af958",
+      "width": 600
+    },
+    {
+      "height": 1308,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/99/003_3cb850dbbe4a90ba.jpg",
+      "ordinal": 3,
+      "sha256": "3cb850dbbe4a90ba9d1bdf2048c03bf0c54bbc85a5111e13bed11cc2ce19f57e",
+      "width": 600
+    },
+    {
+      "height": 669,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/99/004_43ce87261a9240bf.jpg",
+      "ordinal": 4,
+      "sha256": "43ce87261a9240bf132936ca23de92dbfc096e15ea493d75616e9a776f8cbc95",
+      "width": 600
+    },
+    {
+      "height": 588,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/99/005_16ad92ae7ee67ca0.jpg",
+      "ordinal": 5,
+      "sha256": "16ad92ae7ee67ca03a4771e367e2cf8ab2aaca9af60bae0be0688e0dde3ab658",
+      "width": 600
+    },
+    {
+      "height": 974,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/99/006_b2b6a721d81bd391.jpg",
+      "ordinal": 6,
+      "sha256": "b2b6a721d81bd3912236e68979058890fb80b8fea08350841b83b14b724be0d3",
+      "width": 600
+    },
+    {
+      "height": 787,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/99/007_ac784654bbbfa2af.jpg",
+      "ordinal": 7,
+      "sha256": "ac784654bbbfa2af5f5178d1591e9a1642e048ca2f5bc5740451e603fc4fc8bc",
+      "width": 600
+    }
+  ],
+  "introduction_text": "",
+  "missing_fields": [
+    "net_content",
+    "texture"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "overnight_mask",
+  "product_id": 99,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "100ml"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "559e72e0f1a4af1b15c4a43e03fdd84155ed7908e6d982c3c2f71fa919eb7fbd",
+  "source_product_title": "fresh/馥蕾诗 保湿紧致 红茶凝时焕颜面膜",
+  "source_title": "fresh/馥蕾诗 保湿紧致 红茶凝时焕颜面膜【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/pgjp1ne/"
+}

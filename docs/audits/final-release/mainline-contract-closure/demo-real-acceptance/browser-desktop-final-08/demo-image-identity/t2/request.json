@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 1,
+    "message": "图里这款叫什么，确认一下",
+    "session_id": "session_b98026a7-6e34-4438-ac6d-659d034bd3dd",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035468066_0x92u16g",
+  "request_message": "图里这款叫什么，确认一下",
+  "turn_id": "demo-image-identity-t2",
+  "url": "/api/v1/chat/stream",
+  "user_message": "图里这款叫什么，确认一下",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

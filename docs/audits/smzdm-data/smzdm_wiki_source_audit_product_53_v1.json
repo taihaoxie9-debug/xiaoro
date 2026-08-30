@@ -1,0 +1,94 @@
+{
+  "schema_version": "smzdm-wiki-source-audit-v1",
+  "status": "manual_browser_observed_not_raw",
+  "canonical_product_id": 53,
+  "source_url": "https://wiki.smzdm.com/p/do3o0zg/",
+  "source_kind": "smzdm_wiki",
+  "observed_page_title": "LA ROCHE-POSAY 理肤泉 特护清盈防晒乳 50ml SPF50+ PA++++",
+  "current_canonical_identity": "理肤泉大哥大UVMUNE400轻盈防晒乳无香SPF50+ 50ml黄标",
+  "current_canonical_reference_price": "¥125",
+  "observed_at": "2026-08-19",
+  "capture_status": {
+    "independent_headless": "capture_blocked",
+    "reason": "TCaptcha document returned before page body",
+    "raw_written": false,
+    "retry_performed": false
+  },
+  "browser_observations": {
+    "aigc_sections_present": [
+      "AI卖点提炼：高防晒指数，清爽不油腻，抗水抗汗。",
+      "Powered by ZDM-AIGC Engine v0.1"
+    ],
+    "structured_parameter_candidates": [
+      {
+        "field": "net_content",
+        "source_text": "50ml",
+        "status": "candidate_pending_sku_review"
+      },
+      {
+        "field": "product_form",
+        "source_text": "乳/霜",
+        "status": "context_only"
+      }
+    ],
+    "product_introduction_topics": [
+      "清爽透薄水剂质感，不油腻不黏皮肤",
+      "曝光前使用；游泳、出汗或毛巾擦拭后建议补涂",
+      "规格：50ml"
+    ]
+  },
+  "observed_candidate_topics": [
+    {
+      "kind": "net_content_candidate",
+      "summary": "页面标题和规格参数均出现 50ml，但未明确UVMUNE400、无香和黄标版本。",
+      "allowed_next_step": "Human SKU review, then promote only net_content if the exact 50ml SKU is confirmed.",
+      "prohibited_next_step": "Automatic image replacement or automatic promotion."
+    },
+    {
+      "kind": "price_variant_mismatch",
+      "summary": "百科页面显示 ¥39.37，同时提供30ml、50ml、50ml*2、50ml*3和250ml等多个规格选择；现有正式参考价为 ¥125。",
+      "allowed_next_step": "Store only as a dated SKU-bound offer observation after exact variant resolution.",
+      "prohibited_next_step": "Overwrite the canonical reference price or display ¥39.37 as the current product price."
+    },
+    {
+      "kind": "texture_candidate",
+      "summary": "产品介绍写有清爽透薄水剂质感、不油腻不黏皮肤。",
+      "allowed_next_step": "Human review as attributed merchant-claim texture copy.",
+      "prohibited_next_step": "Verified-fact promotion, universal skin-type conclusion, or anti-acne claim."
+    },
+    {
+      "kind": "ordinary_usage_candidate",
+      "summary": "产品介绍写有曝光前使用，游泳、出汗或毛巾擦拭后建议补涂。",
+      "allowed_next_step": "Human review as answer-only attributed usage guidance.",
+      "prohibited_next_step": "Automatic water-resistance promotion or medical/safety conclusion."
+    },
+    {
+      "kind": "aigc_exclusion",
+      "summary": "AI卖点提炼声称抗水抗汗。",
+      "allowed_next_step": "Retain only as exclusion evidence.",
+      "prohibited_next_step": "Any fact, texture, water-resistance, efficacy, or ranking promotion."
+    },
+    {
+      "kind": "variant_conflict",
+      "summary": "页面标题含 SPF50+ PA++++，而当前正式记录为 SPF50+ / 无；产品介绍还出现 PPD18 与另一组防晒技术表述。",
+      "allowed_next_step": "Resolve exact market and SKU evidence before any SPF/PA or technology change.",
+      "prohibited_next_step": "Overwrite the current protection record."
+    }
+  ],
+  "conclusion": {
+    "worth_pursuing": [
+      "50ml SKU evidence",
+      "Attributed lightweight texture wording",
+      "Answer-only reapplication guidance"
+    ],
+    "not_a_source_of_truth_yet": [
+      "Water resistance",
+      "Current price",
+      "SPF/PA revision",
+      "PPD value",
+      "Skin-type suitability",
+      "Technology and performance claims"
+    ],
+    "next_required_step": "Obtain an auditable raw capture and confirm the exact 50ml SKU before generating a review candidate."
+  }
+}

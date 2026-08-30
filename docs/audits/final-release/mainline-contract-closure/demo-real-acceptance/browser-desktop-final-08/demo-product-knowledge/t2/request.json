@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 1,
+    "message": "它的主要功效方向呢？",
+    "session_id": "session_884490db-1380-4899-a551-f475db72a1e2",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035407046_gv0f3l16",
+  "request_message": "它的主要功效方向呢？",
+  "turn_id": "demo-product-knowledge-t2",
+  "url": "/api/v1/chat/stream",
+  "user_message": "它的主要功效方向呢？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 1,
+    "message": "第二款更适合油皮吗？",
+    "session_id": "session_fd211528-1c59-4827-993c-2a67ee97bc47",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035337613_hqd1d4x3",
+  "request_message": "第二款更适合油皮吗？",
+  "turn_id": "demo-explore-recommendation-t2",
+  "url": "/api/v1/chat/stream",
+  "user_message": "第二款更适合油皮吗？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

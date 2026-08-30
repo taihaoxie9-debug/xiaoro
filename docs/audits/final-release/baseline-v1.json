@@ -1,0 +1,12 @@
+{
+  "head": "9e992b6cf7badc2b5eb1cbc22771bfa19dcbf1a0",
+  "branch": "mixed-chain-experience-20260819",
+  "protected_user_changes": true,
+  "implementation_scope": [
+    "responsibility_matrix",
+    "presentation_contract",
+    "copy_evidence",
+    "smzdm_reviewed_facts",
+    "release_gates"
+  ]
+}

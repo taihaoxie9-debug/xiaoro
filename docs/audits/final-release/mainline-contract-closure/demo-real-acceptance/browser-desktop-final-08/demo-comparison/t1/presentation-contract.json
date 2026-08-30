@@ -1,0 +1,189 @@
+{
+  "card_display": {
+    "max_cards": 2,
+    "mode": "comparison",
+    "reason": "comparison",
+    "visible_product_ids": [
+      129,
+      33
+    ]
+  },
+  "compact_tags": [
+    {
+      "fact_ids": [
+        "8d97526af76492bfa4808cb4bfc8042e42621ec9d75fab8c984bacfeaa92cd30"
+      ],
+      "label": "修护屏障",
+      "product_id": 129
+    },
+    {
+      "fact_ids": [
+        "card:129:ingredients_present:soft_display"
+      ],
+      "label": "甘油",
+      "product_id": 129
+    },
+    {
+      "fact_ids": [
+        "fc3fabd39a44141a1f8c2f70fbd1f3019ec8cc9910387693918d1ae81c77d153"
+      ],
+      "label": "法国",
+      "product_id": 129
+    },
+    {
+      "fact_ids": [
+        "076eb58decdeaa46fe6d0039c53f4b4dfc02e7b4807ef277c4ed016b85b6f419"
+      ],
+      "label": "不粘腻",
+      "product_id": 33
+    },
+    {
+      "fact_ids": [
+        "32a490dadb44f8e2cc302c0d0a040df738f6fd202282f7074b96b5abc65772ea"
+      ],
+      "label": "细腻",
+      "product_id": 33
+    },
+    {
+      "fact_ids": [
+        "7fb4a6f3ffdf12ea372548f9e68a2f744fd5909b066282192a8942af397184e8"
+      ],
+      "label": "修护屏障",
+      "product_id": 33
+    }
+  ],
+  "comparison_rows": [
+    {
+      "cells": [
+        {
+          "fact_ids": [
+            "card:129:efficacy:soft_display"
+          ],
+          "product_id": 129,
+          "state": "known",
+          "value": "修护屏障、呵护脆弱屏障、屏障修护方向、抗氧化、…"
+        },
+        {
+          "fact_ids": [
+            "card:33:efficacy:soft_display"
+          ],
+          "product_id": 33,
+          "state": "known",
+          "value": "修护与保湿方向、修护屏障、强韧屏障、抗老、提升…"
+        }
+      ],
+      "dimension_id": "efficacy",
+      "label": "功效方向"
+    },
+    {
+      "cells": [
+        {
+          "fact_ids": [
+            "card:129:texture:soft_display"
+          ],
+          "product_id": 129,
+          "state": "known",
+          "value": "不粘腻、化水、清透蛋清质地"
+        },
+        {
+          "fact_ids": [
+            "card:33:texture:soft_display"
+          ],
+          "product_id": 33,
+          "state": "known",
+          "value": "不粘腻、服帖、清润、清润琥珀色液体质地、轻薄"
+        }
+      ],
+      "dimension_id": "texture",
+      "label": "质地"
+    },
+    {
+      "cells": [
+        {
+          "fact_ids": [
+            "card:129:reference_price"
+          ],
+          "product_id": 129,
+          "state": "known",
+          "value": "¥519"
+        },
+        {
+          "fact_ids": [
+            "card:33:reference_price"
+          ],
+          "product_id": 33,
+          "state": "known",
+          "value": "¥968"
+        }
+      ],
+      "dimension_id": "reference_price",
+      "label": "参考价"
+    }
+  ],
+  "copy_source": "model",
+  "mode": "comparison",
+  "recommendation_mode": null,
+  "requested_comparison_dimensions": [],
+  "responsibility": "comparison",
+  "sections": [
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "这两款精华各有侧重，可以根据你的肤质和主要诉求来选。",
+      "direct_facts": [],
+      "kind": "summary",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [
+        "turn:category:d07d081cb9ea05cde79f94c60a175a2bd257ef103c5d967794560bc67922d3a8"
+      ],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "comparison",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "full_cards",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    }
+  ],
+  "telemetry": {
+    "completion_tokens": 101,
+    "fallback_reason": null,
+    "latency_ms": 2281.9302920252085,
+    "model": "deepseek-v4-pro",
+    "prompt_tokens": 981,
+    "provider": "deepseek_official",
+    "total_tokens": 1082
+  },
+  "visible_product_ids": [
+    129,
+    33
+  ],
+  "winner": {
+    "dimension_ids": [],
+    "fact_ids": [],
+    "reason": null,
+    "status": "insufficient",
+    "tie_reason": null,
+    "winner_product_id": null
+  }
+}

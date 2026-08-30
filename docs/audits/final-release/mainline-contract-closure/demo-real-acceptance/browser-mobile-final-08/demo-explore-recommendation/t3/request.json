@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "预算改成两百以内，其他要求不变",
+    "session_id": "session_a36e7eb3-af17-4df4-b0eb-c6073045b694",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035566886_edbejt7x",
+  "request_message": "预算改成两百以内，其他要求不变",
+  "turn_id": "demo-explore-recommendation-t3",
+  "url": "/api/v1/chat/stream",
+  "user_message": "预算改成两百以内，其他要求不变",
+  "viewport": {
+    "height": 844,
+    "width": 390
+  }
+}

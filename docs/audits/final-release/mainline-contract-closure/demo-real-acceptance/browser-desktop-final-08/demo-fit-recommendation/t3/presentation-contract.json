@@ -1,0 +1,137 @@
+{
+  "card_display": {
+    "max_cards": 1,
+    "mode": "single",
+    "reason": "recommendation",
+    "visible_product_ids": [
+      91
+    ]
+  },
+  "compact_tags": [
+    {
+      "fact_ids": [
+        "024e9c21017fac94faff76d1db50bea25a0b2a0017d55082c47376ef374606e2"
+      ],
+      "label": "修护屏障",
+      "product_id": 91
+    },
+    {
+      "fact_ids": [
+        "2b24b8ffa2e38748806fb6491ae1360f4e775d68f659a2d12985cbd6ab29a002"
+      ],
+      "label": "急救修护",
+      "product_id": 91
+    },
+    {
+      "fact_ids": [
+        "10bb8f03debe2927d482ad9784d035b20902057998a03f720450dcb2020d06ad"
+      ],
+      "label": "不粘腻",
+      "product_id": 91
+    }
+  ],
+  "comparison_rows": [],
+  "copy_source": "fallback",
+  "mode": "recommendation",
+  "recommendation_mode": "fit",
+  "requested_comparison_dimensions": [],
+  "responsibility": "recommendation",
+  "sections": [
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "结合你现在的预算和使用场景，我把各款优势与取舍分开说，方便你直接按需求选择。",
+      "direct_facts": [],
+      "kind": "summary",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": "品牌主打不粘腻；易吸收；水润；轻盈。",
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [
+        "atom:b61065474e7093214dd81592a3dccc1ee052b990ff8afe41012ab7b9da661fbd"
+      ],
+      "copy_text": "从现有商品信息看，修护屏障、屏障修护与保湿方向。",
+      "direct_facts": [
+        {
+          "display_value": "不粘腻；易吸收；水润；轻盈",
+          "fact_id": "atom:b61065474e7093214dd81592a3dccc1ee052b990ff8afe41012ab7b9da661fbd",
+          "label": "品牌主打"
+        },
+        {
+          "display_value": "修护屏障、屏障修护与保湿方向",
+          "fact_id": "atom:b1bc031883cf3767143eb49ad1104ee646f0db025ff970270d8469d3490bd190",
+          "label": "功效方向"
+        },
+        {
+          "display_value": "不粘腻、丝滑、乳霜状质地、易吸收、柔润乳液、水润、润而不腻、轻盈",
+          "fact_id": "category:91:texture",
+          "label": "质地"
+        }
+      ],
+      "kind": "product",
+      "product_id": 91,
+      "slot_id": "p1",
+      "used_constraint_ids": [],
+      "used_fact_ids": [
+        "atom:b1bc031883cf3767143eb49ad1104ee646f0db025ff970270d8469d3490bd190"
+      ]
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "closing",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "full_cards",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    }
+  ],
+  "telemetry": {
+    "completion_tokens": 0,
+    "fallback_reason": "provider:invalid_output",
+    "latency_ms": 0,
+    "model": "deterministic",
+    "prompt_tokens": 0,
+    "provider": "disabled",
+    "total_tokens": 0
+  },
+  "visible_product_ids": [
+    91
+  ],
+  "winner": {
+    "dimension_ids": [
+      "brand_main",
+      "efficacy",
+      "texture"
+    ],
+    "fact_ids": [
+      "atom:b61065474e7093214dd81592a3dccc1ee052b990ff8afe41012ab7b9da661fbd",
+      "atom:b1bc031883cf3767143eb49ad1104ee646f0db025ff970270d8469d3490bd190",
+      "category:91:texture"
+    ],
+    "reason": "综合当前需求，玉泽皮肤屏障修护精华乳的品牌主打是不粘腻；易吸收；水润；轻盈，更贴合当前条件。",
+    "status": "selected",
+    "tie_reason": null,
+    "winner_product_id": 91
+  }
+}

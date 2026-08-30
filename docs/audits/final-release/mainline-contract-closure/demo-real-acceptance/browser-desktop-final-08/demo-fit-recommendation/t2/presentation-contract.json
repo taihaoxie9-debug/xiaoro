@@ -1,0 +1,137 @@
+{
+  "card_display": {
+    "max_cards": 1,
+    "mode": "single",
+    "reason": "recommendation",
+    "visible_product_ids": [
+      39
+    ]
+  },
+  "compact_tags": [
+    {
+      "fact_ids": [
+        "35eb4a8969e7ff665475b6597ae0c72ca8569dd1a623d2e40575352ebf5c2e9e"
+      ],
+      "label": "淡纹",
+      "product_id": 39
+    },
+    {
+      "fact_ids": [
+        "58af48ef8f372e9f05bdf4ab97023334de668e24ee2026d6ffcdd3d46dab116f"
+      ],
+      "label": "修护",
+      "product_id": 39
+    },
+    {
+      "fact_ids": [
+        "7bdab22d0029c9f1eed181227f2ee16fedadbb1235f084c68268c329e0f17ebf"
+      ],
+      "label": "改善泛红",
+      "product_id": 39
+    }
+  ],
+  "comparison_rows": [],
+  "copy_source": "fallback",
+  "mode": "recommendation",
+  "recommendation_mode": "fit",
+  "requested_comparison_dimensions": [],
+  "responsibility": "recommendation",
+  "sections": [
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "结合你现在的预算和使用场景，我把各款优势与取舍分开说，方便你直接按需求选择。",
+      "direct_facts": [],
+      "kind": "summary",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": "品牌主打轻盈；凝露质地；不搓泥。",
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [
+        "atom:96d52828c9901402c9c5e0b1b9d1eaaa738a17b0b3ea5b1c462c92edd938d2dd"
+      ],
+      "copy_text": "品牌主打淡纹；修护；改善泛红；修护屏障。",
+      "direct_facts": [
+        {
+          "display_value": "轻盈；凝露质地；不搓泥",
+          "fact_id": "atom:96d52828c9901402c9c5e0b1b9d1eaaa738a17b0b3ea5b1c462c92edd938d2dd",
+          "label": "品牌主打"
+        },
+        {
+          "display_value": "品牌主打：淡纹；品牌主打：修护；品牌主打：改善泛红；品牌主打：修护屏障",
+          "fact_id": "atom:0e7fb5b9f9efd8f8c43fea83efde0701ed9c91fd8ba36f0d05614a6e6f241f4c",
+          "label": "功效方向"
+        },
+        {
+          "display_value": "不搓泥、凝露质地、滋润亲肤、肤感细腻、轻盈",
+          "fact_id": "category:39:texture",
+          "label": "质地"
+        }
+      ],
+      "kind": "product",
+      "product_id": 39,
+      "slot_id": "p1",
+      "used_constraint_ids": [],
+      "used_fact_ids": [
+        "atom:0e7fb5b9f9efd8f8c43fea83efde0701ed9c91fd8ba36f0d05614a6e6f241f4c"
+      ]
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "closing",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "full_cards",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    }
+  ],
+  "telemetry": {
+    "completion_tokens": 0,
+    "fallback_reason": "provider:invalid_output",
+    "latency_ms": 0,
+    "model": "deterministic",
+    "prompt_tokens": 0,
+    "provider": "disabled",
+    "total_tokens": 0
+  },
+  "visible_product_ids": [
+    39
+  ],
+  "winner": {
+    "dimension_ids": [
+      "brand_main",
+      "efficacy",
+      "texture"
+    ],
+    "fact_ids": [
+      "atom:96d52828c9901402c9c5e0b1b9d1eaaa738a17b0b3ea5b1c462c92edd938d2dd",
+      "atom:0e7fb5b9f9efd8f8c43fea83efde0701ed9c91fd8ba36f0d05614a6e6f241f4c",
+      "category:39:texture"
+    ],
+    "reason": "综合当前需求，赫莲娜悦颜焕活精华露的品牌主打是轻盈；凝露质地；不搓泥，更贴合当前条件。",
+    "status": "selected",
+    "tie_reason": null,
+    "winner_product_id": 39
+  }
+}

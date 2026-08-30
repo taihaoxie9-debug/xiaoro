@@ -1,0 +1,194 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:132:net-content:third-generation-125ml-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "第三代125ml来源变体",
+      "review_rationale": "长图第1张明确标注第三代和125ml；Canonical与参考价SKU仍未确认该代际和规格，不能与价格组合。",
+      "sku_status": "third_generation_125ml_canonical_and_price_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:392829eee83cce125886b61883b963a135284a35c2ecc2405841bc6ce2a5f6da"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:132:ingredients:glycerin-squalane-plant-oils-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "甘油、角鲨烷，以及杏仁油、鳄梨油、稻糠油和橄榄油",
+      "review_rationale": "商品介绍明确列出这些保湿成分与植物油；不保留渗透角质、充盈细胞间隙等机制扩写。",
+      "sku_status": "third_generation_125ml_canonical_and_price_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:7764d49749c13bfd7b9c6c506c013f865ce23203ce58b951c214986b5dc79c6c"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:132:texture:moisturizing-non-sticky-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "滋润不黏腻，易吸收",
+      "review_rationale": "长图第5张直接描述滋润、不黏腻和易吸收；因第三代125ml变体未与Canonical锁定，只用于单品知识。",
+      "sku_status": "third_generation_125ml_canonical_and_price_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-detail-image:d791f7d53db085c2e4336f6945db7c9b79d106c87b7d3f0808702dd13b50aded"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.hydration",
+      "decision": "map",
+      "fact_id": "reviewed:product:132:efficacy:hydration-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "保湿滋润方向",
+      "review_rationale": "商品介绍稳定支持保湿滋润；不保留15层、8小时、72小时或通道蛋白提升等量化说法。",
+      "sku_status": "third_generation_125ml_canonical_and_price_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:7764d49749c13bfd7b9c6c506c013f865ce23203ce58b951c214986b5dc79c6c"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:132:usage:after-toner-serum-lotion-v1",
+      "field_key": "usage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "在爽肤水、精华和乳液之后作为面霜使用",
+      "review_rationale": "长图第5张给出洗面奶、爽肤水、精华、乳液、面霜的顺序；只保留步骤，不扩写适用人群。",
+      "sku_status": "third_generation_125ml_canonical_and_price_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-detail-image:d791f7d53db085c2e4336f6945db7c9b79d106c87b7d3f0808702dd13b50aded"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:132:efficacy:quantified-channel-universal-sensitive-fit-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "15层、8小时、72小时、通道蛋白、任意肤质及敏感受损肌安心使用结论",
+      "review_rationale": "长图量化与水通道机制缺少完整可审计依据；商品介绍的人群安全保证也不进入公开事实。",
+      "sku_status": "third_generation_125ml_canonical_and_price_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:392829eee83cce125886b61883b963a135284a35c2ecc2405841bc6ce2a5f6da",
+        "smzdm-detail-image:eaf479a9b6a45b4040204df11b9be6e8697d4f5004da7ca1f7274cf48a84975c",
+        "smzdm-detail-image:a311ff73a1fa12e3cb937f47ef7b997f34920fc2b6a52a8d82ba58b358b2cd4b",
+        "smzdm-browser-body:7764d49749c13bfd7b9c6c506c013f865ce23203ce58b951c214986b5dc79c6c"
+      ]
+    }
+  ],
+  "canonical_identity": "科颜氏高保湿面霜",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T19:01:34.579Z",
+  "category_profile": "skincare",
+  "detail_image_count": 5,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 1190,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/132/001_392829eee83cce12.jpg",
+      "ordinal": 1,
+      "sha256": "392829eee83cce125886b61883b963a135284a35c2ecc2405841bc6ce2a5f6da",
+      "width": 600
+    },
+    {
+      "height": 1190,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/132/002_eaf479a9b6a45b40.jpg",
+      "ordinal": 2,
+      "sha256": "eaf479a9b6a45b4040204df11b9be6e8697d4f5004da7ca1f7274cf48a84975c",
+      "width": 600
+    },
+    {
+      "height": 1190,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/132/003_a311ff73a1fa12e3.jpg",
+      "ordinal": 3,
+      "sha256": "a311ff73a1fa12e3cb937f47ef7b997f34920fc2b6a52a8d82ba58b358b2cd4b",
+      "width": 600
+    },
+    {
+      "height": 131,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/132/004_b8822c80890ad9ab.jpg",
+      "ordinal": 4,
+      "sha256": "b8822c80890ad9ab6b16ec67c93803882e50e88004acc8eb008211251dafeec8",
+      "width": 600
+    },
+    {
+      "height": 793,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/132/005_d791f7d53db085c2.jpg",
+      "ordinal": 5,
+      "sha256": "d791f7d53db085c2e4336f6945db7c9b79d106c87b7d3f0808702dd13b50aded",
+      "width": 600
+    }
+  ],
+  "introduction_text": "Kiehl’s 科颜氏是有着150余年历史的美国品牌，其在护肤、制药、药草等领域的产品在用户群中有着良好的口碑。高保湿面霜是科颜氏经典中的经典，以甘油和角鲨烷为主要保湿成分，与肌肤相容性高，可以有效渗透角质，提供持久的滋润和保湿，杏仁油、鳄梨油、稻糠油和橄榄油等天然植物油脂，容易吸收不浮于表面，软化肌肤，充盈细胞间隙，使肌肤饱满柔润，温和的配方大幅降低刺激性，干性受损肌肤和敏感肌肤也可以安心使用，在秋冬季节和干燥气候中，为肌肤带来全面持久的呵护。",
+  "missing_fields": [
+    "net_content",
+    "texture"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "classic_moisturizer",
+  "product_id": 132,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "third_generation_125ml"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "7764d49749c13bfd7b9c6c506c013f865ce23203ce58b951c214986b5dc79c6c",
+  "source_product_title": "Kiehl's/科颜氏 高保湿 面霜",
+  "source_title": "Kiehl's/科颜氏 高保湿系列 【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/8oymdp/"
+}

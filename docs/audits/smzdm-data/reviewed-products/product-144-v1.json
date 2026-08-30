@@ -1,0 +1,257 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:144:net_content:source-conflict-v1",
+      "field_key": "net_content",
+      "promotion_status": "rejected",
+      "public_text": "标题15ml，详情图50ml",
+      "review_rationale": "来源标题、详情图与Canonical 100ml三方冲突，且参考价SKU未解析，不能覆盖展示规格或组合参考价。",
+      "sku_status": "source_and_canonical_specification_conflict",
+      "source_kind": "product_title_and_detail_images",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-browser-body:788a88da525df3ebad173f0fe1449e0e878547ee0c40269eaf137e535faa2783",
+        "smzdm-detail-image:184f364d5829fd4c5c2e8f07b19730f36c5c7926f1793e1fa3700cf7fb6633cb",
+        "smzdm-detail-image:60bc68d1a2a8186d013e32232c94b1845eccb972947ef062de66dd69f70164b6"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:144:ingredients:ceramide-madecassoside-ophiopogon-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "神经酰胺、积雪草苷与麦冬根提取物",
+      "review_rationale": "商品介绍与第3张长图共同出现这些成分；不采纳提升自愈力、改善反复敏感等功效扩写。",
+      "sku_status": "exact_product_specification_variant",
+      "source_kind": "product_introduction_and_detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-browser-body:788a88da525df3ebad173f0fe1449e0e878547ee0c40269eaf137e535faa2783",
+        "smzdm-detail-image:5e956be7d5ae9ad3651cff1e4249a345a49a83cd871531583ec725f448ccf6b1"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.lightweight",
+      "decision": "map",
+      "fact_id": "reviewed:product:144:texture:lightweight-lotion-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "柔润轻盈的乳液质地",
+      "review_rationale": "商品介绍写明柔润乳状，第5张长图明确为轻乳酪质地、柔润轻盈，可作为跨商品轻盈质地方向。",
+      "sku_status": "exact_product_specification_variant",
+      "source_kind": "product_introduction_and_detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-browser-body:788a88da525df3ebad173f0fe1449e0e878547ee0c40269eaf137e535faa2783",
+        "smzdm-detail-image:32f2e91659c7b18b99bbc39e9ed37a1b1913a3fe26c595b3cf85b55381ac8b99"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.refreshing",
+      "decision": "map",
+      "fact_id": "reviewed:product:144:texture:quick-absorb-non-greasy-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "易推开、吸收快且不油腻",
+      "review_rationale": "商品介绍和第5、11张长图重复给出易推开、快速吸收及不油腻肤感；不采用用户口碑作为依据。",
+      "sku_status": "exact_product_specification_variant",
+      "source_kind": "product_introduction_and_detail_images",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-browser-body:788a88da525df3ebad173f0fe1449e0e878547ee0c40269eaf137e535faa2783",
+        "smzdm-detail-image:32f2e91659c7b18b99bbc39e9ed37a1b1913a3fe26c595b3cf85b55381ac8b99",
+        "smzdm-detail-image:8c7a64166cf6f1af605376b464c04c75f83fa61eac7f8fede49bc7048408d5cd"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.barrier_repair",
+      "decision": "map",
+      "fact_id": "reviewed:product:144:efficacy:barrier-repair-moisturizing-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "屏障修护与保湿方向",
+      "review_rationale": "参数表、商品介绍和第4张长图均支持屏障修护与保湿；不保留自愈力、告别敏感等扩大表述。",
+      "sku_status": "exact_product_specification_variant",
+      "source_kind": "parameter_introduction_and_detail_image",
+      "source_ordinal": 4,
+      "source_refs": [
+        "smzdm-browser-body:788a88da525df3ebad173f0fe1449e0e878547ee0c40269eaf137e535faa2783",
+        "smzdm-detail-image:3e642d9c7ad9df3a545ab367c095575c1fd592ee77e4541242327e27bd834d9b"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:144:usage:morning-evening-damp-skin-v1",
+      "field_key": "usage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "早晚取适量轻点面部，在皮肤微湿时轻柔按摩至吸收",
+      "review_rationale": "第8、12张长图给出当前单品的普通用法；删除同系列搭配、冷藏建议和用户体验内容。",
+      "sku_status": "exact_product_specification_variant",
+      "source_kind": "detail_images",
+      "source_ordinal": 8,
+      "source_refs": [
+        "smzdm-detail-image:ed6f126bbc829fce1207262c504907d711b5b2d7901bd8782c8c8a847099de2e",
+        "smzdm-detail-image:60bc68d1a2a8186d013e32232c94b1845eccb972947ef062de66dd69f70164b6"
+      ]
+    }
+  ],
+  "canonical_identity": "玉泽皮肤屏障修护神经酰胺调理乳100ml",
+  "canonical_sku_scope": "canonical_single_product_100ml",
+  "canonical_specification": "100ml",
+  "captured_at": "2026-08-19T18:09:04.531Z",
+  "category_profile": "skincare",
+  "detail_image_count": 12,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 892,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/144/001_184f364d5829fd4c.webp",
+      "ordinal": 1,
+      "sha256": "184f364d5829fd4c5c2e8f07b19730f36c5c7926f1793e1fa3700cf7fb6633cb",
+      "width": 600
+    },
+    {
+      "height": 465,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/144/002_a98e9e3d0714afac.webp",
+      "ordinal": 2,
+      "sha256": "a98e9e3d0714afacd334e35731c198457cb0bc282c9e5d98fbe40985d8ab5110",
+      "width": 600
+    },
+    {
+      "height": 909,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/144/003_5e956be7d5ae9ad3.webp",
+      "ordinal": 3,
+      "sha256": "5e956be7d5ae9ad3651cff1e4249a345a49a83cd871531583ec725f448ccf6b1",
+      "width": 600
+    },
+    {
+      "height": 889,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/144/004_3e642d9c7ad9df3a.webp",
+      "ordinal": 4,
+      "sha256": "3e642d9c7ad9df3a545ab367c095575c1fd592ee77e4541242327e27bd834d9b",
+      "width": 600
+    },
+    {
+      "height": 520,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/144/005_32f2e91659c7b18b.webp",
+      "ordinal": 5,
+      "sha256": "32f2e91659c7b18b99bbc39e9ed37a1b1913a3fe26c595b3cf85b55381ac8b99",
+      "width": 600
+    },
+    {
+      "height": 750,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/144/006_79d055e26a7b8820.webp",
+      "ordinal": 6,
+      "sha256": "79d055e26a7b88208678ed01297b047327cf586002f7c29ee2a7199f65e14bd5",
+      "width": 600
+    },
+    {
+      "height": 919,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/144/007_9eeb14b8e4b3aea6.webp",
+      "ordinal": 7,
+      "sha256": "9eeb14b8e4b3aea64adf6d0275c8f5a1ab335453cbd17ca2d0bc707f56f4f590",
+      "width": 600
+    },
+    {
+      "height": 396,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/144/008_ed6f126bbc829fce.webp",
+      "ordinal": 8,
+      "sha256": "ed6f126bbc829fce1207262c504907d711b5b2d7901bd8782c8c8a847099de2e",
+      "width": 600
+    },
+    {
+      "height": 418,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/144/009_df16810fc3ddc4e1.webp",
+      "ordinal": 9,
+      "sha256": "df16810fc3ddc4e155c66dd097c21a6e6614c6632b7ebc62a60e2d5dbe77eba3",
+      "width": 600
+    },
+    {
+      "height": 310,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/144/010_cecd0e1c9536267f.webp",
+      "ordinal": 10,
+      "sha256": "cecd0e1c9536267f2ba25e6542a52ae61ed09e1c87254f9d895332d02a556b8d",
+      "width": 600
+    },
+    {
+      "height": 760,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/144/011_8c7a64166cf6f1af.webp",
+      "ordinal": 11,
+      "sha256": "8c7a64166cf6f1af605376b464c04c75f83fa61eac7f8fede49bc7048408d5cd",
+      "width": 600
+    },
+    {
+      "height": 436,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/144/012_60bc68d1a2a8186d.webp",
+      "ordinal": 12,
+      "sha256": "60bc68d1a2a8186d013e32232c94b1845eccb972947ef062de66dd69f70164b6",
+      "width": 600
+    }
+  ],
+  "introduction_text": "Dr.Yu玉泽推出的这款修护乳液，蕴含神经酰胺、麦冬根提取物等多种护肤成分，可保湿锁水，修护角质层，镇定舒缓，帮助强化肌肤屏障，改善干燥起皮、紧绷、粗糙、角质过薄等问题。柔润乳状质地，易推开不油腻。建议搭配洁面凝露、保湿水和保湿霜使用。",
+  "missing_fields": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy"
+  ],
+  "parameter_text": "规格\n15ml\n功效\n保湿;修护;补水;滋润\n是否为特殊用途化妆品\n否\n产品产地\n中国大陆\n适合肤质\n任何肤质\n商品名称\n皮肤屏障修护神经酰胺调理乳液\n国产/进口\n国产\n适用人群\n成人\n净含量\n5-30mL(g)\n规格类型\n正常规格\n批准文号\n沪G妆网备字2023001215\n保质期\n3年",
+  "portfolio_role": "barrier_lotion",
+  "product_id": 144,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "100ml",
+    "display_specification": "100ml",
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "unresolved",
+    "source_sku": "15ml title / 50ml detail images"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "788a88da525df3ebad173f0fe1449e0e878547ee0c40269eaf137e535faa2783",
+  "source_product_title": "Dr.Yu 玉泽 皮肤屏障修护神经酰胺调理乳液 15ml",
+  "source_title": "Dr.Yu 玉泽 皮肤屏障修护神经酰胺调理乳液 15ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/15md59o/"
+}

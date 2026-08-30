@@ -1,0 +1,188 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:65:net-content:100g-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "100g",
+      "review_rationale": "商品标题、参数、Canonical与参考价SKU均为100g，规格价格完成同SKU对齐。",
+      "sku_status": "exact_product_exact_100g_aligned",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:92b9c365ce04254bac5d53944129c76144ea9ad1d46bde95f6fa1d7b3e37226c"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:65:surfactant-type:amino-acid-no-soap-v1",
+      "field_key": "surfactant_type",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "椰油酰甘氨酸钾与月桂醇聚醚磺基琥珀酸酯二钠表活，不含皂基",
+      "review_rationale": "商品介绍明确列出两类主要表面活性剂并说明不含皂基；不保留敏感肌安全保证。",
+      "sku_status": "exact_product_exact_100g_aligned",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:92b9c365ce04254bac5d53944129c76144ea9ad1d46bde95f6fa1d7b3e37226c"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.dense_foam",
+      "decision": "map",
+      "fact_id": "reviewed:product:65:texture:dense-cream-foam-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "绵密霜状质地，易揉出丰富泡沫",
+      "review_rationale": "长图第5张直接描述绵密霜状质地和丰富泡沫，可映射绵密泡沫方向。",
+      "sku_status": "exact_product_exact_100g_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-detail-image:51b9e14ef740a7f449dfd68711c18c175a4edeb9057e1837495a1f067bafa432"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:65:cleansing-power:deep-cleansing-direction-v1",
+      "field_key": "cleansing_power",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "深层清洁方向",
+      "review_rationale": "参数表明确标注深层清洁；来源未给出毛孔、彩妆或防晒的具体卸除边界，因此不映射更强清洁概念。",
+      "sku_status": "exact_product_exact_100g_aligned",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:92b9c365ce04254bac5d53944129c76144ea9ad1d46bde95f6fa1d7b3e37226c"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "rinse_behavior.non_stripping",
+      "decision": "map",
+      "fact_id": "reviewed:product:65:rinse-behavior:non-stripping-v1",
+      "field_key": "rinse_behavior",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "洗后不易干燥紧绷，也不假滑",
+      "review_rationale": "商品介绍与长图第3、5张共同支持洗后不易干燥紧绷和不假滑，可映射非拔干冲洗表现。",
+      "sku_status": "exact_product_exact_100g_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:838eac1978e71ec5880e6e99972c7a1678c53fbf27596985276fe7a0611d4988",
+        "smzdm-detail-image:51b9e14ef740a7f449dfd68711c18c175a4edeb9057e1837495a1f067bafa432",
+        "smzdm-browser-body:92b9c365ce04254bac5d53944129c76144ea9ad1d46bde95f6fa1d7b3e37226c"
+      ]
+    }
+  ],
+  "canonical_identity": "芙丽芳丝净润洗面霜",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "100g",
+  "captured_at": "2026-08-19T20:52:13.384Z",
+  "category_profile": "cleanser",
+  "detail_image_count": 6,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 538,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/65/001_5f96f112792f694d.jpg",
+      "ordinal": 1,
+      "sha256": "5f96f112792f694d51347160ddcbeb9100beab9fa35365063c0ee9d5675ed521",
+      "width": 600
+    },
+    {
+      "height": 1072,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/65/002_1a24de45ffc1335d.jpg",
+      "ordinal": 2,
+      "sha256": "1a24de45ffc1335da943a20cefe5695d00baf262473d8b64fe88a03130b61f85",
+      "width": 600
+    },
+    {
+      "height": 763,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/65/003_838eac1978e71ec5.jpg",
+      "ordinal": 3,
+      "sha256": "838eac1978e71ec5880e6e99972c7a1678c53fbf27596985276fe7a0611d4988",
+      "width": 600
+    },
+    {
+      "height": 880,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/65/004_4465d6fe4865baf2.jpg",
+      "ordinal": 4,
+      "sha256": "4465d6fe4865baf2294997a2ca5577b30c58f3f156b3a0441fd519cc514edb71",
+      "width": 600
+    },
+    {
+      "height": 790,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/65/005_51b9e14ef740a7f4.jpg",
+      "ordinal": 5,
+      "sha256": "51b9e14ef740a7f449dfd68711c18c175a4edeb9057e1837495a1f067bafa432",
+      "width": 600
+    },
+    {
+      "height": 595,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/65/006_911bcafac52f1d87.jpg",
+      "ordinal": 6,
+      "sha256": "911bcafac52f1d8782c3663246b179f2272c6b58f4ac4f2e17aeba42e85e2cdd",
+      "width": 600
+    }
+  ],
+  "introduction_text": "这款freeplus 芙丽芳丝 洁肤/洗面系列净润洗面霜是Freeplus的明星产品，采用椰油酰甘氨酸钾、月桂醇聚醚磺基琥珀酸酯二钠作为主要表面活性剂，不含皂基配方，洗后不易干燥紧绷，对敏感肌更加友好；还添加了烟酰胺、温州蜜柑皮提取物、核桃仁提取物、薏仁提取物、枣果提取物、忍冬花提取物等帮助清除自由基，减少肌肤氧化暗沉，提升肤色透明感。",
+  "missing_fields": [
+    "net_content",
+    "cleansing_power"
+  ],
+  "parameter_text": "规格\n100g\n分类\n洁面霜/膏\n主打成分\n氨基酸\n国产/进口\n进口\n商品名称\n净润洗面霜\n产品产地\n日本\n规格类型\n正常规格\n批准文号\n国妆网备进字(沪)2020003544\n主打功效\n深层清洁\n净含量\n50ML-100ML\n保质期\n5年\n质地\n膏/霜状\n适合肤质\n任何肤质\n适用人群\n通用",
+  "portfolio_role": "amino_acid_cleanser",
+  "product_id": 65,
+  "review_field_policy": [
+    "net_content",
+    "surfactant_type",
+    "cleansing_power",
+    "rinse_behavior",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "100g",
+    "display_specification": "100g",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "aligned",
+    "reference_price_sku": "100g",
+    "source_sku": "100g"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "92b9c365ce04254bac5d53944129c76144ea9ad1d46bde95f6fa1d7b3e37226c",
+  "source_product_title": "freeplus 芙丽芳丝 净润洗面霜 100g",
+  "source_title": "freeplus 芙丽芳丝 净润洗面霜 100g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/817516n/"
+}

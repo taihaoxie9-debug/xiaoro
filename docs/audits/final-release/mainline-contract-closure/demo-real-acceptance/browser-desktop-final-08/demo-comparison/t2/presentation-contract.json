@@ -1,0 +1,152 @@
+{
+  "card_display": {
+    "max_cards": 2,
+    "mode": "comparison",
+    "reason": "comparison",
+    "visible_product_ids": [
+      129,
+      33
+    ]
+  },
+  "compact_tags": [
+    {
+      "fact_ids": [
+        "8d97526af76492bfa4808cb4bfc8042e42621ec9d75fab8c984bacfeaa92cd30"
+      ],
+      "label": "修护屏障",
+      "product_id": 129
+    },
+    {
+      "fact_ids": [
+        "card:129:ingredients_present:soft_display"
+      ],
+      "label": "甘油",
+      "product_id": 129
+    },
+    {
+      "fact_ids": [
+        "fc3fabd39a44141a1f8c2f70fbd1f3019ec8cc9910387693918d1ae81c77d153"
+      ],
+      "label": "法国",
+      "product_id": 129
+    },
+    {
+      "fact_ids": [
+        "076eb58decdeaa46fe6d0039c53f4b4dfc02e7b4807ef277c4ed016b85b6f419"
+      ],
+      "label": "不粘腻",
+      "product_id": 33
+    },
+    {
+      "fact_ids": [
+        "32a490dadb44f8e2cc302c0d0a040df738f6fd202282f7074b96b5abc65772ea"
+      ],
+      "label": "细腻",
+      "product_id": 33
+    },
+    {
+      "fact_ids": [
+        "7fb4a6f3ffdf12ea372548f9e68a2f744fd5909b066282192a8942af397184e8"
+      ],
+      "label": "修护屏障",
+      "product_id": 33
+    }
+  ],
+  "comparison_rows": [
+    {
+      "cells": [
+        {
+          "fact_ids": [
+            "card:129:suitable_skin:soft_display"
+          ],
+          "product_id": 129,
+          "state": "known",
+          "value": "多种肤质适用"
+        },
+        {
+          "fact_ids": [
+            "card:33:suitable_skin:soft_display"
+          ],
+          "product_id": 33,
+          "state": "known",
+          "value": "多种肤质适用"
+        }
+      ],
+      "dimension_id": "suitable_skin",
+      "label": "适用肤质"
+    }
+  ],
+  "copy_source": "model",
+  "mode": "comparison",
+  "recommendation_mode": null,
+  "requested_comparison_dimensions": [
+    "suitable_skin"
+  ],
+  "responsibility": "comparison",
+  "sections": [
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "针对油性敏感肌，两款产品中有一款在肤质适配性上更突出。",
+      "direct_facts": [],
+      "kind": "summary",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [
+        "turn:skin:62ab1feed2f829849f6803235e0b7622b18d9faaa189fe7f17585bcf534cd446",
+        "turn:category:d07d081cb9ea05cde79f94c60a175a2bd257ef103c5d967794560bc67922d3a8"
+      ],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "comparison",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "full_cards",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    }
+  ],
+  "telemetry": {
+    "completion_tokens": 109,
+    "fallback_reason": null,
+    "latency_ms": 2125.163667020388,
+    "model": "deepseek-v4-pro",
+    "prompt_tokens": 993,
+    "provider": "deepseek_official",
+    "total_tokens": 1102
+  },
+  "visible_product_ids": [
+    129,
+    33
+  ],
+  "winner": {
+    "dimension_ids": [
+      "suitable_skin"
+    ],
+    "fact_ids": [
+      "card:129:suitable_skin:soft_display"
+    ],
+    "reason": "综合当前对比维度，优先选择有明确事实支持的一款。",
+    "status": "selected",
+    "tie_reason": null,
+    "winner_product_id": 129
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "card_display": {
+    "max_cards": 1,
+    "mode": "single",
+    "reason": "product",
+    "visible_product_ids": [
+      56
+    ]
+  },
+  "compact_tags": [
+    {
+      "fact_ids": [
+        "card:56:texture:soft_display"
+      ],
+      "label": "水润轻薄",
+      "product_id": 56
+    },
+    {
+      "fact_ids": [
+        "card:56:film_speed:soft_display"
+      ],
+      "label": "快干",
+      "product_id": 56
+    },
+    {
+      "fact_ids": [
+        "769d4811d6593762a53888965bfa4d88c2ec7ad85c0ea4c15dd7b1503c9d5bfd"
+      ],
+      "label": "高防水",
+      "product_id": 56
+    }
+  ],
+  "comparison_rows": [],
+  "copy_source": "fallback",
+  "mode": "single_product",
+  "recommendation_mode": null,
+  "requested_comparison_dimensions": [],
+  "responsibility": "single_product_suitability",
+  "sections": [
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "这款的主打方向比较清楚，下面把与你当前需求相关的信息和使用提醒放在一起看。",
+      "direct_facts": [],
+      "kind": "summary",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "从现有商品信息看，适用人群：通用。",
+      "direct_facts": [],
+      "kind": "judgement",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": [
+        "atom:fd8ac3eb65f32baf45afb89fd4f4fb22b7f0f433076b0cf6b64fb779bfe8f334"
+      ]
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "full_cards",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    }
+  ],
+  "telemetry": {
+    "completion_tokens": 242,
+    "fallback_reason": "validation:internal_language",
+    "latency_ms": 3308.4375839680433,
+    "model": "deepseek-v4-pro",
+    "prompt_tokens": 1878,
+    "provider": "deepseek_official",
+    "total_tokens": 2120
+  },
+  "visible_product_ids": [
+    56
+  ],
+  "winner": {
+    "dimension_ids": [],
+    "fact_ids": [],
+    "reason": null,
+    "status": "not_applicable",
+    "tie_reason": null,
+    "winner_product_id": null
+  }
+}

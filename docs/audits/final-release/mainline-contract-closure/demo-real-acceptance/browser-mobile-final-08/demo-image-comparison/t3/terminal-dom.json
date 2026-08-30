@@ -1,0 +1,39 @@
+{
+  "clarification_message_count": 0,
+  "comparison_table_count": 1,
+  "inline_product_ids": [],
+  "legacy_message_count": 0,
+  "legacy_product_card_count": 0,
+  "presentation_mode": "comparison",
+  "presentation_text": "这两款产品在功效、质地和价格上各有侧重，具体差异需要结合产品信息进一步确认。\n\n对比结论\n对比项\t理肤泉新B5多效修护精华\t玉泽皮肤屏障修护精华乳\n功效方向\t舒缓泛红、修护、补水保湿、舒缓\t修护受损屏障、修护受损肌肤、修护屏障、屏障修护…\n质地\t尚未确认\t不粘腻、丝滑、乳霜状质地、易吸收、柔润乳液、水…\n参考价\t¥294\t¥88\n综合判断：玉泽皮肤屏障修护精华乳。综合当前对比维度，优先选择有明确事实支持的一款。\n本轮提到的商品\n理肤泉新B5多效修护精华\n¥ 294\n去商品页查实时价\n玉泽皮肤屏障修护精华乳\n¥ 88\n去商品页查实时价",
+  "request_id": "request_1788035575813_keq21nsv",
+  "section_blocks": [
+    {
+      "kind": "summary",
+      "text": "这两款产品在功效、质地和价格上各有侧重，具体差异需要结合产品信息进一步确认。"
+    },
+    {
+      "kind": "comparison",
+      "text": "对比结论\n对比项\t理肤泉新B5多效修护精华\t玉泽皮肤屏障修护精华乳\n功效方向\t舒缓泛红、修护、补水保湿、舒缓\t修护受损屏障、修护受损肌肤、修护屏障、屏障修护…\n质地\t尚未确认\t不粘腻、丝滑、乳霜状质地、易吸收、柔润乳液、水…\n参考价\t¥294\t¥88\n综合判断：玉泽皮肤屏障修护精华乳。综合当前对比维度，优先选择有明确事实支持的一款。"
+    },
+    {
+      "kind": "full_cards",
+      "text": "本轮提到的商品\n理肤泉新B5多效修护精华\n¥ 294\n去商品页查实时价\n玉泽皮肤屏障修护精华乳\n¥ 88\n去商品页查实时价"
+    }
+  ],
+  "shelf_product_ids": [
+    38,
+    91
+  ],
+  "terminal_kind": "presentation",
+  "turn_presentation_root_count": 1,
+  "visible_product_ids": [
+    38,
+    91
+  ],
+  "visible_section_kinds": [
+    "summary",
+    "comparison",
+    "full_cards"
+  ]
+}

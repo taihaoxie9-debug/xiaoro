@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "那它的质地和功效是什么？",
+    "session_id": "session_7fb40c08-e343-4463-abab-6bcbdb050bba",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035572495_jpcu9ytb",
+  "request_message": "那它的质地和功效是什么？",
+  "turn_id": "demo-image-identity-t3",
+  "url": "/api/v1/chat/stream",
+  "user_message": "那它的质地和功效是什么？",
+  "viewport": {
+    "height": 844,
+    "width": 390
+  }
+}

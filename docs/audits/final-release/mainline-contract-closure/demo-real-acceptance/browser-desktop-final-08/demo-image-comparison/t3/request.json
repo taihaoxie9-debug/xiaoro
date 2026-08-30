@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 2,
+    "message": "回到这两张，按功效、质地和价格比较",
+    "session_id": "session_11f2ff76-5a30-40c2-81aa-e43b0502c76a",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035532450_ac2ylx07",
+  "request_message": "回到这两张，按功效、质地和价格比较",
+  "turn_id": "demo-image-comparison-t3",
+  "url": "/api/v1/chat/stream",
+  "user_message": "回到这两张，按功效、质地和价格比较",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

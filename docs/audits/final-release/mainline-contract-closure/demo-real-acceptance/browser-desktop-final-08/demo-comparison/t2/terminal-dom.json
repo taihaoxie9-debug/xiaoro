@@ -1,0 +1,39 @@
+{
+  "clarification_message_count": 0,
+  "comparison_table_count": 1,
+  "inline_product_ids": [],
+  "legacy_message_count": 0,
+  "legacy_product_card_count": 0,
+  "presentation_mode": "comparison",
+  "presentation_text": "针对油性敏感肌，两款产品中有一款在肤质适配性上更突出。\n\n对比结论\n对比项\t兰蔻肌底焕活修护精华液\t雅诗兰黛特润修护肌活精华露\n适用肤质\t多种肤质适用\t多种肤质适用\n综合判断：兰蔻肌底焕活修护精华液。综合当前对比维度，优先选择有明确事实支持的一款。\n本轮提到的商品\n兰蔻肌底焕活修护精华液\n¥ 519\n修护屏障\n甘油\n法国\n去商品页查实时价\n雅诗兰黛特润修护肌活精华露\n¥ 968\n不粘腻\n细腻\n修护屏障\n去商品页查实时价",
+  "request_id": "request_1788035429106_j4zyeshe",
+  "section_blocks": [
+    {
+      "kind": "summary",
+      "text": "针对油性敏感肌，两款产品中有一款在肤质适配性上更突出。"
+    },
+    {
+      "kind": "comparison",
+      "text": "对比结论\n对比项\t兰蔻肌底焕活修护精华液\t雅诗兰黛特润修护肌活精华露\n适用肤质\t多种肤质适用\t多种肤质适用\n综合判断：兰蔻肌底焕活修护精华液。综合当前对比维度，优先选择有明确事实支持的一款。"
+    },
+    {
+      "kind": "full_cards",
+      "text": "本轮提到的商品\n兰蔻肌底焕活修护精华液\n¥ 519\n修护屏障\n甘油\n法国\n去商品页查实时价\n雅诗兰黛特润修护肌活精华露\n¥ 968\n不粘腻\n细腻\n修护屏障\n去商品页查实时价"
+    }
+  ],
+  "shelf_product_ids": [
+    129,
+    33
+  ],
+  "terminal_kind": "presentation",
+  "turn_presentation_root_count": 1,
+  "visible_product_ids": [
+    129,
+    33
+  ],
+  "visible_section_kinds": [
+    "summary",
+    "comparison",
+    "full_cards"
+  ]
+}

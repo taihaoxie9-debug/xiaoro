@@ -1,0 +1,186 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:118:shade:orgasm-joyful-pink-v1",
+      "field_key": "shade",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "ORGASM 愉悦红粉",
+      "review_rationale": "来源标题写ORGASM愉悦红粉，参数与长图也均写愉悦红粉，可保留为家族单品选色知识。",
+      "sku_status": "family_page_orgasm_4_8g_numeric_alias_unresolved",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:99825924f11984fb90cdeb6126c3f2b06c1a10de381e9adf50ad8c62fd1f470b"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:118:color-family:pink-v1",
+      "field_key": "color_family",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "红粉色系",
+      "review_rationale": "参数明确粉色系，商品介绍与长图均以愉悦红粉描述当前色号，可保留为颜色家族知识。",
+      "sku_status": "family_page_orgasm_4_8g_numeric_alias_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:99825924f11984fb90cdeb6126c3f2b06c1a10de381e9adf50ad8c62fd1f470b"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:118:finish:gold-shimmer-pearl-v1",
+      "field_key": "finish",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "微金细闪、珠光妆效",
+      "review_rationale": "参数明确闪光/珠光，商品介绍写微金细闪，长图第3张也展示细闪质地；当前尚无发布后的彩妆父概念，保留为单品知识。",
+      "sku_status": "family_page_orgasm_4_8g_numeric_alias_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:496e071f7853a6d7c2f7935f322082a6e3884158946c0c1675354bd819dd54c2",
+        "smzdm-browser-body:99825924f11984fb90cdeb6126c3f2b06c1a10de381e9adf50ad8c62fd1f470b"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:118:color-payoff:soft-silky-v1",
+      "field_key": "color_payoff",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "色调柔和，细润丝滑、轻松晕染",
+      "review_rationale": "商品介绍写色调柔和、细润丝滑，长图第3张也写粉质细腻、轻松晕染，可保留为显色与晕染表现知识。",
+      "sku_status": "family_page_orgasm_4_8g_numeric_alias_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 3,
+      "source_refs": [
+        "smzdm-detail-image:496e071f7853a6d7c2f7935f322082a6e3884158946c0c1675354bd819dd54c2",
+        "smzdm-browser-body:99825924f11984fb90cdeb6126c3f2b06c1a10de381e9adf50ad8c62fd1f470b"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:118:longevity:lasting-skin-fit-v1",
+      "field_key": "longevity",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "持久贴妆方向",
+      "review_rationale": "长图第4张明确写清透自然、持久贴妆；没有量化时长，只保留普通持妆方向。",
+      "sku_status": "family_page_orgasm_4_8g_numeric_alias_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 4,
+      "source_refs": [
+        "smzdm-detail-image:90502ad0da2342dcdd5e5528f901615e2e3aaf22e1634e5fb130b3d9b7f87fe6"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:118:shade:4013-alias-binding-v1",
+      "field_key": "shade",
+      "promotion_status": "rejected",
+      "public_text": "ORGASM愉悦红粉等同于当前4013精确SKU",
+      "review_rationale": "SMZDM来源出现ORGASM和愉悦红粉，但未出现4013数字别名，不能仅凭Canonical把数字别名视为已完成精确绑定。",
+      "sku_status": "numeric_alias_not_present_in_source",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:99825924f11984fb90cdeb6126c3f2b06c1a10de381e9adf50ad8c62fd1f470b"
+      ]
+    }
+  ],
+  "canonical_identity": "NARS/娜斯 腮红 #4013",
+  "canonical_sku_scope": "canonical_single_shade_pending_source",
+  "canonical_specification": "4013 ORGASM 4.8g",
+  "captured_at": "2026-08-19T22:03:53.862Z",
+  "category_profile": "color_makeup",
+  "detail_image_count": 4,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 946,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/118/001_86fafbd2d5415b6d.jpg",
+      "ordinal": 1,
+      "sha256": "86fafbd2d5415b6d97d7063d1ab28880f9cc93b16989b406e1588367f953493a",
+      "width": 600
+    },
+    {
+      "height": 512,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/118/002_1ac0430d9487e9ba.jpg",
+      "ordinal": 2,
+      "sha256": "1ac0430d9487e9bafc50d7a5494305bfef3746ce7558aa592a13d0556c0d77ce",
+      "width": 600
+    },
+    {
+      "height": 798,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/118/003_496e071f7853a6d7.jpg",
+      "ordinal": 3,
+      "sha256": "496e071f7853a6d7c2f7935f322082a6e3884158946c0c1675354bd819dd54c2",
+      "width": 600
+    },
+    {
+      "height": 798,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/118/004_90502ad0da2342dc.jpg",
+      "ordinal": 4,
+      "sha256": "90502ad0da2342dcdd5e5528f901615e2e3aaf22e1634e5fb130b3d9b7f87fe6",
+      "width": 600
+    }
+  ],
+  "introduction_text": "来自NARS腮红（胭脂）愉悦红粉色，微金细闪，纵情摩登。细润丝滑的腮红，色调柔和，微妙的红晕粉嫩双颊。给你带来自然甜美的感觉。",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "color_family",
+    "finish"
+  ],
+  "parameter_text": "色号颜色\n#愉悦红粉\n规格\n4.8g\n国产/进口\n进口\n色系\n粉色系\n保质期\n3年\n商品名称\nNARS腮红\n商品产地\n加拿大\n批准文号\n国妆备进字J20170067\n是否为特殊用途化妆品\n否\n颜色数量\n单色腮红\n类别\n腮红盘\n质地\n粉状\n妆效\n闪光/珠光",
+  "portfolio_role": "powder_blush",
+  "product_id": 118,
+  "review_field_policy": [
+    "shade",
+    "color_family",
+    "finish",
+    "color_payoff",
+    "longevity"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "4013 ORGASM 4.8g",
+    "display_specification": null,
+    "identity_status": "family",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "4013 ORGASM 4.8g",
+    "source_sku": "ORGASM 愉悦红粉 4.8g"
+  },
+  "source_match": "family",
+  "source_page_text_sha256": "99825924f11984fb90cdeb6126c3f2b06c1a10de381e9adf50ad8c62fd1f470b",
+  "source_product_title": "NARS 纳斯 腮红 #ORGASM愉悦红粉色 4.8g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "NARS 纳斯 腮红 #ORGASM愉悦红粉色 4.8g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/jxge70v/"
+}

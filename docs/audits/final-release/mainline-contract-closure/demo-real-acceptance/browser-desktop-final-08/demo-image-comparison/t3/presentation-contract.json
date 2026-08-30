@@ -1,0 +1,154 @@
+{
+  "card_display": {
+    "max_cards": 2,
+    "mode": "comparison",
+    "reason": "comparison",
+    "visible_product_ids": [
+      38,
+      91
+    ]
+  },
+  "compact_tags": [],
+  "comparison_rows": [
+    {
+      "cells": [
+        {
+          "fact_ids": [
+            "card:38:efficacy:soft_display"
+          ],
+          "product_id": 38,
+          "state": "known",
+          "value": "舒缓泛红、修护、补水保湿、舒缓"
+        },
+        {
+          "fact_ids": [
+            "card:91:efficacy:soft_display"
+          ],
+          "product_id": 91,
+          "state": "known",
+          "value": "修护受损屏障、修护受损肌肤、修护屏障、屏障修护…"
+        }
+      ],
+      "dimension_id": "efficacy",
+      "label": "功效方向"
+    },
+    {
+      "cells": [
+        {
+          "fact_ids": [],
+          "product_id": 38,
+          "state": "unknown",
+          "value": "尚未确认"
+        },
+        {
+          "fact_ids": [
+            "card:91:texture:soft_display"
+          ],
+          "product_id": 91,
+          "state": "known",
+          "value": "不粘腻、丝滑、乳霜状质地、易吸收、柔润乳液、水…"
+        }
+      ],
+      "dimension_id": "texture",
+      "label": "质地"
+    },
+    {
+      "cells": [
+        {
+          "fact_ids": [
+            "card:38:reference_price"
+          ],
+          "product_id": 38,
+          "state": "known",
+          "value": "¥294"
+        },
+        {
+          "fact_ids": [
+            "card:91:reference_price"
+          ],
+          "product_id": 91,
+          "state": "known",
+          "value": "¥88"
+        }
+      ],
+      "dimension_id": "reference_price",
+      "label": "参考价"
+    }
+  ],
+  "copy_source": "model",
+  "mode": "comparison",
+  "recommendation_mode": null,
+  "requested_comparison_dimensions": [
+    "efficacy",
+    "texture",
+    "reference_price"
+  ],
+  "responsibility": "comparison",
+  "sections": [
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "这两款产品在功效、质地和价格上各有侧重，具体差异需要结合产品信息进一步确认。",
+      "direct_facts": [],
+      "kind": "summary",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "comparison",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "full_cards",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    }
+  ],
+  "telemetry": {
+    "completion_tokens": 104,
+    "fallback_reason": null,
+    "latency_ms": 1941.8077090522274,
+    "model": "deepseek-v4-pro",
+    "prompt_tokens": 988,
+    "provider": "deepseek_official",
+    "total_tokens": 1092
+  },
+  "visible_product_ids": [
+    38,
+    91
+  ],
+  "winner": {
+    "dimension_ids": [
+      "efficacy",
+      "texture",
+      "reference_price"
+    ],
+    "fact_ids": [
+      "card:91:efficacy:soft_display",
+      "card:91:texture:soft_display",
+      "card:91:reference_price"
+    ],
+    "reason": "综合当前对比维度，优先选择有明确事实支持的一款。",
+    "status": "selected",
+    "tie_reason": null,
+    "winner_product_id": 91
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "clarification_message_count": 0,
+  "comparison_table_count": 0,
+  "inline_product_ids": [
+    39
+  ],
+  "legacy_message_count": 0,
+  "legacy_product_card_count": 0,
+  "presentation_mode": "recommendation",
+  "presentation_text": "结合你现在的预算和使用场景，我把各款优势与取舍分开说，方便你直接按需求选择。\n\n赫莲娜悦颜焕活精华露\n赫莲娜（HELENA RUBINSTEIN）\n赫莲娜悦颜焕活精华露\n¥ 1,080\n\n品牌主打淡纹；修护；改善泛红；修护屏障。\n\n品牌主打\n轻盈；凝露质地；不搓泥\n功效方向\n品牌主打：淡纹；品牌主打：修护；品牌主打：改善泛红；品牌主打：修护屏障\n质地\n不搓泥、凝露质地、滋润亲肤、肤感细腻、轻盈\n\n小 ro 的推荐理由：品牌主打轻盈；凝露质地；不搓泥。\n\n综合推荐\n赫莲娜悦颜焕活精华露。综合当前需求，赫莲娜悦颜焕活精华露的品牌主打是轻盈；凝露质地；不搓泥，更贴合当前条件。\n本轮提到的商品\n赫莲娜悦颜焕活精华露\n¥ 1,080\n淡纹\n修护\n改善泛红\n去商品页查实时价",
+  "request_id": "request_1788035375547_txl76wln",
+  "section_blocks": [
+    {
+      "kind": "summary",
+      "text": "结合你现在的预算和使用场景，我把各款优势与取舍分开说，方便你直接按需求选择。"
+    },
+    {
+      "kind": "product",
+      "text": "赫莲娜悦颜焕活精华露\n赫莲娜（HELENA RUBINSTEIN）\n赫莲娜悦颜焕活精华露\n¥ 1,080\n\n品牌主打淡纹；修护；改善泛红；修护屏障。\n\n品牌主打\n轻盈；凝露质地；不搓泥\n功效方向\n品牌主打：淡纹；品牌主打：修护；品牌主打：改善泛红；品牌主打：修护屏障\n质地\n不搓泥、凝露质地、滋润亲肤、肤感细腻、轻盈\n\n小 ro 的推荐理由：品牌主打轻盈；凝露质地；不搓泥。"
+    },
+    {
+      "kind": "closing",
+      "text": "综合推荐\n赫莲娜悦颜焕活精华露。综合当前需求，赫莲娜悦颜焕活精华露的品牌主打是轻盈；凝露质地；不搓泥，更贴合当前条件。"
+    },
+    {
+      "kind": "full_cards",
+      "text": "本轮提到的商品\n赫莲娜悦颜焕活精华露\n¥ 1,080\n淡纹\n修护\n改善泛红\n去商品页查实时价"
+    }
+  ],
+  "shelf_product_ids": [
+    39
+  ],
+  "terminal_kind": "presentation",
+  "turn_presentation_root_count": 1,
+  "visible_product_ids": [
+    39
+  ],
+  "visible_section_kinds": [
+    "summary",
+    "product",
+    "closing",
+    "full_cards"
+  ]
+}

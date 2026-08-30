@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 2,
+    "message": "回到质地，它更偏清爽还是滋润？",
+    "session_id": "session_884490db-1380-4899-a551-f475db72a1e2",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035414105_tn49k51c",
+  "request_message": "回到质地，它更偏清爽还是滋润？",
+  "turn_id": "demo-product-knowledge-t3",
+  "url": "/api/v1/chat/stream",
+  "user_message": "回到质地，它更偏清爽还是滋润？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 2,
+    "message": "继续比较这两款，不考虑肤质，只看功效、质地和价格",
+    "session_id": "session_71be3249-362c-4b46-af1b-2f41574d6ed4",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035438548_6d9331bq",
+  "request_message": "继续比较这两款，不考虑肤质，只看功效、质地和价格",
+  "turn_id": "demo-comparison-t3",
+  "url": "/api/v1/chat/stream",
+  "user_message": "继续比较这两款，不考虑肤质，只看功效、质地和价格",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

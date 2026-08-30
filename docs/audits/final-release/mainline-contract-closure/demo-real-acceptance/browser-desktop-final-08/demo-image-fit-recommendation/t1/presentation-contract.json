@@ -1,0 +1,15 @@
+{
+  "clarification": {
+    "clarification_basis": "fit_selection_evidence_gap",
+    "clarification_code": "goal",
+    "fit_candidate_count": 0,
+    "fit_decision_status": "NO_CANDIDATE",
+    "fit_evidence_ref_count": 4,
+    "fit_gap_stage": "decision_selection",
+    "fit_public_fact_count": 0,
+    "intended_recommendation_mode": "fit",
+    "intended_responsibility": "recommendation",
+    "question": "现有公开事实还不能支持唯一选择。请补充一个更明确的功效、肤感或使用场景，或者改为查看多款方向。"
+  },
+  "terminal_kind": "clarification"
+}

@@ -1,0 +1,75 @@
+{
+  "schema_version": "guide-demo-real-acceptance-report-v1",
+  "generated_at": "2026-08-29T20:42:00Z",
+  "candidate": {
+    "base_revision": "364528e25f59b5b30d4dcbb0fa63e84470ada426",
+    "worktree": "/Users/bytedance/Desktop/xiaoro-fresh/.tmp-task11-r5-seal-worktree"
+  },
+  "decision": {
+    "demo_delivery": "GO",
+    "strict_production_release": "NO_GO",
+    "strict_production_release_changed": false
+  },
+  "desktop_real_acceptance": {
+    "summary_path": "docs/audits/final-release/mainline-contract-closure/demo-real-acceptance/browser-desktop-final-08/summary.json",
+    "summary_sha256": "17443fe1154b45324ebb11ea0dc2609a8739827f785aa821ac43cc135266c7b5",
+    "provider": "deepseek-v4-pro",
+    "trajectory_count": 7,
+    "turn_count": 21,
+    "passed": true,
+    "invalid_clarification_count": 0,
+    "frontend_contract_violation_count": 0,
+    "wrong_binding_count": 0,
+    "unaligned_price_specification_count": 0,
+    "copywriter_fallback_count": 6,
+    "fallback_policy": "accepted_for_demo_when_fact_backed_and_useful"
+  },
+  "mobile_exact_sse_replay": {
+    "summary_path": "docs/audits/final-release/mainline-contract-closure/demo-real-acceptance/browser-mobile-final-08/summary.json",
+    "summary_sha256": "b195815e271f472dcd469462a3e6ff4bc7fca5020ae8d542e53fee9205055c53",
+    "turn_count": 7,
+    "exact_sse_match_count": 7,
+    "passed": true
+  },
+  "manual_screenshot_review": {
+    "path": "docs/audits/final-release/mainline-contract-closure/demo-real-acceptance/manual-screenshot-review.json",
+    "sha256": "86ae842919631c10c83e66474d583c41f0b9146be9db0c3f464b525701a4ad18",
+    "review_count": 14,
+    "failure_count": 0,
+    "passed": true,
+    "desktop_contact_sheet": "docs/audits/final-release/mainline-contract-closure/demo-real-acceptance/desktop-terminal-contact-sheet-final-08.png",
+    "desktop_contact_sheet_sha256": "fba232e74d462d433169cd55d33e1a568bf714a352c99d74bf53e6c81a457d89",
+    "mobile_contact_sheet": "docs/audits/final-release/mainline-contract-closure/demo-real-acceptance/mobile-terminal-contact-sheet-final-08.png",
+    "mobile_contact_sheet_sha256": "297a227d6a12b6d07bf027f6b6483a101bf29d7cd7291f8312ff95ea69246f72"
+  },
+  "verification": {
+    "pytest": {
+      "passed": true,
+      "test_count": 1129,
+      "duration_seconds": 134.69
+    },
+    "compileall": {
+      "passed": true
+    },
+    "git_diff_check": {
+      "passed": true
+    },
+    "debug_instrumentation_removed": true,
+    "debug_sessions_removed": [
+      "demo-runtime-error",
+      "image-fit-no-candidate"
+    ]
+  },
+  "scope": {
+    "validated_modes": [
+      "explore_recommendation",
+      "fit_recommendation",
+      "product_knowledge",
+      "comparison",
+      "image_identity",
+      "image_fit_recommendation",
+      "image_comparison"
+    ],
+    "production_release_gate": "not_recomputed_by_this_demo_acceptance"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "预算三百以内，推荐适合海边的防晒",
+    "session_id": "session_fd211528-1c59-4827-993c-2a67ee97bc47",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035320088_frw2bwlc",
+  "request_message": "预算三百以内，推荐适合海边的防晒",
+  "turn_id": "demo-explore-recommendation-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "预算三百以内，推荐适合海边的防晒",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

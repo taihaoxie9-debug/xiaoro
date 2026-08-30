@@ -1,0 +1,215 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:55:net-content:50g-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "50g",
+      "review_rationale": "商品标题和参数均明确为50g；参考价SKU仍未确认，因此规格暂不与价格组合。",
+      "sku_status": "exact_product_50g_reference_price_unresolved",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:199355a1fcd4135f2747582cc60b5c98896ae3491dddae94724912a2dd4c8ddf"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:55:spf-pa:spf48-pa-three-plus-v1",
+      "field_key": "spf_pa",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "SPF48 / PA+++",
+      "review_rationale": "商品标题、参数与介绍一致标注SPF48和PA+++；不扩写99%紫外线抵御或长效防护保证。",
+      "sku_status": "exact_product_50g_reference_price_unresolved",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:199355a1fcd4135f2747582cc60b5c98896ae3491dddae94724912a2dd4c8ddf"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.refreshing",
+      "decision": "map",
+      "fact_id": "reviewed:product:55:texture:clear-light-non-sticky-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "清透轻薄、不黏腻",
+      "review_rationale": "长图第5和第6张明确描述轻薄、清透和不黏腻，可映射清爽肤感方向。",
+      "sku_status": "exact_product_50g_reference_price_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-detail-image:2f9170f0fb4c4b44f9374fbdb49b91ac228c09dce37b40418dfd72a5303baf8b",
+        "smzdm-detail-image:f7bd8a23ec535bb3477d8da6c5502096820bcad66224fb2926d0137224d051c8"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "film_speed.fast",
+      "decision": "map",
+      "fact_id": "reviewed:product:55:film-speed:fast-v1",
+      "field_key": "film_speed",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "按压涂抹可快速成膜",
+      "review_rationale": "长图第9张给出按压涂抹并让防晒迅速成膜的明确方法，可映射快速成膜方向。",
+      "sku_status": "exact_product_50g_reference_price_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 9,
+      "source_refs": [
+        "smzdm-detail-image:d1f12d788c60160ae37953c4b77f3e47e1e0b9d7bb9349cd9672d05b6f402d63"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:55:cleansing-requirement:regular-cleanser-v1",
+      "field_key": "cleansing_requirement",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "可用普通洁面产品清洗",
+      "review_rationale": "长图第5和第6张明确写明无需专门卸除，并展示清水冲洗后普通洁面无残留；不扩写为所有情况下无需卸妆。",
+      "sku_status": "exact_product_50g_reference_price_unresolved",
+      "source_kind": "detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-detail-image:2f9170f0fb4c4b44f9374fbdb49b91ac228c09dce37b40418dfd72a5303baf8b",
+        "smzdm-detail-image:f7bd8a23ec535bb3477d8da6c5502096820bcad66224fb2926d0137224d051c8"
+      ]
+    }
+  ],
+  "canonical_identity": "清透防晒乳",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": "50g",
+  "captured_at": "2026-08-19T20:13:09.004Z",
+  "category_profile": "suncare",
+  "detail_image_count": 9,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 797,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/55/001_905d0fe264df0e9e.jpg",
+      "ordinal": 1,
+      "sha256": "905d0fe264df0e9ed757ed93ff027d824bdf73cbebf49b1d9ab9efbbb79a7ecd",
+      "width": 600
+    },
+    {
+      "height": 968,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/55/002_b56ff877e56d220f.jpg",
+      "ordinal": 2,
+      "sha256": "b56ff877e56d220f91fdc1ea69548c64a91d53a6b54561c259fdd5c37c0da544",
+      "width": 600
+    },
+    {
+      "height": 816,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/55/003_2ac99dab5fad850b.jpg",
+      "ordinal": 3,
+      "sha256": "2ac99dab5fad850b44b4b47d4f1048f752281e129deff6bd9722ae45ae481b1d",
+      "width": 600
+    },
+    {
+      "height": 979,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/55/004_40635e867c84aa1d.jpg",
+      "ordinal": 4,
+      "sha256": "40635e867c84aa1dae90a3e71e55186197eb81eb89e7a10b4cd999e7aa3f3bd8",
+      "width": 600
+    },
+    {
+      "height": 971,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/55/005_2f9170f0fb4c4b44.jpg",
+      "ordinal": 5,
+      "sha256": "2f9170f0fb4c4b44f9374fbdb49b91ac228c09dce37b40418dfd72a5303baf8b",
+      "width": 600
+    },
+    {
+      "height": 1034,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/55/006_f7bd8a23ec535bb3.jpg",
+      "ordinal": 6,
+      "sha256": "f7bd8a23ec535bb3477d8da6c5502096820bcad66224fb2926d0137224d051c8",
+      "width": 600
+    },
+    {
+      "height": 191,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/55/007_ff01710eaf9f8373.jpg",
+      "ordinal": 7,
+      "sha256": "ff01710eaf9f8373498531dcca3218fa088fe27b51eb7bdc0558ec8a60075105",
+      "width": 600
+    },
+    {
+      "height": 990,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/55/008_80266b70e7e0435c.jpg",
+      "ordinal": 8,
+      "sha256": "80266b70e7e0435c674e61eac430736478ee5f1527ef9e87147ae13da8f9ba20",
+      "width": 600
+    },
+    {
+      "height": 659,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/55/009_d1f12d788c60160a.jpg",
+      "ordinal": 9,
+      "sha256": "d1f12d788c60160ae37953c4b77f3e47e1e0b9d7bb9349cd9672d05b6f402d63",
+      "width": 600
+    }
+  ],
+  "introduction_text": "WINWINONA 薇诺娜是国内知名品牌，注重医学护肤的概念，通过温和的方式修复皮肤屏障，改善皮肤状态，而且十分注重自然，产品中天然提取的成分也很健康，是国内诸多皮肤科医学专家推荐的品牌。这款WINONA 薇诺娜 清透防晒乳，添加马齿苋提取物和甘草提取物，OMC+UV-T-150+Tinosorb S+Tinosorb M纯化学防晒剂组合，不添加香精、色素和致敏防腐剂，适合所有肤质尤其是敏感肌使用，质地轻薄不油腻。新版本的清透防晒乳的防护力升级至SPF48/PA+++。",
+  "missing_fields": [
+    "net_content",
+    "spf_pa",
+    "texture",
+    "water_resistance"
+  ],
+  "parameter_text": "规格\n50g\n防晒指数\nSPF48\nPA值\nPA+++\n是否为特殊用途化妆品\n是\n国产/进口\n国产\n净含量（mL/g）\n31-50mL(g)\n保质期\n3年\n类别\n防晒霜/乳\n商品名称\n清透防晒乳\n商品产地\n中国大陆\n批准文号\n国妆特字G20151938\n规格类型\n正常规格\n适用部位\n通用\n质地\n乳/霜\n功效\n防晒\n适合肤质\n任何肤质\n适用人群\n成人",
+  "portfolio_role": "entry_sensitive_sunscreen",
+  "product_id": 55,
+  "review_field_policy": [
+    "net_content",
+    "spf_pa",
+    "texture",
+    "film_speed",
+    "water_resistance",
+    "reapplication",
+    "cleansing_requirement"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "50g",
+    "display_specification": "50g",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "50g"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "199355a1fcd4135f2747582cc60b5c98896ae3491dddae94724912a2dd4c8ddf",
+  "source_product_title": "WINONA 薇诺娜 清透防晒乳 SPF48 PA+++ 50g",
+  "source_title": "WINONA 薇诺娜 清透防晒乳 SPF48 PA+++ 50g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/0qgy9j3/"
+}

@@ -1,0 +1,202 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:115:shade:999-legendary-red-v1",
+      "field_key": "shade",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "999 传奇红唇",
+      "review_rationale": "来源标题、参数和长图第5张场记牌均明确999，可作为精确SKU选色知识。",
+      "sku_status": "exact_product_exact_999_velvet_3_5g_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-detail-image:3c5db3064977a481ddc3ec2ffcafe90c2c7068b40a33be5f0f732b2df44d4a92",
+        "smzdm-browser-body:b87cd75a46ce2f6158c77a6e3f85093fe0c4522394435947d63bdd4af0647117"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:115:color-family:red-v1",
+      "field_key": "color_family",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "经典红色系",
+      "review_rationale": "参数归为红色系，长图主视觉和999场记牌均支持经典红唇方向。",
+      "sku_status": "exact_product_exact_999_velvet_3_5g_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-detail-image:3c5db3064977a481ddc3ec2ffcafe90c2c7068b40a33be5f0f732b2df44d4a92",
+        "smzdm-browser-body:b87cd75a46ce2f6158c77a6e3f85093fe0c4522394435947d63bdd4af0647117"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:115:finish:velvet-v1",
+      "field_key": "finish",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "丝绒妆效",
+      "review_rationale": "来源标题和参数都明确为丝绒质地与丝绒妆效，长图第4、5张也展示丝绒表面；当前尚无发布后的彩妆父概念，保留为单品知识。",
+      "sku_status": "exact_product_exact_999_velvet_3_5g_aligned",
+      "source_kind": "detail_image",
+      "source_ordinal": 4,
+      "source_refs": [
+        "smzdm-detail-image:3d4c9cf551d9a6495436ba986600f7b31ad2a3f1c4b8c8494294b7d792318a25",
+        "smzdm-detail-image:3c5db3064977a481ddc3ec2ffcafe90c2c7068b40a33be5f0f732b2df44d4a92",
+        "smzdm-browser-body:b87cd75a46ce2f6158c77a6e3f85093fe0c4522394435947d63bdd4af0647117"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:115:color-payoff:saturated-v1",
+      "field_key": "color_payoff",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "高饱和、易上色方向",
+      "review_rationale": "参数写易上色，商品介绍明确新显色技术提高色彩饱和度和显色度，可保留为显色表现知识。",
+      "sku_status": "exact_product_exact_999_velvet_3_5g_aligned",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:b87cd75a46ce2f6158c77a6e3f85093fe0c4522394435947d63bdd4af0647117"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:115:longevity:lasting-color-v1",
+      "field_key": "longevity",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "较长时间显色、不易脱妆方向",
+      "review_rationale": "商品介绍明确写能够保持较长时间显色并不易脱妆；没有量化时长，只保留普通持色方向。",
+      "sku_status": "exact_product_exact_999_velvet_3_5g_aligned",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:b87cd75a46ce2f6158c77a6e3f85093fe0c4522394435947d63bdd4af0647117"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:115:shade:other-family-shades-v1",
+      "field_key": "shade",
+      "promotion_status": "rejected",
+      "public_text": "蓝金唇膏家族其他14个色号",
+      "review_rationale": "长图第6张是15色家族总览，除999外的其他色号不能提升为当前精确SKU事实。",
+      "sku_status": "cross_shade_family_image_outside_999",
+      "source_kind": "detail_image",
+      "source_ordinal": 6,
+      "source_refs": [
+        "smzdm-detail-image:fcd1fcb192a9afaa1fbcb576d5275e6404b1de62f6f53fdad98d0f719ebd66b4"
+      ]
+    }
+  ],
+  "canonical_identity": "克丽丝汀迪奥迪奥烈艳蓝金唇膏 丝绒 999（商品编号100056057296）",
+  "canonical_sku_scope": "canonical_single_shade_pending_source",
+  "canonical_specification": "999 velvet 3.5g",
+  "captured_at": "2026-08-19T22:01:58.725Z",
+  "category_profile": "color_makeup",
+  "detail_image_count": 6,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 214,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/115/001_442c12000b4e62df.jpg",
+      "ordinal": 1,
+      "sha256": "442c12000b4e62df0deebfacd51076c3fea9e6aa964791a499e64de1de2bd63f",
+      "width": 600
+    },
+    {
+      "height": 659,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/115/002_bdc6f642d1754783.jpg",
+      "ordinal": 2,
+      "sha256": "bdc6f642d175478339bbd8575344f52017e9ffc2a55433b9817a588277ed0962",
+      "width": 600
+    },
+    {
+      "height": 715,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/115/003_3515d6f287ed577b.jpg",
+      "ordinal": 3,
+      "sha256": "3515d6f287ed577bd2dd1e7f8662cb320c1548a75ebc4f8cc487734a3dc717f5",
+      "width": 600
+    },
+    {
+      "height": 1101,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/115/004_3d4c9cf551d9a649.jpg",
+      "ordinal": 4,
+      "sha256": "3d4c9cf551d9a6495436ba986600f7b31ad2a3f1c4b8c8494294b7d792318a25",
+      "width": 600
+    },
+    {
+      "height": 1328,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/115/005_3c5db3064977a481.jpg",
+      "ordinal": 5,
+      "sha256": "3c5db3064977a481ddc3ec2ffcafe90c2c7068b40a33be5f0f732b2df44d4a92",
+      "width": 600
+    },
+    {
+      "height": 1030,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/115/006_fcd1fcb192a9afaa.jpg",
+      "ordinal": 6,
+      "sha256": "fcd1fcb192a9afaa1fbcb576d5275e6404b1de62f6f53fdad98d0f719ebd66b4",
+      "width": 600
+    }
+  ],
+  "introduction_text": "这款Dior 迪奥 烈艳蓝金唇膏，唇膏壳以精致的藤格纹雕刻装饰，绚丽的色调，缔造闪亮唇妆，蕴含海茴香精华，柔滑丰润美唇，同时令每一种唇膏色彩与双唇尽情闪耀。锻光妆效，独特的配方，带来持久舒适体验，提高了双唇的色彩饱和度、显色度，并增加护唇保养配方，更具润泽感，缔造前所未有的性感唇妆。富含玻尿酸等滋养成分，令双唇饱满立体，叠加纯美色泽，打造诱惑双唇；运用新的显色技术，能够保持较长时间显色，细腻柔润不易脱妆。金属外壳延续了经典藤格压纹，重新定义了优雅态度。",
+  "missing_fields": [
+    "net_content",
+    "shade",
+    "color_family",
+    "finish"
+  ],
+  "parameter_text": "色号颜色\n999 传奇红唇 丝绒\n规格\n3.5g\n色系\n红色系\n国产/进口\n进口\n商品名称\n烈艳蓝金唇膏\n产品产地\n法国\n是否为特殊用途化妆品\n否\n规格类型\n正常规格\n批准文号\n国妆网备进字（沪）2020005054\n质地\n丝绒\n保质期\n3年\n妆效\n丝绒\n适用人群\n女士\n功效\n保湿;修护;易上色",
+  "portfolio_role": "velvet_lipstick",
+  "product_id": 115,
+  "review_field_policy": [
+    "shade",
+    "color_family",
+    "finish",
+    "color_payoff",
+    "longevity"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "999 velvet 3.5g",
+    "display_specification": "999 velvet 3.5g",
+    "identity_status": "exact_product",
+    "price_specification_alignment": "aligned",
+    "reference_price_sku": "999 velvet 3.5g",
+    "source_sku": "999 velvet 3.5g"
+  },
+  "source_match": "exact",
+  "source_page_text_sha256": "b87cd75a46ce2f6158c77a6e3f85093fe0c4522394435947d63bdd4af0647117",
+  "source_product_title": "Dior 迪奥 烈艳蓝金唇膏 丝绒质地 #999传奇红唇 3.5g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_title": "Dior 迪奥 烈艳蓝金唇膏 丝绒质地 #999传奇红唇 3.5g【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/mznq0dx/"
+}

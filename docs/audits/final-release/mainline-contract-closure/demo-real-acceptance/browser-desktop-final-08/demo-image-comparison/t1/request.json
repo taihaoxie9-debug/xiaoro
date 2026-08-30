@@ -1,0 +1,21 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "image_bundle_id": "bundle_WR5N5p_77WebujezkWn1V28ek0V8KtFv",
+    "image_bundle_token": "owner_WRJRSkBY2W6Rv4r7aXL5Ir0-7-lHLnaLbcfwoMLBgDA",
+    "image_bundle_version": 1,
+    "message": "比较这两张图里的商品",
+    "session_id": "session_11f2ff76-5a30-40c2-81aa-e43b0502c76a",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035516580_13j0gny6",
+  "request_message": "比较这两张图里的商品",
+  "turn_id": "demo-image-comparison-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "比较这两张图里的商品",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "image_action": "identify",
+    "image_bundle_id": "bundle_p_DAN6C8V4x9YOwhV_jyUc7AyDhe1lT2",
+    "image_bundle_token": "owner_qHFzRGM2ZjSgAzhhEHhZ0vqE1M8HkyyYQ2VL25GcEIE",
+    "image_bundle_version": 1,
+    "message": "",
+    "session_id": "session_b98026a7-6e34-4438-ac6d-659d034bd3dd",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035447306_l66a1hr6",
+  "request_message": "",
+  "turn_id": "demo-image-identity-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

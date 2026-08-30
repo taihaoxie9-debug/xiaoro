@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 1,
+    "message": "第二张图里的商品质地怎么样？",
+    "session_id": "session_11f2ff76-5a30-40c2-81aa-e43b0502c76a",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035525749_ar9uf1o5",
+  "request_message": "第二张图里的商品质地怎么样？",
+  "turn_id": "demo-image-comparison-t2",
+  "url": "/api/v1/chat/stream",
+  "user_message": "第二张图里的商品质地怎么样？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

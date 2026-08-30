@@ -1,0 +1,43 @@
+{
+  "invalid_clarification_count": 0,
+  "trajectory_id": "demo-image-comparison",
+  "turn_count": 3,
+  "turns": [
+    {
+      "directory": "demo-image-comparison/t1",
+      "release_counters": {
+        "copywriter_fallback_count": 0,
+        "frontend_contract_violation_count": 0,
+        "invalid_clarification_count": 0,
+        "serious_failure_count": 0,
+        "unaligned_price_specification_count": 0,
+        "wrong_binding_count": 0
+      },
+      "turn_id": "t1"
+    },
+    {
+      "directory": "demo-image-comparison/t2",
+      "release_counters": {
+        "copywriter_fallback_count": 0,
+        "frontend_contract_violation_count": 0,
+        "invalid_clarification_count": 0,
+        "serious_failure_count": 0,
+        "unaligned_price_specification_count": 0,
+        "wrong_binding_count": 0
+      },
+      "turn_id": "t2"
+    },
+    {
+      "directory": "demo-image-comparison/t3",
+      "release_counters": {
+        "copywriter_fallback_count": 0,
+        "frontend_contract_violation_count": 0,
+        "invalid_clarification_count": 0,
+        "serious_failure_count": 0,
+        "unaligned_price_specification_count": 0,
+        "wrong_binding_count": 0
+      },
+      "turn_id": "t3"
+    }
+  ]
+}

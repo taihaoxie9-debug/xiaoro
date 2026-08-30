@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 1,
+    "message": "不考虑肤质，继续参考第一轮上传的图片，只推荐一款修护屏障、清爽不黏的相似精华",
+    "session_id": "session_fc439f7e-7597-4ef0-ba24-607655450613",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035491944_5cv6ibgc",
+  "request_message": "不考虑肤质，继续参考第一轮上传的图片，只推荐一款修护屏障、清爽不黏的相似精华",
+  "turn_id": "demo-image-fit-recommendation-t2",
+  "url": "/api/v1/chat/stream",
+  "user_message": "不考虑肤质，继续参考第一轮上传的图片，只推荐一款修护屏障、清爽不黏的相似精华",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

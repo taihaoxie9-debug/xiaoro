@@ -1,0 +1,118 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:42:ingredients:ceramides-oils-humectants-v1",
+      "field_key": "ingredients_present",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "野大豆油、神经酰胺、维生素E、甘油葡糖苷与海藻糖",
+      "review_rationale": "商品介绍明确列出这些成分；来源命名与Canonical存在版本差异且无长图，因此只用于单品知识。",
+      "sku_status": "same_product_name_variant_spec_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:45075162d0b2680a697e08eaa0fcc1d20e496a17d6557c23c23e688dc637e994"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "efficacy.barrier_repair",
+      "decision": "map",
+      "fact_id": "reviewed:product:42:efficacy:barrier-hydration-v1",
+      "field_key": "efficacy",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "保湿与屏障养护方向",
+      "review_rationale": "商品介绍稳定支持保湿和屏障养护；不保留缓解敏感症状、冻龄或所有肌肤适用结论。",
+      "sku_status": "same_product_name_variant_spec_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:45075162d0b2680a697e08eaa0fcc1d20e496a17d6557c23c23e688dc637e994"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:42:usage:patch-test-and-massage-v1",
+      "field_key": "usage",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "先做耳后皮试，再于精华步骤后按摩至吸收",
+      "review_rationale": "商品介绍给出普通皮试和使用顺序；不把该步骤扩写为安全保证。",
+      "sku_status": "same_product_name_variant_spec_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:45075162d0b2680a697e08eaa0fcc1d20e496a17d6557c23c23e688dc637e994"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:42:efficacy:universal-sensitive-claims-v1",
+      "field_key": "efficacy",
+      "promotion_status": "rejected",
+      "public_text": "冻龄、缓解敏感症状与所有肌肤适用结论",
+      "review_rationale": "来源仅有单段商品介绍，品牌定位和成分被扩大为人群及效果保证，不进入公开事实。",
+      "sku_status": "same_product_name_variant_spec_unresolved",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:45075162d0b2680a697e08eaa0fcc1d20e496a17d6557c23c23e688dc637e994"
+      ]
+    }
+  ],
+  "canonical_identity": "稳肌轻龄悬油次抛精华",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T19:02:34.884Z",
+  "category_profile": "skincare",
+  "detail_image_count": 0,
+  "detail_image_status": "absent",
+  "detail_images": [],
+  "introduction_text": "夸迪是华熙生物旗下致力于冻龄抗初老的高端院线国货品牌。安心、轻盈、高效，针对时间美学，为国人提供专业的御龄体验。这款舒润稳肌悬油次抛精华液，主打温和保湿、修护敏感的功效。配方中含有野大豆油、神经酰胺-3、维生素E、神经酰胺-np、甘油葡糖苷和海藻糖等高保湿、缓解敏感症状的成份。野大豆油可以滋润皮脂膜减少水分的流失；神经酰胺-3可以滋润养护皮脂屏障；维生素E可以加乘护肤油养护力；甘油葡糖苷和海藻糖可以精修细腻肤质。利用水油双萃黑科技突破水性融油，改观对精华油的偏见。该精华液适合所有肌肤，使用前现在耳后皮试，用在精华液之后，按摩至吸收即可。",
+  "missing_fields": [
+    "net_content",
+    "ingredients_present"
+  ],
+  "parameter_text": "",
+  "portfolio_role": "single_dose_serum",
+  "product_id": 42,
+  "review_field_policy": [
+    "net_content",
+    "ingredients_present",
+    "texture",
+    "efficacy",
+    "usage"
+  ],
+  "review_sources": [
+    "product_introduction"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "unresolved",
+    "reference_price_sku": "unresolved",
+    "source_sku": "unresolved"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "45075162d0b2680a697e08eaa0fcc1d20e496a17d6557c23c23e688dc637e994",
+  "source_product_title": "QuadHA 夸迪 舒润稳肌悬油次抛精华液",
+  "source_title": "QuadHA 夸迪 舒润稳肌悬油次抛精华液【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/016pq7q/"
+}

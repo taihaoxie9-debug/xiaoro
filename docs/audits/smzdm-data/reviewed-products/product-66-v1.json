@@ -1,0 +1,251 @@
+{
+  "candidate_facts": [
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:66:net-content:150ml-source-v1",
+      "field_key": "net_content",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "150ml来源规格",
+      "review_rationale": "商品标题和参数均为150ml；现有Canonical资产同时出现150ml与300ml，参考价SKU未确认，因此不与价格组合。",
+      "sku_status": "source_150ml_canonical_multi_spec_conflict",
+      "source_kind": "parameter_table",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:02bc269a110bc6583fd016c815e9e09e3c8387923e62cd0cf4cea05ceeed5b69"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge"
+      ],
+      "concept_id": null,
+      "decision": "leave_free",
+      "fact_id": "reviewed:product:66:surfactant-type:amino-acid-v1",
+      "field_key": "surfactant_type",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "氨基酸系洁面成分",
+      "review_rationale": "参数与商品介绍都明确为氨基酸系洁面；不保留敏感肌安全保证。",
+      "sku_status": "source_150ml_canonical_multi_spec_conflict",
+      "source_kind": "product_introduction",
+      "source_ordinal": null,
+      "source_refs": [
+        "smzdm-browser-body:02bc269a110bc6583fd016c815e9e09e3c8387923e62cd0cf4cea05ceeed5b69"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "texture.dense_foam",
+      "decision": "map",
+      "fact_id": "reviewed:product:66:texture:soft-dense-foam-v1",
+      "field_key": "texture",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "柔软丰富、绵密的泡沫",
+      "review_rationale": "长图第1和第2张明确描述柔软、丰富、绵密泡沫，可映射绵密泡沫方向。",
+      "sku_status": "source_150ml_canonical_multi_spec_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:1ac1180268088b407c242b97437aba3182789479b6e47261fc710e4a7d387faa",
+        "smzdm-detail-image:7c89550657a149ea2fc9eed3d07884c52585d2ef594ac02f089278f94b7b95c3"
+      ]
+    },
+    {
+      "allowed_uses": [
+        "product_knowledge",
+        "recommendation",
+        "comparison",
+        "compact_tag"
+      ],
+      "concept_id": "rinse_behavior.non_stripping",
+      "decision": "map",
+      "fact_id": "reviewed:product:66:rinse-behavior:non-stripping-v1",
+      "field_key": "rinse_behavior",
+      "promotion_status": "approved_non_price_fact",
+      "public_text": "洗后水润舒适，不易紧绷",
+      "review_rationale": "长图第1至3张共同支持洗后水润舒适和不易紧绷，可映射非拔干冲洗表现。",
+      "sku_status": "source_150ml_canonical_multi_spec_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 1,
+      "source_refs": [
+        "smzdm-detail-image:1ac1180268088b407c242b97437aba3182789479b6e47261fc710e4a7d387faa",
+        "smzdm-detail-image:7c89550657a149ea2fc9eed3d07884c52585d2ef594ac02f089278f94b7b95c3",
+        "smzdm-detail-image:d6271cf7410433db2deace1c9b55abed7e7fb9e37a43f9338125ad8021e4074a"
+      ]
+    },
+    {
+      "allowed_uses": [],
+      "concept_id": null,
+      "decision": "reject",
+      "fact_id": "reviewed:product:66:texture:mixed-other-products-v1",
+      "field_key": "texture",
+      "promotion_status": "rejected",
+      "public_text": "皮脂护理洁面与Cure去角质产品图片中的质地和用法",
+      "review_rationale": "第5张属于珂润另一款皮脂护理洁面，第7至15张属于Cure去角质产品，均不能绑定到当前润浸保湿洁颜泡沫。",
+      "sku_status": "source_150ml_canonical_multi_spec_conflict",
+      "source_kind": "detail_image",
+      "source_ordinal": 5,
+      "source_refs": [
+        "smzdm-detail-image:9549e51cd8b03b58de1ae2941d2bb467dd0a00915d9c60f45ed97acd6ceaaba9",
+        "smzdm-detail-image:6145d5d9e240e56bc141cfe7e07eee1ef40e6cce201b309d7d78ccaae74a192e"
+      ]
+    }
+  ],
+  "canonical_identity": "珂润润浸保湿洁颜泡沫",
+  "canonical_sku_scope": "canonical_single_product_pending_source",
+  "canonical_specification": null,
+  "captured_at": "2026-08-19T20:53:00.389Z",
+  "category_profile": "cleanser",
+  "detail_image_count": 15,
+  "detail_image_status": "present",
+  "detail_images": [
+    {
+      "height": 600,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/66/001_1ac1180268088b40.jpg",
+      "ordinal": 1,
+      "sha256": "1ac1180268088b407c242b97437aba3182789479b6e47261fc710e4a7d387faa",
+      "width": 600
+    },
+    {
+      "height": 600,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/66/002_7c89550657a149ea.jpg",
+      "ordinal": 2,
+      "sha256": "7c89550657a149ea2fc9eed3d07884c52585d2ef594ac02f089278f94b7b95c3",
+      "width": 600
+    },
+    {
+      "height": 600,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/66/003_d6271cf7410433db.jpg",
+      "ordinal": 3,
+      "sha256": "d6271cf7410433db2deace1c9b55abed7e7fb9e37a43f9338125ad8021e4074a",
+      "width": 600
+    },
+    {
+      "height": 600,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/66/004_ef8c5f5a6782454f.jpg",
+      "ordinal": 4,
+      "sha256": "ef8c5f5a6782454f124c2c0d4cf8900e1d9d1fb57d0af99cb481124750942dbb",
+      "width": 600
+    },
+    {
+      "height": 600,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/66/005_9549e51cd8b03b58.jpg",
+      "ordinal": 5,
+      "sha256": "9549e51cd8b03b58de1ae2941d2bb467dd0a00915d9c60f45ed97acd6ceaaba9",
+      "width": 600
+    },
+    {
+      "height": 103,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/66/006_9368ebb39593cf2a.jpg",
+      "ordinal": 6,
+      "sha256": "9368ebb39593cf2a613318c8de187a3e596b2381f0ff56d6152fb56614e2f915",
+      "width": 600
+    },
+    {
+      "height": 697,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/66/007_6145d5d9e240e56b.jpg",
+      "ordinal": 7,
+      "sha256": "6145d5d9e240e56bc141cfe7e07eee1ef40e6cce201b309d7d78ccaae74a192e",
+      "width": 600
+    },
+    {
+      "height": 1063,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/66/008_2e2e7930461cf6d9.jpg",
+      "ordinal": 8,
+      "sha256": "2e2e7930461cf6d9dcb0af9136b9d6cd90390a5d3da0c6467fde1c2bb160e7d9",
+      "width": 600
+    },
+    {
+      "height": 501,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/66/009_16162ce5929bc061.jpg",
+      "ordinal": 9,
+      "sha256": "16162ce5929bc0613f29917140405918f3d71f796ba5802578c866098e0c08de",
+      "width": 600
+    },
+    {
+      "height": 481,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/66/010_26211ffeb05d5c7d.jpg",
+      "ordinal": 10,
+      "sha256": "26211ffeb05d5c7d0cba1192b14ea390b7fc13f80f12bac05ecd7feebb5828f7",
+      "width": 600
+    },
+    {
+      "height": 810,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/66/011_641852d316b56c95.jpg",
+      "ordinal": 11,
+      "sha256": "641852d316b56c95760fdc0ba139f785433de98a89770571e77ca5bd44e0df61",
+      "width": 600
+    },
+    {
+      "height": 624,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/66/012_23cd2d3438ffc98d.jpg",
+      "ordinal": 12,
+      "sha256": "23cd2d3438ffc98dfba5cf5b2327b3ae47b555bf2672b45916dbd25e34527d2b",
+      "width": 600
+    },
+    {
+      "height": 911,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/66/013_bc63906f95abe2af.jpg",
+      "ordinal": 13,
+      "sha256": "bc63906f95abe2afcecb4599597550ec1fac118fd880d9ae17a8e6a07ed1a6ac",
+      "width": 600
+    },
+    {
+      "height": 911,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/66/014_afd89d90c03f0b1a.jpg",
+      "ordinal": 14,
+      "sha256": "afd89d90c03f0b1aee80e07555a304640ace1b068b064503f4f00aaf5c9f0b5b",
+      "width": 600
+    },
+    {
+      "height": 349,
+      "local_path": "data/guide_merchant_claims/smzdm_wiki_v1/source_images/66/015_a8f9fc266909758d.jpg",
+      "ordinal": 15,
+      "sha256": "a8f9fc266909758d5e4dca7ede26b9a44e3a5069f1948b510cf8aeed2548a65a",
+      "width": 600
+    }
+  ],
+  "introduction_text": "Curel珂润是花王旗下干燥敏感肌针对性护肤品牌，这款润浸保湿洁颜泡沫含量为150ml，采用温和的氨基酸系洁面成分，配合系列主打的神经酰胺成分，能够同时增强肌肤细胞自身锁水能力。泡沫柔软丰富，无香料无色素无酒精，弱酸性温和低刺激，敏感性肌肤可用。",
+  "missing_fields": [
+    "net_content",
+    "cleansing_power"
+  ],
+  "parameter_text": "规格\n150ml\n分类\n泡沫/摩丝\n主打成分\n氨基酸\n国产/进口\n进口\n商品名称\n润浸保湿洁颜泡沫\n产品产地\n日本\n规格类型\n正常规格\n批准文号\n国妆网备进字(沪)2021000845\n净含量\n101ML-150ML\n保质期\n5年\n质地\n泡沫/慕斯\n适用人群\n通用",
+  "portfolio_role": "foam_cleanser",
+  "product_id": 66,
+  "review_field_policy": [
+    "net_content",
+    "surfactant_type",
+    "cleansing_power",
+    "rinse_behavior",
+    "texture"
+  ],
+  "review_sources": [
+    "parameter_table",
+    "product_introduction",
+    "detail_images"
+  ],
+  "review_status": "human_review_complete",
+  "schema_version": "smzdm-product-human-review-packet-v1",
+  "sku_audit": {
+    "canonical_sku": "unresolved",
+    "display_specification": null,
+    "identity_status": "exact_product_variant",
+    "price_specification_alignment": "conflict",
+    "reference_price_sku": "unresolved",
+    "source_sku": "150ml"
+  },
+  "source_match": "variant_review",
+  "source_page_text_sha256": "02bc269a110bc6583fd016c815e9e09e3c8387923e62cd0cf4cea05ceeed5b69",
+  "source_product_title": "Curel 珂润 润浸保湿洁颜泡沫 150ml",
+  "source_title": "Curel 珂润 润浸保湿洁颜泡沫 150ml【报价 价格 评测 怎么样】 -什么值得买",
+  "source_url": "https://wiki.smzdm.com/p/2j5jr7/"
+}

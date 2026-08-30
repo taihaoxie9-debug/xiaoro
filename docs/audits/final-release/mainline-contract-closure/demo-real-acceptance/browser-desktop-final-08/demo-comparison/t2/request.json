@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 1,
+    "message": "那哪个更适合油敏肌？",
+    "session_id": "session_71be3249-362c-4b46-af1b-2f41574d6ed4",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035429106_j4zyeshe",
+  "request_message": "那哪个更适合油敏肌？",
+  "turn_id": "demo-comparison-t2",
+  "url": "/api/v1/chat/stream",
+  "user_message": "那哪个更适合油敏肌？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

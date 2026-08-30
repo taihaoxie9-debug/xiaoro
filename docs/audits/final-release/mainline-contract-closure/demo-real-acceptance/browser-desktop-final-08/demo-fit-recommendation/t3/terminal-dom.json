@@ -1,0 +1,44 @@
+{
+  "clarification_message_count": 0,
+  "comparison_table_count": 0,
+  "inline_product_ids": [
+    91
+  ],
+  "legacy_message_count": 0,
+  "legacy_product_card_count": 0,
+  "presentation_mode": "recommendation",
+  "presentation_text": "结合你现在的预算和使用场景，我把各款优势与取舍分开说，方便你直接按需求选择。\n\n玉泽皮肤屏障修护精华乳\n玉泽（Dr.Yu）\n玉泽皮肤屏障修护精华乳\n¥ 88\n\n从现有商品信息看，修护屏障、屏障修护与保湿方向。\n\n品牌主打\n不粘腻；易吸收；水润；轻盈\n功效方向\n修护屏障、屏障修护与保湿方向\n质地\n不粘腻、丝滑、乳霜状质地、易吸收、柔润乳液、水润、润而不腻、轻盈\n\n小 ro 的推荐理由：品牌主打不粘腻；易吸收；水润；轻盈。\n\n综合推荐\n玉泽皮肤屏障修护精华乳。综合当前需求，玉泽皮肤屏障修护精华乳的品牌主打是不粘腻；易吸收；水润；轻盈，更贴合当前条件。\n本轮提到的商品\n玉泽皮肤屏障修护精华乳\n¥ 88\n修护屏障\n急救修护\n不粘腻\n去商品页查实时价",
+  "request_id": "request_1788035387765_35hdrgvw",
+  "section_blocks": [
+    {
+      "kind": "summary",
+      "text": "结合你现在的预算和使用场景，我把各款优势与取舍分开说，方便你直接按需求选择。"
+    },
+    {
+      "kind": "product",
+      "text": "玉泽皮肤屏障修护精华乳\n玉泽（Dr.Yu）\n玉泽皮肤屏障修护精华乳\n¥ 88\n\n从现有商品信息看，修护屏障、屏障修护与保湿方向。\n\n品牌主打\n不粘腻；易吸收；水润；轻盈\n功效方向\n修护屏障、屏障修护与保湿方向\n质地\n不粘腻、丝滑、乳霜状质地、易吸收、柔润乳液、水润、润而不腻、轻盈\n\n小 ro 的推荐理由：品牌主打不粘腻；易吸收；水润；轻盈。"
+    },
+    {
+      "kind": "closing",
+      "text": "综合推荐\n玉泽皮肤屏障修护精华乳。综合当前需求，玉泽皮肤屏障修护精华乳的品牌主打是不粘腻；易吸收；水润；轻盈，更贴合当前条件。"
+    },
+    {
+      "kind": "full_cards",
+      "text": "本轮提到的商品\n玉泽皮肤屏障修护精华乳\n¥ 88\n修护屏障\n急救修护\n不粘腻\n去商品页查实时价"
+    }
+  ],
+  "shelf_product_ids": [
+    91
+  ],
+  "terminal_kind": "presentation",
+  "turn_presentation_root_count": 1,
+  "visible_product_ids": [
+    91
+  ],
+  "visible_section_kinds": [
+    "summary",
+    "product",
+    "closing",
+    "full_cards"
+  ]
+}

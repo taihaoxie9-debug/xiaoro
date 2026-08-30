@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "帮我对比兰蔻小黑瓶和小棕瓶",
+    "session_id": "session_71be3249-362c-4b46-af1b-2f41574d6ed4",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035420368_aaux66gs",
+  "request_message": "帮我对比兰蔻小黑瓶和小棕瓶",
+  "turn_id": "demo-comparison-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "帮我对比兰蔻小黑瓶和小棕瓶",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

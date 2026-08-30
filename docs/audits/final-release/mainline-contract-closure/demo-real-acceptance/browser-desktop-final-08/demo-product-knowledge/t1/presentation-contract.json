@@ -1,0 +1,79 @@
+{
+  "card_display": {
+    "max_cards": 1,
+    "mode": "single",
+    "reason": "product",
+    "visible_product_ids": [
+      38
+    ]
+  },
+  "compact_tags": [],
+  "comparison_rows": [],
+  "copy_source": "authoritative",
+  "mode": "product_knowledge",
+  "recommendation_mode": null,
+  "requested_comparison_dimensions": [],
+  "responsibility": "product_knowledge",
+  "sections": [
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "我按你问的内容，整理这款商品的相关信息。",
+      "direct_facts": [],
+      "kind": "summary",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "功效方向：舒缓泛红、修护、补水保湿、舒缓\n适合肤质：多种肤质适用\n品牌主打：舒缓泛红\n这款目前没有明确标注的质地信息。",
+      "direct_facts": [],
+      "kind": "answer",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": [
+        "category:38:efficacy",
+        "category:38:suitable_skin",
+        "merchant:7e2ed011646e80f80016131f0f9d8f38622bb1ab05804082c5cc6b4a58986c2d"
+      ]
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "full_cards",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    }
+  ],
+  "telemetry": {
+    "completion_tokens": 0,
+    "fallback_reason": null,
+    "latency_ms": 0,
+    "model": "deterministic",
+    "prompt_tokens": 0,
+    "provider": "reviewed_assets",
+    "total_tokens": 0
+  },
+  "visible_product_ids": [
+    38
+  ],
+  "winner": {
+    "dimension_ids": [],
+    "fact_ids": [],
+    "reason": null,
+    "status": "not_applicable",
+    "tie_reason": null,
+    "winner_product_id": null
+  }
+}

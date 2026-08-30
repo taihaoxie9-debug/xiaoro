@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "给我推荐一款最适合修护屏障、清爽不黏需求的 900 到 1100 元精华",
+    "session_id": "session_bf2fc5cf-7506-451c-a611-d1aece1ec830",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788035363263_cdyezfe7",
+  "request_message": "给我推荐一款最适合修护屏障、清爽不黏需求的 900 到 1100 元精华",
+  "turn_id": "demo-fit-recommendation-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "给我推荐一款最适合修护屏障、清爽不黏需求的 900 到 1100 元精华",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

@@ -1,0 +1,24 @@
+event: start
+data: {"session_id":"session_fc439f7e-7597-4ef0-ba24-607655450613"}
+
+event: stage
+data: {"message":"正在确认图片中的商品信息。","status":"active","stage":"image_observation"}
+
+event: image_observation
+data: {"observation":{"image_id":"image_jZxPMILCqhWt9PVvGN_dSpJWUHh0nyba","observation_state":"complete","visual_state":"observed","ocr_state":"observed","identity_state":"confirmed","confirmed_product_id":38,"candidate_product_ids":[38,46,145,50,70,67,49,77,74,130],"visual_confidence":0.9999998807907104,"similarity_margin":0.19765090942382812,"model_name":"OpenCLIP:ViT-B-32:laion2b_s34b_b79k@1a25a446712ba5ee05982a381eed697ef9b435cf","weights_sha256":"ac4f8c4b88af6d963118cbf40ad93176d092abbedfcb752601ae1866352656e6","preprocessing_version":"openclip-3.3.0|ViT-B-32|laion2b_s34b_b79k@1a25a446712ba5ee05982a381eed697ef9b435cf|rgb|resize-shortest-224-bicubic-antialias|center-crop-224|mean-0.48145466,0.4578275,0.40821073|std-0.26862954,0.26130258,0.27577711|tensor-fp32","vector_dimension":512,"index_sha256":"f61ba8ed45dc6f3d285e22016f7c643bfd01eec78ba65c84e75e5fabb843d340","ocr_brand_consistency":"indeterminate","ocr_product_name_consistency":"indeterminate"}}
+
+event: stage
+data: {"message":"已提取明确预算、品类和适配条件。","status":"active","stage":"understanding"}
+
+event: intent
+data: {"intent":"image_recommend","entities":{},"scenario_intent":"image_recommend","guide":true}
+
+event: citations
+data: {"citations":[{"id":"visual:image_jZxPMILCqhWt9PVvGN_dSpJWUHh0nyba","type":"guide","title":"图片匹配依据","snippet":"图片相似度匹配已完成，结果由本次上传图片生成。","confidence":0.9999998807907104,"source_kind":"visual_model"},{"id":"ocr:image_jZxPMILCqhWt9PVvGN_dSpJWUHh0nyba","type":"guide","title":"包装文字核对","snippet":"已完成包装文字核对；品牌信息暂未完整确认；商品名称暂未完整确认。包装文字只用于辅助确认，不参与商品排序。","confidence":null,"source_kind":"ocr_observation"},{"id":"product:38","type":"guide","title":"商品资料","snippet":"商品身份和卡片信息以已审核的商品资料为准。","confidence":null,"source_kind":"canonical"}]}
+
+event: clarify
+data: {"question":"现有公开事实还不能支持唯一选择。请补充一个更明确的功效、肤感或使用场景，或者改为查看多款方向。","clarification_code":"goal","intended_responsibility":"recommendation","intended_recommendation_mode":"fit","clarification_basis":"fit_selection_evidence_gap","fit_gap_stage":"decision_selection","fit_decision_status":"NO_CANDIDATE","fit_candidate_count":0,"fit_evidence_ref_count":4,"fit_public_fact_count":0}
+
+event: end
+data: {"conversation_version":1}
+
