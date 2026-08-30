@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "油皮夏天应该怎么选面霜？",
+    "session_id": "session_40ae0860-decb-4293-9723-94a8c2899604",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788114703970_2kq7mg1d",
+  "request_message": "油皮夏天应该怎么选面霜？",
+  "turn_id": "gk-oily-summer-moisturizer-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "油皮夏天应该怎么选面霜？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

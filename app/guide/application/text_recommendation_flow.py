@@ -155,8 +155,8 @@ from app.guide.retrieval.product_evidence_retrieval import (
 from app.guide.retrieval.selection_parent_concept_reader import (
     SelectionParentConceptReader,
 )
-from app.guide.retrieval.general_knowledge_contracts import (
-    GeneralKnowledgeQuery,
+from app.guide.retrieval.general_knowledge_query import (
+    build_knowledge_query_spec,
 )
 from app.guide.retrieval.general_knowledge_retrieval import (
     GeneralKnowledgeRetriever,
@@ -525,14 +525,15 @@ class TextRecommendationOrchestrator:
             ),
             None,
         )
-        query = GeneralKnowledgeQuery(
-            retrieval_query=(
+        query = build_knowledge_query_spec(
+            raw_query=(
                 execution_input.routing_evidence.query.value.strip()
             ),
             question_meaning=(
                 task.question_meaning or execution_input.routing_evidence.query.value.strip()
             ),
             topic=topic,
+            relation_hints=task.knowledge_relation_hints,
             safety_sensitive=task.safety_sensitive,
             prior_knowledge_ids=(
                 snapshot.knowledge_slot.evidence_ids
@@ -795,6 +796,10 @@ class TextRecommendationOrchestrator:
         public_winner_status = public_recommendation_winner_status(
             recommendation_mode=effective_task.recommendation_mode,
             decision=visible_decision,
+            is_constraint_revision=(
+                route_decision.continuity
+                in {"correct", "supplement", "withdraw"}
+            ),
         )
         selection_slots = _selection_slot_data(
             self._decision_facts,
@@ -1702,11 +1707,6 @@ class TextRecommendationOrchestrator:
         authoritative_public_copy: SourceTaggedCopy | None = None,
     ) -> PresentationContractEvent:
         responsibility = route_decision.responsibility
-        if responsibility is Responsibility.RECOMMENDATION:
-            if recommendation_mode == "explore":
-                winner_status = "NOT_APPLICABLE"
-                winner_product_id = None
-                winner_tie_reason = None
         packet = build_presentation_packet(
             mode=mode,
             responsibility=responsibility,

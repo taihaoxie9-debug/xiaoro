@@ -419,7 +419,12 @@ def _validate_guide_event_sequence(
     if (
         presentation.responsibility is Responsibility.RECOMMENDATION
         and presentation.recommendation_mode == "explore"
-        and answer.get("winner_status") != "NOT_APPLICABLE"
+        and answer.get("winner_status")
+        not in {
+            "NOT_APPLICABLE",
+            "INSUFFICIENT_FOR_WINNER",
+            "NO_CANDIDATE",
+        }
     ):
         _invalid_guide_events()
     for evidence_name in (

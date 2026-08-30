@@ -9,7 +9,7 @@ from app.guide.understanding.semantic_route_contracts import (
 )
 
 
-TURN_MEANING_PROMPT_VERSION = "guide-turn-meaning-prompt-v37"
+TURN_MEANING_PROMPT_VERSION = "guide-turn-meaning-prompt-v38"
 _CONCEPT_ID = re.compile(
     r"^[a-z][a-z0-9_]{1,63}\.[a-z][a-z0-9_]{1,63}$"
 )
@@ -53,8 +53,8 @@ topic_hint, continuity_hint, subject_scope_hint,
 pending_response_hint,
 reference_mentions, product_mentions, budget_candidates,
 observation_candidates, preference_candidates, relative_candidates,
-constraint_changes, consultation_hypothesis, next_observation_gap, question_meaning,
-safety_language.
+constraint_changes, consultation_hypothesis, next_observation_gap,
+knowledge_relation_hints, question_meaning, safety_language.
 Emit every listed key. Use [] for empty collections and null for optional
 single values. Never omit a key and never add a key.
 
@@ -134,6 +134,10 @@ not update the person's current observations and does not request a bound
 product or image suitability judgment.
 A general cause or mechanism question uses knowledge even when it mentions an
 observation. A request to assess the user's current symptom or reaction uses assessment.
+A category guidance question asking how to choose, use, or understand a category uses knowledge
+unless the user asks to recommend, find, or show specific products.
+A current symptom or reaction asking what to do uses assessment, even when
+ingredient words are present.
 Severe current damage still uses assessment with safety language so code can
 select the safety escalation responsibility.
 When binding_authority has no current item, batch, image, topic, or pending
@@ -333,6 +337,13 @@ next_observation_gap must be null outside assessment or an active
 consultation. reference_unclear is an observation code, never a next_observation_gap.
 Choose the single largest decision-relevant missing observation. Do not
 generate a question or user-facing prose.
+
+knowledge_relation_hints is always a JSON array. Use only:
+overview|mechanism|difference|compatibility|usage|selection|identification|safety.
+Emit all independently requested knowledge relations in user order. Use [] for
+recommendation, comparison, suitability, image_identity, image_similarity,
+assessment, and clarification. A knowledge follow-up may retain relation
+hints. Do not emit entity IDs, knowledge IDs, source paths, citations, or answers.
 
 Every raw_text must be an exact current-message substring.
 raw_text must occur exactly once.

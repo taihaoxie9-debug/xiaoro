@@ -1,0 +1,21 @@
+event: start
+data: {"session_id":"session_2a7345aa-f43b-4fb2-842c-e8ec18075cb8"}
+
+event: stage
+data: {"message":"已提取明确预算、品类和适配条件。","status":"active","stage":"understanding"}
+
+event: intent
+data: {"intent":"knowledge","entities":{},"scenario_intent":"knowledge","guide":true}
+
+event: stage
+data: {"message":"已检索审核过的通用知识资料。","status":"active","stage":"retrieval"}
+
+event: general_knowledge
+data: {"query":"如何判断自己是否属于敏感肌","citations":[{"knowledge_id":"06624707c605e704897cf68e4915cf8f10086a0aa9c7026105f8b6c17d318e97","title":"怎么判断自己是不是敏感肌：识别信号与护理原则","section_title":"怎么判断是不是敏感肌","public_excerpt":"- **容易泛红**：换季、温差、吃辣、情绪激动后脸颊发红，甚至能看到红血丝。\n- **刺痛/紧绷/瘙痒**：用很多产品会有刺痛、灼热感，洗完脸干紧。\n- **耐受性差**：换新护肤品容易\"翻车\"，长闭口、小红点、脱皮。\n- **屏障薄**：角质层薄，皮肤看起来\"透红\"，对冷热、紫外线、风都敏感。\n- **反复不稳定**：时好时坏，受作息、压力、季节影响明显。","source_path":"data/knowledge_docs/22-怎么判断自己是不是敏感肌.md","review_decision":"general_answer"}],"coverage":{"required_concept_ids":["skin.sensitive"],"covered_concept_ids":["skin.sensitive"],"required_entity_ids":[],"covered_entity_ids":[],"required_relation_intents":["identification"],"covered_relation_intents":["identification"],"missing_concept_ids":[],"missing_entity_ids":[],"missing_relation_intents":[],"complete":true},"educational_only":true,"medical_escalation":false}
+
+event: presentation_contract
+data: {"responsibility":"general_knowledge","mode":"general_knowledge","recommendation_mode":null,"copy_source":"authoritative","sections":[{"kind":"general_knowledge","copy_text":"下面先讲通用知识，不把它当作具体商品结论：\n\n【怎么判断自己是不是敏感肌：识别信号与护理原则 / 怎么判断是不是敏感肌】\n- **容易泛红**：换季、温差、吃辣、情绪激动后脸颊发红，甚至能看到红血丝。\n- **刺痛/紧绷/瘙痒**：用很多产品会有刺痛、灼热感，洗完脸干紧。\n- **耐受性差**：换新护肤品容易\"翻车\"，长闭口、小红点、脱皮。\n- **屏障薄**：角质层薄，皮肤看起来\"透红\"，对冷热、紫外线、风都敏感。\n- **反复不稳定**：时好时坏，受作息、压力、季节影响明显。","used_fact_ids":[],"used_constraint_ids":[],"advisor_reason":null,"advisor_used_fact_ids":[],"advisor_used_constraint_ids":[],"slot_id":null,"product_id":null,"direct_facts":[]}],"requested_comparison_dimensions":[],"comparison_rows":[],"winner":{"status":"not_applicable","winner_product_id":null,"reason":null,"fact_ids":[],"dimension_ids":[],"tie_reason":null},"visible_product_ids":[],"compact_tags":[],"card_display":{"mode":"none","visible_product_ids":[],"max_cards":0,"reason":null},"telemetry":{"provider":"reviewed_assets","model":"deterministic","prompt_tokens":0,"completion_tokens":0,"total_tokens":0,"latency_ms":0.0,"fallback_reason":null}}
+
+event: end
+data: {"conversation_version":1}
+

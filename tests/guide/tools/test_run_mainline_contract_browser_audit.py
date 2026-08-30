@@ -1169,6 +1169,217 @@ def test_demo_trajectories_cover_seven_modes_and_twenty_one_turns() -> None:
     )
 
 
+def test_general_knowledge_trajectories_cover_six_observed_probes() -> None:
+    trajectories = mainline_audit.GENERAL_KNOWLEDGE_TRAJECTORIES
+
+    assert [trajectory.trajectory_id for trajectory in trajectories] == [
+        "gk-multi-ingredient",
+        "gk-sensitive-identification",
+        "gk-acid-active-reaction",
+        "gk-sunscreen-reapplication",
+        "gk-vitamin-c-daytime",
+        "gk-oily-summer-moisturizer",
+    ]
+    assert [trajectory.turns[0].message for trajectory in trajectories] == [
+        "烟酰胺和A醇有什么区别，能一起用吗？",
+        "怎么判断自己是不是敏感肌？",
+        "刷酸后爆皮刺痛应该怎么办？",
+        "防晒为什么过几个小时还要补涂？",
+        "维C白天到底能不能用？",
+        "油皮夏天应该怎么选面霜？",
+    ]
+    assert [trajectory.turns[0].expected_mode for trajectory in trajectories] == [
+        "general_knowledge",
+        "general_knowledge",
+        "consultation",
+        "general_knowledge",
+        "general_knowledge",
+        "general_knowledge",
+    ]
+
+
+def _general_knowledge_validation_inputs():
+    source_13 = "data/knowledge_docs/13-烟酰胺适合谁.md"
+    source_14 = "data/knowledge_docs/14-视黄醇A醇适合谁.md"
+    citation_ids = ("a" * 64, "b" * 64)
+    turn = mainline_audit.BoundedBrowserTurn(
+        turn_id="t1",
+        message="烟酰胺和A醇有什么区别，能一起用吗？",
+        expected_mode="general_knowledge",
+        expected_knowledge_sources=(source_13, source_14),
+        allowed_knowledge_sources=(source_13, source_14),
+        expected_knowledge_sections=("关键成分/原理",),
+        allowed_knowledge_sections=("关键成分/原理",),
+        expected_missing_relations=("compatibility",),
+    )
+    event = {
+        "query": "比较烟酰胺和视黄醇并询问能否叠加",
+        "citations": [
+            {
+                "knowledge_id": citation_ids[0],
+                "title": "烟酰胺适合谁",
+                "section_title": "关键成分/原理",
+                "public_excerpt": "烟酰胺可辅助控油和修护。",
+                "source_path": source_13,
+                "review_decision": "general_answer",
+            },
+            {
+                "knowledge_id": citation_ids[1],
+                "title": "视黄醇适合谁",
+                "section_title": "关键成分/原理",
+                "public_excerpt": "视黄醇可用于抗老和改善粗糙。",
+                "source_path": source_14,
+                "review_decision": "general_answer",
+            },
+        ],
+        "coverage": {
+            "required_concept_ids": ["ingredient"],
+            "covered_concept_ids": ["ingredient"],
+            "required_entity_ids": [
+                "ingredient.niacinamide",
+                "ingredient.retinol",
+            ],
+            "covered_entity_ids": [
+                "ingredient.niacinamide",
+                "ingredient.retinol",
+            ],
+            "required_relation_intents": [
+                "difference",
+                "compatibility",
+            ],
+            "covered_relation_intents": ["difference"],
+            "missing_concept_ids": [],
+            "missing_entity_ids": [],
+            "missing_relation_intents": ["compatibility"],
+            "complete": False,
+        },
+        "educational_only": True,
+        "medical_escalation": False,
+    }
+    contract = {
+        "mode": "general_knowledge",
+        "responsibility": "general_knowledge",
+        "sections": [
+            {
+                "kind": "answer",
+                "copy_text": (
+                    "现有可靠资料没有直接说明这组对象能否一起使用，"
+                    "这里不根据各自介绍推导兼容性结论。"
+                ),
+            }
+        ],
+    }
+    dom = {
+        "knowledge_citation_panel_count": 1,
+        "knowledge_citation_ids": list(citation_ids),
+    }
+    events = (("general_knowledge", event),)
+    return turn, contract, events, dom
+
+
+def test_general_knowledge_turn_accepts_bound_citations_and_gap() -> None:
+    turn, contract, events, dom = _general_knowledge_validation_inputs()
+
+    mainline_audit._validate_general_knowledge_turn(
+        turn=turn,
+        contract=contract,
+        events=events,
+        dom=dom,
+    )
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    (
+        ("missing_source", "expected knowledge source"),
+        ("missing_section", "expected knowledge section"),
+        ("unlisted_source", "unlisted knowledge source"),
+        ("duplicate_id", "duplicate knowledge citation"),
+        ("coverage", "knowledge coverage mismatch"),
+        ("unsupported_compatibility", "compatibility gap"),
+        ("no_public_answer", "useful general knowledge answer"),
+        ("missing_panel", "knowledge citation panel"),
+    ),
+)
+def test_general_knowledge_turn_rejects_unusable_evidence(
+    mutation: str,
+    message: str,
+) -> None:
+    turn, contract, events, dom = _general_knowledge_validation_inputs()
+    event = json.loads(json.dumps(events[0][1]))
+    contract = json.loads(json.dumps(contract))
+    dom = json.loads(json.dumps(dom))
+    if mutation == "missing_source":
+        event["citations"].pop()
+    elif mutation == "missing_section":
+        event["citations"][0]["section_title"] = "适合谁"
+        event["citations"][1]["section_title"] = "适合谁"
+    elif mutation == "unlisted_source":
+        event["citations"].append({
+            "knowledge_id": "c" * 64,
+            "title": "面霜怎么选",
+            "section_title": "怎么选",
+            "public_excerpt": "按肤质选择面霜。",
+            "source_path": "data/knowledge_docs/08-面霜怎么选.md",
+            "review_decision": "general_answer",
+        })
+    elif mutation == "duplicate_id":
+        event["citations"][1]["knowledge_id"] = (
+            event["citations"][0]["knowledge_id"]
+        )
+    elif mutation == "coverage":
+        event["coverage"]["missing_relation_intents"] = []
+        event["coverage"]["covered_relation_intents"].append(
+            "compatibility"
+        )
+        event["coverage"]["complete"] = True
+    elif mutation == "unsupported_compatibility":
+        contract["sections"][0]["copy_text"] = (
+            "烟酰胺和A醇可以直接叠加使用。"
+        )
+    elif mutation == "no_public_answer":
+        for citation in event["citations"]:
+            citation["review_decision"] = "escalation_only"
+            citation["public_excerpt"] = None
+    elif mutation == "missing_panel":
+        dom["knowledge_citation_panel_count"] = 0
+
+    with pytest.raises(AuditBundleError, match=message):
+        mainline_audit._validate_general_knowledge_turn(
+            turn=turn,
+            contract=contract,
+            events=(("general_knowledge", event),),
+            dom=dom,
+        )
+
+
+def test_consultation_turn_rejects_general_knowledge_event() -> None:
+    _, _, events, _ = _general_knowledge_validation_inputs()
+    turn = mainline_audit.BoundedBrowserTurn(
+        turn_id="t1",
+        message="刷酸后爆皮刺痛应该怎么办？",
+        expected_mode="consultation",
+    )
+
+    with pytest.raises(
+        AuditBundleError,
+        match="consultation emitted general knowledge",
+    ):
+        mainline_audit._validate_general_knowledge_turn(
+            turn=turn,
+            contract={
+                "mode": "consultation",
+                "responsibility": "consultation",
+                "sections": [{"kind": "answer", "copy_text": "请先停用。"}],
+            },
+            events=events,
+            dom={
+                "knowledge_citation_panel_count": 0,
+                "knowledge_citation_ids": [],
+            },
+        )
+
+
 def test_completed_release_browser_evidence_accepts_all_fourteen_turns(
     tmp_path: Path,
 ) -> None:
@@ -2373,6 +2584,42 @@ def test_demo_cli_dispatches_existing_bounded_browser_runner(
         "viewport": "desktop",
         "trajectories": mainline_audit.DEMO_TRAJECTORIES,
         "trajectory_set": "demo",
+    }
+
+
+def test_general_knowledge_cli_dispatches_existing_bounded_browser_runner(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "general-knowledge"
+    observed: dict[str, object] = {}
+
+    def fake_run(**kwargs):
+        observed.update(kwargs)
+        return {"passed": True}
+
+    monkeypatch.setattr(
+        mainline_audit,
+        "run_bounded_browser_audit",
+        fake_run,
+    )
+
+    assert mainline_audit.main([
+        "--base-url",
+        "http://127.0.0.1:8842",
+        "--trajectory-set",
+        "general_knowledge",
+        "--viewport",
+        "desktop",
+        "--output",
+        str(output),
+    ]) == 0
+    assert observed == {
+        "base_url": "http://127.0.0.1:8842",
+        "output": output,
+        "viewport": "desktop",
+        "trajectories": mainline_audit.GENERAL_KNOWLEDGE_TRAJECTORIES,
+        "trajectory_set": "general_knowledge",
     }
 
 

@@ -57,8 +57,18 @@ def public_recommendation_winner_status(
     *,
     recommendation_mode: RecommendationMode | None,
     decision: DecisionResult,
+    is_constraint_revision: bool = False,
 ) -> str:
     if recommendation_mode == "explore":
+        if (
+            is_constraint_revision
+            and decision.winner_status
+            in {
+                WinnerStatus.INSUFFICIENT_FOR_WINNER,
+                WinnerStatus.NO_CANDIDATE,
+            }
+        ):
+            return decision.winner_status.value
         return "NOT_APPLICABLE"
     return decision.winner_status.value
 

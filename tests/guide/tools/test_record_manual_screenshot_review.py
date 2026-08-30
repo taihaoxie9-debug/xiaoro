@@ -358,6 +358,18 @@ def _release_attempt(
                 "general_knowledge": {
                     "query": "Verified question.",
                     "citations": [],
+                    "coverage": {
+                        "required_concept_ids": [],
+                        "covered_concept_ids": [],
+                        "required_entity_ids": [],
+                        "covered_entity_ids": [],
+                        "required_relation_intents": [],
+                        "covered_relation_intents": [],
+                        "missing_concept_ids": [],
+                        "missing_entity_ids": [],
+                        "missing_relation_intents": [],
+                        "complete": True,
+                    },
                     "educational_only": True,
                     "medical_escalation": False,
                 },

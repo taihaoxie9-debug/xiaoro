@@ -4,12 +4,14 @@ from dataclasses import dataclass
 
 from app.guide.presentation.sse_events import (
     GeneralKnowledgeCitationData,
+    GeneralKnowledgeCoverageData,
     GeneralKnowledgeData,
 )
 from app.guide.presentation.public_language_policy import (
     validate_final_public_text,
 )
 from app.guide.retrieval.general_knowledge_contracts import (
+    GeneralKnowledgeCoverage,
     GeneralKnowledgePacket,
 )
 
@@ -18,6 +20,18 @@ from app.guide.retrieval.general_knowledge_contracts import (
 class RenderedGeneralKnowledgeAnswer:
     message: str
     data: GeneralKnowledgeData
+
+
+_RELATION_LABELS = {
+    "overview": "基础说明",
+    "mechanism": "作用原理",
+    "difference": "区别",
+    "compatibility": "能否一起使用",
+    "usage": "使用方法",
+    "selection": "选择方法",
+    "identification": "判断方法",
+    "safety": "安全边界",
+}
 
 
 def _citation(hit) -> GeneralKnowledgeCitationData:
@@ -32,17 +46,52 @@ def _citation(hit) -> GeneralKnowledgeCitationData:
     )
 
 
+def _public_coverage(
+    packet: GeneralKnowledgePacket,
+) -> GeneralKnowledgeCoverageData:
+    coverage = packet.coverage
+    if coverage is None:
+        required_relations = ("overview",)
+        covered_relations = required_relations if packet.hits else ()
+        coverage = GeneralKnowledgeCoverage(
+            required_concept_ids=(),
+            covered_concept_ids=(),
+            required_entity_ids=(),
+            covered_entity_ids=(),
+            required_relation_intents=required_relations,
+            covered_relation_intents=covered_relations,
+            missing_concept_ids=(),
+            missing_entity_ids=(),
+            missing_relation_intents=(
+                ()
+                if covered_relations
+                else required_relations
+            ),
+            complete=bool(covered_relations),
+        )
+    return GeneralKnowledgeCoverageData.model_validate(
+        coverage.model_dump(mode="json"),
+        strict=True,
+    )
+
+
 def render_general_knowledge_answer(
     packet: GeneralKnowledgePacket,
 ) -> RenderedGeneralKnowledgeAnswer:
     if not isinstance(packet, GeneralKnowledgePacket):
         raise TypeError("packet must be GeneralKnowledgePacket")
+    coverage = _public_coverage(packet)
     citations = [_citation(hit) for hit in packet.hits]
+    comparison_blocked = (
+        "difference" in coverage.required_relation_intents
+        and bool(coverage.missing_entity_ids)
+    )
     answer_blocks = [
         hit.block
         for hit in packet.hits
         if hit.block.review_decision == "general_answer"
         and "answer" in hit.block.allowed_uses
+        and not comparison_blocked
     ]
     medical_escalation = any(
         hit.block.review_decision == "escalation_only"
@@ -78,6 +127,25 @@ def render_general_knowledge_answer(
             "不能直接当作通用知识回答；"
             "请明确具体商品后再结合对应资料判断。"
         )
+    if packet.hits and coverage.missing_relation_intents:
+        if coverage.missing_relation_intents == ["compatibility"]:
+            parts.append(
+                "现有可靠资料没有直接说明这组对象能否一起使用，"
+                "这里不根据各自介绍推导兼容性结论。"
+            )
+        else:
+            missing = "、".join(
+                _RELATION_LABELS[relation]
+                for relation in coverage.missing_relation_intents
+            )
+            parts.append(
+                f"现有审核资料暂时不足以覆盖：{missing}。"
+                "这里不补充未经审核的结论。"
+            )
+    if comparison_blocked:
+        parts.append(
+            "当前缺少部分对象的审核资料，不能据此给出区别结论。"
+        )
     if not parts:
         parts.append(
             "这类通用知识暂时没有足够信息，先不补充不确定的结论。"
@@ -87,6 +155,7 @@ def render_general_knowledge_answer(
         data=GeneralKnowledgeData(
             query=packet.query.question_meaning,
             citations=citations,
+            coverage=coverage,
             educational_only=True,
             medical_escalation=medical_escalation,
         ),

@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "防晒为什么过几个小时还要补涂？",
+    "session_id": "session_3954b291-636f-4718-bb32-a790b4b74ae5",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788114686788_rt85zmmo",
+  "request_message": "防晒为什么过几个小时还要补涂？",
+  "turn_id": "gk-sunscreen-reapplication-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "防晒为什么过几个小时还要补涂？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

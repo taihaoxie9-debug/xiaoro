@@ -20,6 +20,9 @@ from app.guide.understanding.contracts import (
     TopicCode,
 )
 from app.guide.understanding.semantic_contracts import ClarificationCode
+from app.guide.understanding.knowledge_relation_contracts import (
+    KnowledgeRelationIntent,
+)
 from app.guide.understanding.turn_meaning_contracts import (
     EXPLORE_RECOMMENDATION_BASES,
     FIT_RECOMMENDATION_BASES,
@@ -211,12 +214,19 @@ class TaskPlan(_StrictContract):
         min_length=1,
         max_length=256,
     )
+    knowledge_relation_hints: tuple[
+        KnowledgeRelationIntent, ...
+    ] = Field(
+        default_factory=tuple,
+        max_length=8,
+    )
     safety_sensitive: bool = False
     clarification: str | None = None
     clarification_code: ClarificationCode | None = None
 
     @field_validator(
         "requested_comparison_dimensions",
+        "knowledge_relation_hints",
         mode="before",
     )
     @classmethod
@@ -328,6 +338,19 @@ class TaskPlan(_StrictContract):
             raise ValueError(
                 "requested comparison dimensions must be ordered "
                 "unique values"
+            )
+        if len(self.knowledge_relation_hints) != len(
+            set(self.knowledge_relation_hints)
+        ):
+            raise ValueError(
+                "knowledge relation hints must be ordered unique"
+            )
+        if (
+            self.knowledge_relation_hints
+            and self.mode not in {"knowledge", "followup"}
+        ):
+            raise ValueError(
+                "knowledge relation hints require knowledge or followup"
             )
         if (
             self.similarity_anchor_product_id is not None

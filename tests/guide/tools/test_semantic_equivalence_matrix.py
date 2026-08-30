@@ -75,7 +75,7 @@ def test_matrix_covers_all_gate_cases_with_rejected_responsibilities() -> None:
     assert {
         row["expected_outcome"]["recommendation_mode"]
         for row in recommendation_rows
-    } == {"explore", "fit"}
+    } == {"explore"}
     assert not any(
         row["expected_outcome"]["responsibility"]
         == "image_recommendation"

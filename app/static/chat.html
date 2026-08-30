@@ -6613,6 +6613,206 @@
             return selected;
         }
 
+        function validateGeneralKnowledgePayload(payload) {
+            const fail = () => {
+                throw new Error('GUIDE_RESPONSE_CONTRACT_INVALID');
+            };
+            const hasExactKeys = (value, keys) => (
+                value
+                && typeof value === 'object'
+                && !Array.isArray(value)
+                && Object.keys(value).sort().join('\n')
+                    === [...keys].sort().join('\n')
+            );
+            const isUniqueStringList = (
+                value,
+                allowedValues = null
+            ) => (
+                Array.isArray(value)
+                && value.every(
+                    item => (
+                        typeof item === 'string'
+                        && item.trim()
+                        && (
+                            !allowedValues
+                            || allowedValues.has(item)
+                        )
+                    )
+                )
+                && new Set(value).size === value.length
+            );
+            const isSubset = (subset, superset) => (
+                subset.every(item => superset.includes(item))
+            );
+            const sameList = (left, right) => (
+                left.length === right.length
+                && left.every(
+                    (item, index) => item === right[index]
+                )
+            );
+            const payloadKeys = [
+                'query',
+                'citations',
+                'coverage',
+                'educational_only',
+                'medical_escalation'
+            ];
+            const citationKeys = [
+                'knowledge_id',
+                'title',
+                'section_title',
+                'public_excerpt',
+                'source_path',
+                'review_decision'
+            ];
+            const coverageKeys = [
+                'required_concept_ids',
+                'covered_concept_ids',
+                'required_entity_ids',
+                'covered_entity_ids',
+                'required_relation_intents',
+                'covered_relation_intents',
+                'missing_concept_ids',
+                'missing_entity_ids',
+                'missing_relation_intents',
+                'complete'
+            ];
+            const relationIntents = new Set([
+                'overview',
+                'mechanism',
+                'difference',
+                'compatibility',
+                'usage',
+                'selection',
+                'identification',
+                'safety'
+            ]);
+            const reviewDecisions = new Set([
+                'general_answer',
+                'escalation_only',
+                'product_specific_redirect'
+            ]);
+            if (
+                !hasExactKeys(payload, payloadKeys)
+                || typeof payload.query !== 'string'
+                || !payload.query.trim()
+                || payload.query.length > 4000
+                || !Array.isArray(payload.citations)
+                || payload.citations.length > 3
+                || payload.educational_only !== true
+                || typeof payload.medical_escalation !== 'boolean'
+                || !hasExactKeys(payload.coverage, coverageKeys)
+            ) {
+                fail();
+            }
+            const citationIds = new Set();
+            for (const citation of payload.citations) {
+                if (
+                    !hasExactKeys(citation, citationKeys)
+                    || typeof citation.knowledge_id !== 'string'
+                    || !/^[0-9a-f]{64}$/.test(citation.knowledge_id)
+                    || citationIds.has(citation.knowledge_id)
+                    || typeof citation.title !== 'string'
+                    || !citation.title.trim()
+                    || typeof citation.section_title !== 'string'
+                    || !citation.section_title.trim()
+                    || typeof citation.source_path !== 'string'
+                    || !/^data\/knowledge_docs\/[^/]+\.md$/.test(
+                        citation.source_path
+                    )
+                    || !reviewDecisions.has(citation.review_decision)
+                ) {
+                    fail();
+                }
+                citationIds.add(citation.knowledge_id);
+                if (
+                    citation.review_decision === 'general_answer'
+                        ? (
+                            typeof citation.public_excerpt !== 'string'
+                            || !citation.public_excerpt.trim()
+                        )
+                        : citation.public_excerpt !== null
+                ) {
+                    fail();
+                }
+            }
+            const coverage = payload.coverage;
+            const stringListNames = [
+                'required_concept_ids',
+                'covered_concept_ids',
+                'required_entity_ids',
+                'covered_entity_ids',
+                'missing_concept_ids',
+                'missing_entity_ids'
+            ];
+            if (
+                stringListNames.some(
+                    name => !isUniqueStringList(coverage[name])
+                )
+                || !isUniqueStringList(
+                    coverage.required_relation_intents,
+                    relationIntents
+                )
+                || !isUniqueStringList(
+                    coverage.covered_relation_intents,
+                    relationIntents
+                )
+                || !isUniqueStringList(
+                    coverage.missing_relation_intents,
+                    relationIntents
+                )
+                || typeof coverage.complete !== 'boolean'
+                || !isSubset(
+                    coverage.covered_concept_ids,
+                    coverage.required_concept_ids
+                )
+                || !isSubset(
+                    coverage.covered_entity_ids,
+                    coverage.required_entity_ids
+                )
+                || !isSubset(
+                    coverage.covered_relation_intents,
+                    coverage.required_relation_intents
+                )
+            ) {
+                fail();
+            }
+            const expectedMissingConcepts =
+                coverage.required_concept_ids.filter(
+                    item => !coverage.covered_concept_ids.includes(item)
+                );
+            const expectedMissingEntities =
+                coverage.required_entity_ids.filter(
+                    item => !coverage.covered_entity_ids.includes(item)
+                );
+            const expectedMissingRelations =
+                coverage.required_relation_intents.filter(
+                    item => !coverage.covered_relation_intents.includes(item)
+                );
+            if (
+                !sameList(
+                    coverage.missing_concept_ids,
+                    expectedMissingConcepts
+                )
+                || !sameList(
+                    coverage.missing_entity_ids,
+                    expectedMissingEntities
+                )
+                || !sameList(
+                    coverage.missing_relation_intents,
+                    expectedMissingRelations
+                )
+                || coverage.complete !== (
+                    !expectedMissingConcepts.length
+                    && !expectedMissingEntities.length
+                    && !expectedMissingRelations.length
+                )
+            ) {
+                fail();
+            }
+            return payload;
+        }
+
         function validateGuideTerminalPayload({
             intent,
             answerContract,
@@ -6801,6 +7001,7 @@
                 ['knowledge', 'followup'].includes(intent)
                 && generalKnowledge
             ) {
+                validateGeneralKnowledgePayload(generalKnowledge);
                 if (
                     answerContract
                     || answerData
@@ -6818,6 +7019,9 @@
                     { allowGeneralKnowledge: true }
                 );
                 return [];
+            }
+            if (generalKnowledge) {
+                fail();
             }
             if (
                 typeof intent !== 'string'
@@ -7516,6 +7720,15 @@
                     displayPitfalls(deferredPanels.pitfalls);
                 }
                 deferredPanels.pitfalls = [];
+                if (
+                    guideOwnsPresentation
+                    && deferredPanels.generalKnowledge
+                ) {
+                    displayGeneralKnowledgeCitations(
+                        deferredPanels.generalKnowledge.citations
+                    );
+                }
+                deferredPanels.generalKnowledge = null;
                 if (
                     guideOwnsPresentation
                 ) {
@@ -8952,6 +9165,33 @@
         }
 
         // 显示来源引用
+        function displayGeneralKnowledgeCitations(citations) {
+            if (!Array.isArray(citations) || !citations.length) return;
+            const seen = new Set();
+            const rows = citations
+                .filter(citation => {
+                    const knowledgeId = String(
+                        citation?.knowledge_id || ''
+                    );
+                    if (!knowledgeId || seen.has(knowledgeId)) {
+                        return false;
+                    }
+                    seen.add(knowledgeId);
+                    return true;
+                })
+                .map(citation => ({
+                    id: citation.knowledge_id,
+                    title: (
+                        `${citation.title} / ${citation.section_title}`
+                    ),
+                    snippet: (
+                        citation.public_excerpt || '仅用于边界提示'
+                    ),
+                    type: 'guide'
+                }));
+            if (rows.length) displayCitations(rows);
+        }
+
         function displayCitations(citations) {
             if (!citations || citations.length === 0) return;
             const dedupedCitations = [];

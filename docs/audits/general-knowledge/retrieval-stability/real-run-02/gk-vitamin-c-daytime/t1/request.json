@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "维C白天到底能不能用？",
+    "session_id": "session_b9457182-0ed2-49ed-8dd0-6d45dd530007",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788114761261_yal3mgf1",
+  "request_message": "维C白天到底能不能用？",
+  "turn_id": "gk-vitamin-c-daytime-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "维C白天到底能不能用？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

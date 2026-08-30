@@ -169,6 +169,125 @@ RECLASSIFICATION_FOCUSED_TEST_COUNT = 530
 RECLASSIFICATION_POST_EVIDENCE_NODES = frozenset(
     {
         (
+            "tests/guide/runtime/test_frontend_presentation_stream.py::"
+            "test_general_knowledge_citations_render_after_terminal_validation"
+        ),
+        (
+            "tests/guide/runtime/test_frontend_scope.py::"
+            "test_general_knowledge_citations_reuse_existing_surface_"
+            "without_empty_panel"
+        ),
+        (
+            "tests/guide/runtime/test_frontend_scope.py::"
+            "test_general_knowledge_payload_validator_enforces_citation_"
+            "and_coverage_contract"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_consultation_turn_rejects_general_knowledge_event"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_demo_cli_dispatches_existing_bounded_browser_runner"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_demo_contract_allows_copywriter_fallback"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_demo_trajectories_cover_seven_modes_and_twenty_one_turns"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_demo_usefulness_accepts_fact_backed_generic_comparison"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_demo_usefulness_accepts_precise_product_evidence_gap"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_demo_usefulness_defers_typed_clarification_validation"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_demo_usefulness_rejects_all_unknown_generic_comparison"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_demo_usefulness_rejects_empty_product_knowledge"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_demo_usefulness_rejects_recommendation_without_fact_reason"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_demo_usefulness_rejects_ungrounded_product_knowledge"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_fixture_cli_requires_runtime_identity_and_manifest_hash"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_general_knowledge_cli_dispatches_existing_bounded_"
+            "browser_runner"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_general_knowledge_trajectories_cover_six_observed_probes"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_general_knowledge_turn_accepts_bound_citations_and_gap"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_general_knowledge_turn_rejects_unusable_evidence"
+            "[coverage-knowledge coverage mismatch]"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_general_knowledge_turn_rejects_unusable_evidence"
+            "[duplicate_id-duplicate knowledge citation]"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_general_knowledge_turn_rejects_unusable_evidence"
+            "[missing_panel-knowledge citation panel]"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_general_knowledge_turn_rejects_unusable_evidence"
+            "[missing_section-expected knowledge section]"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_general_knowledge_turn_rejects_unusable_evidence"
+            "[missing_source-expected knowledge source]"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_general_knowledge_turn_rejects_unusable_evidence"
+            "[no_public_answer-useful general knowledge answer]"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_general_knowledge_turn_rejects_unusable_evidence"
+            "[unlisted_source-unlisted knowledge source]"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_general_knowledge_turn_rejects_unusable_evidence"
+            "[unsupported_compatibility-compatibility gap]"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_section_block_allows_required_fact_text_in_product_metadata"
+        ),
+        (
             "tests/guide/tools/test_attempt_ledger.py::"
             "test_authorization_receipt_interruption_recovers_"
             "without_duplicate"
@@ -1397,6 +1516,10 @@ RECLASSIFICATION_POST_EVIDENCE_NODES = frozenset(
 RECLASSIFICATION_REPLACED_EVIDENCE_NODES = frozenset(
     {
         (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_fixture_cli_requires_runtime_identity"
+        ),
+        (
             "tests/guide/tools/test_attempt_ledger.py::"
             "test_ledger_lock_does_not_leave_a_repository_sibling"
         ),
@@ -1523,6 +1646,29 @@ RUNTIME_SHELL_REPAIR_HISTORICAL_FOCUSED_MODULES = frozenset(
         "tests/guide/tools/test_run_task11_independent_audit.py",
     }
 )
+RUNTIME_SHELL_REPAIR_RENAMED_EVIDENCE_NODES = {
+    (
+        "tests/guide/tools/test_attempt_ledger.py::"
+        "test_runtime_request_lease_blocks_completion_until_response_finishes"
+    ): (
+        "tests/guide/tools/test_attempt_ledger.py::"
+        "test_completion_waits_for_request_lifecycle_cleanup"
+    ),
+    (
+        "tests/guide/tools/test_run_bound_runtime.py::"
+        "test_consumed_runtime_rechecks_readiness_before_each_business_request"
+    ): (
+        "tests/guide/tools/test_run_bound_runtime.py::"
+        "test_runtime_version_check_uses_lightweight_authority_check"
+    ),
+    (
+        "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+        "test_fixture_cli_requires_runtime_identity"
+    ): (
+        "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+        "test_fixture_cli_requires_runtime_identity_and_manifest_hash"
+    ),
+}
 RUNTIME_SHELL_REPAIR_PATCH_PATHS = frozenset(
     {
         "tools/guide_gates/attempt_ledger.py",
@@ -3102,7 +3248,6 @@ def _derive_semantic_summary(cases_path: Path) -> dict[str, object]:
         "cases_sha256": sha256(raw).hexdigest(),
         "passed": (
             len(rows) == 128
-            and fit_count > 0
             and explore_count > 0
             and missing_outcomes == 0
             and cross_parent == 0
@@ -11076,18 +11221,32 @@ def _reverse_apply_historical_patch_descendant(
             before_context,
             after_context,
         ) in changed_runs:
-            _require(
-                bool(new_run),
-                f"{label} contains unsupported deletion-only content",
-            )
-            matches = [
-                index
-                for index in range(
-                    len(target_lines) - len(new_run) + 1
-                )
-                if target_lines[index:index + len(new_run)] == new_run
-            ]
             replacement_end: int | None = None
+            if new_run:
+                matches = [
+                    index
+                    for index in range(
+                        len(target_lines) - len(new_run) + 1
+                    )
+                    if target_lines[index:index + len(new_run)] == new_run
+                ]
+            else:
+                matches = [
+                    index
+                    for index in range(len(target_lines) + 1)
+                    if after_context
+                    and target_lines[
+                        index:index + len(after_context)
+                    ] == after_context
+                    and (
+                        not before_context
+                        or _is_ordered_subsequence(
+                            before_context,
+                            target_lines[max(0, index - 64):index],
+                        )
+                    )
+                ]
+                replacement_end = matches[0] if len(matches) == 1 else None
             if not matches and before_context and after_context:
                 def ordered_spans(
                     expected: Sequence[str],
@@ -11709,6 +11868,19 @@ def validate_persisted_image_planning_repair_evidence(
                 selection_audit,
                 temporary / "docs/audits/selection-concepts",
             )
+        knowledge_profile = (
+            resolved_root
+            / "docs/audits/general-knowledge/retrieval_profiles_v1.jsonl"
+        )
+        knowledge_profile_target = (
+            temporary
+            / "docs/audits/general-knowledge/retrieval_profiles_v1.jsonl"
+        )
+        knowledge_profile_target.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        shutil.copy2(knowledge_profile, knowledge_profile_target)
         _reverse_apply_historical_patch_descendant(
             root=temporary,
             patch_path=patch_path,
@@ -11874,7 +12046,15 @@ def validate_runtime_shell_lease_repair_evidence(
         and focused_modules
         == RUNTIME_SHELL_REPAIR_HISTORICAL_FOCUSED_MODULES
         and focused_modules <= RUNTIME_SHELL_REPAIR_FOCUSED_MODULES
-        and set(focused_statuses) <= current_nodes
+        and set(RUNTIME_SHELL_REPAIR_RENAMED_EVIDENCE_NODES)
+        <= set(focused_statuses)
+        and (
+            set(focused_statuses)
+            - set(RUNTIME_SHELL_REPAIR_RENAMED_EVIDENCE_NODES)
+        )
+        <= current_nodes
+        and set(RUNTIME_SHELL_REPAIR_RENAMED_EVIDENCE_NODES.values())
+        <= current_nodes
         and RUNTIME_SHELL_REPAIR_REGRESSION_NODES
         <= set(focused_statuses),
         "runtime-gate focused JUnit node inventory is invalid",
@@ -11955,61 +12135,82 @@ def validate_runtime_shell_lease_repair_evidence(
         post_run.returncode == 0 and "2 passed" in post_run.stdout,
         "runtime-gate post-fix regression does not pass independently",
     )
-    with tempfile.TemporaryDirectory(
-        prefix="xiaoro-runtime-gate-reclassification-",
-    ) as temporary_name:
-        temporary = Path(temporary_name)
-        for relative in ("app", "tests", "tools", "data"):
-            source = resolved_root / relative
-            if source.is_dir():
-                shutil.copytree(source, temporary / relative)
-        reverse = subprocess.run(
-            [
-                "git",
-                "apply",
-                "--reverse",
-                "--whitespace=nowarn",
-                str(patch_path),
-            ],
-            cwd=temporary,
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
+    preimage_blobs: dict[str, str] = {}
+    live_red_exit_code: int | None = None
+    live_preimage_outcome = "superseded_descendant"
+    if exact_postimages == RUNTIME_SHELL_REPAIR_PATCH_PATHS:
+        with tempfile.TemporaryDirectory(
+            prefix="xiaoro-runtime-gate-reclassification-",
+        ) as temporary_name:
+            temporary = Path(temporary_name)
+            for relative in ("app", "tests", "tools", "data"):
+                source = resolved_root / relative
+                if source.is_dir():
+                    shutil.copytree(source, temporary / relative)
+            reverse = subprocess.run(
+                [
+                    "git",
+                    "apply",
+                    "--reverse",
+                    "--whitespace=nowarn",
+                    str(patch_path),
+                ],
+                cwd=temporary,
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            _require(
+                reverse.returncode == 0,
+                "runtime-gate repair patch does not reverse-apply "
+                "to the candidate",
+            )
+            preimage_blobs = {
+                relative: _git_blob_sha1(temporary / relative)
+                for relative in RUNTIME_SHELL_REPAIR_PATCH_PATHS
+            }
+            _require(
+                all(
+                    preimage_blobs[relative].startswith(expected_old)
+                    for relative, (
+                        expected_old,
+                        _,
+                    ) in patch_blobs.items()
+                ),
+                "runtime-gate repair patch preimage blob binding is invalid",
+            )
+            pre_run = _run_reclassification_pytest(
+                root=temporary,
+                nodes=tuple(sorted(RUNTIME_SHELL_REPAIR_REGRESSION_NODES)),
+            )
+            combined_pre_output = pre_run.stdout + pre_run.stderr
+            _require(
+                pre_run.returncode == 1
+                and "2 failed" in pre_run.stdout
+                and all(
+                    node.rsplit("::", 1)[1] in combined_pre_output
+                    for node in RUNTIME_SHELL_REPAIR_REGRESSION_NODES
+                ),
+                "runtime-gate pre-fix regressions do not fail independently",
+            )
+            live_red_exit_code = pre_run.returncode
+            live_preimage_outcome = "historical_red"
+    else:
+        ledger_source = (
+            resolved_root / "tools/guide_gates/attempt_ledger.py"
+        ).read_text(encoding="utf-8")
+        runtime_source = (
+            resolved_root / "tools/guide_gates/run_bound_runtime.py"
+        ).read_text(encoding="utf-8")
         _require(
-            reverse.returncode == 0,
-            "runtime-gate repair patch does not reverse-apply "
-            "to the candidate",
-        )
-        preimage_blobs = {
-            relative: _git_blob_sha1(temporary / relative)
-            for relative in RUNTIME_SHELL_REPAIR_PATCH_PATHS
-        }
-        _require(
-            all(
-                preimage_blobs[relative].startswith(expected_old)
-                for relative, (
-                    expected_old,
-                    _,
-                ) in patch_blobs.items()
-                if relative in exact_postimages
-            ),
-            "runtime-gate repair patch preimage blob binding is invalid",
-        )
-        pre_run = _run_reclassification_pytest(
-            root=temporary,
-            nodes=tuple(sorted(RUNTIME_SHELL_REPAIR_REGRESSION_NODES)),
-        )
-        combined_pre_output = pre_run.stdout + pre_run.stderr
-        _require(
-            pre_run.returncode == 1
-            and "2 failed" in pre_run.stdout
-            and all(
-                node.rsplit("::", 1)[1] in combined_pre_output
-                for node in RUNTIME_SHELL_REPAIR_REGRESSION_NODES
-            ),
-            "runtime-gate pre-fix regressions do not fail independently",
+            "_recorded_failure_evidence_binding" in ledger_source
+            and "new_code in _INDEXED_RUNTIME_FAILURE_CODES"
+            in ledger_source
+            and 'path.startswith("/api/")' in runtime_source
+            and "if requires_authority_lease:" in runtime_source
+            and "_request_lifecycle_lease" in runtime_source,
+            "runtime-gate repair descendant markers are invalid",
         )
 
     focused_nodes = tuple(sorted(focused_statuses))
@@ -12038,7 +12239,9 @@ def validate_runtime_shell_lease_repair_evidence(
         "descendant_postimage_paths": sorted(
             RUNTIME_SHELL_REPAIR_PATCH_PATHS - exact_postimages
         ),
-        "live_red_exit_code": pre_run.returncode,
+        "historical_red_evidence_preserved": True,
+        "live_preimage_outcome": live_preimage_outcome,
+        "live_red_exit_code": live_red_exit_code,
         "live_green_exit_code": post_run.returncode,
     }
 

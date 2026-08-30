@@ -203,10 +203,10 @@ GUIDE_PRODUCT_EVIDENCE_MANIFEST_SHA256 = (
 GUIDE_GENERAL_KNOWLEDGE_RELATIVE_PATH = (
     Path("data")
     / "guide_general_knowledge"
-    / "general_knowledge_v1_manifest.json"
+    / "general_knowledge_v2_manifest.json"
 )
 GUIDE_GENERAL_KNOWLEDGE_MANIFEST_SHA256 = (
-    "09bea87c4c56f18b982f474a42ef1ca0abd758da8b90a73a34681ec7c605ac21"
+    "b51a789c718a2193512b847a21590c9a45ad42cfb293c978abab3d72bc5f8cde"
 )
 GUIDE_SELECTION_CONCEPT_RELATIVE_PATH = (
     Path("data")

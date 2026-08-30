@@ -709,8 +709,8 @@ def _evidence(
             ).hexdigest(),
             "passed": True,
             "case_count": 128,
-            "fit_count": 1,
-            "explore_count": 33,
+            "fit_count": 0,
+            "explore_count": 34,
             "image_fit_count": 0,
             "recommendation_outcome_contract_gap_count": 0,
             "cross_parent_basis_count": 0,
@@ -4442,7 +4442,7 @@ def test_readiness_recomputes_pass_fields_instead_of_trusting_json(
     semantic = json.loads(
         evidence["semantic_summary"].read_text(encoding="utf-8")
     )
-    semantic["fit_count"] = 0
+    semantic["fit_count"] = 1
     _write_json(evidence["semantic_summary"], semantic)
 
     with pytest.raises(
@@ -4583,8 +4583,8 @@ def test_semantic_summary_is_derived_from_reviewed_matrix(
 
     assert result["passed"] is True
     assert result["case_count"] == 128
-    assert result["fit_count"] > 0
-    assert result["explore_count"] > 0
+    assert result["fit_count"] == 0
+    assert result["explore_count"] == 34
     assert result["image_fit_count"] == 0
     assert result["matrix_kind"] == "expected_contract"
     assert result["recommendation_outcome_contract_gap_count"] == 0

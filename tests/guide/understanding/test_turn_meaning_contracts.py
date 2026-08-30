@@ -187,6 +187,62 @@ def test_non_recommendation_forbids_recommendation_mode_basis() -> None:
         TurnMeaning.model_validate(payload, strict=True)
 
 
+def test_knowledge_relation_hints_are_typed_ordered_and_frozen() -> None:
+    payload = _payload()
+    payload.update(
+        {
+            "operation_hint": "knowledge",
+            "recommendation_mode": None,
+            "recommendation_count": None,
+            "recommendation_mode_basis": None,
+            "knowledge_relation_hints": [
+                "difference",
+                "compatibility",
+            ],
+        }
+    )
+
+    meaning = TurnMeaning.model_validate(payload, strict=True)
+
+    assert meaning.knowledge_relation_hints == (
+        "difference",
+        "compatibility",
+    )
+
+
+@pytest.mark.parametrize(
+    "knowledge_relation_hints",
+    (
+        ("difference", "difference"),
+        ("unsupported_relation",),
+    ),
+)
+def test_knowledge_relation_hints_reject_duplicates_and_unknown_values(
+    knowledge_relation_hints: tuple[str, ...],
+) -> None:
+    payload = _payload()
+    payload.update(
+        {
+            "operation_hint": "knowledge",
+            "recommendation_mode": None,
+            "recommendation_count": None,
+            "recommendation_mode_basis": None,
+            "knowledge_relation_hints": knowledge_relation_hints,
+        }
+    )
+
+    with pytest.raises(ValidationError):
+        TurnMeaning.model_validate(payload, strict=True)
+
+
+def test_non_knowledge_turn_forbids_knowledge_relation_hints() -> None:
+    payload = _payload()
+    payload["knowledge_relation_hints"] = ["selection"]
+
+    with pytest.raises(ValidationError, match="knowledge relation"):
+        TurnMeaning.model_validate(payload, strict=True)
+
+
 def test_turn_meaning_forbids_offsets_ids_and_state_operations() -> None:
     for field, value in (
         ("start", 0),

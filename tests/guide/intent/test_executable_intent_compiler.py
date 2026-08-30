@@ -149,6 +149,28 @@ def _context(
     )
 
 
+def test_knowledge_relation_hints_survive_executable_compilation() -> None:
+    understanding = compile_turn_meaning(
+        message="烟酰胺和A醇有什么区别，能一起用吗？",
+        meaning=_meaning(
+            operation_hint="knowledge",
+            topic_hint="serum",
+            knowledge_relation_hints=(
+                "difference",
+                "compatibility",
+            ),
+            question_meaning="比较两种活性成分并询问能否叠加",
+        ),
+        context=_context(),
+    )
+
+    assert understanding.goal is UnderstandingGoal.KNOWLEDGE
+    assert understanding.knowledge_relation_hints == (
+        "difference",
+        "compatibility",
+    )
+
+
 def _concept_catalog() -> ConceptPreferenceCatalog:
     return ConceptPreferenceCatalog(
         entries=(

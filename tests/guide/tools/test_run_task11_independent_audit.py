@@ -124,7 +124,7 @@ BOUNDED_TRAJECTORY_MESSAGES = (
     (
         "bounded-text-fit",
         "bounded-text-fit-t1",
-        "给我推荐一款 900 到 1100 元的精华，我是油敏肌，换季容易泛红",
+        "给我推荐一款最适合油敏肌、换季泛红的 900 到 1100 元精华",
     ),
     (
         "bounded-text-context",
@@ -2701,8 +2701,8 @@ def _bundle(tmp_path: Path) -> dict[str, Path]:
             ).hexdigest(),
             "passed": True,
             "case_count": 128,
-            "fit_count": 1,
-            "explore_count": 33,
+            "fit_count": 0,
+            "explore_count": 34,
             "image_fit_count": 0,
             "recommendation_outcome_contract_gap_count": 0,
             "cross_parent_basis_count": 0,

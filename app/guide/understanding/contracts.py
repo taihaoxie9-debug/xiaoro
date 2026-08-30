@@ -14,6 +14,9 @@ from pydantic import (
 )
 
 from app.guide.session_contract import SessionId
+from app.guide.understanding.knowledge_relation_contracts import (
+    KnowledgeRelationIntent,
+)
 from app.guide.understanding.turn_meaning_contracts import (
     EXPLORE_RECOMMENDATION_BASES,
     FIT_RECOMMENDATION_BASES,
@@ -479,7 +482,18 @@ class StructuredUnderstanding(_StrictContract):
         min_length=1,
         max_length=256,
     )
+    knowledge_relation_hints: tuple[
+        KnowledgeRelationIntent, ...
+    ] = Field(
+        default_factory=tuple,
+        max_length=8,
+    )
     safety_sensitive: bool = False
+
+    @field_validator("knowledge_relation_hints", mode="before")
+    @classmethod
+    def freeze_knowledge_relation_hints(cls, value: object) -> object:
+        return tuple(value) if isinstance(value, list) else value
 
     @model_validator(mode="after")
     def validate_exact_references_are_projected(self) -> Self:
@@ -554,6 +568,20 @@ class StructuredUnderstanding(_StrictContract):
                 )
             raise ValueError(
                 "recommendation mode basis must be parent-scoped"
+            )
+        if len(self.knowledge_relation_hints) != len(
+            set(self.knowledge_relation_hints)
+        ):
+            raise ValueError(
+                "knowledge relation hints must be ordered unique"
+            )
+        if (
+            self.knowledge_relation_hints
+            and self.goal
+            not in {UnderstandingGoal.KNOWLEDGE, UnderstandingGoal.FOLLOWUP}
+        ):
+            raise ValueError(
+                "knowledge relation hints require knowledge or followup"
             )
         return self
 

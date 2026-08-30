@@ -1,0 +1,27 @@
+{
+  "clarification_message_count": 0,
+  "comparison_table_count": 0,
+  "inline_product_ids": [],
+  "knowledge_citation_ids": [
+    "dd8a5c6a88b590bb984dfea902a418611a1e0c29b445ea9ae0a0214b6c1e5eb2"
+  ],
+  "knowledge_citation_panel_count": 1,
+  "legacy_message_count": 0,
+  "legacy_product_card_count": 0,
+  "presentation_mode": "general_knowledge",
+  "presentation_text": "下面先讲通用知识，不把它当作具体商品结论： 【面霜怎么选 / 怎么选】 1. **先看功能需求**：只想保湿、还是要修护屏障、或者要抗老紧致，需求不同成分不同。 2. **按肤质选质地**：油皮选清爽啫喱/乳霜，干皮选滋润膏霜，敏感肌选成分简单的修护霜。 3. **看季节调整**：同一个人夏天和冬天可能需要不同厚度的面霜。 4. **肤感和吸收**：好用的面霜应该好推开、不闷、不搓泥，长期用得下去比\"成分华丽\"更重要。",
+  "request_id": "request_1788114703970_2kq7mg1d",
+  "section_blocks": [
+    {
+      "kind": "general_knowledge",
+      "text": "下面先讲通用知识，不把它当作具体商品结论： 【面霜怎么选 / 怎么选】 1. **先看功能需求**：只想保湿、还是要修护屏障、或者要抗老紧致，需求不同成分不同。 2. **按肤质选质地**：油皮选清爽啫喱/乳霜，干皮选滋润膏霜，敏感肌选成分简单的修护霜。 3. **看季节调整**：同一个人夏天和冬天可能需要不同厚度的面霜。 4. **肤感和吸收**：好用的面霜应该好推开、不闷、不搓泥，长期用得下去比\"成分华丽\"更重要。"
+    }
+  ],
+  "shelf_product_ids": [],
+  "terminal_kind": "presentation",
+  "turn_presentation_root_count": 1,
+  "visible_product_ids": [],
+  "visible_section_kinds": [
+    "general_knowledge"
+  ]
+}

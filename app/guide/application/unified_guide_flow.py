@@ -543,7 +543,13 @@ class UnifiedGuideFlow:
                 decision=route,
                 current_snapshot=snapshot,
                 routing_evidence=PreRoutingEvidence(
-                    query=retrieval_query,
+                    query=(
+                        OpaqueRetrievalQuery(
+                            value=turn.question_summary.strip()
+                        )
+                        if route.processor == "general_knowledge"
+                        else retrieval_query
+                    ),
                     product_evidence_search=product_evidence_search,
                     prepared_pending_turn=prepared_pending_turn,
                     conversation_version=turn.conversation_version,

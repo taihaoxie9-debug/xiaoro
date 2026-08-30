@@ -356,6 +356,8 @@ def _build_winner_presentation(
 ) -> WinnerPresentation:
     if packet.responsibility is Responsibility.RECOMMENDATION:
         if packet.recommendation_mode == "explore":
+            if packet.winner_status == "INSUFFICIENT_FOR_WINNER":
+                return WinnerPresentation(status="insufficient")
             return WinnerPresentation(status="not_applicable")
         if (
             packet.recommendation_mode != "fit"

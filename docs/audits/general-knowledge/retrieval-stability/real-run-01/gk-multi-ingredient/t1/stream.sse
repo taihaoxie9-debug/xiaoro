@@ -1,0 +1,21 @@
+event: start
+data: {"session_id":"session_2b04edd5-c0a3-4505-ba6b-8fe7a4f402a5"}
+
+event: stage
+data: {"message":"已提取明确预算、品类和适配条件。","status":"active","stage":"understanding"}
+
+event: intent
+data: {"intent":"knowledge","entities":{},"scenario_intent":"knowledge","guide":true}
+
+event: stage
+data: {"message":"已检索审核过的通用知识资料。","status":"active","stage":"retrieval"}
+
+event: general_knowledge
+data: {"query":"烟酰胺和A醇有什么区别，能否一起使用","citations":[{"knowledge_id":"206aa66156025d9b9cf1d346a4d3684d1f500fde8b806ea7869eb5bb5e231775","title":"烟酰胺适合谁：美白、控油、修护屏障一篇说清","section_title":"关键成分/原理","public_excerpt":"- **美白提亮**：烟酰胺能抑制黑色素从黑素细胞向角质细胞的转运，简单说就是\"拦截色素往上跑\"，从而让肤色看起来更均匀透亮。\n- **控油**：它参与调节皮脂代谢，有助于减少多余油脂分泌。\n- **修护屏障**：促进皮肤自身合成神经酰胺等脂质，让\"砖墙结构\"更牢固，皮肤更不容易干、不容易敏感。\n- **抗氧化**：作为辅酶前体参与皮肤的能量代谢和抗氧化过程，对抗初老有辅助意义。","source_path":"data/knowledge_docs/13-烟酰胺适合谁.md","review_decision":"general_answer"},{"knowledge_id":"fcbaf3940f57ab46a32db9427e3d97aa38e03a96ad2caac8c99ee6ec098771b9","title":"视黄醇（A醇）适合谁：抗老抗痘的\"黄金成分\"怎么用才不翻车","section_title":"关键成分/原理","public_excerpt":"- **抗老原理**：A醇进入皮肤后转化为视黄酸发挥作用，能促进胶原蛋白生成、加速表皮更新，从而淡化细纹、改善紧致和肤质。\n- **抗痘原理**：它能调节角质代谢、疏通堵塞的毛囊，减少闭口和粉刺生成。\n- **浓度与刺激成正比**：浓度越高、起效越快，但刺激和\"建立耐受\"的难度也越大，所以才需要循序渐进。","source_path":"data/knowledge_docs/14-视黄醇A醇适合谁.md","review_decision":"general_answer"}],"coverage":{"required_concept_ids":["ingredient.niacinamide","ingredient.retinol"],"covered_concept_ids":["ingredient.niacinamide","ingredient.retinol"],"required_entity_ids":["ingredient.niacinamide","ingredient.retinol"],"covered_entity_ids":["ingredient.niacinamide","ingredient.retinol"],"required_relation_intents":["difference","compatibility"],"covered_relation_intents":["difference"],"missing_concept_ids":[],"missing_entity_ids":[],"missing_relation_intents":["compatibility"],"complete":false},"educational_only":true,"medical_escalation":false}
+
+event: presentation_contract
+data: {"responsibility":"general_knowledge","mode":"general_knowledge","recommendation_mode":null,"copy_source":"authoritative","sections":[{"kind":"general_knowledge","copy_text":"下面先讲通用知识，不把它当作具体商品结论：\n\n【烟酰胺适合谁：美白、控油、修护屏障一篇说清 / 关键成分/原理】\n- **美白提亮**：烟酰胺能抑制黑色素从黑素细胞向角质细胞的转运，简单说就是\"拦截色素往上跑\"，从而让肤色看起来更均匀透亮。\n- **控油**：它参与调节皮脂代谢，有助于减少多余油脂分泌。\n- **修护屏障**：促进皮肤自身合成神经酰胺等脂质，让\"砖墙结构\"更牢固，皮肤更不容易干、不容易敏感。\n- **抗氧化**：作为辅酶前体参与皮肤的能量代谢和抗氧化过程，对抗初老有辅助意义。\n\n【视黄醇（A醇）适合谁：抗老抗痘的\"黄金成分\"怎么用才不翻车 / 关键成分/原理】\n- **抗老原理**：A醇进入皮肤后转化为视黄酸发挥作用，能促进胶原蛋白生成、加速表皮更新，从而淡化细纹、改善紧致和肤质。\n- **抗痘原理**：它能调节角质代谢、疏通堵塞的毛囊，减少闭口和粉刺生成。\n- **浓度与刺激成正比**：浓度越高、起效越快，但刺激和\"建立耐受\"的难度也越大，所以才需要循序渐进。\n\n现有可靠资料没有直接说明这组对象能否一起使用，这里不根据各自介绍推导兼容性结论。","used_fact_ids":[],"used_constraint_ids":[],"advisor_reason":null,"advisor_used_fact_ids":[],"advisor_used_constraint_ids":[],"slot_id":null,"product_id":null,"direct_facts":[]}],"requested_comparison_dimensions":[],"comparison_rows":[],"winner":{"status":"not_applicable","winner_product_id":null,"reason":null,"fact_ids":[],"dimension_ids":[],"tie_reason":null},"visible_product_ids":[],"compact_tags":[],"card_display":{"mode":"none","visible_product_ids":[],"max_cards":0,"reason":null},"telemetry":{"provider":"reviewed_assets","model":"deterministic","prompt_tokens":0,"completion_tokens":0,"total_tokens":0,"latency_ms":0.0,"fallback_reason":null}}
+
+event: end
+data: {"conversation_version":1}
+

@@ -388,6 +388,41 @@ def test_product_question_plan_carries_unrestricted_meaning() -> None:
     assert not task.safety_sensitive
 
 
+def test_general_knowledge_plan_carries_relation_hints() -> None:
+    understanding = StructuredUnderstanding(
+        goal=UnderstandingGoal.KNOWLEDGE,
+        topic=TopicCode.SERUM,
+        observations=[],
+        exact_constraints=[],
+        preference_drafts=[],
+        semantic_proposals=[],
+        signal_trace=[],
+        references=[],
+        product_mentions=[],
+        image_references=[],
+        uncertainties=[],
+        confidence=1.0,
+        knowledge_relation_hints=(
+            "difference",
+            "compatibility",
+        ),
+        question_meaning="比较两种活性成分并询问能否叠加",
+        safety_sensitive=False,
+    )
+
+    task = plan()(
+        understanding,
+        responsibility=Responsibility.GENERAL_KNOWLEDGE,
+        message="烟酰胺和A醇有什么区别，能一起用吗？",
+    )
+
+    assert task.mode == "knowledge"
+    assert task.knowledge_relation_hints == (
+        "difference",
+        "compatibility",
+    )
+
+
 def test_resolved_safety_question_executes_fail_closed_evidence_path() -> None:
     understanding = StructuredUnderstanding(
         goal=UnderstandingGoal.KNOWLEDGE,

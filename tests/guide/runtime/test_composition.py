@@ -54,7 +54,7 @@ EXPECTED_PRODUCT_EVIDENCE_MANIFEST_SHA256 = (
     "ca5cee9dc0e70e64f3e30b2faf7aed35d45fae45272a299c540bfb79d071b351"
 )
 EXPECTED_GENERAL_KNOWLEDGE_MANIFEST_SHA256 = (
-    "09bea87c4c56f18b982f474a42ef1ca0abd758da8b90a73a34681ec7c605ac21"
+    "b51a789c718a2193512b847a21590c9a45ad42cfb293c978abab3d72bc5f8cde"
 )
 EXPECTED_SELECTION_CONCEPT_MANIFEST_SHA256 = (
     "2783fb241c5f3be60bcb70425e67b20df65bb03af82bd2b62c3d75875a7e2f95"
@@ -379,7 +379,7 @@ def test_general_knowledge_manifest_lock_is_available_to_runtime() -> None:
     assert composition.GUIDE_GENERAL_KNOWLEDGE_RELATIVE_PATH == (
         Path("data")
         / "guide_general_knowledge"
-        / "general_knowledge_v1_manifest.json"
+        / "general_knowledge_v2_manifest.json"
     )
     assert composition.GUIDE_GENERAL_KNOWLEDGE_MANIFEST_SHA256 == (
         EXPECTED_GENERAL_KNOWLEDGE_MANIFEST_SHA256
@@ -388,6 +388,8 @@ def test_general_knowledge_manifest_lock_is_available_to_runtime() -> None:
 
     assert isinstance(assets, GeneralKnowledgeAssets)
     assert len(assets.blocks) == 209
+    assert all(block.primary_concept_ids for block in assets.blocks)
+    assert all(block.relation_intents for block in assets.blocks)
     assert (
         assets.manifest.manifest_sha256
         == EXPECTED_GENERAL_KNOWLEDGE_MANIFEST_SHA256

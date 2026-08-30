@@ -1173,6 +1173,136 @@ def test_citation_navigation_has_no_inline_backend_javascript() -> None:
     )
 
 
+def test_general_knowledge_payload_validator_enforces_citation_and_coverage_contract() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    validator = _javascript_function_source(
+        html,
+        "function validateGeneralKnowledgePayload(payload)",
+        "\n\n        function validateGuideTerminalPayload",
+    )
+    result = _execute_node_json(
+        f"""
+{validator}
+const base = {{
+  query: '烟酰胺和A醇有什么区别，能一起用吗？',
+  citations: [
+    {{
+      knowledge_id: '{"a" * 64}',
+      title: '烟酰胺适合谁',
+      section_title: '关键成分/原理',
+      public_excerpt: '烟酰胺可辅助控油和修护。',
+      source_path: 'data/knowledge_docs/13-烟酰胺适合谁.md',
+      review_decision: 'general_answer',
+    }},
+    {{
+      knowledge_id: '{"b" * 64}',
+      title: '视黄醇适合谁',
+      section_title: '避雷与注意',
+      public_excerpt: null,
+      source_path: 'data/knowledge_docs/14-视黄醇A醇适合谁.md',
+      review_decision: 'escalation_only',
+    }},
+  ],
+  coverage: {{
+    required_concept_ids: ['ingredient'],
+    covered_concept_ids: ['ingredient'],
+    required_entity_ids: [
+      'ingredient.niacinamide',
+      'ingredient.retinol',
+    ],
+    covered_entity_ids: [
+      'ingredient.niacinamide',
+      'ingredient.retinol',
+    ],
+    required_relation_intents: ['difference', 'compatibility'],
+    covered_relation_intents: ['difference'],
+    missing_concept_ids: [],
+    missing_entity_ids: [],
+    missing_relation_intents: ['compatibility'],
+    complete: false,
+  }},
+  educational_only: true,
+  medical_escalation: true,
+}};
+const invalid = [];
+const expectInvalid = (mutate) => {{
+  const payload = JSON.parse(JSON.stringify(base));
+  mutate(payload);
+  try {{
+    validateGeneralKnowledgePayload(payload);
+    invalid.push(false);
+  }} catch (error) {{
+    invalid.push(error.message === 'GUIDE_RESPONSE_CONTRACT_INVALID');
+  }}
+}};
+expectInvalid(payload => {{
+  payload.citations[1].knowledge_id = payload.citations[0].knowledge_id;
+}});
+expectInvalid(payload => {{
+  payload.citations[0].knowledge_id = '{"A" * 64}';
+}});
+expectInvalid(payload => {{
+  payload.citations[0].public_excerpt = null;
+}});
+expectInvalid(payload => {{
+  payload.citations[1].public_excerpt = '不该公开';
+}});
+expectInvalid(payload => {{
+  payload.coverage.covered_entity_ids.push('ingredient.niacinamide');
+}});
+expectInvalid(payload => {{
+  payload.coverage.missing_relation_intents = [];
+}});
+expectInvalid(payload => {{
+  payload.coverage.complete = true;
+}});
+process.stdout.write(JSON.stringify({{
+  valid: validateGeneralKnowledgePayload(base) === base,
+  invalid,
+}}));
+"""
+    )
+
+    assert result == {
+        "valid": True,
+        "invalid": [True, True, True, True, True, True, True],
+    }
+
+
+def test_general_knowledge_citations_reuse_existing_surface_without_empty_panel() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    renderer = _javascript_function_source(
+        html,
+        "function displayGeneralKnowledgeCitations(citations)",
+        "\n\n        function displayCitations",
+    )
+    result = _execute_node_json(
+        f"""
+const calls = [];
+function displayCitations(rows) {{
+  calls.push(rows);
+}}
+{renderer}
+const citation = {{
+  knowledge_id: '{"c" * 64}',
+  title: '防晒怎么选',
+  section_title: '避雷与注意',
+  public_excerpt: null,
+}};
+displayGeneralKnowledgeCitations([]);
+displayGeneralKnowledgeCitations([citation, citation]);
+process.stdout.write(JSON.stringify(calls));
+"""
+    )
+
+    assert result == [[{
+        "id": "c" * 64,
+        "title": "防晒怎么选 / 避雷与注意",
+        "snippet": "仅用于边界提示",
+        "type": "guide",
+    }]]
+
+
 def test_history_navigation_has_no_inline_persisted_javascript() -> None:
     html = CHAT_HTML.read_text(encoding="utf-8")
     renderer_body = _javascript_function_source(
@@ -1723,6 +1853,7 @@ async function runCase(GUIDE_RUNTIME_MODE, guideOwned) {{
   const addFeedbackButtons = () => {{}};
   const aiDiv = {{}};
   const flushDeferredPanels = () => {{}};
+  const autoScrollToBottom = () => {{}};
   const saveCurrentSnapshot = () => {{}};
   const sessionTitle = 'session';
   const truncateText = value => value;

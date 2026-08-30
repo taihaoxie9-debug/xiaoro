@@ -36,6 +36,7 @@ def _payload() -> dict[str, object]:
         "preference_candidates": [],
         "constraint_changes": [],
         "relative_candidates": [],
+        "knowledge_relation_hints": [],
         "consultation_hypothesis": None,
         "next_observation_gap": None,
         "question_meaning": "询问烟酰胺作用",

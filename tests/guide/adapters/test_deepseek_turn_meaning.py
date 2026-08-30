@@ -66,6 +66,7 @@ def _payload(**updates) -> dict[str, object]:
         ],
         "constraint_changes": [],
         "relative_candidates": [],
+        "knowledge_relation_hints": [],
         "consultation_hypothesis": None,
         "next_observation_gap": None,
         "question_meaning": "推荐清爽防晒",
@@ -234,6 +235,45 @@ def test_deepseek_turn_meaning_uses_strict_tool_arguments_contract() -> None:
         "profile_match_choice",
         "best_among_candidates",
     }
+    relation_schema = parameters["properties"][
+        "knowledge_relation_hints"
+    ]
+    assert relation_schema["type"] == "array"
+    assert set(relation_schema["items"]["enum"]) == {
+        "overview",
+        "mechanism",
+        "difference",
+        "compatibility",
+        "usage",
+        "selection",
+        "identification",
+        "safety",
+    }
+
+
+def test_deepseek_turn_meaning_accepts_multiple_knowledge_relations() -> None:
+    payload = _payload(
+        operation_hint="knowledge",
+        recommendation_mode=None,
+        recommendation_count=None,
+        recommendation_mode_basis=None,
+        preference_candidates=[],
+        knowledge_relation_hints=["difference", "compatibility"],
+        question_meaning="比较烟酰胺和视黄醇并询问能否叠加",
+    )
+    transport = SequenceTransport([
+        _response(json.dumps(payload, ensure_ascii=False))
+    ])
+
+    result = _adapter(transport).propose_with_result(
+        "烟酰胺和A醇有什么区别，能一起用吗？",
+        _context(),
+    )
+
+    assert result.meaning.knowledge_relation_hints == (
+        "difference",
+        "compatibility",
+    )
 
 
 def test_strict_tool_schema_scopes_image_similarity_explore_basis() -> None:

@@ -1,0 +1,133 @@
+{
+  "base_url": "http://127.0.0.1:8842",
+  "console_error_count": 0,
+  "coverage_mismatch_count": 0,
+  "frontend_contract_violation_count": 0,
+  "invalid_clarification_count": 0,
+  "passed": true,
+  "passed_turn_count": 6,
+  "schema_version": "guide-mainline-contract-browser-audit-v1",
+  "trajectories": [
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "gk-multi-ingredient",
+      "turn_count": 1,
+      "turns": [
+        {
+          "directory": "gk-multi-ingredient/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "gk-sensitive-identification",
+      "turn_count": 1,
+      "turns": [
+        {
+          "directory": "gk-sensitive-identification/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "gk-acid-active-reaction",
+      "turn_count": 1,
+      "turns": [
+        {
+          "directory": "gk-acid-active-reaction/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "gk-sunscreen-reapplication",
+      "turn_count": 1,
+      "turns": [
+        {
+          "directory": "gk-sunscreen-reapplication/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "gk-vitamin-c-daytime",
+      "turn_count": 1,
+      "turns": [
+        {
+          "directory": "gk-vitamin-c-daytime/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "gk-oily-summer-moisturizer",
+      "turn_count": 1,
+      "turns": [
+        {
+          "directory": "gk-oily-summer-moisturizer/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        }
+      ]
+    }
+  ],
+  "trajectory_count": 6,
+  "trajectory_set": "general_knowledge",
+  "turn_count": 6,
+  "viewport": "desktop",
+  "wrong_knowledge_section_count": 0,
+  "wrong_knowledge_source_count": 0,
+  "wrong_responsibility_count": 0
+}

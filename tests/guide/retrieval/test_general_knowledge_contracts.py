@@ -7,10 +7,14 @@ from pydantic import ValidationError
 
 from app.guide.retrieval.general_knowledge_contracts import (
     GeneralKnowledgeBlock,
+    GeneralKnowledgeCoverage,
     GeneralKnowledgeDocument,
     GeneralKnowledgeHit,
     GeneralKnowledgePacket,
     GeneralKnowledgeQuery,
+    GeneralKnowledgeRetrievalProfile,
+    KnowledgeEntityMention,
+    KnowledgeQuerySpec,
     general_knowledge_id,
 )
 
@@ -316,4 +320,115 @@ def test_query_and_packet_order_are_deterministic() -> None:
         GeneralKnowledgePacket(
             query=query,
             hits=(second, first),
+        )
+
+
+def test_typed_query_and_coverage_contracts_are_strict() -> None:
+    query = KnowledgeQuerySpec(
+        raw_query="烟酰胺和A醇有什么区别",
+        question_meaning="比较烟酰胺和视黄醇",
+        concept_ids=(
+            "ingredient.niacinamide",
+            "ingredient.retinol",
+        ),
+        entity_mentions=(
+            KnowledgeEntityMention(
+                entity_id="ingredient.niacinamide",
+                raw_text="烟酰胺",
+            ),
+            KnowledgeEntityMention(
+                entity_id="ingredient.retinol",
+                raw_text="A醇",
+            ),
+        ),
+        relation_intents=("difference",),
+        safety_sensitive=False,
+        prior_knowledge_ids=(),
+        top_k=3,
+    )
+    coverage = GeneralKnowledgeCoverage(
+        required_concept_ids=query.concept_ids,
+        covered_concept_ids=query.concept_ids,
+        required_entity_ids=tuple(
+            item.entity_id for item in query.entity_mentions
+        ),
+        covered_entity_ids=tuple(
+            item.entity_id for item in query.entity_mentions
+        ),
+        required_relation_intents=query.relation_intents,
+        covered_relation_intents=query.relation_intents,
+        missing_concept_ids=(),
+        missing_entity_ids=(),
+        missing_relation_intents=(),
+        complete=True,
+    )
+
+    assert coverage.complete
+    with pytest.raises(ValidationError, match="ordered unique"):
+        KnowledgeQuerySpec.model_validate(
+            {
+                **query.model_dump(mode="python"),
+                "relation_intents": (
+                    "difference",
+                    "difference",
+                ),
+            },
+            strict=True,
+        )
+
+
+def test_coverage_complete_must_match_missing_requirements() -> None:
+    with pytest.raises(ValidationError, match="complete"):
+        GeneralKnowledgeCoverage(
+            required_concept_ids=("ingredient.retinol",),
+            covered_concept_ids=(),
+            required_entity_ids=("ingredient.retinol",),
+            covered_entity_ids=(),
+            required_relation_intents=("usage",),
+            covered_relation_intents=(),
+            missing_concept_ids=("ingredient.retinol",),
+            missing_entity_ids=("ingredient.retinol",),
+            missing_relation_intents=("usage",),
+            complete=True,
+        )
+
+
+def test_retrieval_profile_requires_complete_typed_section_metadata() -> None:
+    profile = GeneralKnowledgeRetrievalProfile(
+        source_path="data/knowledge_docs/06-防晒怎么选.md",
+        primary_concept_ids=("category", "category.sunscreen"),
+        primary_entity_ids=(),
+        section_relations={
+            "防晒怎么选": ("overview",),
+            "怎么选": ("selection", "usage"),
+            "关键成分/原理": ("mechanism",),
+            "避雷与注意": ("compatibility", "safety", "usage"),
+            "可以考虑的商品类型": ("selection",),
+        },
+    )
+
+    assert profile.primary_concept_ids == (
+        "category",
+        "category.sunscreen",
+    )
+    assert profile.section_relations["避雷与注意"] == (
+        "compatibility",
+        "safety",
+        "usage",
+    )
+
+    with pytest.raises(ValidationError, match="ordered unique"):
+        GeneralKnowledgeRetrievalProfile(
+            source_path="data/knowledge_docs/06-防晒怎么选.md",
+            primary_concept_ids=("category", "category"),
+            primary_entity_ids=(),
+            section_relations={"防晒怎么选": ("overview",)},
+        )
+
+    with pytest.raises(ValidationError, match="section relation"):
+        GeneralKnowledgeRetrievalProfile(
+            source_path="data/knowledge_docs/06-防晒怎么选.md",
+            primary_concept_ids=("category", "category.sunscreen"),
+            primary_entity_ids=(),
+            section_relations={"防晒怎么选": ()},
         )

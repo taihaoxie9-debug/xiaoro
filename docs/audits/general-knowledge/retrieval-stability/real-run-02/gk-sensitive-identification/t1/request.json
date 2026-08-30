@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "怎么判断自己是不是敏感肌？",
+    "session_id": "session_0ee828c8-b09e-4e31-ae9a-116daa8fa743",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788114735466_4viela74",
+  "request_message": "怎么判断自己是不是敏感肌？",
+  "turn_id": "gk-sensitive-identification-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "怎么判断自己是不是敏感肌？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

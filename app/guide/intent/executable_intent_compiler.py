@@ -1262,6 +1262,7 @@ def compile_turn_meaning(
         uncertainties=issues,
         confidence=0.0 if issues else 1.0,
         question_meaning=meaning.question_meaning,
+        knowledge_relation_hints=meaning.knowledge_relation_hints,
         safety_sensitive=meaning.safety_language == "safety",
         semantic_authoritative=True,
     )

@@ -1,0 +1,30 @@
+{
+  "clarification_message_count": 0,
+  "comparison_table_count": 0,
+  "inline_product_ids": [],
+  "knowledge_citation_ids": [],
+  "knowledge_citation_panel_count": 0,
+  "legacy_message_count": 0,
+  "legacy_product_card_count": 0,
+  "presentation_mode": "consultation",
+  "presentation_text": "当前观察\n\n以下观察只基于当前已提供的信息，不替代诊断或治疗建议。\n\n请告诉我现在是否有持续红肿、明显疼痛、破皮或渗出的情况，以便进一步判断。",
+  "request_id": "request_1788114743351_lm6bmqs3",
+  "section_blocks": [
+    {
+      "kind": "observation",
+      "text": "当前观察\n\n以下观察只基于当前已提供的信息，不替代诊断或治疗建议。"
+    },
+    {
+      "kind": "summary",
+      "text": "请告诉我现在是否有持续红肿、明显疼痛、破皮或渗出的情况，以便进一步判断。"
+    }
+  ],
+  "shelf_product_ids": [],
+  "terminal_kind": "presentation",
+  "turn_presentation_root_count": 1,
+  "visible_product_ids": [],
+  "visible_section_kinds": [
+    "observation",
+    "summary"
+  ]
+}

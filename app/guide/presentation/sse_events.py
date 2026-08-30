@@ -52,6 +52,9 @@ from app.guide.understanding.consultation_questions import (
     ConsultationQuestion,
 )
 from app.guide.understanding.semantic_contracts import ClarificationCode
+from app.guide.understanding.knowledge_relation_contracts import (
+    KnowledgeRelationIntent,
+)
 
 
 class _Strict(BaseModel):
@@ -406,9 +409,74 @@ class GeneralKnowledgeCitationData(_Strict):
         return self
 
 
+class GeneralKnowledgeCoverageData(_Strict):
+    required_concept_ids: list[str]
+    covered_concept_ids: list[str]
+    required_entity_ids: list[str]
+    covered_entity_ids: list[str]
+    required_relation_intents: list[KnowledgeRelationIntent]
+    covered_relation_intents: list[KnowledgeRelationIntent]
+    missing_concept_ids: list[str]
+    missing_entity_ids: list[str]
+    missing_relation_intents: list[KnowledgeRelationIntent]
+    complete: bool
+
+    @model_validator(mode="after")
+    def validate_coverage(self) -> Self:
+        for name in (
+            "required_concept_ids",
+            "covered_concept_ids",
+            "required_entity_ids",
+            "covered_entity_ids",
+            "required_relation_intents",
+            "covered_relation_intents",
+            "missing_concept_ids",
+            "missing_entity_ids",
+            "missing_relation_intents",
+        ):
+            values = getattr(self, name)
+            if len(values) != len(set(values)):
+                raise ValueError(
+                    "knowledge coverage values must be unique"
+                )
+        expected_missing_concepts = [
+            value
+            for value in self.required_concept_ids
+            if value not in self.covered_concept_ids
+        ]
+        expected_missing_entities = [
+            value
+            for value in self.required_entity_ids
+            if value not in self.covered_entity_ids
+        ]
+        expected_missing_relations = [
+            value
+            for value in self.required_relation_intents
+            if value not in self.covered_relation_intents
+        ]
+        if (
+            self.missing_concept_ids != expected_missing_concepts
+            or self.missing_entity_ids != expected_missing_entities
+            or self.missing_relation_intents != expected_missing_relations
+        ):
+            raise ValueError(
+                "knowledge coverage missing requirements are inconsistent"
+            )
+        if self.complete is not (
+            not expected_missing_concepts
+            and not expected_missing_entities
+            and not expected_missing_relations
+        ):
+            raise ValueError(
+                "knowledge coverage complete flag is inconsistent"
+            )
+        return self
+
+
 class GeneralKnowledgeData(_Strict):
     query: str = Field(min_length=1, max_length=4000)
     citations: list[GeneralKnowledgeCitationData] = Field(max_length=3)
+    coverage: GeneralKnowledgeCoverageData
     educational_only: Literal[True] = True
     medical_escalation: bool
 

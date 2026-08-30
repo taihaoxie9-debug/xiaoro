@@ -451,7 +451,10 @@ class PublicPresentationContract(_StrictFrozen):
             )
         if self.responsibility is Responsibility.RECOMMENDATION:
             if self.recommendation_mode == "explore":
-                if self.winner.status != "not_applicable":
+                if self.winner.status not in {
+                    "insufficient",
+                    "not_applicable",
+                }:
                     raise ValueError(
                         "explore recommendation forbids winner outcome"
                     )

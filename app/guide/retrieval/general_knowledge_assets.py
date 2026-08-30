@@ -102,7 +102,10 @@ def load_general_knowledge_assets(
         raise GeneralKnowledgeAssetIntegrityError(
             "general knowledge manifest contract is invalid"
         ) from exc
-    if manifest_file.name != "general_knowledge_v1_manifest.json":
+    asset_version = manifest.schema_version.rsplit("-", 1)[-1]
+    if manifest_file.name != (
+        f"general_knowledge_{asset_version}_manifest.json"
+    ):
         raise GeneralKnowledgeAssetIntegrityError(
             "general knowledge manifest filename is invalid"
         )
@@ -119,7 +122,8 @@ def load_general_knowledge_assets(
             "general knowledge block JSONL SHA mismatch"
         )
     expected_blocks_name = (
-        f"general_knowledge_v1.{manifest.blocks_sha256}.jsonl"
+        f"general_knowledge_{asset_version}."
+        f"{manifest.blocks_sha256}.jsonl"
     )
     if blocks_path.name != expected_blocks_name:
         raise GeneralKnowledgeAssetIntegrityError(
@@ -150,6 +154,16 @@ def load_general_knowledge_assets(
             raise GeneralKnowledgeAssetIntegrityError(
                 "rejected general knowledge block was published"
             )
+        if (
+            manifest.schema_version == "guide-general-knowledge-v2"
+            and (
+                not block.primary_concept_ids
+                or not block.relation_intents
+            )
+        ):
+            raise GeneralKnowledgeAssetIntegrityError(
+                "v2 general knowledge block lacks retrieval metadata"
+            )
         blocks.append(block)
     expected_order = sorted(
         blocks,
@@ -170,6 +184,20 @@ def load_general_knowledge_assets(
         if repo_root is not None
         else manifest_file.resolve().parents[2]
     )
+    if manifest.retrieval_profile_path is not None:
+        profile_path = root / manifest.retrieval_profile_path
+        try:
+            profile_bytes = profile_path.read_bytes()
+        except OSError as exc:
+            raise GeneralKnowledgeAssetIntegrityError(
+                "general knowledge retrieval profile is unavailable"
+            ) from exc
+        if hashlib.sha256(profile_bytes).hexdigest() != (
+            manifest.retrieval_profile_sha256
+        ):
+            raise GeneralKnowledgeAssetIntegrityError(
+                "general knowledge retrieval profile SHA mismatch"
+            )
     source_identity: dict[
         str,
         tuple[str, str, str],

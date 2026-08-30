@@ -38,6 +38,9 @@ from app.guide.understanding.contracts import (
     UnderstandingGoal,
 )
 from app.guide.understanding.semantic_contracts import ClarificationCode
+from app.guide.understanding.knowledge_relation_contracts import (
+    KnowledgeRelationIntent,
+)
 from app.guide.understanding.exact_parsing import (
     parse_exact_constraints,
     parse_hard_category_exclusions,
@@ -230,6 +233,9 @@ def plan_task(
                 understanding
             ),
             question_meaning=understanding.question_meaning,
+            knowledge_relation_hints=(
+                understanding.knowledge_relation_hints
+            ),
             safety_sensitive=understanding.safety_sensitive,
         )
     if execution_goal in {
@@ -248,6 +254,9 @@ def plan_task(
                 understanding
             ),
             question_meaning=understanding.question_meaning,
+            knowledge_relation_hints=(
+                understanding.knowledge_relation_hints
+            ),
             safety_sensitive=understanding.safety_sensitive,
             requested_comparison_dimensions=(
                 _current_comparison_dimensions(
@@ -707,6 +716,7 @@ def _plan_semantic_task(
     relative_requirements: list[RelativeRequirement],
     requested_comparison_dimensions: tuple[str, ...],
     question_meaning: str | None,
+    knowledge_relation_hints: tuple[KnowledgeRelationIntent, ...],
     safety_sensitive: bool,
 ) -> TaskPlan:
     if (
@@ -783,6 +793,7 @@ def _plan_semantic_task(
             requested_comparison_dimensions
         ),
         question_meaning=question_meaning,
+        knowledge_relation_hints=knowledge_relation_hints,
         safety_sensitive=safety_sensitive,
     )
 

@@ -58,7 +58,7 @@ _BOUNDED_TRAJECTORY_CONTRACT = (
     (
         "bounded-text-fit",
         "bounded-text-fit-t1",
-        "给我推荐一款 900 到 1100 元的精华，我是油敏肌，换季容易泛红",
+        "给我推荐一款最适合油敏肌、换季泛红的 900 到 1100 元精华",
     ),
     (
         "bounded-text-context",

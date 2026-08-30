@@ -929,6 +929,50 @@ def test_chat_uses_structured_stream_without_second_markdown_typewriter() -> Non
     ) in finalize
 
 
+def test_general_knowledge_citations_render_after_terminal_validation() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    validator_start = html.index(
+        "function validateGuideTerminalPayload({"
+    )
+    validator_end = html.index(
+        "\n\n        // 发送流式消息",
+        validator_start,
+    )
+    validator = html[validator_start:validator_end]
+    stream_start = html.index("async function sendStreamingMessage(")
+    stream_end = html.index(
+        "\n        function buildDetailedProductReason",
+        stream_start,
+    )
+    stream = html[stream_start:stream_end]
+    flush_start = stream.index("const flushDeferredPanels = () =>")
+    flush_end = stream.index(
+        "\n\n            const resolveTypewriterIfIdle",
+        flush_start,
+    )
+    flush = stream[flush_start:flush_end]
+    finalize_start = stream.index(
+        "const finalizeAfterTypewriter = async () =>"
+    )
+    finalize_end = stream.index("const renderStage =", finalize_start)
+    finalize = stream[finalize_start:finalize_end]
+
+    assert "validateGeneralKnowledgePayload(generalKnowledge)" in validator
+    assert (
+        "displayGeneralKnowledgeCitations(\n"
+        "                        deferredPanels.generalKnowledge.citations\n"
+        "                    );"
+    ) in flush
+    assert (
+        flush.index("displayGeneralKnowledgeCitations(")
+        < flush.index("deferredPanels.generalKnowledge = null")
+    )
+    assert (
+        finalize.index("flushDeferredPanels();")
+        < finalize.index("autoScrollToBottom(true);")
+    )
+
+
 def test_chat_guide_path_rejects_message_event_as_second_body() -> None:
     html = CHAT_HTML.read_text(encoding="utf-8")
     handler_start = html.index("const handleSseEvent = (eventName, data) =>")

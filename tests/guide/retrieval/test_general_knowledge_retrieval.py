@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from app.guide.retrieval.general_knowledge_contracts import (
-    GeneralKnowledgeQuery,
+from app.guide.retrieval.general_knowledge_contracts import KnowledgeQuerySpec
+from app.guide.retrieval.general_knowledge_query import (
+    build_knowledge_query_spec,
 )
 from app.guide.retrieval.general_knowledge_retrieval import (
     PRIOR_BLOCK_BOOST,
@@ -10,6 +11,7 @@ from app.guide.retrieval.general_knowledge_retrieval import (
 from app.guide_runtime.composition import (
     build_general_knowledge_assets,
 )
+from app.guide.understanding.contracts import TopicCode
 
 
 def _retriever() -> GeneralKnowledgeRetriever:
@@ -26,11 +28,12 @@ def _query(
     safety_sensitive: bool = False,
     prior_knowledge_ids: tuple[str, ...] = (),
     top_k: int = 3,
-) -> GeneralKnowledgeQuery:
-    return GeneralKnowledgeQuery(
-        retrieval_query=raw_question,
+) -> KnowledgeQuerySpec:
+    return build_knowledge_query_spec(
+        raw_query=raw_question,
         question_meaning=question_meaning,
-        topic=topic,
+        topic=TopicCode(topic) if topic is not None else None,
+        relation_hints=(),
         safety_sensitive=safety_sensitive,
         prior_knowledge_ids=prior_knowledge_ids,
         top_k=top_k,
@@ -96,8 +99,8 @@ def test_chinese_question_with_english_meaning_keeps_raw_anchors() -> None:
 def test_sensitive_skin_query_retrieves_identification_section() -> None:
     packet = _retriever().retrieve(
         _query(
-            "敏感肌怎么判断",
-            "询问如何判断自己是不是敏感肌",
+            "怎么判断自己是不是敏感肌？",
+            "如何判断自己是否属于敏感肌",
             topic="skincare",
         )
     )
@@ -106,6 +109,8 @@ def test_sensitive_skin_query_retrieves_identification_section() -> None:
         "22-怎么判断自己是不是敏感肌.md"
     )
     assert packet.hits[0].block.section_title == "怎么判断是不是敏感肌"
+    assert packet.hits[0].block.review_decision == "general_answer"
+    assert "容易泛红" in (packet.hits[0].block.public_text or "")
 
 
 def test_commute_lip_query_retrieves_scenario_guidance() -> None:
@@ -242,3 +247,101 @@ def test_safety_sensitive_query_can_select_escalation_boundary() -> None:
     )
     assert packet.hits[0].block.review_decision == "escalation_only"
     assert "medical_escalation" in packet.hits[0].block.allowed_uses
+
+
+def test_multi_entity_difference_covers_both_without_unrelated_sources() -> None:
+    packet = _retriever().retrieve(
+        build_knowledge_query_spec(
+            raw_query="烟酰胺和A醇有什么区别，能一起用吗？",
+            question_meaning="比较两种活性成分并询问能否叠加",
+            topic=TopicCode.SERUM,
+            relation_hints=("difference", "compatibility"),
+            safety_sensitive=False,
+            prior_knowledge_ids=(),
+        )
+    )
+
+    assert set(packet.coverage.covered_entity_ids) == {
+        "ingredient.niacinamide",
+        "ingredient.retinol",
+    }
+    assert {
+        hit.block.source_path for hit in packet.hits
+    } <= {
+        "data/knowledge_docs/13-烟酰胺适合谁.md",
+        "data/knowledge_docs/14-视黄醇A醇适合谁.md",
+    }
+    assert "difference" in packet.coverage.covered_relation_intents
+    assert packet.coverage.missing_relation_intents == (
+        "compatibility",
+    )
+
+
+def test_vitamin_c_daytime_query_retrieves_direct_usage_evidence() -> None:
+    packet = _retriever().retrieve(
+        _query(
+            "维C白天到底能不能用？",
+            "询问维生素C是否适合白天使用",
+            topic="serum",
+        )
+    )
+
+    assert packet.hits
+    assert packet.hits[0].block.source_path.endswith(
+        "17-维C抗氧化怎么用.md"
+    )
+    assert packet.hits[0].block.section_title in {
+        "适合谁",
+        "避雷与注意",
+    }
+    assert packet.coverage.complete
+
+
+def test_sunscreen_reapplication_has_no_unrelated_citations() -> None:
+    packet = _retriever().retrieve(
+        _query(
+            "防晒为什么过几个小时还要补涂？",
+            "询问防晒需要定时补涂的原因",
+            topic="sunscreen",
+        )
+    )
+
+    assert packet.hits
+    assert {
+        hit.block.source_path for hit in packet.hits
+    } == {"data/knowledge_docs/06-防晒怎么选.md"}
+    assert packet.hits[0].block.section_title == "避雷与注意"
+
+
+def test_compatibility_requires_one_direct_multi_entity_block() -> None:
+    packet = _retriever().retrieve(
+        _query(
+            "维C和A醇能一起用吗？",
+            "询问维生素C和视黄醇能否叠加",
+            topic="serum",
+        )
+    )
+
+    assert packet.coverage.complete
+    assert any(
+        hit.direct_multi_entity_evidence
+        and "compatibility" in hit.supported_relation_intents
+        for hit in packet.hits
+    )
+
+
+def test_model_meaning_cannot_replace_raw_entity_authority() -> None:
+    packet = _retriever().retrieve(
+        _query(
+            "烟酰胺有什么作用？",
+            "Explain retinol and vitamin C",
+            topic="serum",
+        )
+    )
+
+    assert packet.coverage.required_entity_ids == (
+        "ingredient.niacinamide",
+    )
+    assert {
+        hit.block.source_path for hit in packet.hits
+    } == {"data/knowledge_docs/13-烟酰胺适合谁.md"}

@@ -1,0 +1,47 @@
+{
+  "card_display": {
+    "max_cards": 0,
+    "mode": "none",
+    "reason": null,
+    "visible_product_ids": []
+  },
+  "compact_tags": [],
+  "comparison_rows": [],
+  "copy_source": "authoritative",
+  "mode": "general_knowledge",
+  "recommendation_mode": null,
+  "requested_comparison_dimensions": [],
+  "responsibility": "general_knowledge",
+  "sections": [
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "下面先讲通用知识，不把它当作具体商品结论：\n\n【防晒怎么选 / 避雷与注意】\n- **量不够等于没涂**：大多数人都涂太少，实际防护远低于标称值。\n- **要补涂**：户外每 2 小时左右、出汗游泳擦汗后都要补；室内活动少可酌情减少。\n- **别只靠防晒霜**：帽子、墨镜、防晒衣、遮阳伞等\"硬防晒\"更省心、更稳定。\n- **晒后别只想美白**：先舒缓补水、修护屏障，再谈提亮。\n- **防晒要好好卸**：防水抗汗型、肤感厚重的防晒建议用卸妆产品清洁，但日常轻薄防晒未必需要大力卸，按产品说明来。\n- 涉及\"防晒+功效\"或特殊用途化妆品的功效宣称，**以产品备案和官方说明为准**。\n\n【防晒怎么选 / 关键成分/原理】\n原理上，防晒是否有效，**取决于涂够量（面部约一元硬币大小/两指量）和及时补涂**，再贵的防晒涂不够也白搭。",
+      "direct_facts": [],
+      "kind": "general_knowledge",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    }
+  ],
+  "telemetry": {
+    "completion_tokens": 0,
+    "fallback_reason": null,
+    "latency_ms": 0,
+    "model": "deterministic",
+    "prompt_tokens": 0,
+    "provider": "reviewed_assets",
+    "total_tokens": 0
+  },
+  "visible_product_ids": [],
+  "winner": {
+    "dimension_ids": [],
+    "fact_ids": [],
+    "reason": null,
+    "status": "not_applicable",
+    "tie_reason": null,
+    "winner_product_id": null
+  }
+}

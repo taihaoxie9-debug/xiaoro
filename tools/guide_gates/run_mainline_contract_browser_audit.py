@@ -55,6 +55,7 @@ from app.guide.presentation.public_contracts import (
     WinnerPresentation,
 )
 from app.guide.presentation.response_planning import build_product_card
+from app.guide.presentation.sse_events import GeneralKnowledgeData
 from app.guide.retrieval.product_display_assets import (
     ProductDisplayBindingReader,
     load_product_display_assets,
@@ -2102,6 +2103,11 @@ class BoundedBrowserTurn:
     image_paths: tuple[Path, ...] = ()
     expected_image_product_id: int | None = None
     allow_clarification: bool = False
+    expected_knowledge_sources: tuple[str, ...] = ()
+    allowed_knowledge_sources: tuple[str, ...] = ()
+    expected_knowledge_sections: tuple[str, ...] = ()
+    allowed_knowledge_sections: tuple[str, ...] = ()
+    expected_missing_relations: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -2527,6 +2533,120 @@ DEMO_TRAJECTORIES = (
     ),
 )
 
+GENERAL_KNOWLEDGE_TRAJECTORIES = (
+    BoundedBrowserTrajectory(
+        trajectory_id="gk-multi-ingredient",
+        turns=(
+            BoundedBrowserTurn(
+                turn_id="t1",
+                message="烟酰胺和A醇有什么区别，能一起用吗？",
+                expected_mode="general_knowledge",
+                expected_knowledge_sources=(
+                    "data/knowledge_docs/13-烟酰胺适合谁.md",
+                    "data/knowledge_docs/14-视黄醇A醇适合谁.md",
+                ),
+                allowed_knowledge_sources=(
+                    "data/knowledge_docs/13-烟酰胺适合谁.md",
+                    "data/knowledge_docs/14-视黄醇A醇适合谁.md",
+                ),
+                expected_knowledge_sections=("关键成分/原理",),
+                allowed_knowledge_sections=("关键成分/原理",),
+                expected_missing_relations=("compatibility",),
+            ),
+        ),
+    ),
+    BoundedBrowserTrajectory(
+        trajectory_id="gk-sensitive-identification",
+        turns=(
+            BoundedBrowserTurn(
+                turn_id="t1",
+                message="怎么判断自己是不是敏感肌？",
+                expected_mode="general_knowledge",
+                expected_knowledge_sources=(
+                    "data/knowledge_docs/22-怎么判断自己是不是敏感肌.md",
+                ),
+                allowed_knowledge_sources=(
+                    "data/knowledge_docs/22-怎么判断自己是不是敏感肌.md",
+                ),
+                expected_knowledge_sections=(
+                    "怎么判断是不是敏感肌",
+                ),
+                allowed_knowledge_sections=(
+                    "怎么判断是不是敏感肌",
+                ),
+            ),
+        ),
+    ),
+    BoundedBrowserTrajectory(
+        trajectory_id="gk-acid-active-reaction",
+        turns=(
+            BoundedBrowserTurn(
+                turn_id="t1",
+                message="刷酸后爆皮刺痛应该怎么办？",
+                expected_mode="consultation",
+            ),
+        ),
+    ),
+    BoundedBrowserTrajectory(
+        trajectory_id="gk-sunscreen-reapplication",
+        turns=(
+            BoundedBrowserTurn(
+                turn_id="t1",
+                message="防晒为什么过几个小时还要补涂？",
+                expected_mode="general_knowledge",
+                expected_knowledge_sources=(
+                    "data/knowledge_docs/06-防晒怎么选.md",
+                ),
+                allowed_knowledge_sources=(
+                    "data/knowledge_docs/06-防晒怎么选.md",
+                ),
+                expected_knowledge_sections=("避雷与注意",),
+                allowed_knowledge_sections=(
+                    "关键成分/原理",
+                    "避雷与注意",
+                ),
+            ),
+        ),
+    ),
+    BoundedBrowserTrajectory(
+        trajectory_id="gk-vitamin-c-daytime",
+        turns=(
+            BoundedBrowserTurn(
+                turn_id="t1",
+                message="维C白天到底能不能用？",
+                expected_mode="general_knowledge",
+                expected_knowledge_sources=(
+                    "data/knowledge_docs/17-维C抗氧化怎么用.md",
+                ),
+                allowed_knowledge_sources=(
+                    "data/knowledge_docs/17-维C抗氧化怎么用.md",
+                ),
+                expected_knowledge_sections=("避雷与注意",),
+                allowed_knowledge_sections=("避雷与注意",),
+            ),
+        ),
+    ),
+    BoundedBrowserTrajectory(
+        trajectory_id="gk-oily-summer-moisturizer",
+        turns=(
+            BoundedBrowserTurn(
+                turn_id="t1",
+                message="油皮夏天应该怎么选面霜？",
+                expected_mode="general_knowledge",
+                expected_knowledge_sources=(
+                    "data/knowledge_docs/08-面霜怎么选.md",
+                ),
+                allowed_knowledge_sources=(
+                    "data/knowledge_docs/02-油皮与混油皮护肤方案.md",
+                    "data/knowledge_docs/08-面霜怎么选.md",
+                ),
+                expected_knowledge_sections=("怎么选",),
+                allowed_knowledge_sections=("怎么选",),
+            ),
+        ),
+    ),
+)
+
 
 def _prepare_fixture_turn_inputs(page, turn_id: str) -> None:
     product_38 = (
@@ -2787,6 +2907,125 @@ def validate_bounded_contract(
         raise BoundedContractError(
             owner="retrieval_identity",
             failure_code="image_identity_mismatch",
+        )
+
+
+def _validate_general_knowledge_turn(
+    *,
+    turn: BoundedBrowserTurn,
+    contract: Mapping[str, object],
+    events: Sequence[tuple[str, Mapping[str, object]]],
+    dom: Mapping[str, object],
+) -> None:
+    knowledge_payloads = tuple(
+        payload
+        for event_name, payload in events
+        if event_name == "general_knowledge"
+    )
+    if turn.expected_mode != "general_knowledge":
+        if knowledge_payloads:
+            raise AuditBundleError(
+                "consultation emitted general knowledge"
+            )
+        if (
+            dom.get("knowledge_citation_panel_count") != 0
+            or dom.get("knowledge_citation_ids") != []
+        ):
+            raise AuditBundleError(
+                "consultation rendered knowledge citation panel"
+            )
+        return
+    if (
+        contract.get("mode") != "general_knowledge"
+        or contract.get("responsibility") != "general_knowledge"
+    ):
+        raise AuditBundleError(
+            "general knowledge responsibility mismatch"
+        )
+    if len(knowledge_payloads) != 1:
+        raise AuditBundleError(
+            "general knowledge event count mismatch"
+        )
+    try:
+        payload = GeneralKnowledgeData.model_validate(
+            knowledge_payloads[0],
+            strict=True,
+        )
+    except ValueError as exc:
+        raise AuditBundleError(
+            "general knowledge payload is invalid"
+        ) from exc
+    citation_ids = tuple(
+        citation.knowledge_id for citation in payload.citations
+    )
+    if len(citation_ids) != len(set(citation_ids)):
+        raise AuditBundleError(
+            "duplicate knowledge citation"
+        )
+    actual_sources = tuple(dict.fromkeys(
+        citation.source_path for citation in payload.citations
+    ))
+    actual_sections = tuple(dict.fromkeys(
+        citation.section_title for citation in payload.citations
+    ))
+    if not set(turn.expected_knowledge_sources) <= set(
+        actual_sources
+    ):
+        raise AuditBundleError(
+            "expected knowledge source is missing"
+        )
+    if not set(actual_sources) <= set(
+        turn.allowed_knowledge_sources
+    ):
+        raise AuditBundleError(
+            "unlisted knowledge source"
+        )
+    if not set(turn.expected_knowledge_sections) <= set(
+        actual_sections
+    ):
+        raise AuditBundleError(
+            "expected knowledge section is missing"
+        )
+    if not set(actual_sections) <= set(
+        turn.allowed_knowledge_sections
+    ):
+        raise AuditBundleError(
+            "unlisted knowledge section"
+        )
+    if tuple(
+        payload.coverage.missing_relation_intents
+    ) != turn.expected_missing_relations:
+        raise AuditBundleError(
+            "knowledge coverage mismatch"
+        )
+    if not any(
+        citation.review_decision == "general_answer"
+        and isinstance(citation.public_excerpt, str)
+        and bool(citation.public_excerpt.strip())
+        for citation in payload.citations
+    ):
+        raise AuditBundleError(
+            "useful general knowledge answer is missing"
+        )
+    sections = contract.get("sections")
+    answer_text = " ".join(
+        required_public_text(
+            tuple(sections) if isinstance(sections, list) else ()
+        )
+    )
+    if (
+        "compatibility" in turn.expected_missing_relations
+        and "不根据各自介绍推导兼容性结论" not in answer_text
+    ):
+        raise AuditBundleError(
+            "compatibility gap is not explicit"
+        )
+    if (
+        dom.get("knowledge_citation_panel_count") != 1
+        or dom.get("knowledge_citation_ids") != list(citation_ids)
+    ):
+        raise AuditBundleError(
+            "knowledge citation panel mismatch"
         )
 
 
@@ -3746,6 +3985,17 @@ def run_bounded_browser_audit(
         "invalid_clarification_count": 0,
         "passed": False,
     }
+    if trajectory_set == "general_knowledge":
+        report.update({
+            "trajectory_count": 0,
+            "passed_turn_count": 0,
+            "wrong_responsibility_count": 0,
+            "wrong_knowledge_source_count": 0,
+            "wrong_knowledge_section_count": 0,
+            "coverage_mismatch_count": 0,
+            "frontend_contract_violation_count": 0,
+            "console_error_count": 0,
+        })
     _write_json(output / "summary.json", report)
     executable = os.environ.get(
         "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"
@@ -3767,6 +4017,9 @@ def run_bounded_browser_audit(
                         runtime_capability=runtime_capability,
                         demo_usefulness=(
                             trajectory_set == "demo"
+                        ),
+                        general_knowledge_usefulness=(
+                            trajectory_set == "general_knowledge"
                         ),
                     )
                 except AuditBundleError as error:
@@ -3834,6 +4087,11 @@ def run_bounded_browser_audit(
             for trajectory in trajectories
         )
     )
+    if trajectory_set == "general_knowledge":
+        report["trajectory_count"] = len(report["trajectories"])
+        report["passed_turn_count"] = (
+            report["turn_count"] if report["passed"] else 0
+        )
     _write_json(output / "summary.json", report)
     return report
 
@@ -4521,7 +4779,7 @@ def resolve_cli_output(
     output: Path | None,
     attempt_context: Path | None,
 ) -> Path:
-    if trajectory_set in {"fixture", "demo"}:
+    if trajectory_set in {"fixture", "demo", "general_knowledge"}:
         if output is None:
             raise AuditBundleError(
                 f"{trajectory_set} requires --output"
@@ -4551,6 +4809,7 @@ def _run_bounded_browser_trajectory(
     viewport: str,
     runtime_capability: str | None = None,
     demo_usefulness: bool = False,
+    general_knowledge_usefulness: bool = False,
 ) -> dict[str, Any]:
     trajectory_dir = output / trajectory.trajectory_id
     trajectory_dir.mkdir()
@@ -4656,6 +4915,19 @@ def _run_bounded_browser_trajectory(
                             (turn_dir / "stream.sse").read_text(
                                 encoding="utf-8"
                             )
+                        ),
+                    )
+                if general_knowledge_usefulness:
+                    _validate_general_knowledge_turn(
+                        turn=turn,
+                        contract=contract,
+                        events=_sse_events_from_sse(
+                            (turn_dir / "stream.sse").read_text(
+                                encoding="utf-8"
+                            )
+                        ),
+                        dom=_read_object(
+                            turn_dir / "terminal-dom.json"
                         ),
                     )
             except AuditBundleError:
@@ -5091,6 +5363,8 @@ def _failed_terminal_dom(
         "inline_product_ids": [],
         "visible_product_ids": [],
         "shelf_product_ids": [],
+        "knowledge_citation_panel_count": 0,
+        "knowledge_citation_ids": [],
         "presentation_text": "",
     }
 
@@ -5381,6 +5655,20 @@ def _terminal_dom(
             const shelfProductIds = productIds(
                 '[data-guide-card-form="shelf"]'
             );
+            const knowledgeCitationItems = Array.from(
+                document.querySelectorAll(
+                    '.citation-item[data-citation-id]'
+                )
+            ).filter(node => (
+                /^[0-9a-f]{64}$/.test(
+                    node.dataset.citationId || ''
+                )
+            ));
+            const knowledgeCitationPanels = new Set(
+                knowledgeCitationItems.map(node => node.closest(
+                    '.guide-evidence-drawer'
+                )).filter(Boolean)
+            );
             const clarification = terminalKind === 'clarification';
             const legacyBubbles = clarification
                 ? []
@@ -5428,6 +5716,11 @@ def _terminal_dom(
                     new Set([...inlineProductIds, ...shelfProductIds])
                 ),
                 shelf_product_ids: shelfProductIds,
+                knowledge_citation_panel_count:
+                    knowledgeCitationPanels.size,
+                knowledge_citation_ids: knowledgeCitationItems.map(
+                    node => node.dataset.citationId
+                ),
                 presentation_text: clarification
                     ? wrapper.innerText
                     : root?.innerText || '',
@@ -6251,7 +6544,13 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--trajectory-set",
-        choices=("fixture", "bounded", "release", "demo"),
+        choices=(
+            "fixture",
+            "bounded",
+            "release",
+            "demo",
+            "general_knowledge",
+        ),
         required=True,
     )
     parser.add_argument(
@@ -6347,13 +6646,21 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.expected_manifest_sha256
             ),
         )
-    else:
+    elif args.trajectory_set == "demo":
         report = run_bounded_browser_audit(
             base_url=args.base_url,
             output=output,
             viewport=args.viewport,
             trajectories=DEMO_TRAJECTORIES,
             trajectory_set="demo",
+        )
+    else:
+        report = run_bounded_browser_audit(
+            base_url=args.base_url,
+            output=output,
+            viewport=args.viewport,
+            trajectories=GENERAL_KNOWLEDGE_TRAJECTORIES,
+            trajectory_set="general_knowledge",
         )
     print(json.dumps(report, ensure_ascii=False))
     return 0
@@ -6368,6 +6675,7 @@ __all__ = [
     "BOUNDED_TRAJECTORIES",
     "DEMO_TRAJECTORIES",
     "FIXTURE_TURN_IDS",
+    "GENERAL_KNOWLEDGE_TRAJECTORIES",
     "RELEASE_TRAJECTORIES",
     "REQUIRED_TURN_FILES",
     "derive_release_turn_counters",

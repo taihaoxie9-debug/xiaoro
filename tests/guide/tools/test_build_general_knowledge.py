@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from pathlib import Path
 
 import pytest
 
 from tools.guide_data.build_general_knowledge import (
     KnowledgeBuildError,
+    load_general_knowledge_retrieval_profiles,
     parse_knowledge_document,
     parse_knowledge_documents,
     retrieval_terms,
@@ -149,3 +151,29 @@ def test_parser_rejects_source_outside_repository(tmp_path: Path) -> None:
         match="inside repository",
     ):
         parse_knowledge_document(outside, repo_root=repo_root)
+
+
+def test_retrieval_profile_loader_rejects_duplicate_sources(
+    tmp_path: Path,
+) -> None:
+    row = {
+        "source_path": "data/knowledge_docs/06-防晒怎么选.md",
+        "primary_concept_ids": ["category", "category.sunscreen"],
+        "primary_entity_ids": [],
+        "section_relations": {
+            "防晒怎么选": ["overview"],
+            "关键成分/原理": ["mechanism"],
+        },
+    }
+    profile_path = tmp_path / "profiles.jsonl"
+    profile_path.write_text(
+        "\n".join(
+            json.dumps(row, ensure_ascii=False, sort_keys=True)
+            for _ in range(2)
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(KnowledgeBuildError, match="duplicate source"):
+        load_general_knowledge_retrieval_profiles(profile_path)

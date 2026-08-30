@@ -10,6 +10,7 @@ from app.guide.application.general_knowledge_answer import (
 )
 from app.guide.presentation.sse_events import (
     GeneralKnowledgeCitationData,
+    GeneralKnowledgeCoverageData,
     GeneralKnowledgeData,
     GeneralKnowledgeEvent,
 )
@@ -18,12 +19,16 @@ from app.guide.retrieval.general_knowledge_contracts import (
     GeneralKnowledgePacket,
     GeneralKnowledgeQuery,
 )
+from app.guide.retrieval.general_knowledge_query import (
+    build_knowledge_query_spec,
+)
 from app.guide.retrieval.general_knowledge_retrieval import (
     GeneralKnowledgeRetriever,
 )
 from app.guide_runtime.composition import (
     build_general_knowledge_assets,
 )
+from app.guide.understanding.contracts import TopicCode
 
 
 def _query(
@@ -175,6 +180,30 @@ def test_no_hit_returns_explicit_evidence_gap() -> None:
     assert "不确定的结论" in rendered.message
 
 
+def test_partial_multi_entity_answer_names_unsupported_compatibility() -> None:
+    query = build_knowledge_query_spec(
+        raw_query="烟酰胺和A醇有什么区别，能一起用吗？",
+        question_meaning="比较两种成分并询问能否叠加",
+        topic=TopicCode.SERUM,
+        relation_hints=("difference", "compatibility"),
+        safety_sensitive=False,
+        prior_knowledge_ids=(),
+    )
+    packet = _retriever().retrieve(query)
+
+    rendered = render_general_knowledge_answer(packet)
+
+    assert "烟酰胺" in rendered.message
+    assert "A醇" in rendered.message or "视黄醇" in rendered.message
+    assert "一起使用" in rendered.message
+    assert "没有直接说明" in rendered.message
+    assert rendered.data.coverage.complete is False
+    assert rendered.data.coverage.missing_relation_intents == [
+        "compatibility"
+    ]
+    assert len(rendered.data.citations) == 2
+
+
 def test_general_knowledge_sse_contract_rejects_unknown_fields() -> None:
     citation = GeneralKnowledgeCitationData(
         knowledge_id="a" * 64,
@@ -187,6 +216,18 @@ def test_general_knowledge_sse_contract_rejects_unknown_fields() -> None:
     data = GeneralKnowledgeData(
         query="SPF是什么意思",
         citations=[citation],
+        coverage=GeneralKnowledgeCoverageData(
+            required_concept_ids=["category.sunscreen"],
+            covered_concept_ids=["category.sunscreen"],
+            required_entity_ids=[],
+            covered_entity_ids=[],
+            required_relation_intents=["mechanism"],
+            covered_relation_intents=["mechanism"],
+            missing_concept_ids=[],
+            missing_entity_ids=[],
+            missing_relation_intents=[],
+            complete=True,
+        ),
         educational_only=True,
         medical_escalation=False,
     )

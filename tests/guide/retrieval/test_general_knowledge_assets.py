@@ -94,13 +94,45 @@ def _built_fixture(tmp_path: Path):
         decision_catalog_path=decisions,
         review_dir=review_dir,
     )
+    profile_path = (
+        tmp_path
+        / "docs"
+        / "audits"
+        / "general-knowledge"
+        / "retrieval_profiles_v1.jsonl"
+    )
+    profile_path.parent.mkdir(parents=True)
+    profile_path.write_text(
+        json.dumps(
+            {
+                "source_path": (
+                    "data/knowledge_docs/06-防晒怎么选.md"
+                ),
+                "primary_concept_ids": [
+                    "category",
+                    "category.sunscreen",
+                ],
+                "primary_entity_ids": [],
+                "section_relations": {
+                    "原理": ["mechanism"],
+                    "收束": ["overview"],
+                },
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     output_dir = tmp_path / "data" / "guide_general_knowledge"
     built = build_general_knowledge_assets(
         source_dir=source_dir,
         review_dir=review_dir,
+        retrieval_profile_path=profile_path,
         output_dir=output_dir,
         repo_root=tmp_path,
-        asset_version="2026-08-15",
+        asset_version="2026-08-31",
     )
     return built, source_dir, review_dir, output_dir
 
@@ -117,8 +149,9 @@ def test_asset_is_content_addressed_and_excludes_rejected_blocks(
     )
 
     assert built.blocks_path.name == (
-        f"general_knowledge_v1.{built.blocks_sha256}.jsonl"
+        f"general_knowledge_v2.{built.blocks_sha256}.jsonl"
     )
+    assert assets.manifest.schema_version == "guide-general-knowledge-v2"
     assert assets.manifest.manifest_sha256 == built.manifest_sha256
     assert assets.manifest.candidate_count == 2
     assert assets.manifest.block_count == 1
@@ -129,6 +162,11 @@ def test_asset_is_content_addressed_and_excludes_rejected_blocks(
         "rejected": 1,
     }
     assert len(assets.blocks) == 1
+    assert assets.blocks[0].primary_concept_ids == (
+        "category",
+        "category.sunscreen",
+    )
+    assert assets.blocks[0].relation_intents == ("mechanism",)
     assert all(
         block.review_decision != "rejected"
         for block in assets.blocks
@@ -142,9 +180,16 @@ def test_asset_build_is_byte_identical(tmp_path: Path) -> None:
     second = build_general_knowledge_assets(
         source_dir=source_dir,
         review_dir=review_dir,
+        retrieval_profile_path=(
+            tmp_path
+            / "docs"
+            / "audits"
+            / "general-knowledge"
+            / "retrieval_profiles_v1.jsonl"
+        ),
         output_dir=second_output,
         repo_root=tmp_path,
-        asset_version="2026-08-15",
+        asset_version="2026-08-31",
     )
 
     assert second.blocks_path.read_bytes() == built.blocks_path.read_bytes()
@@ -217,6 +262,28 @@ def test_runtime_rejects_review_drift(tmp_path: Path) -> None:
     with pytest.raises(
         GeneralKnowledgeAssetIntegrityError,
         match="review SHA inventory mismatch",
+    ):
+        load_general_knowledge_assets(
+            built.manifest_path,
+            expected_manifest_sha256=built.manifest_sha256,
+            repo_root=tmp_path,
+        )
+
+
+def test_runtime_rejects_retrieval_profile_drift(tmp_path: Path) -> None:
+    built, _, _, _ = _built_fixture(tmp_path)
+    profile_path = (
+        tmp_path
+        / "docs"
+        / "audits"
+        / "general-knowledge"
+        / "retrieval_profiles_v1.jsonl"
+    )
+    profile_path.write_bytes(profile_path.read_bytes() + b" ")
+
+    with pytest.raises(
+        GeneralKnowledgeAssetIntegrityError,
+        match="retrieval profile SHA mismatch",
     ):
         load_general_knowledge_assets(
             built.manifest_path,

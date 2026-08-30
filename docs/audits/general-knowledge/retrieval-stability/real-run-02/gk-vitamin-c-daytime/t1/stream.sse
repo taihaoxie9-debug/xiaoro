@@ -1,0 +1,21 @@
+event: start
+data: {"session_id":"session_b9457182-0ed2-49ed-8dd0-6d45dd530007"}
+
+event: stage
+data: {"message":"已提取明确预算、品类和适配条件。","status":"active","stage":"understanding"}
+
+event: intent
+data: {"intent":"knowledge","entities":{},"scenario_intent":"knowledge","guide":true}
+
+event: stage
+data: {"message":"已检索审核过的通用知识资料。","status":"active","stage":"retrieval"}
+
+event: general_knowledge
+data: {"query":"维生素C（维C）精华白天是否可以使用","citations":[{"knowledge_id":"83ae5f6060664c33a23e43c2a1fa211952686df068cdcce2513f8bcb572f4f53","title":"维C抗氧化怎么用：提亮抗氧的经典成分实战指南","section_title":"避雷与注意","public_excerpt":"- **氧化变黄要警惕**：维C产品如果明显变黄、变深棕，说明已氧化、活性下降，效果会打折，别再指望它发挥作用。\n- **注意保存**：开封后尽快用完，放在阴凉避光处，避免高温和反复暴露在空气中。\n- **从低浓度建立耐受**：高浓度纯维C可能带来刺痛、泛红，新手或敏感肌先用温和衍生物或低浓度。\n- **白天用务必配防晒**：维C不替代防晒，二者是搭档关系，白天用维C更要严格防晒。\n- **叠加注意缓冲**：和A醇、酸类等同时上时注意分时段或建立耐受，避免刺激叠加。可早C晚A分开。\n- **特殊用途/医美美白项目**：相关项目应以正规机构和官方说明、备案为准，护肤品不能替代。","source_path":"data/knowledge_docs/17-维C抗氧化怎么用.md","review_decision":"general_answer"}],"coverage":{"required_concept_ids":["ingredient.vitamin_c"],"covered_concept_ids":["ingredient.vitamin_c"],"required_entity_ids":["ingredient.vitamin_c"],"covered_entity_ids":["ingredient.vitamin_c"],"required_relation_intents":["usage","safety"],"covered_relation_intents":["usage","safety"],"missing_concept_ids":[],"missing_entity_ids":[],"missing_relation_intents":[],"complete":true},"educational_only":true,"medical_escalation":false}
+
+event: presentation_contract
+data: {"responsibility":"general_knowledge","mode":"general_knowledge","recommendation_mode":null,"copy_source":"authoritative","sections":[{"kind":"general_knowledge","copy_text":"下面先讲通用知识，不把它当作具体商品结论：\n\n【维C抗氧化怎么用：提亮抗氧的经典成分实战指南 / 避雷与注意】\n- **氧化变黄要警惕**：维C产品如果明显变黄、变深棕，说明已氧化、活性下降，效果会打折，别再指望它发挥作用。\n- **注意保存**：开封后尽快用完，放在阴凉避光处，避免高温和反复暴露在空气中。\n- **从低浓度建立耐受**：高浓度纯维C可能带来刺痛、泛红，新手或敏感肌先用温和衍生物或低浓度。\n- **白天用务必配防晒**：维C不替代防晒，二者是搭档关系，白天用维C更要严格防晒。\n- **叠加注意缓冲**：和A醇、酸类等同时上时注意分时段或建立耐受，避免刺激叠加。可早C晚A分开。\n- **特殊用途/医美美白项目**：相关项目应以正规机构和官方说明、备案为准，护肤品不能替代。","used_fact_ids":[],"used_constraint_ids":[],"advisor_reason":null,"advisor_used_fact_ids":[],"advisor_used_constraint_ids":[],"slot_id":null,"product_id":null,"direct_facts":[]}],"requested_comparison_dimensions":[],"comparison_rows":[],"winner":{"status":"not_applicable","winner_product_id":null,"reason":null,"fact_ids":[],"dimension_ids":[],"tie_reason":null},"visible_product_ids":[],"compact_tags":[],"card_display":{"mode":"none","visible_product_ids":[],"max_cards":0,"reason":null},"telemetry":{"provider":"reviewed_assets","model":"deterministic","prompt_tokens":0,"completion_tokens":0,"total_tokens":0,"latency_ms":0.0,"fallback_reason":null}}
+
+event: end
+data: {"conversation_version":1}
+

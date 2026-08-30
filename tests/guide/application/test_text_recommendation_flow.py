@@ -70,6 +70,9 @@ from app.guide.retrieval.product_name_resolver import (
 from app.guide.retrieval.general_knowledge_retrieval import (
     GeneralKnowledgeRetriever,
 )
+from app.guide.retrieval.general_knowledge_contracts import (
+    KnowledgeQuerySpec,
+)
 from app.guide.understanding.contracts import (
     CategoryDraft,
     ProductMentionDraft,
@@ -153,6 +156,16 @@ def _flow_general_knowledge_retriever() -> GeneralKnowledgeRetriever:
     )
 
 
+class CapturingGeneralKnowledgeRetriever(GeneralKnowledgeRetriever):
+    def __init__(self) -> None:
+        super().__init__(build_general_knowledge_assets().blocks)
+        self.queries: list[object] = []
+
+    def retrieve(self, query):
+        self.queries.append(query)
+        return super().retrieve(query)
+
+
 
 
 
@@ -219,10 +232,11 @@ def test_processor_returns_execution_result_with_same_decision(
         focus_source="none",
         task_plan=task,
     )
+    retriever = CapturingGeneralKnowledgeRetriever()
     orchestrator = compose_text_recommendation_orchestrator(
         real_reader,
         product_assets=real_product_assets,
-        general_knowledge=_flow_general_knowledge_retriever(),
+        general_knowledge=retriever,
     )
 
     turn = _turn(message)
@@ -250,6 +264,10 @@ def test_processor_returns_execution_result_with_same_decision(
     assert result.state_delta.knowledge.action == "replace"
     assert result.state_delta.knowledge.value.question == message
     assert result.state_delta.clarification.action == "clear"
+    assert len(retriever.queries) == 1
+    assert type(retriever.queries[0]) is KnowledgeQuerySpec
+    assert retriever.queries[0].raw_query == message
+    assert retriever.queries[0].relation_intents == ("mechanism",)
     assert all(
         event.event
         not in {

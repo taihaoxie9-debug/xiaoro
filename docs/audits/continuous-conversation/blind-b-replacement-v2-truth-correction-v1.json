@@ -1,7 +1,7 @@
 {
   "schema_version": "guide-continuous-truth-correction-v1",
-  "fixture_sha256": "544d6c7a8b6e05a69d695261c68c14cb44710e4a4a41613a893ca960f42c0b76",
-  "manifest_sha256": "a6a36e56bdb992d312b0e2a8ef36f2e4864c1c849a979c6675da4cbda90727d5",
+  "fixture_sha256": "83a99aff1fcb28d4206d9ed2bd255c1eb43f3bc436b197754bf58e06a537c20d",
+  "manifest_sha256": "9037ad978ec40ca5d1d7a6a8be7ed8b2f34cce2455125d27f9253c87a9ac7644",
   "mechanical_truth_sha256": "05f53fad5e95771b6336ae59f36af53d89754e7d6f78e9a513082036c1a7b27b",
   "corrections": [
     {

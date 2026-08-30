@@ -11,6 +11,10 @@ from pydantic import (
     model_validator,
 )
 
+from app.guide.understanding.knowledge_relation_contracts import (
+    KnowledgeRelationIntent,
+)
+
 
 TurnOperationHint = Literal[
     "recommendation",
@@ -473,6 +477,12 @@ class TurnMeaning(_StrictFrozenModel):
         default_factory=tuple,
         max_length=4,
     )
+    knowledge_relation_hints: tuple[
+        KnowledgeRelationIntent, ...
+    ] = Field(
+        default_factory=tuple,
+        max_length=8,
+    )
     consultation_hypothesis: TurnConsultationHypothesis | None = None
     next_observation_gap: TurnNextObservationGap | None = None
     question_meaning: str | None = Field(
@@ -506,6 +516,7 @@ class TurnMeaning(_StrictFrozenModel):
         "preference_candidates",
         "constraint_changes",
         "relative_candidates",
+        "knowledge_relation_hints",
         mode="before",
     )
     @classmethod
@@ -539,6 +550,19 @@ class TurnMeaning(_StrictFrozenModel):
                 raise ValueError(
                     f"{field_name} must contain unique semantic atoms"
                 )
+        if len(self.knowledge_relation_hints) != len(
+            set(self.knowledge_relation_hints)
+        ):
+            raise ValueError(
+                "knowledge relation hints must be ordered unique"
+            )
+        if (
+            self.knowledge_relation_hints
+            and self.operation_hint not in {"knowledge", "followup"}
+        ):
+            raise ValueError(
+                "knowledge relation hints require knowledge or followup"
+            )
         observation_ids = [
             item.observation_id
             for item in self.observation_candidates

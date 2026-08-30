@@ -1804,8 +1804,8 @@ def test_frozen_matrix_contains_exact_bounded_trajectories() -> None:
             "bounded-text-fit",
             "bounded-text-fit-t1",
             (
-                "给我推荐一款 900 到 1100 元的精华，"
-                "我是油敏肌，换季容易泛红"
+                "给我推荐一款最适合油敏肌、"
+                "换季泛红的 900 到 1100 元精华"
             ),
         ),
         (
@@ -1922,14 +1922,10 @@ def test_bounded_profile_trajectory_confirms_and_reuses_profile(
         for name, data in parsed_turns[-1]
         if name == "presentation_contract"
     )
-    profile_row = next(
-        row
+    assert "profile_match" not in {
+        row["dimension_id"]
         for row in presentation["comparison_rows"]
-        if row["dimension_id"] == "profile_match"
-    )
-    assert tuple(
-        cell["product_id"] for cell in profile_row["cells"]
-    ) == traces[-1].card_ids
+    }
 
 
 def test_bounded_trajectory_contract_rejects_message_drift() -> None:

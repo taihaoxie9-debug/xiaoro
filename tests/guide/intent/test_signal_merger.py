@@ -133,6 +133,21 @@ def test_merger_preserves_unrestricted_product_question_meaning() -> None:
         "询问面膜是否服帖、是否容易滑落"
     )
     assert not understanding.safety_sensitive
+
+
+def test_legacy_signal_merger_defaults_knowledge_relation_hints_empty() -> None:
+    understanding = _merge_message(
+        "防晒为什么需要补涂",
+        semantic=_proposal(
+            goal=UnderstandingGoal.KNOWLEDGE,
+            topic=TopicCode.SUNSCREEN,
+            question_meaning="询问防晒补涂的原因",
+        ),
+    )
+
+    assert understanding.knowledge_relation_hints == ()
+
+
 _EVENT_SEPARATORS = ("，", "。", "；")
 _FINAL_NEGATIVE_PREDICATES = ("不想买了", "不考虑了")
 _FINAL_POSITIVE_PREDICATES = ("明确想买了", "明确想要了")

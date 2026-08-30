@@ -1,0 +1,24 @@
+event: start
+data: {"session_id":"session_9fe70d9a-9e90-4140-b738-1105c515b419"}
+
+event: stage
+data: {"message":"已读取轻问诊观察与确认状态。","status":"active","stage":"state"}
+
+event: intent
+data: {"intent":"consultation_answer","entities":{},"scenario_intent":"consultation_answer","guide":true}
+
+event: consultation_observation
+data: {"conversation_version":1,"observations":[{"observation_id":"obs_flaking","dimension":"flaking","state":"present","location":"unknown","trigger":"acid","duration":"current","severity":"unknown","source_text":"爆皮","source_turn_id":"turn_4f1662b42d7745f2b830cce81a0c126a"},{"observation_id":"obs_stinging","dimension":"stinging","state":"present","location":"unknown","trigger":"acid","duration":"current","severity":"unknown","source_text":"刺痛","source_turn_id":"turn_4f1662b42d7745f2b830cce81a0c126a"}],"next_question":{"code":"active_damage_risk","prompt":"现在有没有持续红肿、明显疼痛、破皮或渗出？","accepted_answers":["yes","no","sometimes","unknown"]},"reason":null}
+
+event: answer_contract
+data: {"answer_contract":{"product_count":0,"winner_status":"NOT_APPLICABLE","has_unknown_skin":false},"winner_status":"NOT_APPLICABLE","product_count":0,"has_unknown_skin":false}
+
+event: card_display_contract
+data: {"mode":"none","visible_product_ids":[],"max_cards":0,"reason":null}
+
+event: presentation_contract
+data: {"responsibility":"consultation","mode":"consultation","recommendation_mode":null,"copy_source":"model","sections":[{"kind":"observation","copy_text":"以下观察只基于当前已提供的信息，不替代诊断或治疗建议。","used_fact_ids":[],"used_constraint_ids":[],"advisor_reason":null,"advisor_used_fact_ids":[],"advisor_used_constraint_ids":[],"slot_id":null,"product_id":null,"direct_facts":[]},{"kind":"summary","copy_text":"请告诉我现在是否有持续红肿、明显疼痛、破皮或渗出的情况，以便进一步判断。","used_fact_ids":[],"used_constraint_ids":[],"advisor_reason":null,"advisor_used_fact_ids":[],"advisor_used_constraint_ids":[],"slot_id":null,"product_id":null,"direct_facts":[]}],"requested_comparison_dimensions":[],"comparison_rows":[],"winner":{"status":"not_applicable","winner_product_id":null,"reason":null,"fact_ids":[],"dimension_ids":[],"tie_reason":null},"visible_product_ids":[],"compact_tags":[],"card_display":{"mode":"none","visible_product_ids":[],"max_cards":0,"reason":null},"telemetry":{"provider":"deepseek_official","model":"deepseek-v4-pro","prompt_tokens":982,"completion_tokens":103,"total_tokens":1085,"latency_ms":1775.519666960463,"fallback_reason":null}}
+
+event: end
+data: {"conversation_version":1}
+

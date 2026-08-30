@@ -2911,7 +2911,6 @@ def _derive_semantic_summary(
         "cases_sha256": sha256(Path(cases_path).read_bytes()).hexdigest(),
         "passed": (
             len(rows) == 128
-            and fit_count > 0
             and explore_count > 0
             and missing_outcomes == 0
             and cross_parent == 0

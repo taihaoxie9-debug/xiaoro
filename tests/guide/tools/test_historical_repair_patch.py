@@ -165,5 +165,7 @@ def test_runtime_gate_repair_accepts_current_descendant_candidate() -> None:
     assert report["regression_node_count"] == 2
     assert report["historical_focused_test_count"] == 491
     assert report["current_focused_test_count"] > 491
-    assert report["live_red_exit_code"] == 1
+    assert report["historical_red_evidence_preserved"] is True
+    assert report["live_preimage_outcome"] == "superseded_descendant"
+    assert report["live_red_exit_code"] is None
     assert report["live_green_exit_code"] == 0

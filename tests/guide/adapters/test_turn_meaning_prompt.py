@@ -47,7 +47,7 @@ def test_prompt_uses_one_universal_schema_and_compact_catalog() -> None:
         ),
     )
 
-    assert TURN_MEANING_PROMPT_VERSION == "guide-turn-meaning-prompt-v37"
+    assert TURN_MEANING_PROMPT_VERSION == "guide-turn-meaning-prompt-v38"
     assert "operation_hint" in system["content"]
     assert "recommendation_mode" in system["content"]
     assert "recommendation_count" in system["content"]
@@ -85,6 +85,22 @@ def test_prompt_uses_one_universal_schema_and_compact_catalog() -> None:
     assert "relative_candidates" in system["content"]
     assert "consultation_hypothesis" in system["content"]
     assert "next_observation_gap" in system["content"]
+    assert "knowledge_relation_hints" in system["content"]
+    assert (
+        "overview|mechanism|difference|compatibility|usage|selection|"
+        "identification|safety"
+    ) in system["content"]
+    assert (
+        "A category guidance question asking how to choose, use, or "
+        "understand a category uses knowledge"
+    ) in system["content"]
+    assert (
+        "A current symptom or reaction asking what to do uses assessment"
+    ) in system["content"]
+    assert (
+        "Do not emit entity IDs, knowledge IDs, source paths, citations, "
+        "or answers"
+    ) in system["content"]
     assert "all observations expressed in the current message" in (
         system["content"]
     )

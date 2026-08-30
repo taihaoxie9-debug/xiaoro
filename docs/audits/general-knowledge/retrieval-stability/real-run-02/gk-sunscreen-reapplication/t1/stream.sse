@@ -1,0 +1,21 @@
+event: start
+data: {"session_id":"session_d5dfb144-5839-45f5-8e17-b596c991dc92"}
+
+event: stage
+data: {"message":"已提取明确预算、品类和适配条件。","status":"active","stage":"understanding"}
+
+event: intent
+data: {"intent":"knowledge","entities":{},"scenario_intent":"knowledge","guide":true}
+
+event: stage
+data: {"message":"已检索审核过的通用知识资料。","status":"active","stage":"retrieval"}
+
+event: general_knowledge
+data: {"query":"为什么防晒霜过了几个小时还需要补涂","citations":[{"knowledge_id":"33aea17d270dd3e4643f4cc483658aec7bb69c25e8601b5019ffd60d648f11bd","title":"防晒怎么选","section_title":"避雷与注意","public_excerpt":"- **量不够等于没涂**：大多数人都涂太少，实际防护远低于标称值。\n- **要补涂**：户外每 2 小时左右、出汗游泳擦汗后都要补；室内活动少可酌情减少。\n- **别只靠防晒霜**：帽子、墨镜、防晒衣、遮阳伞等\"硬防晒\"更省心、更稳定。\n- **晒后别只想美白**：先舒缓补水、修护屏障，再谈提亮。\n- **防晒要好好卸**：防水抗汗型、肤感厚重的防晒建议用卸妆产品清洁，但日常轻薄防晒未必需要大力卸，按产品说明来。\n- 涉及\"防晒+功效\"或特殊用途化妆品的功效宣称，**以产品备案和官方说明为准**。","source_path":"data/knowledge_docs/06-防晒怎么选.md","review_decision":"general_answer"},{"knowledge_id":"495bfe33681a319c27b22383d575144ff6a66ccfdcf56c188137eafcf0ff5e92","title":"防晒怎么选","section_title":"关键成分/原理","public_excerpt":"原理上，防晒是否有效，**取决于涂够量（面部约一元硬币大小/两指量）和及时补涂**，再贵的防晒涂不够也白搭。","source_path":"data/knowledge_docs/06-防晒怎么选.md","review_decision":"general_answer"}],"coverage":{"required_concept_ids":["category.sunscreen"],"covered_concept_ids":["category.sunscreen"],"required_entity_ids":[],"covered_entity_ids":[],"required_relation_intents":["mechanism","usage"],"covered_relation_intents":["mechanism","usage"],"missing_concept_ids":[],"missing_entity_ids":[],"missing_relation_intents":[],"complete":true},"educational_only":true,"medical_escalation":false}
+
+event: presentation_contract
+data: {"responsibility":"general_knowledge","mode":"general_knowledge","recommendation_mode":null,"copy_source":"authoritative","sections":[{"kind":"general_knowledge","copy_text":"下面先讲通用知识，不把它当作具体商品结论：\n\n【防晒怎么选 / 避雷与注意】\n- **量不够等于没涂**：大多数人都涂太少，实际防护远低于标称值。\n- **要补涂**：户外每 2 小时左右、出汗游泳擦汗后都要补；室内活动少可酌情减少。\n- **别只靠防晒霜**：帽子、墨镜、防晒衣、遮阳伞等\"硬防晒\"更省心、更稳定。\n- **晒后别只想美白**：先舒缓补水、修护屏障，再谈提亮。\n- **防晒要好好卸**：防水抗汗型、肤感厚重的防晒建议用卸妆产品清洁，但日常轻薄防晒未必需要大力卸，按产品说明来。\n- 涉及\"防晒+功效\"或特殊用途化妆品的功效宣称，**以产品备案和官方说明为准**。\n\n【防晒怎么选 / 关键成分/原理】\n原理上，防晒是否有效，**取决于涂够量（面部约一元硬币大小/两指量）和及时补涂**，再贵的防晒涂不够也白搭。","used_fact_ids":[],"used_constraint_ids":[],"advisor_reason":null,"advisor_used_fact_ids":[],"advisor_used_constraint_ids":[],"slot_id":null,"product_id":null,"direct_facts":[]}],"requested_comparison_dimensions":[],"comparison_rows":[],"winner":{"status":"not_applicable","winner_product_id":null,"reason":null,"fact_ids":[],"dimension_ids":[],"tie_reason":null},"visible_product_ids":[],"compact_tags":[],"card_display":{"mode":"none","visible_product_ids":[],"max_cards":0,"reason":null},"telemetry":{"provider":"reviewed_assets","model":"deterministic","prompt_tokens":0,"completion_tokens":0,"total_tokens":0,"latency_ms":0.0,"fallback_reason":null}}
+
+event: end
+data: {"conversation_version":1}
+

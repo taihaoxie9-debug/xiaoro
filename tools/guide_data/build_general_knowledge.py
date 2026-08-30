@@ -18,9 +18,15 @@ from pydantic import (
 )
 
 from app.guide.retrieval.general_knowledge_contracts import (
+    GeneralKnowledgeBlock,
     GeneralKnowledgeDocument,
     GeneralKnowledgeManifest,
+    GeneralKnowledgeRetrievalProfile,
     general_knowledge_id,
+)
+from app.guide.retrieval.general_knowledge_ontology import (
+    match_knowledge_concepts,
+    match_knowledge_entities,
 )
 from app.guide.retrieval.general_knowledge_terms import (
     general_knowledge_terms as retrieval_terms,
@@ -121,6 +127,41 @@ class ParsedKnowledgeDocument(_StrictFrozenModel):
         ):
             raise ValueError("candidate block order must be contiguous")
         return self
+
+
+def load_general_knowledge_retrieval_profiles(
+    path: Path,
+) -> tuple[GeneralKnowledgeRetrievalProfile, ...]:
+    profile_path = Path(path)
+    try:
+        lines = profile_path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError) as exc:
+        raise KnowledgeBuildError(
+            "general knowledge retrieval profile is unavailable"
+        ) from exc
+    if not lines or any(not line for line in lines):
+        raise KnowledgeBuildError(
+            "general knowledge retrieval profile is empty or malformed"
+        )
+    profiles: list[GeneralKnowledgeRetrievalProfile] = []
+    for line_number, line in enumerate(lines, start=1):
+        try:
+            profile = GeneralKnowledgeRetrievalProfile.model_validate_json(
+                line,
+                strict=True,
+            )
+        except ValueError as exc:
+            raise KnowledgeBuildError(
+                "invalid general knowledge retrieval profile line "
+                f"{line_number}"
+            ) from exc
+        profiles.append(profile)
+    source_paths = [profile.source_path for profile in profiles]
+    if len(source_paths) != len(set(source_paths)):
+        raise KnowledgeBuildError(
+            "general knowledge retrieval profile has duplicate source"
+        )
+    return tuple(profiles)
 
 
 def candidate_identity(
@@ -380,6 +421,7 @@ def build_general_knowledge_assets(
     *,
     source_dir: Path,
     review_dir: Path,
+    retrieval_profile_path: Path,
     output_dir: Path,
     repo_root: Path,
     asset_version: str,
@@ -394,6 +436,29 @@ def build_general_knowledge_assets(
         tuple(Path(source_dir).glob("*.md")),
         repo_root=Path(repo_root),
     )
+    profiles = load_general_knowledge_retrieval_profiles(
+        retrieval_profile_path
+    )
+    profiles_by_source = {
+        profile.source_path: profile for profile in profiles
+    }
+    source_paths = {
+        document.document.source_path for document in parsed
+    }
+    if set(profiles_by_source) != source_paths:
+        raise KnowledgeBuildError(
+            "general knowledge retrieval profile source inventory mismatch"
+        )
+    for document in parsed:
+        profile = profiles_by_source[document.document.source_path]
+        section_titles = {
+            block.section_title for block in document.blocks
+        }
+        if set(profile.section_relations) != section_titles:
+            raise KnowledgeBuildError(
+                "general knowledge retrieval profile section inventory "
+                f"mismatch: {document.document.source_path}"
+            )
     review_paths = tuple(sorted(Path(review_dir).glob("*.jsonl")))
     if not review_paths:
         raise KnowledgeBuildError(
@@ -417,11 +482,38 @@ def build_general_knowledge_assets(
         raise KnowledgeBuildError(
             "general knowledge audit must be clean before publication"
         )
+    enriched_blocks = tuple(
+        GeneralKnowledgeBlock.model_validate(
+            {
+                **block.model_dump(mode="python"),
+                "primary_concept_ids": profile.primary_concept_ids,
+                "mentioned_concept_ids": tuple(sorted({
+                    match.identifier
+                    for match in match_knowledge_concepts(
+                        block.exact_text
+                    )
+                })),
+                "primary_entity_ids": profile.primary_entity_ids,
+                "mentioned_entity_ids": tuple(sorted({
+                    match.identifier
+                    for match in match_knowledge_entities(
+                        block.exact_text
+                    )
+                })),
+                "relation_intents": profile.section_relations[
+                    block.section_title
+                ],
+            },
+            strict=True,
+        )
+        for block in audit.blocks
+        for profile in (profiles_by_source[block.source_path],)
+    )
     published_blocks = tuple(
         sorted(
             (
                 block
-                for block in audit.blocks
+                for block in enriched_blocks
                 if block.review_decision != "rejected"
             ),
             key=lambda block: (
@@ -448,7 +540,7 @@ def build_general_knowledge_assets(
     destination.mkdir(parents=True, exist_ok=True)
     blocks_path = (
         destination
-        / f"general_knowledge_v1.{blocks_sha256}.jsonl"
+        / f"general_knowledge_v2.{blocks_sha256}.jsonl"
     )
     blocks_path.write_bytes(blocks_bytes)
 
@@ -473,8 +565,8 @@ def build_general_knowledge_assets(
         )
     }
     manifest_payload: dict[str, object] = {
-        "schema_version": "guide-general-knowledge-v1",
-        "asset_id": "guide-general-knowledge-v1",
+        "schema_version": "guide-general-knowledge-v2",
+        "asset_id": "guide-general-knowledge-v2",
         "asset_version": asset_version,
         "blocks_file": blocks_path.name,
         "blocks_sha256": blocks_sha256,
@@ -493,6 +585,15 @@ def build_general_knowledge_assets(
             hashlib.sha256(path.read_bytes()).hexdigest()
             for path in review_paths
         ),
+        "retrieval_profile_path": (
+            Path(retrieval_profile_path)
+            .resolve()
+            .relative_to(Path(repo_root).resolve())
+            .as_posix()
+        ),
+        "retrieval_profile_sha256": hashlib.sha256(
+            Path(retrieval_profile_path).read_bytes()
+        ).hexdigest(),
         "decision_counts": decision_counts,
         "allowed_use_counts": allowed_use_counts,
     }
@@ -505,7 +606,7 @@ def build_general_knowledge_assets(
         strict=True,
     )
     manifest_path = (
-        destination / "general_knowledge_v1_manifest.json"
+        destination / "general_knowledge_v2_manifest.json"
     )
     manifest_path.write_text(
         json.dumps(
@@ -534,18 +635,21 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--source-dir", type=Path, required=True)
     parser.add_argument("--candidate-output", type=Path)
     parser.add_argument("--review-dir", type=Path)
+    parser.add_argument("--retrieval-profile", type=Path)
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--asset-version", default="2026-08-15")
     args = parser.parse_args(argv)
     repo_root = Path.cwd().resolve()
     production_mode = (
         args.review_dir is not None
+        or args.retrieval_profile is not None
         or args.output_dir is not None
     )
     if production_mode:
         if (
             args.candidate_output is not None
             or args.review_dir is None
+            or args.retrieval_profile is None
             or args.output_dir is None
         ):
             parser.error(
@@ -554,6 +658,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         built = build_general_knowledge_assets(
             source_dir=args.source_dir,
             review_dir=args.review_dir,
+            retrieval_profile_path=args.retrieval_profile,
             output_dir=args.output_dir,
             repo_root=repo_root,
             asset_version=args.asset_version,
@@ -607,6 +712,7 @@ __all__ = [
     "ParsedKnowledgeDocument",
     "build_general_knowledge_assets",
     "candidate_identity",
+    "load_general_knowledge_retrieval_profiles",
     "main",
     "parse_knowledge_document",
     "parse_knowledge_documents",

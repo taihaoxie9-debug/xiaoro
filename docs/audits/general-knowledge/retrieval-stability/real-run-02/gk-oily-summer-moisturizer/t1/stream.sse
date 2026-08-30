@@ -1,0 +1,21 @@
+event: start
+data: {"session_id":"session_670d85ed-79dd-49d5-9e79-f80579e86eee"}
+
+event: stage
+data: {"message":"已提取明确预算、品类和适配条件。","status":"active","stage":"understanding"}
+
+event: intent
+data: {"intent":"knowledge","entities":{},"scenario_intent":"knowledge","guide":true}
+
+event: stage
+data: {"message":"已检索审核过的通用知识资料。","status":"active","stage":"retrieval"}
+
+event: general_knowledge
+data: {"query":"油性皮肤在夏天应该如何选择面霜","citations":[{"knowledge_id":"dd8a5c6a88b590bb984dfea902a418611a1e0c29b445ea9ae0a0214b6c1e5eb2","title":"面霜怎么选","section_title":"怎么选","public_excerpt":"1. **先看功能需求**：只想保湿、还是要修护屏障、或者要抗老紧致，需求不同成分不同。\n2. **按肤质选质地**：油皮选清爽啫喱/乳霜，干皮选滋润膏霜，敏感肌选成分简单的修护霜。\n3. **看季节调整**：同一个人夏天和冬天可能需要不同厚度的面霜。\n4. **肤感和吸收**：好用的面霜应该好推开、不闷、不搓泥，长期用得下去比\"成分华丽\"更重要。","source_path":"data/knowledge_docs/08-面霜怎么选.md","review_decision":"general_answer"}],"coverage":{"required_concept_ids":["skin.oily","category.moisturizer"],"covered_concept_ids":["skin.oily","category.moisturizer"],"required_entity_ids":[],"covered_entity_ids":[],"required_relation_intents":["selection"],"covered_relation_intents":["selection"],"missing_concept_ids":[],"missing_entity_ids":[],"missing_relation_intents":[],"complete":true},"educational_only":true,"medical_escalation":false}
+
+event: presentation_contract
+data: {"responsibility":"general_knowledge","mode":"general_knowledge","recommendation_mode":null,"copy_source":"authoritative","sections":[{"kind":"general_knowledge","copy_text":"下面先讲通用知识，不把它当作具体商品结论：\n\n【面霜怎么选 / 怎么选】\n1. **先看功能需求**：只想保湿、还是要修护屏障、或者要抗老紧致，需求不同成分不同。\n2. **按肤质选质地**：油皮选清爽啫喱/乳霜，干皮选滋润膏霜，敏感肌选成分简单的修护霜。\n3. **看季节调整**：同一个人夏天和冬天可能需要不同厚度的面霜。\n4. **肤感和吸收**：好用的面霜应该好推开、不闷、不搓泥，长期用得下去比\"成分华丽\"更重要。","used_fact_ids":[],"used_constraint_ids":[],"advisor_reason":null,"advisor_used_fact_ids":[],"advisor_used_constraint_ids":[],"slot_id":null,"product_id":null,"direct_facts":[]}],"requested_comparison_dimensions":[],"comparison_rows":[],"winner":{"status":"not_applicable","winner_product_id":null,"reason":null,"fact_ids":[],"dimension_ids":[],"tie_reason":null},"visible_product_ids":[],"compact_tags":[],"card_display":{"mode":"none","visible_product_ids":[],"max_cards":0,"reason":null},"telemetry":{"provider":"reviewed_assets","model":"deterministic","prompt_tokens":0,"completion_tokens":0,"total_tokens":0,"latency_ms":0.0,"fallback_reason":null}}
+
+event: end
+data: {"conversation_version":1}
+

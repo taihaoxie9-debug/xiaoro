@@ -1,0 +1,59 @@
+{
+  "card_display": {
+    "max_cards": 0,
+    "mode": "none",
+    "reason": null,
+    "visible_product_ids": []
+  },
+  "compact_tags": [],
+  "comparison_rows": [],
+  "copy_source": "model",
+  "mode": "consultation",
+  "recommendation_mode": null,
+  "requested_comparison_dimensions": [],
+  "responsibility": "consultation",
+  "sections": [
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "以下观察只基于当前已提供的信息，不替代诊断或治疗建议。",
+      "direct_facts": [],
+      "kind": "observation",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "请告诉我现在是否有持续红肿、明显疼痛、破皮或渗出的情况，以便进一步判断。",
+      "direct_facts": [],
+      "kind": "summary",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    }
+  ],
+  "telemetry": {
+    "completion_tokens": 103,
+    "fallback_reason": null,
+    "latency_ms": 1775.519666960463,
+    "model": "deepseek-v4-pro",
+    "prompt_tokens": 982,
+    "provider": "deepseek_official",
+    "total_tokens": 1085
+  },
+  "visible_product_ids": [],
+  "winner": {
+    "dimension_ids": [],
+    "fact_ids": [],
+    "reason": null,
+    "status": "not_applicable",
+    "tie_reason": null,
+    "winner_product_id": null
+  }
+}
