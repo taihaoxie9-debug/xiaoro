@@ -1,14 +1,21 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from decimal import Decimal, InvalidOperation
 import hashlib
+import json
 import math
+import os
+from pathlib import Path
 import re
+import sqlite3
 from threading import Condition
-from typing import Callable, Mapping, Self
+from typing import Iterator, Protocol, Self
 from urllib.parse import urlsplit
+from uuid import uuid4
 
 import httpx
 from pydantic import ValidationError
@@ -18,15 +25,22 @@ from app.guide.adapters.llm.contracts import (
     SemanticProviderFailureCode,
     SemanticTokenUsage,
 )
+from app.guide.adapters.state.trusted_sqlite_storage import (
+    TrustedSqliteStorage,
+)
 
 
 _TRACE_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$")
+_PROVIDER_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
+MAX_PROVIDER_RESPONSE_BYTES = 64 * 1024
 
 
 @dataclass(frozen=True, slots=True)
 class UsageReservation:
     day: date
     amount_cny: Decimal
+    provider: str | None = None
+    reservation_id: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,6 +49,16 @@ class JsonCompletion:
     trace_id: str
     usage: dict[str, int | None]
     actual_cost_cny: Decimal | None
+
+
+class UsageLimiter(Protocol):
+    def reserve(self) -> UsageReservation: ...
+
+    def record_actual_cost(
+        self,
+        reservation: UsageReservation,
+        actual_cost_cny: Decimal | None,
+    ) -> None: ...
 
 
 class DailyUsageLimiter:
@@ -129,6 +153,266 @@ class DailyUsageLimiter:
         self._reserved_or_spent_cny = Decimal("0")
 
 
+class SqliteDailyUsageLimiter:
+    """Atomic provider/day quota stored below one trusted state root."""
+
+    def __init__(
+        self,
+        database_path: str | os.PathLike[str],
+        *,
+        trusted_state_root: str | os.PathLike[str],
+        provider: str,
+        daily_budget_cny: Decimal,
+        daily_call_cap: int,
+        clock: Callable[[], datetime],
+    ) -> None:
+        _validate_usage_limits(
+            daily_budget_cny=daily_budget_cny,
+            daily_call_cap=daily_call_cap,
+        )
+        if (
+            not isinstance(provider, str)
+            or _PROVIDER_PATTERN.fullmatch(provider) is None
+        ):
+            raise ValueError("provider must be a bounded identifier")
+        self._provider = provider
+        self._daily_budget_cny = daily_budget_cny
+        self._daily_call_cap = daily_call_cap
+        self._reservation_cny = daily_budget_cny / daily_call_cap
+        self._clock = clock
+        self._storage = TrustedSqliteStorage(
+            database_path,
+            trusted_state_root=trusted_state_root,
+        )
+        with self._storage.initialize() as (connection, _created):
+            journal_mode = connection.execute(
+                "PRAGMA journal_mode = WAL"
+            ).fetchone()
+            if journal_mode != ("wal",):
+                raise sqlite3.DatabaseError("WAL mode is unavailable")
+            connection.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS provider_daily_usage (
+                    provider TEXT NOT NULL,
+                    usage_day TEXT NOT NULL,
+                    call_count INTEGER NOT NULL
+                        CHECK (call_count >= 0),
+                    reserved_or_spent_cny TEXT NOT NULL,
+                    PRIMARY KEY (provider, usage_day)
+                );
+                CREATE TABLE IF NOT EXISTS provider_usage_reservations (
+                    reservation_id TEXT PRIMARY KEY
+                        CHECK (length(reservation_id) = 32),
+                    provider TEXT NOT NULL,
+                    usage_day TEXT NOT NULL,
+                    reserved_cny TEXT NOT NULL,
+                    settled INTEGER NOT NULL DEFAULT 0
+                        CHECK (settled IN (0, 1))
+                );
+                CREATE INDEX IF NOT EXISTS
+                    provider_usage_reservation_day_idx
+                ON provider_usage_reservations (provider, usage_day);
+                """
+            )
+
+    @property
+    def database_path(self) -> Path:
+        return self._storage.database_path
+
+    @property
+    def provider(self) -> str:
+        return self._provider
+
+    def reserve(self) -> UsageReservation:
+        day = _utc_day(self._clock)
+        reservation_id = uuid4().hex
+        try:
+            with self._transaction() as connection:
+                row = connection.execute(
+                    """
+                    SELECT call_count, reserved_or_spent_cny
+                    FROM provider_daily_usage
+                    WHERE provider = ? AND usage_day = ?
+                    """,
+                    (self._provider, day.isoformat()),
+                ).fetchone()
+                call_count, accounted_cost = self._usage_values(row)
+                if call_count >= self._daily_call_cap:
+                    raise SemanticProviderFailure(
+                        SemanticProviderFailureCode
+                        .DAILY_CALL_CAP_EXCEEDED
+                    )
+                if (
+                    accounted_cost >= self._daily_budget_cny
+                    or accounted_cost + self._reservation_cny
+                    > self._daily_budget_cny
+                ):
+                    raise SemanticProviderFailure(
+                        SemanticProviderFailureCode
+                        .DAILY_BUDGET_EXCEEDED
+                    )
+                next_cost = accounted_cost + self._reservation_cny
+                connection.execute(
+                    """
+                    INSERT INTO provider_daily_usage (
+                        provider,
+                        usage_day,
+                        call_count,
+                        reserved_or_spent_cny
+                    )
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(provider, usage_day) DO UPDATE SET
+                        call_count = excluded.call_count,
+                        reserved_or_spent_cny = (
+                            excluded.reserved_or_spent_cny
+                        )
+                    """,
+                    (
+                        self._provider,
+                        day.isoformat(),
+                        call_count + 1,
+                        str(next_cost),
+                    ),
+                )
+                connection.execute(
+                    """
+                    INSERT INTO provider_usage_reservations (
+                        reservation_id,
+                        provider,
+                        usage_day,
+                        reserved_cny,
+                        settled
+                    )
+                    VALUES (?, ?, ?, ?, 0)
+                    """,
+                    (
+                        reservation_id,
+                        self._provider,
+                        day.isoformat(),
+                        str(self._reservation_cny),
+                    ),
+                )
+        except SemanticProviderFailure:
+            raise
+        except (OSError, RuntimeError, sqlite3.Error, ValueError):
+            raise SemanticProviderFailure(
+                SemanticProviderFailureCode.PROVIDER_UNAVAILABLE
+            ) from None
+        return UsageReservation(
+            day=day,
+            amount_cny=self._reservation_cny,
+            provider=self._provider,
+            reservation_id=reservation_id,
+        )
+
+    def record_actual_cost(
+        self,
+        reservation: UsageReservation,
+        actual_cost_cny: Decimal | None,
+    ) -> None:
+        if (
+            not isinstance(reservation, UsageReservation)
+            or reservation.provider != self._provider
+            or reservation.reservation_id is None
+        ):
+            raise ValueError(
+                "reservation does not belong to this provider quota"
+            )
+        try:
+            with self._transaction() as connection:
+                row = connection.execute(
+                    """
+                    SELECT reserved_cny, settled
+                    FROM provider_usage_reservations
+                    WHERE reservation_id = ?
+                      AND provider = ?
+                      AND usage_day = ?
+                    """,
+                    (
+                        reservation.reservation_id,
+                        self._provider,
+                        reservation.day.isoformat(),
+                    ),
+                ).fetchone()
+                if row is None:
+                    raise ValueError("provider reservation is unavailable")
+                reserved_cost = _stored_decimal(row[0])
+                if int(row[1]) == 1:
+                    return
+                final_cost = (
+                    actual_cost_cny
+                    if (
+                        actual_cost_cny is not None
+                        and actual_cost_cny.is_finite()
+                        and actual_cost_cny >= 0
+                    )
+                    else reserved_cost
+                )
+                usage_row = connection.execute(
+                    """
+                    SELECT reserved_or_spent_cny
+                    FROM provider_daily_usage
+                    WHERE provider = ? AND usage_day = ?
+                    """,
+                    (self._provider, reservation.day.isoformat()),
+                ).fetchone()
+                if usage_row is None:
+                    raise ValueError("provider usage row is unavailable")
+                accounted_cost = _stored_decimal(usage_row[0])
+                connection.execute(
+                    """
+                    UPDATE provider_daily_usage
+                    SET reserved_or_spent_cny = ?
+                    WHERE provider = ? AND usage_day = ?
+                    """,
+                    (
+                        str(accounted_cost + final_cost - reserved_cost),
+                        self._provider,
+                        reservation.day.isoformat(),
+                    ),
+                )
+                connection.execute(
+                    """
+                    UPDATE provider_usage_reservations
+                    SET settled = 1
+                    WHERE reservation_id = ?
+                    """,
+                    (reservation.reservation_id,),
+                )
+        except SemanticProviderFailure:
+            raise
+        except (OSError, RuntimeError, sqlite3.Error, ValueError):
+            raise SemanticProviderFailure(
+                SemanticProviderFailureCode.PROVIDER_UNAVAILABLE
+            ) from None
+
+    @staticmethod
+    def _usage_values(row: object) -> tuple[int, Decimal]:
+        if row is None:
+            return 0, Decimal("0")
+        if (
+            not isinstance(row, tuple)
+            or len(row) != 2
+            or not isinstance(row[0], int)
+            or isinstance(row[0], bool)
+            or row[0] < 0
+        ):
+            raise ValueError("invalid provider usage row")
+        return row[0], _stored_decimal(row[1])
+
+    @contextmanager
+    def _transaction(self) -> Iterator[sqlite3.Connection]:
+        with self._storage.connect() as connection:
+            connection.execute("BEGIN IMMEDIATE")
+            try:
+                yield connection
+            except BaseException:
+                connection.rollback()
+                raise
+            else:
+                connection.commit()
+
+
 class OpenAIJsonClient:
     def __init__(
         self,
@@ -150,12 +434,29 @@ class OpenAIJsonClient:
             trust_env=False,
         )
 
-    def request(self, body: Mapping[str, object]) -> JsonCompletion:
+    def request(
+        self,
+        body: Mapping[str, object],
+        *,
+        tool_name: str | None = None,
+    ) -> JsonCompletion:
         try:
-            response = self._client.post(
+            with self._client.stream(
+                "POST",
                 "chat/completions",
                 json=dict(body),
-            )
+            ) as response:
+                if not 200 <= response.status_code < 300:
+                    code = http_failure_code(response.status_code)
+                    raise SemanticProviderFailure(
+                        code,
+                        status_code=response.status_code,
+                    ) from None
+                payload = _read_bounded_response(response)
+                trace_header = (
+                    response.headers.get("x-request-id")
+                    or response.headers.get("request-id")
+                )
         except httpx.TimeoutException:
             raise SemanticProviderFailure(
                 SemanticProviderFailureCode.TIMEOUT
@@ -165,29 +466,20 @@ class OpenAIJsonClient:
                 SemanticProviderFailureCode.PROVIDER_UNAVAILABLE
             ) from None
 
-        if not 200 <= response.status_code < 300:
-            code = http_failure_code(response.status_code)
-            raise SemanticProviderFailure(
-                code,
-                status_code=response.status_code,
-            ) from None
-        if not response.content:
-            raise SemanticProviderFailure(
-                SemanticProviderFailureCode.EMPTY_RESPONSE
-            )
         try:
-            envelope = response.json()
+            envelope = json.loads(payload)
         except ValueError:
             raise SemanticProviderFailure(
                 SemanticProviderFailureCode.INVALID_RESPONSE
             ) from None
 
-        content = extract_content(envelope)
-        usage, actual_cost = extract_usage(envelope)
-        trace_id = safe_trace_id(
-            response.headers.get("x-request-id")
-            or response.headers.get("request-id")
+        content = (
+            extract_tool_arguments(envelope, tool_name)
+            if tool_name is not None
+            else extract_content(envelope)
         )
+        usage, actual_cost = extract_usage(envelope)
+        trace_id = safe_trace_id(trace_header)
         return JsonCompletion(
             content=content,
             trace_id=trace_id,
@@ -203,6 +495,78 @@ class OpenAIJsonClient:
 
     def __exit__(self, *args: object) -> None:
         self.close()
+
+
+def _read_bounded_response(response: httpx.Response) -> bytes:
+    content_length = response.headers.get("content-length")
+    if content_length is not None:
+        try:
+            declared_length = int(content_length)
+        except ValueError:
+            raise SemanticProviderFailure(
+                SemanticProviderFailureCode.INVALID_RESPONSE
+            ) from None
+        if (
+            declared_length < 0
+            or declared_length > MAX_PROVIDER_RESPONSE_BYTES
+        ):
+            raise SemanticProviderFailure(
+                SemanticProviderFailureCode.INVALID_RESPONSE
+            )
+
+    chunks: list[bytes] = []
+    observed_length = 0
+    for chunk in response.iter_bytes():
+        observed_length += len(chunk)
+        if observed_length > MAX_PROVIDER_RESPONSE_BYTES:
+            raise SemanticProviderFailure(
+                SemanticProviderFailureCode.INVALID_RESPONSE
+            )
+        chunks.append(chunk)
+    payload = b"".join(chunks)
+    if not payload:
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.EMPTY_RESPONSE
+        )
+    return payload
+
+
+def _validate_usage_limits(
+    *,
+    daily_budget_cny: Decimal,
+    daily_call_cap: int,
+) -> None:
+    if (
+        not isinstance(daily_budget_cny, Decimal)
+        or not daily_budget_cny.is_finite()
+        or daily_budget_cny <= 0
+    ):
+        raise ValueError("daily budget must be a positive Decimal")
+    if (
+        not isinstance(daily_call_cap, int)
+        or isinstance(daily_call_cap, bool)
+        or daily_call_cap <= 0
+    ):
+        raise ValueError("daily call cap must be a positive integer")
+
+
+def _utc_day(clock: Callable[[], datetime]) -> date:
+    current = clock()
+    if not isinstance(current, datetime):
+        raise RuntimeError("usage limiter clock must return datetime")
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=UTC)
+    return current.astimezone(UTC).date()
+
+
+def _stored_decimal(value: object) -> Decimal:
+    try:
+        parsed = Decimal(value)
+    except (InvalidOperation, TypeError, ValueError):
+        raise ValueError("invalid stored provider quota") from None
+    if not parsed.is_finite() or parsed < 0:
+        raise ValueError("invalid stored provider quota")
+    return parsed
 
 
 def validate_adapter_settings(
@@ -305,6 +669,55 @@ def extract_content(envelope: object) -> str:
     return content
 
 
+def extract_tool_arguments(
+    envelope: object,
+    expected_tool_name: str,
+) -> str:
+    if not isinstance(envelope, Mapping):
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.INVALID_RESPONSE
+        )
+    choices = envelope.get("choices")
+    if not isinstance(choices, list) or len(choices) != 1:
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.INVALID_RESPONSE
+        )
+    choice = choices[0]
+    if not isinstance(choice, Mapping):
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.INVALID_RESPONSE
+        )
+    message = choice.get("message")
+    if not isinstance(message, Mapping):
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.INVALID_RESPONSE
+        )
+    tool_calls = message.get("tool_calls")
+    if not isinstance(tool_calls, list) or len(tool_calls) != 1:
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.INVALID_RESPONSE
+        )
+    tool_call = tool_calls[0]
+    if not isinstance(tool_call, Mapping):
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.INVALID_RESPONSE
+        )
+    function = tool_call.get("function")
+    if (
+        not isinstance(function, Mapping)
+        or function.get("name") != expected_tool_name
+    ):
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.INVALID_RESPONSE
+        )
+    arguments = function.get("arguments")
+    if not isinstance(arguments, str) or not arguments.strip():
+        raise SemanticProviderFailure(
+            SemanticProviderFailureCode.EMPTY_RESPONSE
+        )
+    return arguments
+
+
 def extract_usage(
     envelope: object,
 ) -> tuple[dict[str, int | None], Decimal | None]:
@@ -389,8 +802,12 @@ def contains_control(value: str) -> bool:
 
 __all__ = [
     "DailyUsageLimiter",
+    "extract_tool_arguments",
     "JsonCompletion",
+    "MAX_PROVIDER_RESPONSE_BYTES",
     "OpenAIJsonClient",
+    "SqliteDailyUsageLimiter",
+    "UsageLimiter",
     "UsageReservation",
     "sum_usage",
     "validate_adapter_settings",

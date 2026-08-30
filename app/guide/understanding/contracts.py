@@ -14,6 +14,12 @@ from pydantic import (
 )
 
 from app.guide.session_contract import SessionId
+from app.guide.understanding.turn_meaning_contracts import (
+    EXPLORE_RECOMMENDATION_BASES,
+    FIT_RECOMMENDATION_BASES,
+    RecommendationMode,
+    RecommendationModeBasis,
+)
 
 
 class _StrictContract(BaseModel):
@@ -372,6 +378,8 @@ class UnderstandingIssue(_StrictContract):
         "ambiguous_reference",
         "ambiguous_candidate_reference",
         "ambiguous_image_reference",
+        "too_many_candidate_references",
+        "too_many_image_references",
         "missing_revision_target",
         "ambiguous_revision_target",
         "confirm_hard_constraint_revision",
@@ -396,12 +404,61 @@ class SignalTrace(_StrictContract):
     ]
 
 
+class ConstraintChangeDraft(_StrictContract):
+    parent_concept: Literal[
+        "ingredient_exclusion",
+        "efficacy",
+        "skin",
+    ]
+    requested_change: Literal["remove", "replace"]
+    value: Annotated[
+        str,
+        StringConstraints(strip_whitespace=True, min_length=1, max_length=64),
+    ] | None = None
+    source_span: SourceSpan
+
+    @model_validator(mode="after")
+    def validate_parent_change(self) -> Self:
+        if (
+            self.parent_concept == "ingredient_exclusion"
+            and self.requested_change != "remove"
+        ):
+            raise ValueError(
+                "ingredient exclusion supports remove only"
+            )
+        if (
+            self.parent_concept == "skin"
+            and self.requested_change == "remove"
+        ):
+            if self.value is not None:
+                raise ValueError(
+                    "skin removal requires a bare parent target"
+                )
+            return self
+        if self.value is None:
+            raise ValueError(
+                "constraint change requires a normalized value"
+            )
+        return self
+
+
 class StructuredUnderstanding(_StrictContract):
     goal: UnderstandingGoal = UnderstandingGoal.RECOMMENDATION
+    recommendation_mode: RecommendationMode | None = None
+    recommendation_mode_basis: RecommendationModeBasis | None = None
+    recommendation_count: int | None = Field(
+        default=None,
+        ge=1,
+        le=4,
+    )
     topic: TopicCode | None
     observations: list[str]
     exact_constraints: list[ExactConstraintDraft]
     preference_drafts: list[PreferenceDraft] = Field(default_factory=list)
+    constraint_changes: list[ConstraintChangeDraft] = Field(
+        default_factory=list,
+        max_length=4,
+    )
     relative_drafts: list[RelativeDraft] = Field(
         default_factory=list,
         max_length=4,
@@ -416,6 +473,7 @@ class StructuredUnderstanding(_StrictContract):
     image_references: list[str]
     uncertainties: list[UnderstandingIssue]
     confidence: float = Field(ge=0.0, le=1.0)
+    semantic_authoritative: bool = False
     question_meaning: str | None = Field(
         default=None,
         min_length=1,
@@ -436,6 +494,66 @@ class StructuredUnderstanding(_StrictContract):
         ):
             raise ValueError(
                 "exact references must remain in typed references"
+            )
+        recommendation_goal = self.goal in {
+            UnderstandingGoal.RECOMMENDATION,
+            UnderstandingGoal.IMAGE_SIMILARITY,
+        }
+        has_recommendation_outcome = any(
+            value is not None
+            for value in (
+                self.recommendation_mode,
+                self.recommendation_mode_basis,
+                self.recommendation_count,
+            )
+        )
+        if (
+            self.goal is not UnderstandingGoal.CLARIFICATION
+            and not recommendation_goal
+            and has_recommendation_outcome
+        ):
+            raise ValueError(
+                "non-recommendation forbids recommendation outcome"
+            )
+        if (
+            self.recommendation_mode is None
+            and (
+                self.recommendation_mode_basis is not None
+                or self.recommendation_count is not None
+            )
+        ):
+            raise ValueError(
+                "recommendation count requires recommendation mode"
+            )
+        if (
+            self.recommendation_mode == "fit"
+            and (
+                self.recommendation_count != 1
+                or self.recommendation_mode_basis
+                not in FIT_RECOMMENDATION_BASES
+            )
+        ):
+            if self.recommendation_count != 1:
+                raise ValueError(
+                    "fit recommendation requires one result"
+                )
+            raise ValueError(
+                "recommendation mode basis must be parent-scoped"
+            )
+        if (
+            self.recommendation_mode == "explore"
+            and (
+                self.recommendation_count == 1
+                or self.recommendation_mode_basis
+                not in EXPLORE_RECOMMENDATION_BASES
+            )
+        ):
+            if self.recommendation_count == 1:
+                raise ValueError(
+                    "explore recommendation requires multiple results"
+                )
+            raise ValueError(
+                "recommendation mode basis must be parent-scoped"
             )
         return self
 

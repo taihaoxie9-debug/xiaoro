@@ -1,48 +1,240 @@
 from __future__ import annotations
 
 import asyncio
-import json
-import logging
 from collections.abc import AsyncIterator, Iterator
-from functools import partial
-from typing import Any, Callable
+from contextlib import asynccontextmanager
+import errno
+import fcntl
+from hashlib import sha256
+import os
+from pathlib import Path
+import stat
+from threading import Lock
 from uuid import uuid4
+from weakref import WeakValueDictionary
 
 import anyio
-from starlette.concurrency import run_in_threadpool
 from starlette.responses import StreamingResponse
 
-from app.guide.application.chat_api_adapter import (
-    commit_http_event_delivery,
-    discard_http_event_delivery,
-    iter_guide_public_events,
-)
-from app.guide.application.contracts import UserTurn
-from app.guide.application.image_bundle_service import (
-    ImageBundleService,
-)
-from app.guide.feedback.delivery import FeedbackCompletion
-from app.guide.feedback.event_contracts import FeedbackActorContext
-from app.guide.feedback.profile_contracts import ProfileOwnerRef
+from app.guide.application.contracts import TurnIdentity, UserTurn
 from app.guide_runtime.contracts import ChatStreamRequest
-from app.guide_runtime.image_runtime import ImageRuntimeUnavailable
 
 
-class _UnifiedImageFlowAdapter:
-    def __init__(self, unified, image_processor) -> None:
-        self._unified = unified
-        self._image_processor = image_processor
-        self._conversation_state = getattr(
-            image_processor,
-            "_conversation_state",
-            None,
+_CLOSE_ON_EXEC = getattr(os, "O_CLOEXEC", 0)
+_DIRECTORY = getattr(os, "O_DIRECTORY", 0)
+_NO_FOLLOW = getattr(os, "O_NOFOLLOW", 0)
+_SESSION_LOCK_SHARD_COUNT = 256
+_SESSION_LOCK_LIMITER = anyio.CapacityLimiter(32)
+_SSE_ITERATION_LIMITER = anyio.CapacityLimiter(32)
+_SSE_CLEANUP_LIMITER = anyio.CapacityLimiter(32)
+_HTTP_EVENT_ITERATION_DONE = object()
+
+
+def _session_lock_name(session_id: str) -> str:
+    digest = sha256(session_id.encode("utf-8")).digest()
+    shard = int.from_bytes(digest[:2], "big") % _SESSION_LOCK_SHARD_COUNT
+    return f"session-{shard:03d}.lock"
+
+
+class _SessionOperationLock:
+    def __init__(
+        self,
+        *,
+        thread_lock: Lock,
+        lock_root: Path | None,
+        lock_root_identity: tuple[int, int] | None,
+        lock_name: str,
+    ) -> None:
+        self._thread_lock = thread_lock
+        self._lock_root = lock_root
+        self._lock_root_identity = lock_root_identity
+        self._lock_name = lock_name
+        self._root_descriptor: int | None = None
+        self._lock_descriptor: int | None = None
+
+    def _enter(self, *, non_blocking: bool) -> bool:
+        if not self._thread_lock.acquire(blocking=not non_blocking):
+            return False
+        if self._lock_root is None:
+            return True
+        root_descriptor: int | None = None
+        lock_descriptor: int | None = None
+        try:
+            root_descriptor = os.open(
+                self._lock_root,
+                os.O_RDONLY | _DIRECTORY | _NO_FOLLOW | _CLOSE_ON_EXEC,
+            )
+            root_stat = os.fstat(root_descriptor)
+            if (
+                self._lock_root_identity is None
+                or (root_stat.st_dev, root_stat.st_ino)
+                != self._lock_root_identity
+                or not stat.S_ISDIR(root_stat.st_mode)
+                or root_stat.st_uid != os.geteuid()
+            ):
+                raise PermissionError(
+                    "session operation lock root changed"
+                )
+            lock_descriptor = os.open(
+                self._lock_name,
+                (
+                    os.O_RDWR
+                    | os.O_CREAT
+                    | _NO_FOLLOW
+                    | _CLOSE_ON_EXEC
+                ),
+                0o600,
+                dir_fd=root_descriptor,
+            )
+            os.fchmod(lock_descriptor, 0o600)
+            lock_stat = os.fstat(lock_descriptor)
+            path_stat = os.stat(
+                self._lock_name,
+                dir_fd=root_descriptor,
+                follow_symlinks=False,
+            )
+            if (
+                not stat.S_ISREG(lock_stat.st_mode)
+                or lock_stat.st_uid != os.geteuid()
+                or (lock_stat.st_dev, lock_stat.st_ino)
+                != (path_stat.st_dev, path_stat.st_ino)
+            ):
+                raise PermissionError(
+                    "session operation lock file is invalid"
+                )
+            try:
+                fcntl.flock(
+                    lock_descriptor,
+                    fcntl.LOCK_EX
+                    | (fcntl.LOCK_NB if non_blocking else 0),
+                )
+            except OSError as error:
+                if not (
+                    non_blocking
+                    and error.errno in {errno.EACCES, errno.EAGAIN}
+                ):
+                    raise
+                for descriptor in (lock_descriptor, root_descriptor):
+                    if descriptor is None:
+                        continue
+                    try:
+                        os.close(descriptor)
+                    except OSError:
+                        pass
+                self._thread_lock.release()
+                return False
+            self._root_descriptor = root_descriptor
+            self._lock_descriptor = lock_descriptor
+            return True
+        except BaseException:
+            try:
+                for descriptor in (lock_descriptor, root_descriptor):
+                    if descriptor is None:
+                        continue
+                    try:
+                        os.close(descriptor)
+                    except OSError:
+                        pass
+            finally:
+                self._thread_lock.release()
+            raise
+
+    def __enter__(self):
+        self._enter(non_blocking=False)
+        return self
+
+    def try_enter(self) -> bool:
+        return self._enter(non_blocking=True)
+
+    def __exit__(self, exc_type, exc, traceback) -> None:
+        del exc_type, exc, traceback
+        lock_descriptor = self._lock_descriptor
+        root_descriptor = self._root_descriptor
+        self._lock_descriptor = None
+        self._root_descriptor = None
+        cleanup_error: OSError | None = None
+        try:
+            if lock_descriptor is not None:
+                try:
+                    fcntl.flock(lock_descriptor, fcntl.LOCK_UN)
+                except OSError as error:
+                    cleanup_error = error
+                try:
+                    os.close(lock_descriptor)
+                except OSError as error:
+                    cleanup_error = cleanup_error or error
+            if root_descriptor is not None:
+                try:
+                    os.close(root_descriptor)
+                except OSError as error:
+                    cleanup_error = cleanup_error or error
+        finally:
+            self._thread_lock.release()
+        if cleanup_error is not None and exc is None:
+            raise cleanup_error
+
+
+class SessionOperationLockRegistry:
+    def __init__(self, *, lock_root: Path | None = None) -> None:
+        self._guard = Lock()
+        self._locks: WeakValueDictionary[str, object] = WeakValueDictionary()
+        self._lock_root = (
+            self._prepare_lock_root(lock_root)
+            if lock_root is not None
+            else None
+        )
+        self._lock_root_identity = (
+            (
+                self._lock_root.stat().st_dev,
+                self._lock_root.stat().st_ino,
+            )
+            if self._lock_root is not None
+            else None
         )
 
-    def stream(self, turn: UserTurn):
-        yield from self._unified.stream_image(
-            turn,
-            image_processor=self._image_processor,
-        )
+    @property
+    def lock_root(self) -> Path | None:
+        return self._lock_root
+
+    def for_session(self, session_id: str):
+        if not isinstance(session_id, str) or not session_id:
+            raise ValueError("session_id must be nonempty")
+        lock_name = _session_lock_name(session_id)
+        with self._guard:
+            operation_lock = self._locks.get(lock_name)
+            if operation_lock is None:
+                operation_lock = _SessionOperationLock(
+                    thread_lock=Lock(),
+                    lock_root=self._lock_root,
+                    lock_root_identity=self._lock_root_identity,
+                    lock_name=lock_name,
+                )
+                self._locks[lock_name] = operation_lock
+            return operation_lock
+
+    def hold(self, session_id: str):
+        return hold_session_operation_lock(self.for_session(session_id))
+
+    @staticmethod
+    def _prepare_lock_root(lock_root: Path) -> Path:
+        if not isinstance(lock_root, Path):
+            raise TypeError("lock_root must be a pathlib.Path")
+        if lock_root.is_symlink():
+            raise ValueError(
+                "session operation lock root must not be a symlink"
+            )
+        lock_root.mkdir(mode=0o700, parents=True, exist_ok=True)
+        resolved = lock_root.resolve(strict=True)
+        root_stat = resolved.stat()
+        if (
+            not stat.S_ISDIR(root_stat.st_mode)
+            or root_stat.st_uid != os.geteuid()
+        ):
+            raise PermissionError(
+                "session operation lock root is invalid"
+            )
+        os.chmod(resolved, 0o700)
+        return resolved
 
 
 class DeliveryStreamingResponse(StreamingResponse):
@@ -56,372 +248,164 @@ class DeliveryStreamingResponse(StreamingResponse):
                     await close()
 
 
-def encode_sse(event: str, data: dict[str, Any]) -> str:
-    payload = json.dumps(
-        data,
-        ensure_ascii=False,
-        separators=(",", ":"),
-    )
-    return f"event: {event}\ndata: {payload}\n\n"
-
-
-def encode_terminal_sse_chunk(
-    end_data: dict[str, Any],
-    *,
-    feedback_target: dict[str, Any] | None = None,
-    encode_event: Callable[
-        [str, dict[str, Any]],
-        str,
-    ] = encode_sse,
-) -> str:
-    events = []
-    if feedback_target is not None:
-        events.append(("feedback_target", feedback_target))
-    events.append(("end", end_data))
-    return "".join(
-        encode_event(event, data)
-        for event, data in events
-    )
-
-
-async def iterate_terminal_delivery_chunks(
-    public_event: tuple[str, dict[str, Any]],
-    *,
-    actor: FeedbackActorContext,
-    completion: FeedbackCompletion | None,
-    feedback_service_provider: Callable[[], Any],
-    encode_event: Callable[
-        [str, dict[str, Any]],
-        str,
-    ] = encode_sse,
-    logger: logging.Logger | None = None,
-) -> AsyncIterator[str]:
-    event, end_data = public_event
-    if event != "end":
-        raise ValueError("terminal delivery requires an end event")
-
-    service = None
-    prepared = None
-    feedback_target = None
-    if completion is not None:
+@asynccontextmanager
+async def hold_session_operation_lock(operation_lock):
+    acquired = False
+    body_error: BaseException | None = None
+    if operation_lock is None:
+        yield
+        return
+    while not acquired:
+        acquire_task = asyncio.create_task(
+            anyio.to_thread.run_sync(
+                operation_lock.try_enter,
+                limiter=_SESSION_LOCK_LIMITER,
+            )
+        )
         try:
-            service = await run_in_threadpool(
-                feedback_service_provider
-            )
-            prepared = await run_in_threadpool(
-                partial(
-                    service.prepare_completed,
-                    actor=actor,
-                    completion=completion,
-                )
-            )
-        except Exception:
-            if logger is not None:
-                logger.exception(
-                    "feedback target preparation failed"
-                )
-        else:
-            if prepared is not None:
-                feedback_target = prepared.receipt.model_dump(
-                    mode="json"
-                )
-
-    # The generator resumes here only after the terminal ASGI send returns.
-    yield encode_terminal_sse_chunk(
-        end_data,
-        feedback_target=feedback_target,
-        encode_event=encode_event,
-    )
-
-    conversation_commit_failed = False
-    feedback_persist_failed = False
-    with anyio.CancelScope(shield=True):
-        try:
-            await run_in_threadpool(
-                commit_http_event_delivery,
-                public_event,
-            )
-        except Exception:
-            conversation_commit_failed = True
-            if logger is not None:
-                logger.exception(
-                    "conversation delivery commit failed"
-                )
-        else:
-            if prepared is not None:
-                try:
-                    await run_in_threadpool(
-                        service.persist_prepared,
-                        prepared,
+            acquired = await asyncio.shield(acquire_task)
+        except asyncio.CancelledError as cancelled:
+            try:
+                with anyio.CancelScope(shield=True):
+                    acquired = await acquire_task
+            except BaseException as error:
+                raise error from cancelled
+            if acquired:
+                with anyio.CancelScope(shield=True):
+                    await anyio.to_thread.run_sync(
+                        _exit_session_operation_lock,
+                        operation_lock,
+                        cancelled,
+                        limiter=_SESSION_LOCK_LIMITER,
                     )
-                except Exception:
-                    feedback_persist_failed = True
-                    if logger is not None:
-                        logger.exception(
-                            "feedback target persistence failed"
-                        )
+            raise
+        if not acquired:
+            await anyio.sleep(0.01)
+    try:
+        yield
+    except BaseException as error:
+        body_error = error
+        raise
+    finally:
+        with anyio.CancelScope(shield=True):
+            await anyio.to_thread.run_sync(
+                _exit_session_operation_lock,
+                operation_lock,
+                body_error,
+                limiter=_SESSION_LOCK_LIMITER,
+            )
 
-    if conversation_commit_failed:
-        yield encode_event(
-            "delivery_control",
-            {
-                "status": "conversation_commit_failed",
-                "fatal": True,
-            },
-        )
-    elif feedback_persist_failed:
-        yield encode_event(
-            "delivery_control",
-            {
-                "status": "feedback_target_persist_failed",
-                "fatal": False,
-            },
-        )
+
+def _exit_session_operation_lock(
+    operation_lock,
+    error: BaseException | None,
+) -> None:
+    operation_lock.__exit__(
+        type(error) if error is not None else None,
+        error,
+        error.__traceback__ if error is not None else None,
+    )
 
 
 async def iterate_http_events_in_threadpool(
-    events: Iterator[tuple[str, dict[str, Any]]],
-) -> AsyncIterator[tuple[str, dict[str, Any]]]:
+    events: Iterator[bytes],
+    *,
+    operation_lock=None,
+) -> AsyncIterator[bytes]:
     iterator = iter(events)
     next_task = None
+    iterator_closed = False
     try:
-        while True:
-            next_task = asyncio.create_task(
-                run_in_threadpool(_next_http_event, iterator)
-            )
+        async with hold_session_operation_lock(operation_lock):
             try:
-                event = await asyncio.shield(next_task)
-            except asyncio.CancelledError as cancelled:
-                try:
-                    with anyio.CancelScope(shield=True):
-                        cancelled_event = await next_task
-                except BaseException as error:
-                    raise error from cancelled
-                discard_http_event_delivery(cancelled_event)
-                raise
-            next_task = None
-            if event is _HTTP_EVENT_ITERATION_DONE:
-                return
-            try:
-                yield event
-            except BaseException:
-                discard_http_event_delivery(event)
-                raise
-    finally:
-        close = getattr(iterator, "close", None)
-        if close is not None:
-            with anyio.CancelScope(shield=True):
+                while True:
+                    next_task = asyncio.create_task(
+                        anyio.to_thread.run_sync(
+                            _next_preencoded_frame,
+                            iterator,
+                            limiter=_SSE_ITERATION_LIMITER,
+                        )
+                    )
+                    try:
+                        event = await asyncio.shield(next_task)
+                    except asyncio.CancelledError as cancelled:
+                        try:
+                            with anyio.CancelScope(shield=True):
+                                await next_task
+                        except BaseException as error:
+                            raise error from cancelled
+                        raise
+                    next_task = None
+                    if event is _HTTP_EVENT_ITERATION_DONE:
+                        return
+                    yield event
+            finally:
                 if next_task is not None and not next_task.done():
-                    await next_task
-                await run_in_threadpool(close)
+                    with anyio.CancelScope(shield=True):
+                        await next_task
+                iterator_closed = True
+                with anyio.CancelScope(shield=True):
+                    await anyio.to_thread.run_sync(
+                        _close_preencoded_iterator,
+                        iterator,
+                        limiter=_SSE_CLEANUP_LIMITER,
+                    )
+    finally:
+        if not iterator_closed:
+            with anyio.CancelScope(shield=True):
+                await anyio.to_thread.run_sync(
+                    _close_preencoded_iterator,
+                    iterator,
+                    limiter=_SSE_CLEANUP_LIMITER,
+                )
 
 
-_HTTP_EVENT_ITERATION_DONE = object()
-
-
-def _next_http_event(iterator):
+def _next_preencoded_frame(iterator) -> bytes | object:
     try:
         return next(iterator)
     except StopIteration:
         return _HTTP_EVENT_ITERATION_DONE
 
 
-def iter_finalized_http_events(
-    events: Iterator[tuple[str, dict[str, Any]]],
-) -> Iterator[tuple[str, dict[str, Any]]]:
-    pending_end: tuple[str, dict[str, Any]] | None = None
-    try:
-        for public_event in events:
-            event, data = public_event
-            if pending_end is not None:
-                discard_http_event_delivery(pending_end)
-                if event == "error":
-                    yield event, data
-                else:
-                    yield "error", {
-                        "error": "GUIDE_EVENT_CONTRACT_INVALID",
-                        "message": "推荐响应不完整，请稍后重试。",
-                    }
-                return
-            if event == "end":
-                pending_end = public_event
-                continue
-            yield event, data
-            if event == "error":
-                return
-    except Exception:
-        if pending_end is not None:
-            discard_http_event_delivery(pending_end)
-        yield "error", {
-            "error": "GUIDE_INTERNAL_ERROR",
-            "message": "推荐暂时不可用，请稍后重试。",
-        }
-        return
-    finally:
-        close = getattr(events, "close", None)
-        if close is not None:
-            close()
-
-    if pending_end is not None:
-        yield pending_end
-        return
-    yield "error", {
-        "error": "GUIDE_EVENT_CONTRACT_INVALID",
-        "message": "推荐响应不完整，请稍后重试。",
-    }
+def _close_preencoded_iterator(iterator) -> None:
+    close = getattr(iterator, "close", None)
+    if close is not None:
+        close()
 
 
 def iter_http_events(
-    orchestrator,
+    unified_orchestrator,
     payload: ChatStreamRequest,
-    image_bundle_service: ImageBundleService,
-    image_runtime=None,
-    consultation_runtime=None,
     *,
-    profile_owner: ProfileOwnerRef | None = None,
-    unified_router_enabled: bool = False,
-) -> Iterator[tuple[str, dict[str, Any]]]:
-    if not isinstance(unified_router_enabled, bool):
-        raise TypeError("unified_router_enabled must be bool")
+    profile_owner=None,
+) -> Iterator[bytes]:
     session_id = payload.session_id or f"guide-{uuid4().hex}"
-    if payload.has_image_bundle_reference:
-        del image_bundle_service
-        try:
-            if image_runtime is None:
-                raise ImageRuntimeUnavailable(
-                    ("image_runtime_unavailable",)
-                )
-            image_orchestrator = image_runtime.get_orchestrator()
-        except ImageRuntimeUnavailable:
-            yield "start", {"session_id": session_id}
-            yield "error", {
-                "error": "IMAGE_RETRIEVAL_UNAVAILABLE",
-                "message": "图片检索暂时不可用，请稍后重试。",
-            }
-            return
-        active_profile_owner = profile_owner
-        active_orchestrator = image_orchestrator
-        if unified_router_enabled:
-            if consultation_runtime is None:
-                yield "start", {"session_id": session_id}
-                yield "error", {
-                    "error": "GUIDE_INTERNAL_ERROR",
-                    "message": "推荐暂时不可用，请稍后重试。",
-                }
-                return
-            if active_profile_owner is None:
-                active_profile_owner = (
-                    consultation_runtime.profile_owner(session_id)
-                )
-            active_orchestrator = _UnifiedImageFlowAdapter(
-                consultation_runtime.unified,
-                image_orchestrator,
-            )
-        turn = UserTurn(
-            session_id=session_id,
-            message=payload.message,
-            profile_owner=active_profile_owner,
-            image_bundle_id=payload.image_bundle_id,
-            image_bundle_version=payload.image_bundle_version,
-            image_bundle_token=payload.image_bundle_token,
-            conversation_version=payload.conversation_version,
-        )
-        yield from iter_guide_public_events(
-            active_orchestrator,
-            turn,
-        )
-        return
-
-    if payload.has_legacy_image_payload:
-        yield "start", {"session_id": session_id}
-        yield "error", {
-            "error": "IMAGE_BUNDLE_UNAVAILABLE",
-            "message": "图片引用不可用，请重新上传。",
-        }
-        return
-
-    if unified_router_enabled:
-        if consultation_runtime is None:
-            yield "start", {"session_id": session_id}
-            yield "error", {
-                "error": "GUIDE_INTERNAL_ERROR",
-                "message": "推荐暂时不可用，请稍后重试。",
-            }
-            return
-        active_profile_owner = (
-            profile_owner
-            if profile_owner is not None
-            else consultation_runtime.profile_owner(session_id)
-        )
-        yield from iter_guide_public_events(
-            consultation_runtime.unified,
-            UserTurn(
-                session_id=session_id,
-                message=payload.message,
-                profile_owner=active_profile_owner,
-                image_bundle_id=None,
-                image_bundle_version=None,
-                image_bundle_token=None,
-                conversation_version=payload.conversation_version,
-            ),
-        )
-        return
-
-    vertical_turn = None
-    has_consultation_session = False
-    if consultation_runtime is not None:
-        active_profile_owner = (
-            profile_owner
-            if profile_owner is not None
-            else consultation_runtime.profile_owner(session_id)
-        )
-        vertical_turn = UserTurn(
-            session_id=session_id,
-            message=payload.message,
-            profile_owner=active_profile_owner,
-            image_bundle_id=None,
-            image_bundle_version=None,
-            image_bundle_token=None,
-            conversation_version=payload.conversation_version,
-        )
-        try:
-            consultation_claimed = (
-                consultation_runtime.consultation.claims(vertical_turn)
-            )
-            has_consultation_session = (
-                consultation_runtime.consultation.has_session(
-                    vertical_turn
-                )
-            )
-        except Exception:
-            yield "start", {"session_id": session_id}
-            yield "error", {
-                "error": "CONSULTATION_INTERNAL_ERROR",
-                "message": "轻问诊暂时不可用，请稍后重试。",
-            }
-            return
-        if consultation_claimed:
-            yield from iter_guide_public_events(
-                consultation_runtime.consultation,
-                vertical_turn,
-            )
-            return
-
-    active_orchestrator = (
-        consultation_runtime.recommendation
-        if has_consultation_session
-        else orchestrator
+    identity = TurnIdentity(
+        session_id=session_id,
+        request_id=f"request_{uuid4().hex}",
+        turn_id=f"turn_{uuid4().hex}",
     )
-    turn = vertical_turn or UserTurn(
+    turn = UserTurn(
+        identity=identity,
         session_id=session_id,
         message=payload.message,
+        image_action=payload.image_action,
         profile_owner=profile_owner,
-        image_bundle_id=None,
-        image_bundle_version=None,
-        image_bundle_token=None,
+        image_bundle_id=payload.image_bundle_id,
+        image_bundle_version=payload.image_bundle_version,
+        image_bundle_token=payload.image_bundle_token,
         conversation_version=payload.conversation_version,
     )
-    yield from iter_guide_public_events(
-        active_orchestrator,
-        turn,
+    frames = _validated_frames(
+        unified_orchestrator.stream(turn)
     )
+    yield from frames
+
+
+def _validated_frames(frames) -> Iterator[bytes]:
+    for frame in frames:
+        if type(frame) is not bytes:
+            raise TypeError(
+                "unified flow must emit pre-encoded SSE bytes"
+            )
+        yield frame

@@ -363,13 +363,14 @@ def _acquire_file_slot(
 def image_inference_slot(
     *,
     lock_dir: str | os.PathLike[str] | None = None,
-    timeout: float | None = None,
+    timeout: float | None = 0.0,
 ) -> Iterator[None]:
     """Acquire one inference slot.
 
-    ``timeout=None`` blocks until a slot is available. A finite non-negative
-    timeout is the total wait budget in seconds; ``0`` performs one immediate
-    attempt. Exhausting the budget raises ``TimeoutError``.
+    The default performs one immediate attempt so request worker threads cannot
+    queue indefinitely behind model capacity. ``timeout=None`` is an explicit
+    opt-in for offline callers; a finite non-negative timeout is the total wait
+    budget in seconds. Exhausting the budget raises ``TimeoutError``.
     """
 
     if timeout is not None and (not math.isfinite(timeout) or timeout < 0):

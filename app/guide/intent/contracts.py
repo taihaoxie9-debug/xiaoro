@@ -1,7 +1,15 @@
+from collections.abc import Mapping
 from decimal import Decimal
 from typing import Annotated, Literal, Self
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    JsonValue,
+    field_validator,
+    model_validator,
+)
 
 from app.guide.understanding.contracts import (
     EfficacyTarget,
@@ -12,6 +20,26 @@ from app.guide.understanding.contracts import (
     TopicCode,
 )
 from app.guide.understanding.semantic_contracts import ClarificationCode
+from app.guide.understanding.turn_meaning_contracts import (
+    EXPLORE_RECOMMENDATION_BASES,
+    FIT_RECOMMENDATION_BASES,
+    RecommendationMode,
+    RecommendationModeBasis,
+)
+
+
+PublicIntentMode = Literal[
+    "recommend",
+    "comparison",
+    "suitability",
+    "knowledge",
+    "clarify",
+    "followup",
+    "revise",
+    "image_identity",
+    "image_recommend",
+    "image_compare",
+]
 
 
 class _StrictContract(BaseModel):
@@ -146,6 +174,13 @@ class TaskPlan(_StrictContract):
         "followup",
         "clarify",
     ]
+    recommendation_mode: RecommendationMode | None = None
+    recommendation_mode_basis: RecommendationModeBasis | None = None
+    recommendation_count: int | None = Field(
+        default=None,
+        ge=1,
+        le=4,
+    )
     referenced_image_ids: list[str]
     constraints: list[TaskConstraint]
     references: list[ReferenceDraft] = Field(default_factory=list)
@@ -167,6 +202,10 @@ class TaskPlan(_StrictContract):
         default_factory=list,
         max_length=4,
     )
+    requested_comparison_dimensions: tuple[str, ...] = Field(
+        default_factory=tuple,
+        max_length=12,
+    )
     question_meaning: str | None = Field(
         default=None,
         min_length=1,
@@ -175,6 +214,36 @@ class TaskPlan(_StrictContract):
     safety_sensitive: bool = False
     clarification: str | None = None
     clarification_code: ClarificationCode | None = None
+
+    @field_validator(
+        "requested_comparison_dimensions",
+        mode="before",
+    )
+    @classmethod
+    def freeze_requested_comparison_dimensions(
+        cls,
+        value: object,
+    ) -> object:
+        return tuple(value) if isinstance(value, list) else value
+
+    @model_validator(mode="before")
+    @classmethod
+    def default_code_owned_recommendation_outcome(
+        cls,
+        value: object,
+    ) -> object:
+        if not isinstance(value, dict) or value.get("mode") != "recommend":
+            return value
+        normalized = dict(value)
+        if normalized.get("recommendation_mode") is None:
+            normalized["recommendation_mode"] = "explore"
+        if normalized.get("recommendation_count") is None:
+            normalized["recommendation_count"] = (
+                1
+                if normalized["recommendation_mode"] == "fit"
+                else 3
+            )
+        return normalized
 
     @model_validator(mode="after")
     def validate_mode(self) -> Self:
@@ -190,10 +259,76 @@ class TaskPlan(_StrictContract):
             raise ValueError(
                 "executable mode forbids clarification metadata"
             )
+        has_recommendation_outcome = any(
+            value is not None
+            for value in (
+                self.recommendation_mode,
+                self.recommendation_mode_basis,
+                self.recommendation_count,
+            )
+        )
+        if (
+            self.mode not in {"recommend", "clarify"}
+            and has_recommendation_outcome
+        ):
+            raise ValueError(
+                "non-recommend plan forbids recommendation outcome"
+            )
+        if self.mode == "recommend" or has_recommendation_outcome:
+            if self.recommendation_mode is None:
+                raise ValueError(
+                    "recommendation outcome requires recommendation mode"
+                )
+            if self.recommendation_mode_basis is None:
+                raise ValueError(
+                    "recommend plan requires recommendation mode basis"
+                )
+            if self.recommendation_mode == "fit":
+                if (
+                    self.recommendation_mode_basis
+                    not in FIT_RECOMMENDATION_BASES
+                ):
+                    raise ValueError(
+                        "recommendation mode basis must be "
+                        "parent-scoped"
+                    )
+                if self.recommendation_count != 1:
+                    raise ValueError(
+                        "fit recommendation requires one result"
+                    )
+            else:
+                if (
+                    self.recommendation_mode_basis
+                    not in EXPLORE_RECOMMENDATION_BASES
+                ):
+                    raise ValueError(
+                        "recommendation mode basis must be "
+                        "parent-scoped"
+                    )
+                if self.recommendation_count not in {2, 3, 4}:
+                    raise ValueError(
+                        "explore recommendation requires "
+                        "two to four results"
+                    )
         if any(product_id <= 0 for product_id in self.product_ids):
             raise ValueError("product IDs must be positive")
         if len(self.product_ids) != len(set(self.product_ids)):
             raise ValueError("product IDs must be unique")
+        if (
+            self.requested_comparison_dimensions
+            != tuple(dict.fromkeys(
+                self.requested_comparison_dimensions
+            ))
+            or any(
+                not value
+                or value != value.strip()
+                for value in self.requested_comparison_dimensions
+            )
+        ):
+            raise ValueError(
+                "requested comparison dimensions must be ordered "
+                "unique values"
+            )
         if (
             self.similarity_anchor_product_id is not None
             and self.mode != "recommend"
@@ -228,8 +363,29 @@ class TaskPlan(_StrictContract):
         return self
 
 
+def revalidate_task_plan(
+    task: TaskPlan,
+    *,
+    update: Mapping[str, object],
+) -> TaskPlan:
+    if type(task) is not TaskPlan:
+        raise TypeError("task must be an exact TaskPlan")
+    if not isinstance(update, Mapping):
+        raise TypeError("task update must be a mapping")
+    payload = task.model_dump(mode="python")
+    payload.update(dict(update))
+    return TaskPlan.model_validate(payload, strict=True)
+
+
 class BudgetRevisionPlan(_StrictContract):
     mode: Literal["revise", "clarify"]
+    recommendation_mode: RecommendationMode | None = None
+    recommendation_mode_basis: RecommendationModeBasis | None = None
+    recommendation_count: int | None = Field(
+        default=None,
+        ge=1,
+        le=4,
+    )
     constraints: list[TaskConstraint]
     clarification: str | None = None
     clarification_code: ClarificationCode | None = None
@@ -246,7 +402,25 @@ class BudgetRevisionPlan(_StrictContract):
                 )
             if not self.constraints:
                 raise ValueError("revise mode requires constraints")
+            _validate_revision_recommendation_outcome(
+                recommendation_mode=self.recommendation_mode,
+                recommendation_mode_basis=(
+                    self.recommendation_mode_basis
+                ),
+                recommendation_count=self.recommendation_count,
+            )
         else:
+            if any(
+                value is not None
+                for value in (
+                    self.recommendation_mode,
+                    self.recommendation_mode_basis,
+                    self.recommendation_count,
+                )
+            ):
+                raise ValueError(
+                    "clarify revision forbids recommendation outcome"
+                )
             if not self.clarification or self.clarification_code is None:
                 raise ValueError(
                     "clarify mode requires clarification and typed code"
@@ -260,6 +434,13 @@ class BudgetRevisionPlan(_StrictContract):
 
 class SkinRevisionPlan(_StrictContract):
     mode: Literal["revise", "clarify"]
+    recommendation_mode: RecommendationMode | None = None
+    recommendation_mode_basis: RecommendationModeBasis | None = None
+    recommendation_count: int | None = Field(
+        default=None,
+        ge=1,
+        le=4,
+    )
     constraints: list[TaskConstraint]
     clarification: str | None = None
     clarification_code: ClarificationCode | None = None
@@ -276,7 +457,25 @@ class SkinRevisionPlan(_StrictContract):
                 )
             if not self.constraints:
                 raise ValueError("revise mode requires constraints")
+            _validate_revision_recommendation_outcome(
+                recommendation_mode=self.recommendation_mode,
+                recommendation_mode_basis=(
+                    self.recommendation_mode_basis
+                ),
+                recommendation_count=self.recommendation_count,
+            )
         else:
+            if any(
+                value is not None
+                for value in (
+                    self.recommendation_mode,
+                    self.recommendation_mode_basis,
+                    self.recommendation_count,
+                )
+            ):
+                raise ValueError(
+                    "clarify revision forbids recommendation outcome"
+                )
             if not self.clarification or self.clarification_code is None:
                 raise ValueError(
                     "clarify mode requires clarification and typed code"
@@ -286,6 +485,36 @@ class SkinRevisionPlan(_StrictContract):
                     "clarify mode forbids constraints"
                 )
         return self
+
+
+def _validate_revision_recommendation_outcome(
+    *,
+    recommendation_mode: RecommendationMode | None,
+    recommendation_mode_basis: RecommendationModeBasis | None,
+    recommendation_count: int | None,
+) -> None:
+    if (
+        recommendation_mode is None
+        or recommendation_mode_basis is None
+        or recommendation_count is None
+    ):
+        raise ValueError(
+            "revision requires complete recommendation outcome"
+        )
+    if recommendation_mode == "fit":
+        if recommendation_mode_basis not in FIT_RECOMMENDATION_BASES:
+            raise ValueError(
+                "revision recommendation basis must be parent-scoped"
+            )
+        if recommendation_count != 1:
+            raise ValueError("fit revision requires one result")
+        return
+    if recommendation_mode_basis not in EXPLORE_RECOMMENDATION_BASES:
+        raise ValueError(
+            "revision recommendation basis must be parent-scoped"
+        )
+    if recommendation_count not in {2, 3, 4}:
+        raise ValueError("explore revision requires multiple results")
 
 
 class FollowupPlan(_StrictContract):

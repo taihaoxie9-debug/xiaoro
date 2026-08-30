@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Self
+from typing import Literal, Self
 
 from pydantic import (
     BaseModel,
@@ -12,6 +12,11 @@ from pydantic import (
 )
 
 from app.guide.feedback.consultation_state import ConsultationSubstate
+from app.guide.application.consultation_confirmation import (
+    ConsultationConfirmationRejected,
+    SkinTargetValue,
+    validate_explicit_confirmation,
+)
 from app.guide.understanding.consultation_contracts import (
     ConsultationObservation,
     ProvisionalConsultationConclusion,
@@ -37,6 +42,7 @@ from app.guide.understanding.turn_meaning_contracts import (
     TurnMeaning,
     TurnNextObservationGap,
     TurnObservationCandidate,
+    TurnPendingResponseHint,
 )
 
 
@@ -69,9 +75,11 @@ _ACTIVE_RISK_DIMENSIONS = frozenset(
     {"burning", "pain", "swelling", "broken_skin", "oozing"}
 )
 _SKIN_LABELS = {
+    "oily_sensitive": "油性敏感肌",
     "oily": "油性肤质",
     "dry": "干性肤质",
     "combination": "混合性肤质",
+    "sensitive": "敏感性肤质",
     "normal": "中性肤质",
 }
 
@@ -156,20 +164,91 @@ class DynamicConsultationResult(BaseModel):
         return self
 
 
+class PreparedConsultationEvidence(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
+
+    observations: tuple[ConsultationObservation, ...] = Field(
+        default_factory=tuple,
+        max_length=16,
+    )
+    hypothesis: TurnConsultationHypothesis | None = None
+    next_observation_gap: TurnNextObservationGap | None = None
+    pending_response_hint: TurnPendingResponseHint = "unknown"
+    confirmation_status: Literal[
+        "not_applicable",
+        "affirmed",
+        "rejected",
+        "unresolved",
+    ] = "not_applicable"
+
+    @field_validator("observations", mode="before")
+    @classmethod
+    def freeze_observations(cls, value: object) -> object:
+        return tuple(value) if isinstance(value, list) else value
+
+
+def prepare_dynamic_consultation_evidence(
+    *,
+    message: str,
+    meaning: TurnMeaning,
+    source_turn_id: str,
+    expected_skin_target: SkinTargetValue | None = None,
+) -> PreparedConsultationEvidence:
+    if not isinstance(message, str) or not message.strip():
+        raise ValueError("message must be nonempty")
+    if type(meaning) is not TurnMeaning:
+        raise TypeError("meaning must be an exact TurnMeaning")
+    if not isinstance(source_turn_id, str) or not source_turn_id:
+        raise ValueError("source_turn_id must be nonempty")
+    confirmation_status: Literal[
+        "not_applicable",
+        "affirmed",
+        "rejected",
+        "unresolved",
+    ] = "not_applicable"
+    if meaning.pending_response_hint == "reject":
+        confirmation_status = "rejected"
+    elif meaning.pending_response_hint == "affirm":
+        if expected_skin_target is None:
+            confirmation_status = "unresolved"
+        else:
+            try:
+                validate_explicit_confirmation(
+                    message,
+                    expected_skin_target=expected_skin_target,
+                )
+            except ConsultationConfirmationRejected:
+                confirmation_status = "unresolved"
+            else:
+                confirmation_status = "affirmed"
+    return PreparedConsultationEvidence(
+        observations=_admit_observations(
+            message=message,
+            candidates=meaning.observation_candidates,
+            source_turn_id=source_turn_id,
+        ),
+        hypothesis=meaning.consultation_hypothesis,
+        next_observation_gap=meaning.next_observation_gap,
+        pending_response_hint=meaning.pending_response_hint,
+        confirmation_status=confirmation_status,
+    )
+
+
 def advance_dynamic_consultation(
     *,
     previous: ConsultationSubstate | None,
-    message: str,
-    meaning: TurnMeaning,
+    evidence: PreparedConsultationEvidence,
     source_turn_id: str,
     conversation_version: int,
 ) -> DynamicConsultationResult:
     if previous is not None and type(previous) is not ConsultationSubstate:
         raise TypeError("previous must be a ConsultationSubstate or None")
-    if not isinstance(message, str) or not message.strip():
-        raise ValueError("message must be nonempty")
-    if type(meaning) is not TurnMeaning:
-        raise TypeError("meaning must be an exact TurnMeaning")
+    if type(evidence) is not PreparedConsultationEvidence:
+        raise TypeError(
+            "evidence must be PreparedConsultationEvidence"
+        )
+    if not isinstance(source_turn_id, str) or not source_turn_id:
+        raise ValueError("source_turn_id must be nonempty")
     if (
         not isinstance(conversation_version, int)
         or isinstance(conversation_version, bool)
@@ -179,11 +258,7 @@ def advance_dynamic_consultation(
     if previous is not None and previous.medical_escalation is not None:
         raise ValueError("terminal consultation cannot advance")
 
-    admitted = _admit_observations(
-        message=message,
-        candidates=meaning.observation_candidates,
-        source_turn_id=source_turn_id,
-    )
+    admitted = evidence.observations
     observations = _merge_observations(
         previous.observations if previous is not None else (),
         admitted,
@@ -194,7 +269,7 @@ def advance_dynamic_consultation(
         if item.observation_id is not None
     }
     hypothesis = _admit_hypothesis(
-        meaning.consultation_hypothesis,
+        evidence.hypothesis,
         admitted_ids=admitted_ids,
     )
     base_skin = _accepted_base_skin(
@@ -212,6 +287,10 @@ def advance_dynamic_consultation(
         hypothesis,
         observations=observations,
     )
+    skin_target = _supported_skin_target(
+        base_skin=base_skin,
+        stable_tendencies=tendencies,
+    )
     escalation_triggers = _safety_triggers(
         observations,
         source_turn_id=source_turn_id,
@@ -222,20 +301,21 @@ def advance_dynamic_consultation(
     ready_for_confirmation = False
     if not stop_skincare_advice:
         next_gap = _select_next_gap(
-            meaning.next_observation_gap,
+            evidence.next_observation_gap,
             observations=observations,
             base_skin=base_skin,
+            skin_target=skin_target,
         )
         if next_gap is not None:
             next_question = _question_for_gap(
                 next_gap,
-                base_skin=base_skin,
+                skin_target=skin_target,
             )
             ready_for_confirmation = next_gap == "confirmation"
 
     conclusion = _build_conclusion(
         observations=observations,
-        base_skin=base_skin,
+        skin_target=skin_target,
         stable_tendencies=tendencies,
         current_conditions=conditions,
         next_gap=next_gap,
@@ -527,6 +607,19 @@ def _accepted_conditions(
     return tuple(admitted)
 
 
+def _supported_skin_target(
+    *,
+    base_skin: str | None,
+    stable_tendencies: Sequence[TurnConsultationTendency],
+) -> SkinTargetValue | None:
+    sensitive = "sensitivity" in stable_tendencies
+    if base_skin == "oily" and sensitive:
+        return "oily_sensitive"
+    if base_skin is None and sensitive:
+        return "sensitive"
+    return base_skin
+
+
 def _safety_triggers(
     observations: Sequence[ConsultationObservation],
     *,
@@ -565,10 +658,16 @@ def _select_next_gap(
     *,
     observations: Sequence[ConsultationObservation],
     base_skin: str | None,
+    skin_target: SkinTargetValue | None,
 ) -> TurnNextObservationGap | None:
-    ready = _has_tolerance_status(observations) and (
-        _has_active_risk_status(observations)
-    ) and base_skin is not None
+    ready = (
+        _has_tolerance_status(observations)
+        and _has_active_risk_status(observations)
+        and skin_target is not None
+    ) or (
+        skin_target == "sensitive"
+        and _has_source_supported_mild_sensitivity(observations)
+    )
     if proposed == "confirmation" and ready:
         return "confirmation"
     if (
@@ -594,6 +693,18 @@ def _select_next_gap(
         ):
             return gap
     return "confirmation" if ready else None
+
+
+def _has_source_supported_mild_sensitivity(
+    observations: Sequence[ConsultationObservation],
+) -> bool:
+    return any(
+        item.dimension in _REACTION_DIMENSIONS
+        and item.state in {"present", "sometimes"}
+        and item.severity == "mild"
+        and item.trigger not in {None, "unknown"}
+        for item in observations
+    )
 
 
 def _gap_is_missing(
@@ -676,7 +787,7 @@ def _has_active_risk_status(
 def _question_for_gap(
     gap: TurnNextObservationGap,
     *,
-    base_skin: str | None,
+    skin_target: SkinTargetValue | None,
 ) -> ConsultationQuestion:
     if gap == "location":
         prompt = "平时哪里容易出油，哪里更容易干燥或紧绷？"
@@ -687,7 +798,11 @@ def _question_for_gap(
     elif gap == "active_damage_risk":
         prompt = "现在有没有持续红肿、明显疼痛、破皮或渗出？"
     else:
-        label = _SKIN_LABELS[base_skin]
+        if skin_target is None:
+            raise ValueError(
+                "confirmation question requires supported skin target"
+            )
+        label = _SKIN_LABELS[skin_target]
         prompt = f"目前看更接近{label}，这个判断和你的感受一致吗？"
     return ConsultationQuestion(code=gap, prompt=prompt)
 
@@ -695,7 +810,7 @@ def _question_for_gap(
 def _build_conclusion(
     *,
     observations: Sequence[ConsultationObservation],
-    base_skin: str | None,
+    skin_target: SkinTargetValue | None,
     stable_tendencies: Sequence[TurnConsultationTendency],
     current_conditions: Sequence[TurnConsultationCondition],
     next_gap: TurnNextObservationGap | None,
@@ -732,14 +847,14 @@ def _build_conclusion(
             "先暂停新产品并及时就医。"
         )
     return ProvisionalConsultationConclusion(
-        skin_target=base_skin,
+        skin_target=skin_target,
         stable_tendencies=tuple(stable_tendencies),
         current_conditions=tuple(current_conditions),
         confidence=(
             "high"
             if ready_for_confirmation
             else "medium"
-            if base_skin is not None
+            if skin_target is not None
             else "low"
         ),
         evidence=evidence,
@@ -757,5 +872,7 @@ def _build_conclusion(
 
 __all__ = [
     "DynamicConsultationResult",
+    "PreparedConsultationEvidence",
     "advance_dynamic_consultation",
+    "prepare_dynamic_consultation_evidence",
 ]

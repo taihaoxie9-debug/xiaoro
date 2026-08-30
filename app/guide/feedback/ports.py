@@ -6,6 +6,8 @@ from app.guide.application.contracts import UserTurn
 from app.guide.feedback.contracts import (
     ClarificationProgress,
     ConversationSnapshot,
+    PendingClarificationSlot,
+    PendingReplySlot,
     PendingTurn,
 )
 from app.guide.feedback.consultation_state import (
@@ -41,19 +43,53 @@ def validate_conversation_state_transition(
     replacement: ConversationSnapshot,
 ) -> None:
     _validate_clarification_transition(
-        current.clarification if current is not None else None,
-        replacement.clarification,
+        _clarification(current),
+        _clarification(replacement),
     )
     _validate_pending_turn_transition(
-        current.pending_turn if current is not None else None,
-        replacement.pending_turn,
+        _pending_turn(current),
+        _pending_turn(replacement),
     )
-    previous = current.consultation if current is not None else None
+    previous = (
+        current.consultation_slot.state
+        if current is not None
+        and current.consultation_slot is not None
+        else None
+    )
     _validate_consultation_transition(
         previous,
-        replacement.consultation,
+        (
+            replacement.consultation_slot.state
+            if replacement.consultation_slot is not None
+            else None
+        ),
         replacement_version=replacement.version,
     )
+
+
+def _clarification(
+    snapshot: ConversationSnapshot | None,
+) -> ClarificationProgress | None:
+    if (
+        snapshot is None
+        or not isinstance(
+            snapshot.reply_slot,
+            PendingClarificationSlot,
+        )
+    ):
+        return None
+    return snapshot.reply_slot.value
+
+
+def _pending_turn(
+    snapshot: ConversationSnapshot | None,
+) -> PendingTurn | None:
+    if (
+        snapshot is None
+        or not isinstance(snapshot.reply_slot, PendingReplySlot)
+    ):
+        return None
+    return snapshot.reply_slot.value
 
 
 def _validate_clarification_transition(
@@ -137,13 +173,6 @@ def _validate_consultation_transition(
                 "consultation start marker must match activation version"
             )
         if (
-            replacement.observations
-            and not _uses_dynamic_observations(replacement)
-        ):
-            raise ValueError(
-                "consultation entry must be stored before observations"
-            )
-        if (
             replacement.confirmable_assessment is not None
             or replacement.medical_escalation is not None
         ):
@@ -167,67 +196,10 @@ def _validate_consultation_transition(
         != previous.started_at_conversation_version
     ):
         raise ValueError("consultation start marker is immutable")
-    if (
-        _uses_dynamic_observations(previous)
-        or _uses_dynamic_observations(replacement)
-    ):
-        _validate_dynamic_consultation_transition(
-            previous,
-            replacement,
-            replacement_version=replacement_version,
-        )
-        return
-    previous_observations = previous.observations
-    replacement_observations = replacement.observations
-    if (
-        len(replacement_observations) < len(previous_observations)
-        or replacement_observations[: len(previous_observations)]
-        != previous_observations
-    ):
-        raise ValueError(
-            "existing consultation observations must remain an "
-            "immutable prefix"
-        )
-
-    appended_count = (
-        len(replacement_observations) - len(previous_observations)
-    )
-    if appended_count > 1:
-        raise ValueError(
-            "consultation transition must append at most one observation"
-        )
-    if appended_count == 1:
-        if (
-            replacement.medical_escalation
-            != previous.medical_escalation
-        ):
-            raise ValueError(
-                "medical escalation requires a separate transition"
-            )
-        if previous.confirmable_assessment is not None:
-            raise ValueError(
-                "consultation assessment is immutable once recorded"
-            )
-        if replacement.confirmable_assessment is not None:
-            raise ValueError(
-                "consultation assessment requires a separate transition"
-            )
-        return
-
-    _validate_medical_escalation_transition(
+    _validate_dynamic_consultation_transition(
         previous,
         replacement,
         replacement_version=replacement_version,
-    )
-    _validate_assessment_transition(previous, replacement)
-
-
-def _uses_dynamic_observations(
-    consultation: ConsultationSubstate,
-) -> bool:
-    return any(
-        item.observation_id is not None
-        for item in consultation.observations
     )
 
 
@@ -237,30 +209,13 @@ def _validate_dynamic_consultation_transition(
     *,
     replacement_version: int,
 ) -> None:
-    previous_legacy = tuple(
-        item
-        for item in previous.observations
-        if item.observation_id is None
-    )
-    replacement_legacy = tuple(
-        item
-        for item in replacement.observations
-        if item.observation_id is None
-    )
-    if replacement_legacy != previous_legacy:
-        raise ValueError(
-            "legacy consultation observations are immutable"
-        )
-
     previous_by_dimension = {
         item.dimension: item
         for item in previous.observations
-        if item.dimension is not None
     }
     replacement_by_dimension = {
         item.dimension: item
         for item in replacement.observations
-        if item.dimension is not None
     }
     changed = False
     for dimension, prior in previous_by_dimension.items():
@@ -322,7 +277,6 @@ def _validate_atomic_dynamic_assessment(
     assessment = replacement.confirmable_assessment
     if (
         assessment is None
-        or not _uses_dynamic_observations(replacement)
         or assessment.observation_set_version != replacement_version
         or assessment.observations != replacement.observations
         or replacement.confirmation_source_turn_id is not None

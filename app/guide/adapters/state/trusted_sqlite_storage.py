@@ -176,6 +176,7 @@ class _DatabaseFileAnchors:
 
 class _AnchoredSqliteConnection(sqlite3.Connection):
     _database_file_anchors: _DatabaseFileAnchors | None = None
+    _last_commit_completed = False
 
     def _bind_database_file_anchors(
         self,
@@ -223,9 +224,19 @@ class _AnchoredSqliteConnection(sqlite3.Connection):
         )
 
     def commit(self) -> None:
-        self._run_with_database_file_anchors(
-            lambda: super(_AnchoredSqliteConnection, self).commit()
-        )
+        self._last_commit_completed = False
+        anchors = self._database_file_anchors
+        if anchors is not None:
+            anchors.verify()
+        try:
+            super().commit()
+        except BaseException:
+            if anchors is not None:
+                anchors.verify()
+            raise
+        self._last_commit_completed = True
+        if anchors is not None:
+            anchors.verify()
 
     def rollback(self) -> None:
         self._run_with_database_file_anchors(
@@ -405,15 +416,32 @@ class TrustedSqliteStorage:
             connection.execute("PRAGMA trusted_schema = OFF")
             yield connection
         finally:
+            cleanup_error: BaseException | None = None
+
+            def clean(operation) -> None:
+                nonlocal cleanup_error
+                try:
+                    operation()
+                except BaseException as error:
+                    if cleanup_error is None:
+                        cleanup_error = error
+
             if connection is not None:
-                connection.close()
+                clean(connection.close)
             if file_anchors is not None:
-                file_anchors.close()
+                clean(file_anchors.close)
             if not borrowed:
-                os.close(anchor_descriptor)
-                os.close(database_descriptor)
-                fcntl.flock(parent_descriptor, fcntl.LOCK_UN)
-                os.close(parent_descriptor)
+                clean(lambda: os.close(anchor_descriptor))
+                clean(lambda: os.close(database_descriptor))
+                clean(
+                    lambda: fcntl.flock(
+                        parent_descriptor,
+                        fcntl.LOCK_UN,
+                    )
+                )
+                clean(lambda: os.close(parent_descriptor))
+            if cleanup_error is not None:
+                raise cleanup_error
 
     def assert_database_containment(self) -> None:
         resolved_database = self._database_path.resolve(strict=True)

@@ -115,7 +115,7 @@ class GeneralKnowledgeRetriever:
         self,
         query: GeneralKnowledgeQuery,
     ) -> frozenset[str]:
-        raw_question = query.raw_question.casefold()
+        retrieval_query = query.retrieval_query.casefold()
         maximum_frequency = max(1, len(self._blocks) // 10)
         candidates = {
             term
@@ -127,7 +127,7 @@ class GeneralKnowledgeRetriever:
                 )
                 and self._document_frequency[term]
                 <= maximum_frequency
-                and term.casefold() in raw_question
+                and term.casefold() in retrieval_query
             )
         }
         if query.topic is not None:
@@ -136,7 +136,7 @@ class GeneralKnowledgeRetriever:
                 for category in canonical_categories_for(
                     query.topic
                 )
-                if category.casefold() in raw_question
+                if category.casefold() in retrieval_query
             )
         return frozenset(
             term
@@ -260,7 +260,7 @@ class GeneralKnowledgeRetriever:
         if not isinstance(query, GeneralKnowledgeQuery):
             raise TypeError("query must be GeneralKnowledgeQuery")
         raw_terms = frozenset(
-            general_knowledge_terms(query.raw_question)
+            general_knowledge_terms(query.retrieval_query)
         )
         meaning_terms = frozenset(
             general_knowledge_terms(query.question_meaning)

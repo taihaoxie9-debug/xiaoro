@@ -9,6 +9,7 @@ import httpx
 from app.guide.adapters.llm.deepseek_intent import (
     DEEPSEEK_OFFICIAL_BASE_URL,
 )
+from app.guide.adapters.llm.provider_common import UsageLimiter
 from app.guide.adapters.llm.presentation_copywriter_adapter import (
     PresentationCopywriterAdapterBase,
 )
@@ -29,6 +30,7 @@ class DeepSeekPresentationCopywriterAdapter(
         daily_call_cap: int = 200,
         transport: httpx.BaseTransport | None = None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        usage_limiter: UsageLimiter | None = None,
     ) -> None:
         super().__init__(
             provider="deepseek_official",
@@ -42,6 +44,7 @@ class DeepSeekPresentationCopywriterAdapter(
             daily_call_cap=daily_call_cap,
             transport=transport,
             clock=clock,
+            usage_limiter=usage_limiter,
         )
 
     def _request_body(

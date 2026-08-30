@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from app.guide.intent.concept_preferences import (
     ConceptPreferenceCatalog,
     compile_concept_preferences,
@@ -15,6 +17,12 @@ from app.guide.understanding.budget_candidate_validation import (
 from app.guide.understanding.contracts import (
     BudgetDraft,
     CategoryDraft,
+    ConstraintChangeDraft,
+    ExclusionDraft,
+    EfficacyDraft,
+    EfficacyTarget,
+    ExactRevisionOperation,
+    ExactRevisionTarget,
     PreferenceDraft,
     ProductMentionDraft,
     ReferenceDraft,
@@ -33,6 +41,7 @@ from app.guide.understanding.exact_parsing import (
     parse_exact_revision_confirmations,
 )
 from app.guide.understanding.semantic_contracts import (
+    ActiveConstraintKind,
     ClarificationCode,
     SemanticContext,
     SemanticNumberCandidate,
@@ -49,6 +58,9 @@ from app.guide.retrieval.category_profiles import CategoryProfile
 from app.guide.retrieval.category_taxonomy import (
     category_profile_for_topic,
 )
+from app.guide.retrieval.ingredient_entities import (
+    normalize_ingredient_entity,
+)
 
 
 _REFERENCE_REQUIRED_GOALS = {
@@ -56,6 +68,32 @@ _REFERENCE_REQUIRED_GOALS = {
     UnderstandingGoal.SUITABILITY,
     UnderstandingGoal.FOLLOWUP,
 }
+
+
+def revalidate_understanding(
+    understanding: StructuredUnderstanding,
+    *,
+    goal: UnderstandingGoal,
+    updates: Mapping[str, object] | None = None,
+) -> StructuredUnderstanding:
+    if not isinstance(understanding, StructuredUnderstanding):
+        raise TypeError(
+            "understanding must be StructuredUnderstanding"
+        )
+    if not isinstance(goal, UnderstandingGoal):
+        raise TypeError("goal must be UnderstandingGoal")
+    payload = understanding.model_dump(mode="python")
+    payload["goal"] = goal
+    if updates is not None:
+        payload.update(updates)
+    if goal not in {
+        UnderstandingGoal.RECOMMENDATION,
+        UnderstandingGoal.IMAGE_SIMILARITY,
+    }:
+        payload["recommendation_mode"] = None
+        payload["recommendation_mode_basis"] = None
+        payload["recommendation_count"] = None
+    return StructuredUnderstanding.model_validate(payload, strict=True)
 
 
 def compile_turn_meaning(
@@ -73,8 +111,14 @@ def compile_turn_meaning(
         raise TypeError("context must be SemanticContext")
     text = message.strip()
     exact_constraints, exact_issues = parse_exact_constraints(text)
-    revision_proofs = tuple(
-        parse_exact_revision_confirmations(text)
+    revision_proofs = (
+        *(
+            item
+            for item in exact_constraints
+            if isinstance(item, BudgetDraft)
+        ),
+        *meaning.budget_candidates,
+        *meaning.constraint_changes,
     )
     issues = list(exact_issues)
     traces: list[SignalTrace] = []
@@ -90,6 +134,14 @@ def compile_turn_meaning(
         else None
     )
     semantic_goal = UnderstandingGoal(meaning.operation_hint)
+    single_image_comparison = (
+        semantic_goal is UnderstandingGoal.COMPARISON
+        and context.image_count == 1
+        and not meaning.reference_mentions
+        and not meaning.product_mentions
+    )
+    if single_image_comparison:
+        semantic_goal = UnderstandingGoal.IMAGE_SIMILARITY
     relation_topic_is_not_task_topic = (
         semantic_goal
         in {
@@ -157,8 +209,12 @@ def compile_turn_meaning(
                 resolution="semantic_fills",
             )
         )
-    elif context.active_topic is not None:
+    elif (
+        context.active_topic is not None
+        and meaning.continuity_hint != "new_task"
+    ):
         topic = context.active_topic
+        exact_constraints.append(CategoryDraft(value=topic))
         traces.append(
             SignalTrace(
                 field="topic",
@@ -190,8 +246,33 @@ def compile_turn_meaning(
         message=text,
         meaning=meaning,
         topic=topic,
+        active_topic=context.active_topic,
         concept_catalog=concept_catalog,
     )
+    if meaning.recommendation_mode_basis is not None:
+        basis_outcomes = admission.for_kind(
+            "recommendation_mode_basis"
+        )
+        if (
+            len(basis_outcomes) != 1
+            or basis_outcomes[0].disposition != "admitted"
+            or basis_outcomes[0].normalized_value
+            != meaning.recommendation_mode_basis.basis
+        ):
+            raise ValueError(
+                "recommendation mode basis must be source-grounded"
+            )
+    if meaning.recommendation_count is not None:
+        count_outcomes = admission.for_kind("recommendation_count")
+        if (
+            len(count_outcomes) != 1
+            or count_outcomes[0].disposition != "admitted"
+            or count_outcomes[0].normalized_value
+            != str(meaning.recommendation_count)
+        ):
+            raise ValueError(
+                "recommendation count must be source-grounded"
+            )
 
     if (
         semantic_goal
@@ -238,7 +319,10 @@ def compile_turn_meaning(
         if (
             semantic_goal is UnderstandingGoal.FOLLOWUP
             and (
-                revision_proofs
+                (
+                    revision_proofs
+                    and context.active_recommendation_mode is not None
+                )
                 or followup_starts_new_selection
             )
         )
@@ -292,6 +376,15 @@ def compile_turn_meaning(
         for item in exact_constraints
         if isinstance(item, ReferenceDraft)
     ]
+    has_specific_product_reference = any(
+        item.kind
+        in {
+            "current_item",
+            "candidate_ordinal",
+            "image_ordinal",
+        }
+        for item in references
+    )
     factual_product_question = (
         semantic_goal
         in {
@@ -301,9 +394,13 @@ def compile_turn_meaning(
         }
         and meaning.question_meaning is not None
         and not meaning.preference_candidates
-        and any(
-            item.object_family_hint in {"product", "image"}
-            for item in meaning.reference_mentions
+        and (
+            has_specific_product_reference
+            or bool(meaning.product_mentions)
+            or any(
+                item.object_family_hint in {"product", "image"}
+                for item in meaning.reference_mentions
+            )
         )
     )
     for mention in meaning.reference_mentions:
@@ -323,6 +420,29 @@ def compile_turn_meaning(
                         exact_value=None,
                         semantic_value=mention.raw_text,
                         resolution="semantic_fills",
+                    )
+                )
+                if meaning.continuity_hint != "return_to_focus":
+                    continue
+                try:
+                    admitted = admit_reference(
+                        message=text,
+                        mention=mention,
+                        authority=authority,
+                    )
+                except ReferenceAdmissionError:
+                    continue
+                if not any(
+                    _same_reference_binding(item, admitted)
+                    for item in references
+                ):
+                    references.append(admitted)
+                traces.append(
+                    SignalTrace(
+                        field=f"reference.{admitted.kind}",
+                        exact_value=None,
+                        semantic_value=mention.raw_text,
+                        resolution="context_fills",
                     )
                 )
                 continue
@@ -352,6 +472,21 @@ def compile_turn_meaning(
                         detail="当前没有可绑定的图片，请重新上传。",
                     )
                 continue
+            if (
+                mention.batch_size_hint is not None
+                and mention.batch_size_hint
+                != len(authority.image_ordinals)
+            ):
+                if goal in _REFERENCE_REQUIRED_GOALS:
+                    _append_issue(
+                        issues,
+                        code="ambiguous_reference",
+                        detail=(
+                            "当前请求的图片数量与可见图片不一致，"
+                            "请明确图片序号。"
+                        ),
+                    )
+                continue
             span = SourceSpan(
                 start=grounded.start,
                 end=grounded.end,
@@ -377,8 +512,24 @@ def compile_turn_meaning(
                 )
             continue
         if (
+            mention.object_family_hint == "topic"
+            and meaning.continuity_hint == "return_to_focus"
+            and meaning.product_mentions
+            and semantic_topic is not None
+            and authority.current_topic is semantic_topic
+        ):
+            traces.append(
+                SignalTrace(
+                    field="reference.current_topic",
+                    exact_value=authority.current_topic.value,
+                    semantic_value=mention.raw_text,
+                    resolution="context_fills",
+                )
+            )
+            continue
+        if (
             factual_product_question
-            and mention.object_family_hint == "topic"
+            and mention.object_family_hint in {"topic", "constraint"}
         ):
             traces.append(
                 SignalTrace(
@@ -447,6 +598,21 @@ def compile_turn_meaning(
         references,
         authority=authority,
     )
+    references.sort(
+        key=lambda item: (
+            item.source_span is None,
+            (
+                item.source_span.start
+                if item.source_span is not None
+                else len(text)
+            ),
+            (
+                item.source_span.end
+                if item.source_span is not None
+                else len(text)
+            ),
+        )
+    )
     exact_constraints = [
         item
         for item in exact_constraints
@@ -469,7 +635,11 @@ def compile_turn_meaning(
         }
         and meaning.continuity_hint == "continue"
         and meaning.question_meaning is not None
-        and authority.current_item_ordinal is not None
+        and authority.current_item_available
+        and not (
+            authority.active_dialogue == "consultation"
+            and authority.awaiting_reply
+        )
     ):
         references.append(ReferenceDraft(kind="current_item"))
         traces.append(
@@ -589,7 +759,7 @@ def compile_turn_meaning(
         and not (
             meaning.continuity_hint == "return_to_focus"
             and (
-                authority.current_item_ordinal is not None
+                authority.current_item_available
                 or authority.current_image_ordinal is not None
             )
         )
@@ -685,12 +855,188 @@ def compile_turn_meaning(
             )
             continue
         grounded_preference_candidates.append(candidate)
+
+    parent_exclusions = _compile_parent_exclusions(
+        candidates=grounded_preference_candidates,
+    )
+    if parent_exclusions:
+        parent_values = {
+            item.value.casefold()
+            for item in parent_exclusions
+        }
+        exact_constraints = [
+            item
+            for item in exact_constraints
+            if not (
+                isinstance(item, ExclusionDraft)
+                and normalize_ingredient_entity(item.value).casefold()
+                in parent_values
+            )
+        ]
+        exact_constraints.extend(parent_exclusions)
+
+    constraint_changes: list[ConstraintChangeDraft] = []
+    change_outcomes = admission.for_kind("constraint_change")
+    for candidate, outcome in zip(
+        meaning.constraint_changes,
+        change_outcomes,
+        strict=True,
+    ):
+        if outcome.disposition == "rejected_protocol":
+            _append_issue(
+                issues,
+                code="ambiguous_reference",
+                detail="条件变更没有唯一绑定当前原话。",
+            )
+            continue
+        grounded = ground_unique_text(text, candidate.raw_text)
+        value = (
+            normalize_ingredient_entity(candidate.raw_text)
+            if candidate.parent_concept == "ingredient_exclusion"
+            else candidate.normalized_value
+        )
+        bare_skin_withdrawal = (
+            candidate.parent_concept == "skin"
+            and candidate.requested_change == "remove"
+            and value is None
+        )
+        if value is None and not bare_skin_withdrawal:
+            _append_issue(
+                issues,
+                code="ambiguous_revision_target",
+                detail="条件变更缺少父概念规范值。",
+            )
+            continue
+        constraint_changes.append(
+            ConstraintChangeDraft(
+                parent_concept=candidate.parent_concept,
+                requested_change=candidate.requested_change,
+                value=value,
+                source_span=SourceSpan(
+                    start=grounded.start,
+                    end=grounded.end,
+                ),
+            )
+        )
+    exact_skin_withdrawal = next(
+        (
+            proof
+            for proof in parse_exact_revision_confirmations(text)
+            if (
+                proof.operation
+                is ExactRevisionOperation.WITHDRAW_CONSTRAINT
+                and proof.target is ExactRevisionTarget.SKIN
+            )
+        ),
+        None,
+    )
+    if (
+        exact_skin_withdrawal is not None
+        and ActiveConstraintKind.SKIN
+        in context.active_constraint_kinds
+        and not any(
+            item.parent_concept == "skin"
+            for item in constraint_changes
+        )
+    ):
+        constraint_changes.append(
+            ConstraintChangeDraft(
+                parent_concept="skin",
+                requested_change="remove",
+                value=None,
+                source_span=exact_skin_withdrawal.source_span,
+            )
+        )
+    withdrawn_values = {
+        item.value.casefold()
+        for item in constraint_changes
+        if (
+            item.requested_change == "remove"
+            and item.value is not None
+        )
+    }
+    withdrawn_efficacies = {
+        item.value
+        for item in constraint_changes
+        if (
+            item.parent_concept == "efficacy"
+            and item.requested_change == "remove"
+        )
+    }
+    if withdrawn_values:
+        exact_constraints = [
+            item
+            for item in exact_constraints
+            if not (
+                isinstance(item, ExclusionDraft)
+                and normalize_ingredient_entity(item.value).casefold()
+                in withdrawn_values
+            )
+            and not (
+                isinstance(item, EfficacyDraft)
+                and item.value.value in withdrawn_efficacies
+            )
+        ]
+    efficacy_replacements = {
+        item.value
+        for item in constraint_changes
+        if (
+            item.parent_concept == "efficacy"
+            and item.requested_change == "replace"
+        )
+    }
+    skin_replacements = {
+        item.value
+        for item in constraint_changes
+        if (
+            item.parent_concept == "skin"
+            and item.requested_change == "replace"
+        )
+    }
+    if efficacy_replacements or skin_replacements:
+        exact_constraints = [
+            item
+            for item in exact_constraints
+            if not (
+                isinstance(item, EfficacyDraft)
+                and efficacy_replacements
+                and item.value.value not in efficacy_replacements
+            )
+            and not (
+                isinstance(item, SkinDraft)
+                and skin_replacements
+                and item.value.value not in skin_replacements
+            )
+        ]
+        if efficacy_replacements:
+            replacement = next(iter(efficacy_replacements))
+            target = EfficacyTarget(replacement)
+            if not any(
+                isinstance(item, EfficacyDraft)
+                and item.value is target
+                for item in exact_constraints
+            ):
+                exact_constraints.append(EfficacyDraft(value=target))
+        if skin_replacements:
+            replacement = next(iter(skin_replacements))
+            target = SkinTarget(replacement)
+            if not any(
+                isinstance(item, SkinDraft)
+                and item.value is target
+                for item in exact_constraints
+            ):
+                exact_constraints.append(SkinDraft(value=target))
+
     preference_drafts: list[PreferenceDraft] = []
     if concept_catalog is not None and topic is not None:
         preference_drafts.extend(
             compile_concept_preferences(
                 message=text,
-                candidates=tuple(grounded_preference_candidates),
+                candidates=tuple(
+                    candidate
+                    for candidate in grounded_preference_candidates
+                    if candidate.field_key != "ingredient_exclusion"
+                ),
                 profile=category_profile_for_topic(topic),
                 catalog=concept_catalog,
             )
@@ -791,12 +1137,112 @@ def compile_turn_meaning(
             detail="请明确要找的商品品类。",
         )
 
+    fit_clarification_reply = (
+        goal
+        in {
+            UnderstandingGoal.RECOMMENDATION,
+            UnderstandingGoal.IMAGE_SIMILARITY,
+        }
+        and context.awaiting_reply
+        and context.pending_clarification is ClarificationCode.GOAL
+        and context.active_recommendation_mode == "fit"
+        and topic is context.active_topic
+        and (
+            bool(preference_drafts)
+            or bool(relative_drafts)
+            or any(
+                isinstance(item, (SkinDraft, EfficacyDraft))
+                for item in exact_constraints
+            )
+        )
+    )
+    if single_image_comparison:
+        recommendation_mode = "explore"
+        recommendation_mode_basis = "similar_alternatives"
+        recommendation_count = 3
+    elif (
+        fit_clarification_reply
+        and (
+            meaning.recommendation_mode is None
+            or (
+                meaning.recommendation_mode_basis is not None
+                and meaning.recommendation_mode_basis.basis
+                in {"broad_exploration", "similar_alternatives"}
+            )
+        )
+    ):
+        traces.append(
+            SignalTrace(
+                field="recommendation_mode",
+                exact_value=context.active_recommendation_mode,
+                semantic_value=meaning.recommendation_mode,
+                resolution="context_fills",
+            )
+        )
+        recommendation_mode = context.active_recommendation_mode
+        recommendation_mode_basis = (
+            context.active_recommendation_mode_basis
+        )
+        recommendation_count = context.active_recommendation_count
+    elif (
+        goal
+        in {
+            UnderstandingGoal.RECOMMENDATION,
+            UnderstandingGoal.IMAGE_SIMILARITY,
+        }
+        and revision_proofs
+        and topic is context.active_topic
+        and context.active_recommendation_mode is not None
+        and (
+            meaning.recommendation_mode is None
+            or (
+                meaning.recommendation_mode_basis is not None
+                and meaning.recommendation_mode_basis.basis
+                in {"broad_exploration", "similar_alternatives"}
+            )
+        )
+    ):
+        traces.append(
+            SignalTrace(
+                field="recommendation_mode",
+                exact_value=context.active_recommendation_mode,
+                semantic_value=meaning.recommendation_mode,
+                resolution="context_fills",
+            )
+        )
+        recommendation_mode = context.active_recommendation_mode
+        recommendation_mode_basis = (
+            context.active_recommendation_mode_basis
+        )
+        recommendation_count = context.active_recommendation_count
+    elif (
+        goal is UnderstandingGoal.RECOMMENDATION
+        and semantic_goal is UnderstandingGoal.FOLLOWUP
+    ):
+        recommendation_mode = context.active_recommendation_mode
+        recommendation_mode_basis = (
+            context.active_recommendation_mode_basis
+        )
+        recommendation_count = context.active_recommendation_count
+    else:
+        recommendation_mode = meaning.recommendation_mode
+        recommendation_mode_basis = (
+            meaning.recommendation_mode_basis.basis
+            if meaning.recommendation_mode_basis is not None
+            else None
+        )
+        recommendation_count = meaning.recommendation_count
+
     return StructuredUnderstanding(
         goal=goal,
+        recommendation_mode=recommendation_mode,
+        recommendation_mode_basis=recommendation_mode_basis,
+        recommendation_count=recommendation_count,
         topic=topic,
         observations=observations,
         exact_constraints=exact_constraints,
         preference_drafts=preference_drafts,
+        constraint_changes=constraint_changes,
         relative_drafts=relative_drafts,
         semantic_proposals=[
             ":".join(
@@ -817,7 +1263,27 @@ def compile_turn_meaning(
         confidence=0.0 if issues else 1.0,
         question_meaning=meaning.question_meaning,
         safety_sensitive=meaning.safety_language == "safety",
+        semantic_authoritative=True,
     )
+
+
+def _compile_parent_exclusions(
+    *,
+    candidates,
+) -> list[ExclusionDraft]:
+    values: list[str] = []
+    for candidate in candidates:
+        if (
+            candidate.field_key == "ingredient_exclusion"
+            and candidate.polarity == "avoid"
+        ):
+            values.append(
+                normalize_ingredient_entity(candidate.raw_text)
+            )
+    return [
+        ExclusionDraft(value=value)
+        for value in dict.fromkeys(values)
+    ]
 
 
 def _append_issue(
@@ -917,7 +1383,7 @@ def _relative_baseline(
     source_span: SourceSpan,
 ) -> ReferenceDraft:
     if hint == "current_item":
-        if authority.current_item_ordinal is None:
+        if not authority.current_item_available:
             raise ReferenceAdmissionError("unbound")
         return ReferenceDraft(
             kind="current_item",
@@ -1035,7 +1501,7 @@ def _exact_reference_is_admitted(
     if reference.kind == "image_ordinal":
         return reference.ordinal in authority.image_ordinals
     if reference.kind == "current_item":
-        return authority.current_item_ordinal is not None
+        return authority.current_item_available
     if reference.kind == "current_batch":
         return authority.current_batch_available
     if reference.kind == "current_topic":

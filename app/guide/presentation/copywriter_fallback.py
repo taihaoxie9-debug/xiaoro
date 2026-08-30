@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 from itertools import combinations
-import math
 
+from app.guide.intent.responsibility_matrix import Responsibility
 from app.guide.presentation.copywriter_contracts import (
     ApprovedSoftFact,
     CopywriterDraft,
+    CopywriterSection,
+    CopywriterSectionSpec,
     PresentationMode,
     PresentationPacket,
-    ProductCopy,
+    SourceTaggedCopy,
+    build_copywriter_section_specs,
 )
 from app.guide.presentation.copywriter_validation import (
     is_safe_soft_fact_text,
@@ -77,7 +80,7 @@ _CLOSING_BY_MODE: dict[PresentationMode, str | None] = {
         "若更在意功效完整度，再看品牌主打和使用提醒。"
     ),
     "comparison": (
-        "更看重哪项，就优先选择对应路线；证据相同处不用勉强分高下。"
+        "更看重哪项，就优先选择对应路线；信息相同处不用勉强分高下。"
     ),
     "single_product": (
         "第一次使用可以从少量、低频开始，观察实际肤感后再决定是否"
@@ -101,7 +104,7 @@ _CLOSING_BY_MODE: dict[PresentationMode, str | None] = {
         "符合你的需求。"
     ),
     "image_suitability": (
-        "证据不足的部分先不下结论，必要时补充肤质或使用目标。"
+        "信息不足的部分先不下结论，必要时补充肤质或使用目标。"
     ),
     "image_comparison": (
         "怎么选取决于你更在意的差异，无法确认的部分不参与胜负判断。"
@@ -115,37 +118,142 @@ _CLOSING_BY_MODE: dict[PresentationMode, str | None] = {
 def fallback_copy(packet: PresentationPacket) -> CopywriterDraft:
     if not isinstance(packet, PresentationPacket):
         raise TypeError("packet must be PresentationPacket")
-    product_copy = tuple(
-        _fallback_product_copy(packet, slot)
-        for slot in packet.slots
-    )
+    specs = build_copywriter_section_specs(packet)
     return CopywriterDraft(
         mode=packet.mode,
-        summary_copy=_bounded(
-            _SUMMARY_BY_MODE[packet.mode],
-            packet.copy_budget.summary_max_chars,
-        ),
-        product_copy=product_copy,
-        closing_copy=_bounded_optional(
-            _CLOSING_BY_MODE[packet.mode],
-            packet.copy_budget.closing_max_chars,
+        sections=tuple(
+            _fallback_section(packet, spec)
+            for spec in specs
         ),
     )
 
 
-def _fallback_product_copy(packet: PresentationPacket, slot) -> ProductCopy:
+def _fallback_section(
+    packet: PresentationPacket,
+    spec: CopywriterSectionSpec,
+) -> CopywriterSection:
+    if spec.kind == "product":
+        if spec.slot_id is None:
+            raise AssertionError("product writer spec requires slot")
+        slot = next(
+            slot
+            for slot in packet.slots
+            if slot.slot_id == spec.slot_id
+        )
+        content, advisor_reason = _fallback_product_section(
+            packet,
+            slot,
+            required_dimensions=spec.required_dimension_ids,
+        )
+        return CopywriterSection(
+            kind="product",
+            slot_id=slot.slot_id,
+            content=content,
+            advisor_reason=advisor_reason,
+        )
+    if spec.kind in {"judgement", "answer"}:
+        if spec.slot_id is None:
+            raise AssertionError("bound writer spec requires slot")
+        content = _fallback_fact_content(packet, spec)
+        return CopywriterSection(
+            kind=spec.kind,
+            slot_id=spec.slot_id,
+            content=content,
+        )
+    if spec.content_source != "constraints_only":
+        raise AssertionError(
+            "non-product factual writer section is unsupported"
+        )
+    if spec.kind == "closing":
+        value = _CLOSING_BY_MODE[packet.mode]
+        if value is None:
+            raise AssertionError("closing writer spec requires fallback copy")
+        return CopywriterSection(
+            kind="closing",
+            content=SourceTaggedCopy(
+                text=_bounded(value, spec.copy_max_chars),
+            ),
+        )
+    return CopywriterSection(
+        kind=spec.kind,
+        content=SourceTaggedCopy(
+            text=_bounded(
+                _SUMMARY_BY_MODE[packet.mode],
+                spec.copy_max_chars,
+            ),
+        ),
+    )
+
+
+def _fallback_fact_content(
+    packet: PresentationPacket,
+    spec: CopywriterSectionSpec,
+) -> SourceTaggedCopy:
+    facts_by_id = {
+        fact.fact_id: fact
+        for slot in packet.slots
+        for fact in slot.approved_soft_facts
+    }
+    eligible_facts = tuple(
+        facts_by_id[fact_id]
+        for fact_id in spec.allowed_fact_ids
+        if (
+            fact_id in facts_by_id
+            and is_safe_soft_fact_text(
+                facts_by_id[fact_id].plain_meaning,
+                attribution=facts_by_id[fact_id].attribution,
+                field_key=facts_by_id[fact_id].field_key,
+            )
+        )
+    )
+    facts = _select_fallback_facts(
+        eligible_facts,
+        required_dimensions=spec.required_dimension_ids,
+    )
+    if not facts:
+        return SourceTaggedCopy(
+            text="当前可确认的信息不多，先结合下方商品资料判断。",
+        )
+    return SourceTaggedCopy(
+        text=_bounded(
+            _attributed_facts_text(facts),
+            spec.copy_max_chars,
+        ),
+        used_fact_ids=tuple(fact.fact_id for fact in facts),
+    )
+
+
+def _fallback_product_section(
+    packet: PresentationPacket,
+    slot,
+    *,
+    required_dimensions: tuple[str, ...] = (),
+) -> tuple[SourceTaggedCopy, SourceTaggedCopy]:
+    generic_copy = packet.responsibility in {
+        Responsibility.RECOMMENDATION,
+        Responsibility.COMPARISON,
+    }
     safe_facts = tuple(
         fact
         for fact in slot.approved_soft_facts
-        if is_safe_soft_fact_text(fact.plain_meaning)
+        if not generic_copy or fact.generic_copy_allowed
     )
-    required = math.ceil(len(slot.approved_soft_facts) * 0.8)
-    if len(safe_facts) < required:
-        raise ValueError(
-            "approved soft facts cannot satisfy fallback coverage"
+    safe_facts = tuple(
+        fact
+        for fact in safe_facts
+        if is_safe_soft_fact_text(
+            fact.plain_meaning,
+            attribution=fact.attribution,
+            field_key=fact.field_key,
         )
-    facts = safe_facts[:required]
+    )
+    facts = _select_fallback_facts(
+        safe_facts,
+        required_dimensions=required_dimensions,
+    )
     if not facts:
+        positioning_facts: tuple[ApprovedSoftFact, ...] = ()
+        reason_facts: tuple[ApprovedSoftFact, ...] = ()
         positioning = "这款目前可确认的信息不多，先看下方整理出的商品资料。"
         reason = "是否合适还要结合你的使用场景和实际肤感。"
     else:
@@ -170,11 +278,19 @@ def _fallback_product_copy(packet: PresentationPacket, slot) -> ProductCopy:
             if reason_facts
             else "是否合适还要结合你的使用场景和实际肤感。"
         )
-    return ProductCopy(
-        slot_id=slot.slot_id,
-        positioning=positioning,
-        advisor_reason=reason,
-        used_soft_fact_ids=tuple(fact.fact_id for fact in facts),
+    return (
+        SourceTaggedCopy(
+            text=positioning,
+            used_fact_ids=tuple(
+                fact.fact_id for fact in positioning_facts
+            ),
+        ),
+        SourceTaggedCopy(
+            text=reason,
+            used_fact_ids=tuple(
+                fact.fact_id for fact in reason_facts
+            ),
+        ),
     )
 
 
@@ -246,6 +362,41 @@ def _split_facts_for_budgets(
     raise ValueError(
         "copy budget cannot fit required fallback fact coverage"
     )
+
+
+def _select_fallback_facts(
+    facts: tuple[ApprovedSoftFact, ...],
+    *,
+    required_dimensions: tuple[str, ...],
+) -> tuple[ApprovedSoftFact, ...]:
+    required_dimensions = tuple(dict.fromkeys(required_dimensions))
+    selected: list[ApprovedSoftFact] = []
+    for dimension_id in required_dimensions:
+        fact = next(
+            (
+                item
+                for item in facts
+                if _fact_covers_dimension(item, dimension_id)
+            ),
+            None,
+        )
+        if fact is not None:
+            selected.append(fact)
+    if selected:
+        return tuple({
+            fact.fact_id: fact
+            for fact in selected
+        }.values())
+    return facts[: min(2, len(facts))]
+
+
+def _fact_covers_dimension(
+    fact: ApprovedSoftFact,
+    dimension_id: str,
+) -> bool:
+    if "." not in dimension_id:
+        return fact.field_key == dimension_id
+    return dimension_id in fact.dimension_ids
 
 
 def _attributed_facts_text(

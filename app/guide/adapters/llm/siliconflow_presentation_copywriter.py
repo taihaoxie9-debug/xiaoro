@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 
 import httpx
 
+from app.guide.adapters.llm.provider_common import UsageLimiter
 from app.guide.adapters.llm.presentation_copywriter_adapter import (
     PresentationCopywriterAdapterBase,
 )
@@ -21,6 +22,7 @@ class SiliconFlowPresentationCopywriterAdapter(
         *,
         transport: httpx.BaseTransport | None = None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        usage_limiter: UsageLimiter | None = None,
     ) -> SiliconFlowPresentationCopywriterAdapter:
         ready = config.require_ready()
         api_key = ready.api_key
@@ -40,6 +42,7 @@ class SiliconFlowPresentationCopywriterAdapter(
             daily_call_cap=ready.daily_call_cap,
             transport=transport,
             clock=clock,
+            usage_limiter=usage_limiter,
         )
 
     def __init__(
@@ -55,6 +58,7 @@ class SiliconFlowPresentationCopywriterAdapter(
         daily_call_cap: int,
         transport: httpx.BaseTransport | None = None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        usage_limiter: UsageLimiter | None = None,
     ) -> None:
         super().__init__(
             provider="siliconflow",
@@ -68,6 +72,7 @@ class SiliconFlowPresentationCopywriterAdapter(
             daily_call_cap=daily_call_cap,
             transport=transport,
             clock=clock,
+            usage_limiter=usage_limiter,
         )
 
     def _request_body(

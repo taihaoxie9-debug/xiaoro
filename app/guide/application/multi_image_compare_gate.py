@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated, Literal, Protocol, Self
+from typing import Annotated, Literal, Self
 
 from pydantic import (
     BaseModel,
@@ -10,7 +10,6 @@ from pydantic import (
     model_validator,
 )
 
-from app.guide.application.contracts import OwnerToken, UserTurn
 from app.guide.decision.multi_image_compare import (
     MultiImageCompareDecisionFoundation,
     MultiImageCompareDecisionPort,
@@ -24,10 +23,8 @@ from app.guide.decision.multi_image_compare_contracts import (
 from app.guide.decision.ports import DecisionFactPort
 from app.guide.retrieval.category_taxonomy import canonical_categories_for
 from app.guide.retrieval.ports import CategoryCatalogPort, CategoryRecord
-from app.guide.session_contract import SessionId
 from app.guide.understanding.contracts import (
     ImageBundle,
-    OpaqueBundleId,
     OpaqueImageId,
     TopicCode,
 )
@@ -96,44 +93,6 @@ _REFERENCE_CLARIFICATION_CODES = frozenset(
 
 class _StrictFrozen(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
-
-
-class MultiImageCompareBundleAuthorizationRequest(_StrictFrozen):
-    session_id: SessionId
-    bundle_id: OpaqueBundleId
-    version: int = Field(ge=1)
-    owner_token: OwnerToken = Field(repr=False)
-
-    @classmethod
-    def from_user_turn(
-        cls,
-        turn: UserTurn,
-    ) -> MultiImageCompareBundleAuthorizationRequest:
-        if (
-            turn.image_bundle_id is None
-            or turn.image_bundle_version is None
-            or turn.image_bundle_token is None
-        ):
-            raise ValueError(
-                "multi-image comparison requires image bundle credentials"
-            )
-        return cls(
-            session_id=turn.session_id,
-            bundle_id=turn.image_bundle_id,
-            version=turn.image_bundle_version,
-            owner_token=turn.image_bundle_token,
-        )
-
-
-class MultiImageCompareBundleAuthorizationPort(Protocol):
-    def authorize(
-        self,
-        *,
-        bundle_id: str,
-        version: int,
-        session_id: str,
-        owner_token: str,
-    ) -> ImageBundle: ...
 
 
 class PreparedMultiImageComparison(_StrictFrozen):
@@ -237,12 +196,10 @@ class ThreeToFourImageCompareGate:
     def __init__(
         self,
         *,
-        bundle_authorizer: MultiImageCompareBundleAuthorizationPort,
         category_catalog: CategoryCatalogPort,
         decision_facts: DecisionFactPort,
         decision: MultiImageCompareDecisionPort,
     ) -> None:
-        self._bundle_authorizer = bundle_authorizer
         self._category_catalog = category_catalog
         self._decision_facts = decision_facts
         self._decision = decision
@@ -251,7 +208,7 @@ class ThreeToFourImageCompareGate:
         self,
         context: MultiImageTaskContext,
         *,
-        authorization: MultiImageCompareBundleAuthorizationRequest,
+        authorized_bundle: ImageBundle,
     ) -> MultiImageComparePreparationResult:
         count = len(context.references)
         if context.mode != "compare" or count not in (3, 4):
@@ -266,15 +223,14 @@ class ThreeToFourImageCompareGate:
                 code="non_contiguous_image_ordinals",
                 message="图片序号必须从第一张开始连续并保持上传顺序。",
             )
-        try:
-            authorized = self._bundle_authorizer.authorize(
-                bundle_id=authorization.bundle_id,
-                version=authorization.version,
-                session_id=authorization.session_id,
-                owner_token=authorization.owner_token,
+        if type(authorized_bundle) is not ImageBundle:
+            raise TypeError(
+                "authorized_bundle must be an exact ImageBundle"
             )
+        try:
             current_bundle = ImageBundle.model_validate(
-                authorized.model_dump(mode="python")
+                authorized_bundle.model_dump(mode="python"),
+                strict=True,
             )
         except Exception:
             return MultiImageComparePreparationError(
@@ -284,11 +240,29 @@ class ThreeToFourImageCompareGate:
         if not _matches_authorized_bundle(
             context,
             current_bundle,
-            authorization,
         ):
             return MultiImageComparePreparationError(
                 code="bundle_authority_mismatch",
                 message="图片比较上下文与服务器授权图片批次不一致。",
+            )
+        return self.prepare_confirmed_context(context)
+
+    def prepare_confirmed_context(
+        self,
+        context: MultiImageTaskContext,
+    ) -> MultiImageComparePreparationResult:
+        count = len(context.references)
+        if context.mode != "compare" or count not in (3, 4):
+            return _clarification(
+                code="three_or_four_images_required",
+                message="多图比较需要当前图片批次中恰好三到四张图片。",
+            )
+        if [item.ordinal for item in context.references] != list(
+            range(1, count + 1)
+        ):
+            return MultiImageComparePreparationError(
+                code="non_contiguous_image_ordinals",
+                message="图片序号必须从第一张开始连续并保持上传顺序。",
             )
 
         for reference in context.references:
@@ -507,13 +481,9 @@ def _decision_contract_error() -> MultiImageComparePreparationError:
 def _matches_authorized_bundle(
     context: MultiImageTaskContext,
     bundle: ImageBundle,
-    authorization: MultiImageCompareBundleAuthorizationRequest,
 ) -> bool:
     return (
-        bundle.session_id == authorization.session_id
-        and bundle.bundle_id == authorization.bundle_id
-        and bundle.version == authorization.version
-        and context.bundle_id == bundle.bundle_id
+        context.bundle_id == bundle.bundle_id
         and tuple(
             (reference.image_id, reference.ordinal)
             for reference in context.references

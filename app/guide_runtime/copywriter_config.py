@@ -58,10 +58,12 @@ class CopywriterLlmConfig:
 
     @classmethod
     def from_environment(cls) -> Self:
-        return cls(
-            api_key=_read_key(),
+        api_key = _read_key()
+        model = _read_model()
+        config = cls(
+            api_key=api_key,
             base_url=_read_url(),
-            model=_read_model(),
+            model=model,
             timeout_seconds=_read_float(
                 "GUIDE_COPY_LLM_TIMEOUT_SECONDS",
                 default="15",
@@ -98,6 +100,15 @@ class CopywriterLlmConfig:
                 code=CopywriterConfigErrorCode.INVALID_DAILY_CALL_CAP,
             ),
         )
+        if api_key is None and model is not None:
+            raise CopywriterConfigError(
+                CopywriterConfigErrorCode.API_KEY_MISSING
+            )
+        if api_key is not None and model is None:
+            raise CopywriterConfigError(
+                CopywriterConfigErrorCode.MODEL_UNSELECTED
+            )
+        return config
 
 
 def _read_key() -> str | None:

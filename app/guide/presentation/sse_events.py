@@ -13,10 +13,13 @@ from app.guide.presentation.contracts import (
     CardDisplayContract,
     ProductCard,
 )
-from app.guide.presentation.copywriter_contracts import (
-    PresentationContractData,
+from app.guide.presentation.public_contracts import (
+    PublicPresentationContract,
 )
 from app.guide.presentation.public_language import validate_public_text
+from app.guide.presentation.public_language_policy import (
+    validate_final_public_text,
+)
 from app.guide.decision.contracts import RelativeComparisonResult
 from app.guide.feedback.profile_policy import (
     ProfilePersistencePlan,
@@ -24,6 +27,7 @@ from app.guide.feedback.profile_policy import (
 )
 from app.guide.feedback.session_profile import SessionProfile
 from app.guide.feedback.contracts import PendingTurn
+from app.guide.intent.contracts import PublicIntentMode
 from app.guide.retrieval.pitfall_contracts import TypedPitfall
 from app.guide.retrieval.review_contracts import ReviewReadResult
 from app.guide.retrieval.review_summary_contracts import (
@@ -70,17 +74,7 @@ class StageData(_Strict):
 
 
 class IntentData(_Strict):
-    mode: Literal[
-        "recommend",
-        "comparison",
-        "suitability",
-        "knowledge",
-        "clarify",
-        "followup",
-        "revise",
-        "image_identity",
-        "image_recommend",
-        "image_compare",
+    mode: PublicIntentMode | Literal[
         "consultation_entry",
         "consultation_answer",
         "consultation_clarification",
@@ -96,6 +90,24 @@ class IntentData(_Strict):
 class ClarifyData(_Strict):
     question: str
     clarification_code: ClarificationCode
+    intended_responsibility: Literal["recommendation"] | None = None
+    intended_recommendation_mode: Literal["fit"] | None = None
+    clarification_basis: Literal[
+        "fit_selection_evidence_gap"
+    ] | None = None
+    fit_gap_stage: Literal[
+        "decision_selection",
+        "public_fact_projection",
+    ] | None = None
+    fit_decision_status: Literal[
+        "SELECTED",
+        "TIED_BY_BUSINESS_EVIDENCE",
+        "INSUFFICIENT_FOR_WINNER",
+        "NO_CANDIDATE",
+    ] | None = None
+    fit_candidate_count: int | None = Field(default=None, ge=0)
+    fit_evidence_ref_count: int | None = Field(default=None, ge=0)
+    fit_public_fact_count: int | None = Field(default=None, ge=0)
     pending_turn: PendingTurn | None = Field(
         default=None,
         exclude=True,
@@ -105,6 +117,39 @@ class ClarifyData(_Strict):
     @classmethod
     def validate_question(cls, value: str) -> str:
         return validate_public_text(value)
+
+    @model_validator(mode="after")
+    def validate_fit_selection_proof(self) -> Self:
+        proof = (
+            self.intended_responsibility,
+            self.intended_recommendation_mode,
+            self.clarification_basis,
+            self.fit_gap_stage,
+            self.fit_decision_status,
+            self.fit_candidate_count,
+            self.fit_evidence_ref_count,
+            self.fit_public_fact_count,
+        )
+        if any(value is not None for value in proof) and not all(
+            value is not None for value in proof
+        ):
+            raise ValueError(
+                "fit clarification proof must be complete"
+            )
+        if self.fit_gap_stage == "decision_selection" and (
+            self.fit_decision_status == "SELECTED"
+        ):
+            raise ValueError(
+                "decision selection gap forbids selected winner"
+            )
+        if self.fit_gap_stage == "public_fact_projection" and (
+            self.fit_decision_status != "SELECTED"
+            or self.fit_public_fact_count != 0
+        ):
+            raise ValueError(
+                "public fact gap requires selected winner without facts"
+            )
+        return self
 
 
 class ImageComparisonReferenceData(_Strict):
@@ -121,6 +166,7 @@ class ImageComparisonPriceFactData(_Strict):
 
 
 class ImageComparisonData(_Strict):
+    context_source: Literal["current_upload", "confirmed_session"]
     status: Literal["winner", "tie", "insufficient_evidence"]
     references: list[ImageComparisonReferenceData] = Field(
         min_length=2,
@@ -329,7 +375,11 @@ class GeneralKnowledgeCitationData(_Strict):
     knowledge_id: str = Field(pattern=r"^[0-9a-f]{64}$")
     title: str = Field(min_length=1, max_length=256)
     section_title: str = Field(min_length=1, max_length=256)
-    exact_excerpt: str = Field(min_length=1, max_length=4000)
+    public_excerpt: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=4000,
+    )
     source_path: str = Field(
         min_length=1,
         max_length=512,
@@ -340,6 +390,20 @@ class GeneralKnowledgeCitationData(_Strict):
         "escalation_only",
         "product_specific_redirect",
     ]
+
+    @model_validator(mode="after")
+    def validate_public_excerpt(self) -> Self:
+        if self.review_decision == "general_answer":
+            if self.public_excerpt is None:
+                raise ValueError(
+                    "general answer citation requires public excerpt"
+                )
+            validate_final_public_text(self.public_excerpt)
+        elif self.public_excerpt is not None:
+            raise ValueError(
+                "non-answer citation forbids public excerpt"
+            )
+        return self
 
 
 class GeneralKnowledgeData(_Strict):
@@ -570,7 +634,7 @@ class PresentationContractEvent(_Strict):
     event: Literal[
         "presentation_contract"
     ] = "presentation_contract"
-    data: PresentationContractData
+    data: PublicPresentationContract
 
 
 class ProductsEvent(_Strict):
@@ -651,3 +715,76 @@ SseEvent = Annotated[
     | EndEvent,
     Field(discriminator="event"),
 ]
+
+
+_OCR_STATE_PUBLIC = {
+    "not_run": "未运行包装文字核对",
+    "not_configured": "当前未配置包装文字核对",
+    "unavailable": "未提取到有效包装文字",
+    "observed": "已完成包装文字核对",
+}
+_OCR_CONSISTENCY_PUBLIC = {
+    "not_checked": "未核对",
+    "consistent": "与候选商品一致",
+    "conflict": "与候选商品不一致",
+    "indeterminate": "暂未完整确认",
+}
+
+
+def image_observation_events(
+    observations: tuple[ImageIdentityObservation, ...],
+) -> tuple[ImageObservationEvent, ...]:
+    return tuple(
+        ImageObservationEvent(
+            data=ImageObservationData(observation=observation)
+        )
+        for observation in observations
+    )
+
+
+def image_citations_event(
+    *,
+    observations: tuple[ImageIdentityObservation, ...],
+    product_ids: tuple[int, ...],
+) -> CitationsEvent:
+    citations: list[CitationData] = []
+    for observation in observations:
+        confidence = observation.visual_confidence
+        citations.append(
+            CitationData(
+                id=f"visual:{observation.image_id}",
+                title="图片匹配依据",
+                snippet="图片相似度匹配已完成，结果由本次上传图片生成。",
+                confidence=(
+                    max(0.0, min(1.0, confidence))
+                    if confidence is not None
+                    else None
+                ),
+                source_kind="visual_model",
+            )
+        )
+        citations.append(
+            CitationData(
+                id=f"ocr:{observation.image_id}",
+                title="包装文字核对",
+                snippet=(
+                    f"{_OCR_STATE_PUBLIC[observation.ocr_state.value]}；"
+                    "品牌信息"
+                    f"{_OCR_CONSISTENCY_PUBLIC[observation.ocr_brand_consistency.value]}；"
+                    "商品名称"
+                    f"{_OCR_CONSISTENCY_PUBLIC[observation.ocr_product_name_consistency.value]}。"
+                    "包装文字只用于辅助确认，不参与商品排序。"
+                ),
+                source_kind="ocr_observation",
+            )
+        )
+    for product_id in dict.fromkeys(product_ids):
+        citations.append(
+            CitationData(
+                id=f"product:{product_id}",
+                title="商品资料",
+                snippet="商品身份和卡片信息以已审核的商品资料为准。",
+                source_kind="canonical",
+            )
+        )
+    return CitationsEvent(data=CitationsData(citations=citations))

@@ -32,27 +32,12 @@ ConsultationSourceTurnId = Annotated[
 def _validate_observations(
     observations: tuple[ConsultationObservation, ...],
 ) -> None:
-    legacy_codes = [
-        item.code for item in observations if item.code is not None
-    ]
-    if len(legacy_codes) != len(set(legacy_codes)):
-        raise ValueError("legacy observation codes must be unique")
-    dynamic_ids = [
-        item.observation_id
-        for item in observations
-        if item.observation_id is not None
-    ]
-    if len(dynamic_ids) != len(set(dynamic_ids)):
-        raise ValueError("dynamic observation IDs must be unique")
-    dynamic_dimensions = [
-        item.dimension
-        for item in observations
-        if item.dimension is not None
-    ]
-    if len(dynamic_dimensions) != len(set(dynamic_dimensions)):
-        raise ValueError(
-            "dynamic observation dimensions must be unique"
-        )
+    observation_ids = [item.observation_id for item in observations]
+    if len(observation_ids) != len(set(observation_ids)):
+        raise ValueError("observation IDs must be unique")
+    dimensions = [item.dimension for item in observations]
+    if len(dimensions) != len(set(dimensions)):
+        raise ValueError("observation dimensions must be unique")
 
 
 class ConfirmableConsultationAssessment(BaseModel):
@@ -142,10 +127,7 @@ class RecordedMedicalEscalation(BaseModel):
         observation_version = assessment.observation_set_version
         same_turn_dynamic_assessment = (
             recorded_version == observation_version
-            and any(
-                item.observation_id is not None
-                for item in assessment.observations
-            )
+            and bool(assessment.observations)
         )
         if (
             recorded_version != observation_version + 1

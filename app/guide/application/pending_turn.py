@@ -29,8 +29,10 @@ from app.guide.understanding.contracts import (
     EfficacyTarget,
     ExclusionDraft,
     SkinTarget,
+    StructuredUnderstanding,
     TopicCode,
 )
+from app.guide.understanding.turn_meaning_contracts import TurnMeaning
 from app.guide.understanding.colloquial_budget import (
     parse_colloquial_budget,
 )
@@ -111,6 +113,8 @@ def classify_pending_reply(
         raise TypeError("pending reply message must be a string")
     if not isinstance(pending, PendingTurn):
         raise TypeError("pending must be a PendingTurn")
+    if _PENDING_REJECTION_PREFIX.search(message):
+        return PendingReply(kind="reject")
     constraints, issues = parse_exact_constraints(message)
     if not issues:
         categories = [
@@ -136,7 +140,7 @@ def classify_pending_reply(
             corrected = budgets[-1]
             if (
                 corrected.minimum is not None
-                and corrected.maximum is not None
+                or corrected.maximum is not None
             ):
                 return PendingReply(
                     kind="correct",
@@ -161,8 +165,6 @@ def classify_pending_reply(
             )
 
     short_reply = _TRAILING_PUNCTUATION.sub("", message.strip())
-    if _PENDING_REJECTION_PREFIX.search(message):
-        return PendingReply(kind="reject")
     if (
         (
             short_reply in _AFFIRMATIONS
@@ -177,6 +179,91 @@ def classify_pending_reply(
         )
     if short_reply in _REJECTIONS:
         return PendingReply(kind="reject")
+    return PendingReply(kind="ambiguous")
+
+
+def resolve_semantic_pending_reply(
+    *,
+    meaning: TurnMeaning,
+    understanding: StructuredUnderstanding,
+    pending: PendingTurn,
+) -> PendingReply:
+    if type(meaning) is not TurnMeaning:
+        raise TypeError("meaning must be an exact TurnMeaning")
+    if type(understanding) is not StructuredUnderstanding:
+        raise TypeError(
+            "understanding must be an exact StructuredUnderstanding"
+        )
+    if type(pending) is not PendingTurn:
+        raise TypeError("pending must be an exact PendingTurn")
+    if not understanding.semantic_authoritative:
+        raise ValueError(
+            "semantic pending reply requires authoritative understanding"
+        )
+
+    hint = meaning.pending_response_hint
+    budgets = [
+        item
+        for item in understanding.exact_constraints
+        if isinstance(item, BudgetDraft)
+    ]
+    exclusions = tuple(dict.fromkeys(
+        item.value
+        for item in understanding.exact_constraints
+        if isinstance(item, ExclusionDraft)
+    ))
+    categories = [
+        item
+        for item in understanding.exact_constraints
+        if isinstance(item, CategoryDraft)
+    ]
+    if hint == "replace_task":
+        replacement = next(
+            (
+                item.value.value
+                for item in reversed(categories)
+                if item.value.value
+                != pending.resume_context.category
+            ),
+            None,
+        )
+        return (
+            PendingReply(
+                kind="replace_task",
+                replacement_category=replacement,
+            )
+            if replacement is not None
+            else PendingReply(kind="ambiguous")
+        )
+    if hint == "reject":
+        return PendingReply(kind="reject")
+    if hint == "correct":
+        if not budgets:
+            return PendingReply(kind="ambiguous")
+        budget = budgets[-1]
+        return PendingReply(
+            kind="correct",
+            accepted_proposal=True,
+            budget=PendingBudgetRange(
+                minimum=budget.minimum,
+                maximum=budget.maximum,
+            ),
+        )
+    if hint == "supplement":
+        if pending.proposed_budget is None:
+            return PendingReply(kind="ambiguous")
+        return PendingReply(
+            kind="supplement",
+            accepted_proposal=True,
+            budget=pending.proposed_budget,
+            exclusions=exclusions,
+        )
+    if hint == "affirm" and pending.proposed_budget is not None:
+        return PendingReply(
+            kind="affirm",
+            accepted_proposal=True,
+            budget=pending.proposed_budget,
+        )
     return PendingReply(kind="ambiguous")
 
 
@@ -210,6 +297,17 @@ def build_pending_turn(
     )
     if category is None:
         return None
+    if any(
+        value is None
+        for value in (
+            task.recommendation_mode,
+            task.recommendation_mode_basis,
+            task.recommendation_count,
+        )
+    ):
+        raise ValueError(
+            "pending recommendation requires complete outcome"
+        )
     skin = next(
         (
             item
@@ -235,6 +333,9 @@ def build_pending_turn(
         resume_mode="recommendation",
         resume_context=PendingRecommendationContext(
             category=category.value.value,
+            recommendation_mode=task.recommendation_mode,
+            recommendation_mode_basis=task.recommendation_mode_basis,
+            recommendation_count=task.recommendation_count,
             skin=skin.value.value if skin is not None else None,
             efficacy=(
                 efficacy.value.value
@@ -329,6 +430,9 @@ def resume_pending_recommendation(
     )
     return TaskPlan(
         mode="recommend",
+        recommendation_mode=context.recommendation_mode,
+        recommendation_mode_basis=context.recommendation_mode_basis,
+        recommendation_count=context.recommendation_count,
         referenced_image_ids=[],
         constraints=constraints,
         references=[],
@@ -345,5 +449,6 @@ __all__ = [
     "PendingReplyKind",
     "build_pending_turn",
     "classify_pending_reply",
+    "resolve_semantic_pending_reply",
     "resume_pending_recommendation",
 ]

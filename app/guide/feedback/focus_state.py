@@ -1,26 +1,14 @@
 from __future__ import annotations
 
-from typing import Literal, Self
+from typing import Annotated, Literal, Self
 
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
-    field_validator,
+    StringConstraints,
     model_validator,
 )
-
-
-ProcessorKind = Literal[
-    "recommendation",
-    "comparison",
-    "product_knowledge",
-    "general_knowledge",
-    "image_identity",
-    "consultation",
-    "clarification",
-    "safety_escalation",
-]
 
 
 class _StrictFrozen(BaseModel):
@@ -35,46 +23,121 @@ class ConfirmedImageProductRef(_StrictFrozen):
         min_length=1,
         max_length=160,
     )
-
-
-class FocusState(_StrictFrozen):
-    active_processor: ProcessorKind | None = None
-    current_product_id: int | None = Field(default=None, gt=0)
-    confirmed_image_products: tuple[
-        ConfirmedImageProductRef,
-        ...,
-    ] = Field(default_factory=tuple, max_length=3)
-    current_knowledge_topic: str | None = Field(
-        default=None,
-        min_length=1,
-        max_length=256,
-    )
-    last_question_meaning: str | None = Field(
-        default=None,
-        min_length=1,
-        max_length=512,
-    )
-
-    @field_validator("confirmed_image_products", mode="before")
-    @classmethod
-    def freeze_confirmed_images(cls, value: object) -> object:
-        return tuple(value) if isinstance(value, list) else value
+    source_bundle_id: Annotated[
+        str,
+        StringConstraints(
+            min_length=39,
+            max_length=160,
+            pattern=r"^bundle_[A-Za-z0-9_-]{32,152}$",
+        ),
+    ] | None = None
+    source_image_id: Annotated[
+        str,
+        StringConstraints(
+            min_length=38,
+            max_length=159,
+            pattern=r"^image_[A-Za-z0-9_-]{32,152}$",
+        ),
+    ] | None = None
 
     @model_validator(mode="after")
-    def validate_confirmed_images(self) -> Self:
-        ordinals = [
-            item.image_ordinal
-            for item in self.confirmed_image_products
-        ]
-        if len(ordinals) != len(set(ordinals)):
+    def validate_source_identity(self) -> Self:
+        if (self.source_bundle_id is None) != (
+            self.source_image_id is None
+        ):
             raise ValueError(
-                "confirmed image ordinal must be unique"
+                "confirmed image source identity must be complete"
+            )
+        return self
+
+
+def validate_confirmed_image_batch(
+    confirmed_products: tuple[ConfirmedImageProductRef, ...],
+) -> None:
+    if (
+        type(confirmed_products) is not tuple
+        or any(
+            type(item) is not ConfirmedImageProductRef
+            for item in confirmed_products
+        )
+        or not 1 <= len(confirmed_products) <= 4
+    ):
+        raise ValueError(
+            "confirmed image batch requires one to four products"
+        )
+    ordinals = tuple(
+        item.image_ordinal for item in confirmed_products
+    )
+    if (
+        ordinals != tuple(range(1, len(confirmed_products) + 1))
+    ):
+        raise ValueError(
+            "confirmed image batch ordinals must be contiguous and ordered"
+        )
+    source_identities = tuple(
+        (item.source_bundle_id, item.source_image_id)
+        for item in confirmed_products
+    )
+    complete = tuple(
+        (bundle_id, image_id)
+        for bundle_id, image_id in source_identities
+        if bundle_id is not None and image_id is not None
+    )
+    if complete and len(complete) != len(source_identities):
+        raise ValueError(
+            "confirmed image source identity must be complete"
+        )
+    if complete and (
+        len({bundle_id for bundle_id, _ in complete}) != 1
+        or len({image_id for _, image_id in complete}) != len(complete)
+    ):
+        raise ValueError(
+            "confirmed image source identities must name one unique batch"
+        )
+    if not complete and (
+        len({item.product_id for item in confirmed_products})
+        != len(confirmed_products)
+    ):
+        raise ValueError(
+            "confirmed image products without source identities must be unique"
+        )
+
+
+ActiveFocusSlot = Literal[
+    "recommendation",
+    "product",
+    "image",
+    "consultation",
+    "knowledge",
+    "reply",
+]
+ActiveFocusObjectId = int | Annotated[
+    str,
+    StringConstraints(
+        min_length=1,
+        max_length=256,
+    ),
+]
+
+
+class ActiveFocus(_StrictFrozen):
+    slot: ActiveFocusSlot
+    object_id: ActiveFocusObjectId | None = None
+    ordinal: int | None = Field(default=None, ge=1, le=4)
+
+    @model_validator(mode="after")
+    def validate_focus_shape(self) -> Self:
+        if self.slot in {"recommendation", "image"}:
+            return self
+        if self.ordinal is not None:
+            raise ValueError(
+                f"{self.slot} focus forbids ordinal"
             )
         return self
 
 
 __all__ = [
+    "ActiveFocus",
     "ConfirmedImageProductRef",
-    "FocusState",
-    "ProcessorKind",
+    "validate_confirmed_image_batch",
 ]

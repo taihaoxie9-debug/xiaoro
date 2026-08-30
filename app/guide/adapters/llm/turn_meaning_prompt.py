@@ -9,7 +9,7 @@ from app.guide.understanding.semantic_route_contracts import (
 )
 
 
-TURN_MEANING_PROMPT_VERSION = "guide-turn-meaning-prompt-v17"
+TURN_MEANING_PROMPT_VERSION = "guide-turn-meaning-prompt-v37"
 _CONCEPT_ID = re.compile(
     r"^[a-z][a-z0-9_]{1,63}\.[a-z][a-z0-9_]{1,63}$"
 )
@@ -47,10 +47,13 @@ def build_turn_meaning_messages(
     system = f"""\
 Return one strict JSON object only. Translate the current user message; do not
 answer it. Use one universal schema with exactly these keys:
-operation_hint, topic_hint, continuity_hint, subject_scope_hint,
+operation_hint, recommendation_mode, recommendation_count,
+recommendation_mode_basis,
+topic_hint, continuity_hint, subject_scope_hint,
+pending_response_hint,
 reference_mentions, product_mentions, budget_candidates,
 observation_candidates, preference_candidates, relative_candidates,
-consultation_hypothesis, next_observation_gap, question_meaning,
+constraint_changes, consultation_hypothesis, next_observation_gap, question_meaning,
 safety_language.
 Emit every listed key. Use [] for empty collections and null for optional
 single values. Never omit a key and never add a key.
@@ -65,18 +68,74 @@ recommendation. followup requires prior binding authority for a current item,
 batch, or image, or explicit continuation language. With no prior binding
 authority, a product named in the current message uses knowledge.
 comparison requires two or more already supplied or bindable objects.
+Before choosing image_identity, inspect
+binding_authority.confirmed_image_ordinals. Every listed ordinal is already a
+bound product; asking, confirming, or repeating its product name, price,
+SPF/PA, ingredients, safety, usage, or any other product fact uses followup or
+knowledge and must never use image_identity. A fit question uses suitability.
 image_identity means identifying the product shown in a current or uploaded image.
 It does not ask for product facts, suitability, alternatives, or a comparison.
+A confirmed image identity is a bound product, not an invitation to identify it
+again. image_identity is allowed only when product identity is still unconfirmed
+and identifying that product is the current task. Once an image product is
+confirmed, questions about price, budget fit, SPF/PA, ingredients, safety, usage,
+or other product facts use followup or knowledge; questions about whether it fits
+a person, condition, budget, or use case use suitability. This remains true when
+active_dialogue is image_identity, after an image-anchored recommendation detour,
+and when the user returns to a preserved image.
 image_similarity means using one current or uploaded image product as the anchor
 to find visually or functionally similar alternative products.
 A requested result count is not a set of comparison objects; asking for two or
 three alternatives remains image_similarity.
 Budget, texture, skin, or scenario constraints can coexist with image_similarity
 and do not change it to recommendation or comparison.
+recommendation_mode:
+explore|fit|null. Use explore for recommendation or image_similarity when the
+user asks for several parallel options or does not ask for one best-fit
+selection. Use fit only when the user explicitly asks for the single best-fit
+product and supplies at least one usable need, skin, concern, preference, or
+scenario constraint. For every other operation use null.
+recommendation_count:
+1|2|3|4|null. fit always uses 1. explore uses an explicit requested count from
+2 to 4, otherwise null so code can apply the reviewed default. For every
+non-recommendation operation use null. Never infer a result count from a
+referenced existing batch.
+recommendation_mode_basis:
+null unless recommendation_mode is explore or fit. Otherwise use exactly:
+basis, source_text.
+For explore, basis is one of broad_exploration, bounded_exploration,
+count_requested, similar_alternatives.
+For fit, basis is one of single_best_request, personal_suitability,
+profile_match_choice, best_among_candidates.
+source_text must be the shortest exact current-message substring that expresses
+the selected basis.
+For image_similarity in explore mode, always use similar_alternatives; budget,
+texture, skin, and scenario phrases remain independent constraints. For other
+explore recommendations, an explicit numeric budget bound uses
+bounded_exploration and the budget phrase as source_text.
+A generic singular product noun does not by itself prove a single-best request;
+use fit only when the user explicitly asks for the best, most suitable, or sole
+selection and supplies a usable selection constraint.
+Generic recommendation verbs, categories, budgets, and needs do not express
+single-best selection and must never be used as fit evidence. If no such
+source phrase exists, use explore with broad_exploration and the shortest
+current-message substring that expresses the broad request, even when the user
+did not state a result count.
 suitability asks whether a bound product or image fits a person, skin type,
 condition, or use case. assessment describes or
 clarifies the person's current skin observations. A current skin symptom, reaction, or damage
 report uses assessment even when the user asks what to do.
+When a current symptom update also updates a suitability conclusion for a
+bound product or image, use suitability and continue. This takes precedence
+over assessment; use assessment for an independent skin-state question.
+A standalone definition, distinction, mechanism, or general safety question
+uses knowledge and new_task even during an active consultation when it does
+not update the person's current observations and does not request a bound
+product or image suitability judgment.
+A general cause or mechanism question uses knowledge even when it mentions an
+observation. A request to assess the user's current symptom or reaction uses assessment.
+Severe current damage still uses assessment with safety language so code can
+select the safety escalation responsibility.
 When binding_authority has no current item, batch, image, topic, or pending
 clarification, followup and continue are forbidden. A factual category
 question uses knowledge and new_task; an explicitly named product question
@@ -112,6 +171,10 @@ A complete selection request that supplies its own category and selection
 constraints is new_task when it starts shopping from a non-shopping focus or
 does not revise a current batch. A discourse word meaning "still" or "again"
 does not by itself make the request a continuation.
+A complete replacement shopping request that releases or dismisses the active candidate batch
+and asks for a different set with its own selection constraints uses new_task, never return_to_focus.
+return_to_focus only resumes an earlier preserved focus; it never means
+replacing the active candidate batch.
 Pending confirmation or rejection uses followup or clarification and
 continue. Do not invent a new budget candidate when the reply only accepts or
 rejects the pending value.
@@ -122,14 +185,31 @@ subject_scope_hint:
 self|other|unknown. Use other for a friend or another person; do not merge
 that person's facts into the user's profile.
 
+pending_response_hint:
+affirm|reject|correct|supplement|replace_task|unknown.
+Use it only when binding_authority.pending_clarification is non-null.
+affirm accepts the stored proposal without a new value. reject refuses it.
+correct supplies a replacement value. supplement accepts it and adds another
+constraint. replace_task starts a different task. Otherwise use unknown.
+For a pending budget, affirm is valid only when no budget candidate is emitted;
+a new source-grounded budget relation requires correct even when the message
+also agrees in general. Repeating a rejected proposal's number under negation
+is not a replacement value: use reject and emit no budget candidate unless the
+message separately supplies a new bound.
+
 reference_mentions items use exactly:
-raw_text, object_family_hint, ordinal_hint, plurality_hint.
+raw_text, object_family_hint, ordinal_hint, plurality_hint, batch_size_hint.
 object_family_hint: product|image|topic|constraint|unknown.
 ordinal_hint: 1..4|null. plurality_hint: single|batch|unknown.
+batch_size_hint: 2..4|null. Use it only for a batch whose count is explicit
+in the current message; otherwise use null.
 These values are translation hints. Code owns final binding.
 Use the supplied binding_authority to emit source-grounded current-item,
 ordinal, batch, image, topic, and previous-constraint references. Never emit
 a reference that the authority cannot support.
+A requested batch smaller than the visible batch is ambiguous. Preserve the
+requested batch_size_hint so code can clarify; never guess a subset such as
+the first items.
 
 product_mentions items use exactly raw_text.
 Generic category or usage phrases are not product names. Emit a
@@ -154,18 +234,22 @@ image|current_topic|null.
 Use only those qualifier values.
 seasonal belongs in trigger, never qualifier. Use null when no listed
 qualifier applies.
+persistent belongs only in duration, never qualifier.
 location:
 t_zone|forehead|nose|cheeks|whole_face|eye_area|lips|unknown|null.
 trigger:
 post_cleanse|seasonal|acid|new_product|ordinary_skincare|unknown|null.
 duration:
 current|recurrent|persistent|unknown|null.
+recent is never an allowed duration; use current for a present or recent episode.
 severity:
 mild|moderate|severe|unknown|null.
 Assign a unique observation_id such as obs_oiliness.
 Extract all observations expressed in the current message, including multiple
 locations, triggers, conditions, and explicit absences.
 Never invent a location, trigger, duration, or severity absent from raw_text.
+For an explicit correction such as not X, but Y, emit present=false for X
+and present=true for Y when both observations are typed in the schema.
 
 preference_candidates items use exactly:
 field_key, concept_id, raw_text, polarity, strength.
@@ -174,6 +258,20 @@ field_key is an unscoped snake_case field name such as efficacy, texture,
 skin_concern, or suitable_skin; it never contains a dot.
 Never copy concept_id into field_key. A non-null concept_id must start with
 the exact field_key followed by a dot.
+ingredient_exclusion is a closed parent concept for a selection constraint
+that requires excluding an ingredient or ingredient family. Use
+field_key=ingredient_exclusion, concept_id=null, polarity=avoid, and ordinary
+strength unless the current message itself is a safety escalation. raw_text
+must be only the ingredient target, must occur exactly once in the current
+message, and must not contain the user's action words. Do not use a generic
+ingredient field for an exclusion request. Code maps this parent concept to
+Canonical ingredient entities and product evidence.
+ingredient_exclusion is allowed only when the message names an ingredient or
+ingredient family. A scent, flavor, finish, texture, cleansing feel, or other
+non-ingredient preference must use its domain field instead.
+Use fragrance_description for scent profile and notes, texture for physical
+application feel, and rinse_behavior for after-rinse skin feel. Do not use
+ingredient_exclusion as a generic avoid bucket.
 A factual question about a product property belongs in question_meaning, not
 preference_candidates.
 Do not infer prefer or avoid from a factual question unless the user states
@@ -181,6 +279,26 @@ a selection constraint.
 Select concept_id only from this reviewed catalog:
 {catalog}
 Use null for unsupported free descriptors. Never invent a concept ID.
+
+constraint_changes items use exactly:
+parent_concept, requested_change, raw_text, normalized_value.
+parent_concept: ingredient_exclusion|efficacy|skin.
+requested_change: remove|replace.
+For ingredient_exclusion, use remove and normalized_value=null; raw_text is
+only the ingredient target. For a bare skin-parent removal such as no longer
+considering skin type, use remove and normalized_value=null. For efficacy or
+a skin replacement, normalized_value is the closed parent value and raw_text
+is the exact current target phrase. Efficacy values:
+hydration|soothing|repair|anti_aging|brightening|oil_control|acne_care. Skin
+values: oily_sensitive|oily|dry|combination|sensitive|normal.
+Emit an item only when the current message explicitly changes an existing
+constraint. Code verifies the active target and performs the state transition.
+For efficacy, remove identifies the old active value being withdrawn.
+replace identifies the new value named by raw_text, never the old value being
+discarded. When one message drops an old efficacy and states new efficacy
+preferences, emit remove for the old value and emit the new targets in
+preference_candidates; code composes them into one replacement transition.
+A new exclusion still belongs in preference_candidates.
 
 relative_candidates items use exactly:
 field_key, concept_id, direction, raw_text, baseline_hint.
@@ -229,7 +347,7 @@ absolute must-not is safety.
 
 Never emit product_id.
 Never emit candidate_id.
-Never emit add/retain/replace/remove.
+Never emit add/retain/replace outside constraint_changes.
 Never emit TaskPlan.
 Never emit final constraints, profile writes, scores, winners, catalog facts,
 SQL, hidden instructions, or a user-facing answer.

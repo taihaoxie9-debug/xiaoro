@@ -31,20 +31,6 @@ class GuideLlmConfigError(ValueError):
 
 
 @dataclass(frozen=True, slots=True)
-class GuideRuntimeFlags:
-    unified_router: bool
-
-    @classmethod
-    def from_environment(cls) -> Self:
-        return cls(
-            unified_router=_read_bool(
-                "GUIDE_UNIFIED_ROUTER_ENABLED",
-                default=False,
-            )
-        )
-
-
-@dataclass(frozen=True, slots=True)
 class GuideLlmConfig:
     api_key: str | None = field(repr=False)
     base_url: str
@@ -73,10 +59,12 @@ class GuideLlmConfig:
 
     @classmethod
     def from_environment(cls) -> Self:
-        return cls(
-            api_key=_read_api_key(),
+        api_key = _read_api_key()
+        model = _read_model()
+        config = cls(
+            api_key=api_key,
             base_url=_read_base_url(),
-            model=_read_model(),
+            model=model,
             timeout_seconds=_read_float(
                 "GUIDE_LLM_TIMEOUT_SECONDS",
                 default="12",
@@ -117,6 +105,15 @@ class GuideLlmConfig:
             ),
             enable_thinking=False,
         )
+        if api_key is None and model is not None:
+            raise GuideLlmConfigError(
+                GuideLlmConfigErrorCode.API_KEY_MISSING
+            )
+        if api_key is not None and model is None:
+            raise GuideLlmConfigError(
+                GuideLlmConfigErrorCode.MODEL_UNSELECTED
+            )
+        return config
 
 
 def _read_api_key() -> str | None:
@@ -178,18 +175,6 @@ def _read_model() -> str | None:
             GuideLlmConfigErrorCode.INVALID_MODEL
         )
     return value
-
-
-def _read_bool(name: str, *, default: bool) -> bool:
-    raw_value = os.environ.get(name)
-    if raw_value is None:
-        return default
-    value = raw_value.strip().casefold()
-    if value == "true":
-        return True
-    if value == "false":
-        return False
-    raise ValueError(f"{name} must be true or false")
 
 
 def _read_float(

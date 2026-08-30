@@ -152,7 +152,7 @@ class ResolvedProfileValue(_StrictFrozen):
 
 
 class ResolvedProfileContext(_StrictFrozen):
-    values: tuple[ResolvedProfileValue, ...] = Field(max_length=5)
+    values: tuple[ResolvedProfileValue, ...] = Field(max_length=20)
 
     @field_validator("values", mode="before")
     @classmethod
@@ -166,9 +166,28 @@ class ResolvedProfileContext(_StrictFrozen):
 
     @model_validator(mode="after")
     def validate_unique_fields(self) -> Self:
-        fields = [item.field for item in self.values]
-        if len(fields) != len(set(fields)):
-            raise ValueError("resolved profile fields must be unique")
+        keys = [
+            (
+                item.field,
+                (
+                    item.value.casefold()
+                    if item.field == "ingredient_exclusion"
+                    else None
+                ),
+            )
+            for item in self.values
+        ]
+        if len(keys) != len(set(keys)):
+            raise ValueError("resolved profile values must be unique")
+        singular_fields = [
+            item.field
+            for item in self.values
+            if item.field != "ingredient_exclusion"
+        ]
+        if len(singular_fields) != len(set(singular_fields)):
+            raise ValueError(
+                "resolved single-value profile fields must be unique"
+            )
         return self
 
 
@@ -265,10 +284,24 @@ def resolve_profile_context(
     profile: ProfileSnapshot | None = None,
     defaults: Sequence[DefaultProfileFact] = (),
 ) -> ResolvedProfileContext:
-    resolved: dict[ProfileField, ResolvedProfileValue] = {}
+    resolved: dict[
+        tuple[ProfileField, str | None],
+        ResolvedProfileValue,
+    ] = {}
+
+    def key(field: ProfileField, value: str) -> tuple[
+        ProfileField,
+        str | None,
+    ]:
+        return (
+            field,
+            value.casefold()
+            if field == "ingredient_exclusion"
+            else None,
+        )
 
     for fact in _unique_by_field(defaults, source="default"):
-        resolved[fact.field] = ResolvedProfileValue(
+        resolved[key(fact.field, fact.value)] = ResolvedProfileValue(
             field=fact.field,
             value=fact.value,
             source="default",
@@ -276,7 +309,7 @@ def resolve_profile_context(
         )
     if profile is not None:
         for fact in profile.facts:
-            resolved[fact.field] = ResolvedProfileValue(
+            resolved[key(fact.field, fact.value)] = ResolvedProfileValue(
                 field=fact.field,
                 value=fact.value,
                 source="long_term_profile",
@@ -290,7 +323,7 @@ def resolve_profile_context(
         confirmed_session,
         source="confirmed_session",
     ):
-        resolved[fact.field] = ResolvedProfileValue(
+        resolved[key(fact.field, fact.value)] = ResolvedProfileValue(
             field=fact.field,
             value=fact.value,
             source="confirmed_session_fact",
@@ -303,7 +336,7 @@ def resolve_profile_context(
         current_explicit,
         source="current_explicit",
     ):
-        resolved[fact.field] = ResolvedProfileValue(
+        resolved[key(fact.field, fact.value)] = ResolvedProfileValue(
             field=fact.field,
             value=fact.value,
             source="current_explicit_input",
@@ -315,9 +348,10 @@ def resolve_profile_context(
 
     return ResolvedProfileContext(
         values=[
-            resolved[field]
+            value
             for field in _PROFILE_FIELD_ORDER
-            if field in resolved
+            for (resolved_field, _), value in resolved.items()
+            if resolved_field == field
         ]
     )
 
@@ -350,7 +384,11 @@ def persist_confirmed_consultation_profile(
     if owner is None:
         raise ProfilePersistenceRejected("anonymous_snapshot")
 
-    consultation = authoritative.consultation
+    consultation = (
+        authoritative.consultation_slot.state
+        if authoritative.consultation_slot is not None
+        else None
+    )
     assessment = (
         consultation.confirmable_assessment
         if consultation is not None
@@ -456,7 +494,24 @@ def _unique_by_field(
     *,
     source: str,
 ):
-    fields = [fact.field for fact in facts]
-    if len(fields) != len(set(fields)):
+    keys = [
+        (
+            fact.field,
+            (
+                fact.value.casefold()
+                if fact.field == "ingredient_exclusion"
+                else None
+            ),
+        )
+        for fact in facts
+    ]
+    if len(keys) != len(set(keys)):
+        raise ValueError(f"{source} facts must have unique fields")
+    singular_fields = [
+        fact.field
+        for fact in facts
+        if fact.field != "ingredient_exclusion"
+    ]
+    if len(singular_fields) != len(set(singular_fields)):
         raise ValueError(f"{source} facts must have unique fields")
     return facts

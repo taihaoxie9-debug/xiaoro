@@ -8,6 +8,7 @@ from time import monotonic
 from app.guide.feedback.contracts import ConversationSnapshot
 from app.guide.feedback.ports import (
     ConversationStateConflict,
+    ConversationStateCorrupt,
     validate_conversation_state_transition,
 )
 from app.guide.feedback.profile_contracts import ProfileOwnerRef
@@ -52,6 +53,27 @@ class InMemoryConversationState:
         *,
         expected_version: int,
     ) -> ConversationSnapshot:
+        if type(snapshot) is not ConversationSnapshot:
+            raise TypeError(
+                "snapshot must be an exact ConversationSnapshot"
+            )
+        if (
+            not isinstance(expected_version, int)
+            or isinstance(expected_version, bool)
+            or expected_version < 0
+        ):
+            raise ValueError(
+                "expected_version must be a non-negative integer"
+            )
+        try:
+            snapshot = ConversationSnapshot.model_validate(
+                snapshot.model_dump(mode="python"),
+                strict=True,
+            )
+        except (TypeError, ValueError):
+            raise ConversationStateCorrupt(
+                snapshot.session_id
+            ) from None
         with self._lock:
             now = self._clock()
             self._purge_expired(now)

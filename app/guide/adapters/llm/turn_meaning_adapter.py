@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from datetime import UTC, datetime
 from decimal import Decimal
+import json
 import logging
 from typing import Self
 
@@ -18,6 +19,7 @@ from app.guide.adapters.llm.contracts import (
 from app.guide.adapters.llm.provider_common import (
     DailyUsageLimiter,
     OpenAIJsonClient,
+    UsageLimiter,
     validate_adapter_settings,
     validation_failure_code,
 )
@@ -27,7 +29,14 @@ from app.guide.adapters.llm.turn_meaning_prompt import (
     build_turn_meaning_messages,
 )
 from app.guide.understanding.semantic_contracts import SemanticContext
-from app.guide.understanding.turn_meaning_contracts import TurnMeaning
+from app.guide.intent.semantic_admission import (
+    has_source_bound_recommendation_count,
+)
+from app.guide.understanding.source_grounding import ground_unique_text
+from app.guide.understanding.turn_meaning_contracts import (
+    FIT_RECOMMENDATION_BASES,
+    TurnMeaning,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -35,6 +44,7 @@ logger = logging.getLogger(__name__)
 
 class TurnMeaningAdapterBase:
     prompt_version = TURN_MEANING_PROMPT_VERSION
+    response_tool_name: str | None = None
 
     def __init__(
         self,
@@ -50,6 +60,7 @@ class TurnMeaningAdapterBase:
         daily_call_cap: int,
         transport: httpx.BaseTransport | None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        usage_limiter: UsageLimiter | None = None,
     ) -> None:
         self.base_url = validate_adapter_settings(
             api_key=api_key,
@@ -78,10 +89,14 @@ class TurnMeaningAdapterBase:
         self.model = model
         self._max_tokens = max_tokens
         self._concept_catalog = concept_catalog
-        self._usage_limiter = DailyUsageLimiter(
-            daily_budget_cny=daily_budget_cny,
-            daily_call_cap=daily_call_cap,
-            clock=clock,
+        self._usage_limiter = (
+            usage_limiter
+            if usage_limiter is not None
+            else DailyUsageLimiter(
+                daily_budget_cny=daily_budget_cny,
+                daily_call_cap=daily_call_cap,
+                clock=clock,
+            )
         )
         self._client = OpenAIJsonClient(
             api_key=api_key,
@@ -111,12 +126,83 @@ class TurnMeaningAdapterBase:
                 )
             )
             try:
-                meaning = TurnMeaning.model_validate_json(
-                    completion.content,
+                payload = json.loads(completion.content)
+                if not isinstance(payload, dict):
+                    raise ValueError(
+                        "turn meaning output must be a JSON object"
+                    )
+                expected_keys = set(TurnMeaning.model_fields)
+                actual_keys = set(payload)
+                if actual_keys != expected_keys:
+                    extra_keys = actual_keys - expected_keys
+                    code = (
+                        SemanticProviderFailureCode.FORBIDDEN_OUTPUT
+                        if extra_keys
+                        else SemanticProviderFailureCode.INVALID_OUTPUT
+                    )
+                    raise SemanticProviderFailure(
+                        code,
+                        diagnostic=(
+                            "turn meaning output keys do not match schema"
+                        ),
+                        raw_content=completion.content,
+                        trace_id=completion.trace_id,
+                        usage=SemanticTokenUsage.model_validate(
+                            completion.usage,
+                            strict=True,
+                        ),
+                    )
+                meaning = TurnMeaning.model_validate(
+                    payload,
                     strict=True,
                 )
-            except ValidationError as error:
-                code = validation_failure_code(error)
+                if meaning.recommendation_mode_basis is not None:
+                    ground_unique_text(
+                        message.strip(),
+                        meaning.recommendation_mode_basis.source_text,
+                    )
+                if (
+                    meaning.recommendation_mode == "fit"
+                    and (
+                        not _has_usable_fit_signal(
+                            meaning,
+                            context=context,
+                        )
+                        or not _has_substantive_fit_basis(
+                            meaning,
+                            message=message,
+                        )
+                    )
+                ):
+                    meaning = TurnMeaning.model_validate(
+                        {
+                            **meaning.model_dump(mode="python"),
+                            "recommendation_mode": "explore",
+                            "recommendation_count": None,
+                            "recommendation_mode_basis": {
+                                "basis": "broad_exploration",
+                                "source_text": (
+                                    meaning.recommendation_mode_basis
+                                    .source_text
+                                ),
+                            },
+                        },
+                        strict=True,
+                    )
+                if (
+                    meaning.operation_hint
+                    in {"recommendation", "image_similarity"}
+                    and meaning.recommendation_mode is None
+                ):
+                    raise ValueError(
+                        "provider recommendation requires recommendation_mode"
+                    )
+            except (json.JSONDecodeError, TypeError, ValueError) as error:
+                code = (
+                    validation_failure_code(error)
+                    if isinstance(error, ValidationError)
+                    else SemanticProviderFailureCode.INVALID_OUTPUT
+                )
                 self._log_failure(code)
                 raise SemanticProviderFailure(
                     code,
@@ -169,7 +255,8 @@ class TurnMeaningAdapterBase:
         try:
             try:
                 completion = self._client.request(
-                    self._request_body(messages)
+                    self._request_body(messages),
+                    tool_name=self.response_tool_name,
                 )
             except SemanticProviderFailure as failure:
                 self._log_failure(
@@ -227,6 +314,85 @@ class TurnMeaningAdapterBase:
 
     def __exit__(self, *args: object) -> None:
         self.close()
+
+
+def _has_usable_fit_signal(
+    meaning: TurnMeaning,
+    *,
+    context: SemanticContext,
+) -> bool:
+    non_selection_observations = {
+        "current_budget_unknown",
+        "goal_unclear",
+        "topic_unclear",
+        "reference_unclear",
+    }
+    return bool(
+        context.confirmed_profile_fields
+        or meaning.preference_candidates
+        or meaning.relative_candidates
+        or meaning.constraint_changes
+        or any(
+            item.code not in non_selection_observations
+            for item in meaning.observation_candidates
+        )
+    )
+
+
+def _has_substantive_fit_basis(
+    meaning: TurnMeaning,
+    *,
+    message: str,
+) -> bool:
+    basis = meaning.recommendation_mode_basis
+    if basis is None:
+        return False
+    if basis.basis in FIT_RECOMMENDATION_BASES and not (
+        has_source_bound_recommendation_count(
+            message,
+            basis.source_text,
+            1,
+        )
+    ):
+        return False
+    compact = "".join(
+        character
+        for character in basis.source_text
+        if character.isalnum()
+    )
+    if (
+        len(compact) < 3
+        and not any(character.isnumeric() for character in compact)
+    ):
+        return False
+    signal_texts = (
+        *(item.raw_text for item in meaning.preference_candidates),
+        *(item.raw_text for item in meaning.relative_candidates),
+        *(item.raw_text for item in meaning.constraint_changes),
+        *(
+            item.raw_text
+            for item in meaning.observation_candidates
+            if item.code
+            not in {
+                "current_budget_unknown",
+                "goal_unclear",
+                "topic_unclear",
+                "reference_unclear",
+            }
+        ),
+    )
+    return not any(
+        signal
+        and signal in compact
+        for signal in (
+            "".join(
+                character
+                for character in source_text
+                if character.isalnum()
+            )
+            for source_text in signal_texts
+        )
+    )
 
 
 __all__ = ["TurnMeaningAdapterBase"]

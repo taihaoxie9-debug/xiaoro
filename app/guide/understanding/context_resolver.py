@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from app.guide.feedback.contracts import (
     ConversationSnapshot,
+    PendingClarificationSlot,
+    PendingReplySlot,
     RecommendationQueryContext,
 )
 from app.guide.feedback.profile_policy import (
@@ -31,6 +33,9 @@ from app.guide.understanding.semantic_contracts import (
     ActiveConstraintKind,
     ConfirmedProfileField,
     SemanticContext,
+)
+from app.guide.intent.responsibility_matrix import (
+    decision_for_responsibility,
 )
 
 
@@ -89,20 +94,43 @@ def resolve_semantic_context(
     ):
         raise TypeError("image_bundle must be an ImageBundle or None")
 
-    query = snapshot.query_context if snapshot is not None else None
+    recommendation_slot = (
+        snapshot.recommendation_slot
+        if snapshot is not None
+        else None
+    )
+    query = (
+        recommendation_slot.query_context
+        if recommendation_slot is not None
+        else None
+    )
     active_topic = _active_topic(query)
+    active_candidates = ()
+    if snapshot is not None and snapshot.active_focus is not None:
+        if (
+            snapshot.active_focus.slot == "recommendation"
+            and snapshot.recommendation_slot is not None
+        ):
+            active_candidates = snapshot.recommendation_slot.candidates
+        elif (
+            snapshot.active_focus.slot == "product"
+            and snapshot.product_slot is not None
+        ):
+            active_candidates = snapshot.product_slot.products
+        elif snapshot.recommendation_slot is not None:
+            active_candidates = snapshot.recommendation_slot.candidates
     visible_candidate_count = (
-        min(len(snapshot.candidates), 4) if snapshot is not None else 0
+        min(len(active_candidates), 4)
     )
     confirmed_fields = _confirmed_profile_fields(
         query=query,
         profile_context=profile_context,
     )
     confirmed_images = (
-        snapshot.focus_state.confirmed_image_products
+        snapshot.image_slot.confirmed_products
         if (
             snapshot is not None
-            and snapshot.focus_state is not None
+            and snapshot.image_slot is not None
         )
         else ()
     )
@@ -112,51 +140,90 @@ def resolve_semantic_context(
             for item in confirmed_images
             if (
                 snapshot is not None
-                and snapshot.focus_state is not None
-                and item.product_id
-                == snapshot.focus_state.current_product_id
+                and snapshot.image_slot is not None
+                and item.image_ordinal
+                == snapshot.image_slot.focused_image_ordinal
             )
         ]
         if confirmed_images
         else []
     )
-    focused_candidate_ordinal = (
-        snapshot.focused_candidate_ordinal
+    focused_candidate_ordinal = None
+    if snapshot is not None and snapshot.active_focus is not None:
+        if (
+            snapshot.active_focus.slot == "product"
+            and snapshot.product_slot is not None
+        ):
+            focused_candidate_ordinal = next(
+                (
+                    item.ordinal
+                    for item in snapshot.product_slot.products
+                    if item.product_id
+                    == snapshot.product_slot.focused_product_id
+                ),
+                None,
+            )
+        elif snapshot.recommendation_slot is not None:
+            focused_candidate_ordinal = (
+                snapshot.recommendation_slot.focused_candidate_ordinal
+            )
+    current_product_id = (
+        snapshot.product_slot.focused_product_id
         if snapshot is not None
+        and snapshot.product_slot is not None
         else None
     )
-    if (
-        focused_candidate_ordinal is None
-        and snapshot is not None
-        and snapshot.focus_state is not None
-        and snapshot.focus_state.current_product_id is not None
-    ):
-        focused_candidate_ordinals = [
-            item.ordinal
-            for item in snapshot.candidates
-            if (
-                item.product_id
-                == snapshot.focus_state.current_product_id
-            )
-        ]
-        if len(focused_candidate_ordinals) == 1:
-            focused_candidate_ordinal = (
-                focused_candidate_ordinals[0]
-            )
     return SemanticContext(
         conversation_version=conversation_version,
         active_topic=active_topic,
         active_dialogue=_active_dialogue(snapshot),
+        active_recommendation_mode=(
+            query.recommendation_mode
+            if (
+                query is not None
+                and query.recommendation_mode_basis is not None
+            )
+            else None
+        ),
+        active_recommendation_mode_basis=(
+            query.recommendation_mode_basis
+            if query is not None
+            else None
+        ),
+        active_recommendation_count=(
+            query.recommendation_count
+            if (
+                query is not None
+                and query.recommendation_mode_basis is not None
+            )
+            else None
+        ),
         awaiting_reply=_awaiting_reply(snapshot),
         visible_candidate_count=visible_candidate_count,
         focused_candidate_ordinal=focused_candidate_ordinal,
+        current_item_available=(
+            snapshot is not None
+            and current_product_id is not None
+        ),
         image_count=(
             len(image_bundle.images)
             if image_bundle is not None
             else len(confirmed_images)
         ),
+        confirmed_image_ordinals=(
+            ()
+            if image_bundle is not None
+            else tuple(
+                item.image_ordinal
+                for item in confirmed_images
+            )
+        ),
         focused_image_ordinal=(
-            image_bundle.focused_image_ordinal
+            (
+                image_bundle.focused_image_ordinal
+                if image_bundle.focused_image_ordinal is not None
+                else (1 if len(image_bundle.images) == 1 else None)
+            )
             if image_bundle is not None
             else (
                 confirmed_focus_ordinals[0]
@@ -167,13 +234,16 @@ def resolve_semantic_context(
         active_constraint_kinds=_active_constraint_kinds(query),
         confirmed_profile_fields=confirmed_fields,
         pending_clarification=(
-            snapshot.pending_turn.gap
+            snapshot.reply_slot.value.gap
             if snapshot is not None
-            and snapshot.pending_turn is not None
+            and isinstance(snapshot.reply_slot, PendingReplySlot)
             else (
-                snapshot.clarification.gap
+                snapshot.reply_slot.value.gap
                 if snapshot is not None
-                and snapshot.clarification is not None
+                and isinstance(
+                    snapshot.reply_slot,
+                    PendingClarificationSlot,
+                )
                 else None
             )
         ),
@@ -251,43 +321,29 @@ def _active_dialogue(
     if snapshot is None:
         return None
     if (
-        snapshot.pending_turn is not None
-        or snapshot.clarification is not None
+        snapshot.reply_slot is not None
     ):
         return "clarification"
-    if (
-        snapshot.focus_state is not None
-        and snapshot.focus_state.active_processor is not None
-    ):
-        return snapshot.focus_state.active_processor
-    if snapshot.consultation is not None:
-        return (
-            "safety_escalation"
-            if snapshot.consultation.medical_escalation is not None
-            else "consultation"
-        )
-    if snapshot.last_general_knowledge_question is not None:
-        return "general_knowledge"
-    if snapshot.query_context is not None:
-        return "recommendation"
-    if snapshot.has_image_delivery:
-        return "image_identity"
-    return None
+    if snapshot.active_owner is None:
+        return None
+    return decision_for_responsibility(
+        snapshot.active_owner
+    ).processor
 
 
 def _awaiting_reply(snapshot: ConversationSnapshot | None) -> bool:
     if snapshot is None:
         return False
     if (
-        snapshot.pending_turn is not None
-        or snapshot.clarification is not None
+        snapshot.reply_slot is not None
     ):
         return True
     if _active_dialogue(snapshot) != "consultation":
         return False
-    consultation = snapshot.consultation
-    if consultation is None:
+    consultation_slot = snapshot.consultation_slot
+    if consultation_slot is None:
         return False
+    consultation = consultation_slot.state
     if consultation.medical_escalation is not None:
         return False
     assessment = consultation.confirmable_assessment

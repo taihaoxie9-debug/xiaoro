@@ -19,6 +19,7 @@ from pydantic import (
     Field,
     JsonValue,
     ValidationError,
+    field_serializer,
     field_validator,
     model_validator,
 )
@@ -28,6 +29,7 @@ from app.guide.adapters.catalog.canonical_product_reader import (
     UnknownProductError,
 )
 from app.guide.retrieval.category_fact_contracts import (
+    Capability,
     CategoryFieldRegistry,
     SourceClass,
 )
@@ -209,6 +211,7 @@ class ApprovedCategoryFact(_StrictFrozenModel):
     evidence_status: Literal["approved_fact"] = "approved_fact"
     reviewer: str = Field(min_length=1)
     reviewed_at: datetime
+    capability_limit: frozenset[Capability] | None = None
 
     @field_validator("category_profile", mode="before")
     @classmethod
@@ -237,6 +240,20 @@ class ApprovedCategoryFact(_StrictFrozenModel):
             return tuple(value)
         return value
 
+    @field_validator("capability_limit", mode="before")
+    @classmethod
+    def freeze_capability_limit(cls, value: object) -> object:
+        if isinstance(value, (list, tuple, set)):
+            return frozenset(value)
+        return value
+
+    @field_serializer("capability_limit")
+    def serialize_capability_limit(
+        self,
+        value: frozenset[Capability] | None,
+    ) -> list[Capability] | None:
+        return None if value is None else sorted(value)
+
     @model_validator(mode="after")
     def validate_review_metadata(self) -> Self:
         if self.reviewed_at.utcoffset() is None:
@@ -248,6 +265,13 @@ class ApprovedCategoryFact(_StrictFrozenModel):
             for reference in self.source_refs
         ):
             raise ValueError("source_refs must be non-empty and trimmed")
+        if (
+            self.capability_limit is not None
+            and "evidence" not in self.capability_limit
+        ):
+            raise ValueError(
+                "capability_limit must preserve evidence"
+            )
         return self
 
 
@@ -549,6 +573,16 @@ def _validate_fact_contract(
             "category fact source is not authorized for field: "
             f"{fact.field_key}.{fact.source_class.value}"
         )
+    if fact.capability_limit is not None:
+        source_policy = next(
+            policy
+            for policy in definition.source_policies
+            if policy.source_class is fact.source_class
+        )
+        if not fact.capability_limit <= source_policy.capabilities:
+            raise CategoryFactAssetIntegrityError(
+                "category fact capability_limit exceeds source policy"
+            )
     if fact.source_refs != tuple(sorted(set(fact.source_refs))):
         raise CategoryFactAssetIntegrityError(
             "category fact source_refs must be sorted and unique"
@@ -724,7 +758,11 @@ def _validate_product_profile(
 
 
 def _fact_content_digest(fact: ApprovedCategoryFact) -> str:
-    unsigned = fact.model_dump(mode="json", exclude={"fact_id"})
+    unsigned = fact.model_dump(
+        mode="json",
+        exclude={"fact_id"},
+        exclude_none=True,
+    )
     return hashlib.sha256(
         _canonical_json(unsigned).encode("utf-8")
     ).hexdigest()

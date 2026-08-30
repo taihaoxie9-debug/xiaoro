@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
+from collections.abc import Sequence
 from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -14,8 +15,12 @@ _NON_TEXT = re.compile(r"[^0-9a-z\u3400-\u9fff]+", re.IGNORECASE)
 _ASCII_WORD = re.compile(r"[0-9a-z]+", re.IGNORECASE)
 _CJK = re.compile(r"[\u3400-\u9fff]")
 _SAFETY_CAVEAT = (
-    "现有相关内容属于商家安全宣称，未经强证据核实，"
-    "不能作为安全保证或硬筛依据。"
+    "这段内容是品牌给出的安全说明，"
+    "不能把它当作个人安全保证。"
+)
+_SAFETY_GAP_CAVEAT = (
+    "这款没有足以确认该安全问题的信息，"
+    "不能把它当作个人安全保证。"
 )
 _EVIDENCE_LIMIT = re.compile(
     r"(?:不支持|未(?:显示|披露|给出|说明)|"
@@ -29,21 +34,71 @@ _PROVENANCE_LANGUAGE = re.compile(
 _RELATION_DIMENSION_LABELS = {
     "net_content": "容量规格",
 }
+_LOW_INFORMATION_CJK = frozenset(
+    "这那个款它他她其的是有没否会能吗呢啊呀么怎"
+)
+_SAFETY_LOW_INFORMATION_CJK = (
+    _LOW_INFORMATION_CJK
+    | frozenset("安全使用适合可以一定是否风险保证询问")
+)
+_SOURCE_QUERY_BRIDGES = (
+    (re.compile(r"(?:多大|多少毫升|容量)"), "容量规格"),
+)
 
 
 class _StrictFrozenModel(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
 
 
+class PreparedEvidenceSearch(_StrictFrozenModel):
+    source_features: tuple[str, ...] = ()
+    meaning_features: tuple[str, ...] = ()
+    combined_features: tuple[str, ...] = ()
+    query_unigrams: tuple[str, ...] = ()
+    product_mention_features: tuple[str, ...] = ()
+
+    @field_validator(
+        "source_features",
+        "meaning_features",
+        "combined_features",
+        "query_unigrams",
+        "product_mention_features",
+        mode="before",
+    )
+    @classmethod
+    def freeze_features(cls, value: object) -> object:
+        return tuple(value) if isinstance(value, list) else value
+
+    @model_validator(mode="after")
+    def validate_features(self) -> Self:
+        for name in (
+            "source_features",
+            "meaning_features",
+            "combined_features",
+            "query_unigrams",
+            "product_mention_features",
+        ):
+            values = getattr(self, name)
+            if (
+                values != tuple(sorted(set(values)))
+                or any(not value for value in values)
+            ):
+                raise ValueError(
+                    "prepared evidence features must be sorted and unique"
+                )
+        if set(self.combined_features) != (
+            set(self.source_features) | set(self.meaning_features)
+        ):
+            raise ValueError(
+                "combined evidence features must match source and meaning"
+            )
+        return self
+
+
 class EvidenceQuery(_StrictFrozenModel):
     product_ids: tuple[int, ...] = Field(min_length=1, max_length=4)
-    raw_question: str = Field(min_length=1, max_length=4000)
-    question_meaning: str = Field(min_length=1, max_length=256)
+    search: PreparedEvidenceSearch
     safety_sensitive: bool
-    product_mention_spans: tuple[tuple[int, int], ...] = Field(
-        default_factory=tuple,
-        max_length=4,
-    )
     product_identity_names: tuple[str, ...] = Field(
         default_factory=tuple,
         max_length=4,
@@ -51,7 +106,6 @@ class EvidenceQuery(_StrictFrozenModel):
 
     @field_validator(
         "product_ids",
-        "product_mention_spans",
         "product_identity_names",
         mode="before",
     )
@@ -76,8 +130,6 @@ class EvidenceQuery(_StrictFrozenModel):
             or len(self.product_ids) != len(set(self.product_ids))
         ):
             raise ValueError("evidence query product IDs are invalid")
-        if not self.raw_question.strip() or not self.question_meaning.strip():
-            raise ValueError("evidence query text must be nonempty")
         if self.product_identity_names:
             if (
                 len(self.product_identity_names) != len(self.product_ids)
@@ -89,27 +141,80 @@ class EvidenceQuery(_StrictFrozenModel):
                 raise ValueError(
                     "product identity names must align with product IDs"
                 )
-        ordered_spans = sorted(self.product_mention_spans)
-        for index, span in enumerate(ordered_spans):
-            if (
-                len(span) != 2
-                or any(
-                    not isinstance(value, int)
-                    or isinstance(value, bool)
-                    for value in span
-                )
-                or span[0] < 0
-                or span[1] <= span[0]
-                or span[1] > len(self.raw_question)
-                or (
-                    index > 0
-                    and ordered_spans[index - 1][1] > span[0]
-                )
-            ):
-                raise ValueError(
-                    "product mention spans are invalid"
-                )
         return self
+
+
+def prepare_evidence_search(
+    *,
+    source_text: str,
+    question_meaning: str,
+    product_mention_spans: Sequence[tuple[int, int]] = (),
+) -> PreparedEvidenceSearch:
+    if (
+        not isinstance(source_text, str)
+        or not source_text.strip()
+        or len(source_text) > 4000
+        or not isinstance(question_meaning, str)
+        or not question_meaning.strip()
+        or len(question_meaning) > 256
+    ):
+        raise ValueError("evidence search text must be nonempty")
+    ordered_spans = tuple(sorted(product_mention_spans))
+    for index, span in enumerate(ordered_spans):
+        if (
+            len(span) != 2
+            or any(
+                not isinstance(value, int)
+                or isinstance(value, bool)
+                for value in span
+            )
+            or span[0] < 0
+            or span[1] <= span[0]
+            or span[1] > len(source_text)
+            or (
+                index > 0
+                and ordered_spans[index - 1][1] > span[0]
+            )
+        ):
+            raise ValueError("product mention spans are invalid")
+    product_mentions = tuple(
+        source_text[start:end] for start, end in ordered_spans
+    )
+    characters = list(source_text)
+    for start, end in ordered_spans:
+        characters[start:end] = " " * (end - start)
+    searchable_source = _without_provenance_language(
+        "".join(characters)
+    )
+    searchable_meaning = _without_provenance_language(
+        _remove_product_mentions(
+            question_meaning,
+            product_mentions,
+        )
+    )
+    source_features = _features(searchable_source)
+    for pattern, canonical_text in _SOURCE_QUERY_BRIDGES:
+        if pattern.search(searchable_source):
+            source_features.update(_features(canonical_text))
+    meaning_features = _features(searchable_meaning)
+    combined_text = f"{searchable_source} {searchable_meaning}"
+    return PreparedEvidenceSearch(
+        source_features=tuple(sorted(source_features)),
+        meaning_features=tuple(sorted(meaning_features)),
+        combined_features=tuple(
+            sorted(source_features | meaning_features)
+        ),
+        query_unigrams=tuple(sorted(_cjk_unigrams(combined_text))),
+        product_mention_features=tuple(
+            sorted(
+                set().union(
+                    *(_features(value) for value in product_mentions)
+                )
+                if product_mentions
+                else set()
+            )
+        ),
+    )
 
 
 class EvidenceSelection(_StrictFrozenModel):
@@ -179,12 +284,20 @@ class ProductEvidenceRetriever:
             tuple[ProductEvidenceBlock, ...],
         ] = {}
         for product_id in query.product_ids:
+            product_variant_features = _product_variant_features(
+                query,
+                product_id=product_id,
+            )
             answerable = self._reader.read_answerable(
                 product_id=product_id
             )
             answerable_by_product[product_id] = answerable
             for block in answerable:
-                score, reasons = _score_block(query, block)
+                score, reasons = _score_block(
+                    query,
+                    block,
+                    product_variant_features=product_variant_features,
+                )
                 if score <= 0:
                     continue
                 scored_by_product[product_id].append(
@@ -206,6 +319,12 @@ class ProductEvidenceRetriever:
                     query,
                     ordered,
                     answerable_by_product[product_id],
+                    product_variant_features=(
+                        _product_variant_features(
+                            query,
+                            product_id=product_id,
+                        )
+                    ),
                 )
             )
             ambiguity_reasons.extend(product_ambiguities)
@@ -228,9 +347,7 @@ class ProductEvidenceRetriever:
             ):
                 safety_caveats = (_SAFETY_CAVEAT,)
             else:
-                safety_caveats = (
-                    "当前商品证据不足以确认该安全问题，不能据此作安全保证。",
-                )
+                safety_caveats = (_SAFETY_GAP_CAVEAT,)
         missing_aspects = (
             ()
             if selected
@@ -248,22 +365,12 @@ class ProductEvidenceRetriever:
 def _score_block(
     query: EvidenceQuery,
     block: ProductEvidenceBlock,
+    *,
+    product_variant_features: set[str],
 ) -> tuple[float, list[str]]:
-    product_mentions = _product_mention_texts(query)
-    searchable_raw_question = _without_provenance_language(
-        _mask_product_mentions(query)
-    )
-    searchable_meaning = _without_provenance_language(
-        _remove_product_mentions(
-            query.question_meaning,
-            product_mentions,
-        )
-    )
-    query_text = (
-        f"{searchable_raw_question} {searchable_meaning}"
-    )
-    raw_features = _features(searchable_raw_question)
-    meaning_features = _features(searchable_meaning)
+    source_features = set(query.search.source_features)
+    meaning_features = set(query.search.meaning_features)
+    query_features = set(query.search.combined_features)
     if query.product_identity_names:
         identity_features = set().union(
             *(
@@ -272,8 +379,8 @@ def _score_block(
             )
         )
         meaning_features.difference_update(identity_features)
-    query_feature_sets = (raw_features, meaning_features)
-    query_features = set().union(*query_feature_sets)
+        query_features.difference_update(identity_features)
+    query_feature_sets = (source_features, meaning_features)
     primary_parts = [
         block.exact_text,
         block.plain_meaning,
@@ -313,17 +420,33 @@ def _score_block(
     qualifier_features = _features(qualifier_text)
     primary_overlap = query_features & primary_features
     qualifier_overlap = query_features & qualifier_features
+    safety_topic_required = (
+        block.management_label == "safety_transcript"
+    )
+    source_grounding_overlap = _source_grounding_overlap(
+        source_features=source_features,
+        evidence_features=primary_features | qualifier_features,
+        evidence_text=f"{primary_text} {qualifier_text}",
+        safety_topic_required=safety_topic_required,
+    )
     variant_coverage = _confirmed_variant_coverage(
         block,
-        product_mentions=product_mentions,
+        product_mention_features=product_variant_features,
     )
     safety_transcript_candidate = (
         query.safety_sensitive
-        and block.management_label == "safety_transcript"
+        and safety_topic_required
+        and bool(source_grounding_overlap)
     )
     if (
         not primary_overlap
         and not qualifier_overlap
+        and variant_coverage <= 0
+        and not safety_transcript_candidate
+    ):
+        return 0.0, []
+    if (
+        not source_grounding_overlap
         and variant_coverage <= 0
         and not safety_transcript_candidate
     ):
@@ -337,11 +460,15 @@ def _score_block(
     reasons = (
         ["semantic_feature_overlap"]
         if primary_overlap
-        else ["safety_transcript_nomination"]
+        else (
+            ["confirmed_variant_scope_match"]
+            if variant_coverage > 0
+            else ["safety_transcript_nomination"]
+        )
     )
-    raw_coverage = (
-        len(raw_features & primary_features) / len(raw_features)
-        if raw_features
+    source_coverage = (
+        len(source_features & primary_features) / len(source_features)
+        if source_features
         else 0.0
     )
     meaning_coverage = (
@@ -350,9 +477,9 @@ def _score_block(
         if meaning_features
         else 0.0
     )
-    if raw_coverage > 0:
-        score += raw_coverage
-        reasons.append("raw_question_coverage")
+    if source_coverage > 0:
+        score += source_coverage
+        reasons.append("source_feature_coverage")
     if meaning_coverage > 0:
         score += 3.0 * meaning_coverage
         reasons.append("question_meaning_coverage")
@@ -374,7 +501,6 @@ def _score_block(
         score += 0.75 * qualifier_coverage
         reasons.append("qualifier_feature_overlap")
 
-    compact_query = _compact(query_text)
     compact_evidence = _compact(primary_text)
     descriptor_bonus = 0.0
     descriptor_reason: str | None = None
@@ -382,7 +508,7 @@ def _score_block(
         compact_descriptor = _compact(descriptor)
         if (
             len(compact_descriptor) >= 2
-            and compact_descriptor in compact_query
+            and _features(compact_descriptor).issubset(query_features)
         ):
             candidate_bonus = 0.25
             candidate_reason = "free_descriptor_match"
@@ -400,7 +526,7 @@ def _score_block(
                 else 0.0
             )
             descriptor_unigrams = _cjk_unigrams(descriptor)
-            query_unigrams = _cjk_unigrams(query_text)
+            query_unigrams = set(query.search.query_unigrams)
             unigram_bonus = (
                 min(
                     0.20,
@@ -427,13 +553,11 @@ def _score_block(
     if descriptor_reason is not None:
         score += min(descriptor_bonus, 0.75)
         reasons.append(descriptor_reason)
-    if (
-        compact_query
-        and len(compact_query) >= 4
-        and compact_query in compact_evidence
+    if query_features and query_features.issubset(
+        _features(compact_evidence)
     ):
         score += 3.0
-        reasons.append("exact_query_match")
+        reasons.append("complete_query_feature_match")
     if block.subject_scope == "exact_variant":
         score += 0.3
         reasons.append("exact_variant_scope")
@@ -458,10 +582,52 @@ def _score_block(
     return max(score, 0.0), list(dict.fromkeys(reasons))
 
 
+def _source_grounding_overlap(
+    *,
+    source_features: set[str],
+    evidence_features: set[str],
+    evidence_text: str,
+    safety_topic_required: bool,
+) -> set[str]:
+    ignored = (
+        _SAFETY_LOW_INFORMATION_CJK
+        if safety_topic_required
+        else _LOW_INFORMATION_CJK
+    )
+    feature_overlap = source_features & evidence_features
+    if safety_topic_required:
+        feature_overlap = {
+            feature
+            for feature in feature_overlap
+            if (
+                not (characters := set(_CJK.findall(feature)))
+                or len(characters - ignored) >= 2
+            )
+        }
+    source_characters = {
+        character
+        for feature in source_features
+        for character in feature
+        if _CJK.fullmatch(character)
+    } - ignored
+    character_overlap = (
+        source_characters & _cjk_unigrams(evidence_text)
+    )
+    if (
+        safety_topic_required
+        and not feature_overlap
+        and len(character_overlap) < 2
+    ):
+        return set()
+    return feature_overlap | character_overlap
+
+
 def _include_unresolved_variant_relations(
     query: EvidenceQuery,
     ordered: list[EvidenceSelection],
     answerable: tuple[ProductEvidenceBlock, ...],
+    *,
+    product_variant_features: set[str],
 ) -> tuple[list[EvidenceSelection], tuple[str, ...]]:
     strong_by_dimension: dict[
         str,
@@ -500,6 +666,22 @@ def _include_unresolved_variant_relations(
             for block, _, _ in rows
             if block.evidence_id in by_id
         ]
+        conflicting_scopes = _conflicting_variant_scopes(
+            rows,
+            product_variant_features=product_variant_features,
+        )
+        if conflicting_scopes is not None:
+            ordered = [
+                selection
+                for selection in ordered
+                if selection.evidence.variant_scope
+                not in conflicting_scopes
+            ]
+            by_id = {
+                selection.evidence.evidence_id: selection
+                for selection in ordered
+            }
+            continue
         if (
             not anchors
             or not _relation_dimension_is_relevant(query, anchors)
@@ -548,8 +730,8 @@ def _include_unresolved_variant_relations(
             for block, object_value in related_rows
         )
         ambiguity_reasons.append(
-            f"已审核证据包含多个{label}变体：{details}。"
-            "当前问题未限定具体规格，请核对所选或收到的版本。"
+            f"这款有多个{label}变体：{details}。"
+            "购买前请核对所选或收到的具体规格。"
         )
     ordered.sort(
         key=lambda item: (-item.score, item.evidence.evidence_id)
@@ -566,29 +748,122 @@ def _relation_dimension(predicate: str) -> str:
     return "_".join(parts[-2:]) if len(parts) >= 2 else predicate.casefold()
 
 
+def _variant_value_features(value: str) -> set[str]:
+    features = {
+        token.casefold()
+        for token in _ASCII_WORD.findall(value)
+        if len(token) >= 2
+    }
+    for run in re.findall(r"[\u3400-\u9fff]+", value):
+        if len(run) <= 3:
+            features.add(run)
+        else:
+            features.update(
+                run[index : index + 3]
+                for index in range(len(run) - 2)
+            )
+    return features
+
+
+def _has_explicit_variant_feature_match(
+    mention_features: set[str],
+    variant_features: set[str],
+) -> bool:
+    ascii_features = {
+        feature
+        for feature in variant_features
+        if _ASCII_WORD.fullmatch(feature)
+    }
+    if mention_features & ascii_features:
+        return True
+    cjk_features = variant_features - ascii_features
+    overlap = mention_features & cjk_features
+    return bool(overlap) and (
+        len(cjk_features) <= 2
+        or (
+            len(overlap) >= 2
+            and len(overlap) * 2 >= len(cjk_features)
+        )
+    )
+
+
+def _conflicting_variant_scopes(
+    rows: list[tuple[ProductEvidenceBlock, str, str]],
+    *,
+    product_variant_features: set[str],
+) -> frozenset[str] | None:
+    if not product_variant_features:
+        return None
+    object_features = tuple(
+        _variant_value_features(object_value)
+        for _, _, object_value in rows
+    )
+    matched_indexes = {
+        index
+        for index, features in enumerate(object_features)
+        if _has_explicit_variant_feature_match(
+            product_variant_features,
+            features
+            - set().union(
+                *(
+                    other
+                    for other_index, other in enumerate(object_features)
+                    if other_index != index
+                )
+            )
+        )
+    }
+    matched_objects = {
+        _compact(rows[index][2])
+        for index in matched_indexes
+        if _compact(rows[index][2])
+    }
+    if len(matched_objects) != 1:
+        return None
+    return frozenset(
+        block.variant_scope
+        for index, (block, _, _) in enumerate(rows)
+        if (
+            index not in matched_indexes
+            and block.variant_scope is not None
+        )
+    )
+
+
+def _product_variant_features(
+    query: EvidenceQuery,
+    *,
+    product_id: int,
+) -> set[str]:
+    if query.product_identity_names:
+        product_index = query.product_ids.index(product_id)
+        return _features(query.product_identity_names[product_index])
+    if len(query.product_ids) == 1:
+        return set(query.search.product_mention_features)
+    return set()
+
+
 def _query_specifies_variant_relation(
     query: EvidenceQuery,
     rows: list[tuple[ProductEvidenceBlock, str, str]],
 ) -> bool:
-    compact_query = _compact(
-        f"{query.raw_question} {query.question_meaning}"
-    )
+    query_features = set(query.search.combined_features)
     identity_names = {
         _compact(name)
         for name in query.product_identity_names
     }
     for _, subject, object_value in rows:
-        compact_object = _compact(object_value)
+        object_features = _features(object_value)
         if (
-            len(compact_object) >= 2
-            and compact_object in compact_query
+            object_features
+            and object_features.issubset(query_features)
         ):
             return True
-        compact_subject = _compact(subject)
+        subject_features = _features(subject)
         if (
-            len(compact_subject) >= 2
-            and compact_subject in compact_query
-            and compact_subject not in identity_names
+            subject_features
+            and subject_features.issubset(query_features)
+            and _compact(subject) not in identity_names
         ):
             return True
     return False
@@ -598,10 +873,7 @@ def _relation_dimension_is_relevant(
     query: EvidenceQuery,
     anchors: list[EvidenceSelection],
 ) -> bool:
-    query_features = (
-        _features(_mask_product_mentions(query))
-        | _features(query.question_meaning)
-    )
+    query_features = set(query.search.combined_features)
     if query.product_identity_names:
         identity_features = set().union(
             *(
@@ -637,24 +909,6 @@ def _cjk_unigrams(value: str) -> set[str]:
     }
 
 
-def _mask_product_mentions(query: EvidenceQuery) -> str:
-    if not query.product_mention_spans:
-        return query.raw_question
-    characters = list(query.raw_question)
-    for start, end in query.product_mention_spans:
-        characters[start:end] = " " * (end - start)
-    return "".join(characters)
-
-
-def _product_mention_texts(
-    query: EvidenceQuery,
-) -> tuple[str, ...]:
-    return tuple(
-        query.raw_question[start:end]
-        for start, end in query.product_mention_spans
-    )
-
-
 def _remove_product_mentions(
     value: str,
     product_mentions: tuple[str, ...],
@@ -672,22 +926,19 @@ def _without_provenance_language(value: str) -> str:
 def _confirmed_variant_coverage(
     block: ProductEvidenceBlock,
     *,
-    product_mentions: tuple[str, ...],
+    product_mention_features: set[str],
 ) -> float:
     if (
         block.subject_scope != "exact_variant"
         or block.variant_scope is None
-        or not product_mentions
+        or not product_mention_features
     ):
         return 0.0
-    mention_features = set().union(
-        *(_features(value) for value in product_mentions)
-    )
     variant_features = _features(block.variant_scope)
     if not variant_features:
         return 0.0
     return (
-        len(mention_features & variant_features)
+        len(product_mention_features & variant_features)
         / len(variant_features)
     )
 
@@ -713,5 +964,7 @@ __all__ = [
     "EvidencePacket",
     "EvidenceQuery",
     "EvidenceSelection",
+    "PreparedEvidenceSearch",
     "ProductEvidenceRetriever",
+    "prepare_evidence_search",
 ]

@@ -3,6 +3,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 import unicodedata
 
+from app.guide.retrieval.category_taxonomy import (
+    most_specific_compatible_topic,
+)
 from app.guide.understanding.contracts import (
     BudgetDraft,
     CategoryDraft,
@@ -45,6 +48,10 @@ from app.guide.understanding.semantic_contracts import (
     SemanticPreferenceStrength,
     SemanticProductMention,
     SemanticReference,
+)
+from app.guide.understanding.turn_meaning_contracts import (
+    RecommendationMode,
+    RecommendationModeBasis,
 )
 from app.guide.intent.facet_preferences import (
     preference_draft_for_candidate,
@@ -169,6 +176,9 @@ def merge_intent_signals(
         ):
             return _understanding(
                 goal=UnderstandingGoal.RECOMMENDATION,
+                recommendation_mode="explore",
+                recommendation_mode_basis="broad_exploration",
+                recommendation_count=3,
                 topic=exact_topic,
                 constraints=constraints,
                 issues=issues,
@@ -203,6 +213,15 @@ def merge_intent_signals(
         )
         return _understanding(
             goal=UnderstandingGoal.CLARIFICATION,
+            recommendation_mode=(
+                "explore" if exact_topic is not None else None
+            ),
+            recommendation_mode_basis=(
+                "broad_exploration"
+                if exact_topic is not None
+                else None
+            ),
+            recommendation_count=3 if exact_topic is not None else None,
             topic=exact_topic,
             constraints=constraints,
             issues=issues,
@@ -912,6 +931,35 @@ def _merge_topic(
         return exact_topic
 
     if exact_topic is not None and semantic_topic is not None:
+        more_specific = most_specific_compatible_topic(
+            exact_topic,
+            semantic_topic,
+        )
+        if more_specific is not None:
+            constraints[:] = [
+                (
+                    CategoryDraft(value=more_specific)
+                    if (
+                        isinstance(item, CategoryDraft)
+                        and item.value is exact_topic
+                    )
+                    else item
+                )
+                for item in constraints
+            ]
+            traces.append(
+                SignalTrace(
+                    field="topic",
+                    exact_value=exact_topic.value,
+                    semantic_value=semantic_topic.value,
+                    resolution=(
+                        "exact_wins"
+                        if more_specific is exact_topic
+                        else "semantic_fills"
+                    ),
+                )
+            )
+            return more_specific
         _append_issue(
             issues,
             code="ambiguous_category",
@@ -1528,6 +1576,9 @@ def _append_issue(
 def _understanding(
     *,
     goal: UnderstandingGoal,
+    recommendation_mode: RecommendationMode | None = None,
+    recommendation_mode_basis: RecommendationModeBasis | None = None,
+    recommendation_count: int | None = None,
     topic: TopicCode | None,
     constraints: list[ExactConstraintDraft],
     issues: list[UnderstandingIssue],
@@ -1548,6 +1599,9 @@ def _understanding(
     ]
     return StructuredUnderstanding(
         goal=goal,
+        recommendation_mode=recommendation_mode,
+        recommendation_mode_basis=recommendation_mode_basis,
+        recommendation_count=recommendation_count,
         topic=topic,
         observations=[] if observations is None else observations,
         exact_constraints=constraints,
@@ -1636,10 +1690,9 @@ def _merge_references(
                 source_span=proof.source_span,
             )
         )
-    exact_by_kind = {
-        reference.kind: reference
-        for reference in exact_references
-    }
+    exact_by_kind: dict[str, list[ReferenceDraft]] = {}
+    for reference in exact_references:
+        exact_by_kind.setdefault(reference.kind, []).append(reference)
     semantic_by_kind: dict[str, list[ReferenceDraft]] = {}
     for semantic in semantic_references:
         if semantic.kind in exact_by_kind:
@@ -1677,7 +1730,7 @@ def _merge_references(
     )
     references: list[ReferenceDraft] = []
     for kind in ordered_kinds:
-        exact = exact_by_kind.get(kind)
+        exact = exact_by_kind.get(kind, [])
         semantic_values = list(
             dict.fromkeys(
                 reference.ordinal
@@ -1698,13 +1751,21 @@ def _merge_references(
                 )
             )
             continue
-        if exact is not None:
-            context_issue = _reference_context_issue(
-                exact,
-                context=context,
-            )
-            if context_issue is not None:
-                issue_code, detail = context_issue
+        if exact:
+            exact_values = [reference.ordinal for reference in exact]
+            context_issues = [
+                issue
+                for reference in exact
+                if (
+                    issue := _reference_context_issue(
+                        reference,
+                        context=context,
+                    )
+                )
+                is not None
+            ]
+            if context_issues:
+                issue_code, detail = context_issues[0]
                 _append_issue(
                     issues,
                     code=issue_code,
@@ -1713,7 +1774,9 @@ def _merge_references(
                 traces.append(
                     SignalTrace(
                         field=f"reference.{kind}",
-                        exact_value=_reference_value(exact.ordinal),
+                        exact_value=_join_reference_values(
+                            exact_values
+                        ),
                         semantic_value=_join_reference_values(
                             semantic_values
                         ),
@@ -1721,18 +1784,18 @@ def _merge_references(
                     )
                 )
                 continue
-            references.append(exact)
+            references.extend(exact)
             if not semantic_values:
                 continue
             resolution = (
                 "agree"
-                if semantic_values == [exact.ordinal]
+                if semantic_values == exact_values
                 else "exact_wins"
             )
             traces.append(
                 SignalTrace(
                     field=f"reference.{kind}",
-                    exact_value=_reference_value(exact.ordinal),
+                    exact_value=_join_reference_values(exact_values),
                     semantic_value=_join_reference_values(
                         semantic_values
                     ),
@@ -1922,34 +1985,18 @@ def _normalize_exact_references(
     list[ExactConstraintDraft],
     dict[str, list[int | None]],
 ]:
-    references_by_kind: dict[str, list[ReferenceDraft]] = {}
-    for item in constraints:
-        if isinstance(item, ReferenceDraft):
-            references_by_kind.setdefault(item.kind, []).append(item)
-
-    ordinals_by_kind = {
-        kind: list(
-            dict.fromkeys(reference.ordinal for reference in references)
-        )
-        for kind, references in references_by_kind.items()
-    }
-    ambiguities = {
-        kind: ordinals
-        for kind, ordinals in ordinals_by_kind.items()
-        if len(ordinals) > 1
-    }
     normalized: list[ExactConstraintDraft] = []
-    emitted_reference_kinds: set[str] = set()
+    emitted_references: set[tuple[str, int | None]] = set()
     for item in constraints:
         if not isinstance(item, ReferenceDraft):
             normalized.append(item)
             continue
-        if item.kind in emitted_reference_kinds:
+        identity = (item.kind, item.ordinal)
+        if identity in emitted_references:
             continue
-        emitted_reference_kinds.add(item.kind)
-        if item.kind not in ambiguities:
-            normalized.append(item)
-    return normalized, ambiguities
+        emitted_references.add(identity)
+        normalized.append(item)
+    return normalized, {}
 
 
 def _exact_reference_ambiguity_traces(

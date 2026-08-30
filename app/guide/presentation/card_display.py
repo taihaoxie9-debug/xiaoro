@@ -33,8 +33,8 @@ def comparison_card_display(
     cards: Sequence[ProductCard],
 ) -> CardDisplayContract:
     product_ids = [card.product_id for card in cards]
-    if not 2 <= len(product_ids) <= 3:
-        raise ValueError("comparison requires two or three cards")
+    if not 2 <= len(product_ids) <= 4:
+        raise ValueError("comparison requires two to four cards")
     return CardDisplayContract(
         mode="comparison",
         visible_product_ids=product_ids,

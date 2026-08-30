@@ -37,7 +37,7 @@ class SelectionConceptCandidate(_StrictFrozenModel):
     profile: CategoryProfile
     field_key: str = Field(pattern=r"^[a-z][a-z0-9_]{1,63}$")
     normalized_value: str = Field(min_length=1, max_length=512)
-    product_ids: tuple[int, ...] = Field(min_length=2)
+    product_ids: tuple[int, ...] = Field(min_length=1)
     rank_strengths: tuple[Literal[1, 2], ...] = Field(min_length=1)
     source_refs: tuple[str, ...] = Field(min_length=1)
 

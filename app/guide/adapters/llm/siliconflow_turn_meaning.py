@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 
 import httpx
 
+from app.guide.adapters.llm.provider_common import UsageLimiter
 from app.guide.adapters.llm.turn_meaning_adapter import (
     TurnMeaningAdapterBase,
 )
@@ -20,6 +21,7 @@ class SiliconFlowTurnMeaningAdapter(TurnMeaningAdapterBase):
         concept_catalog: tuple[str, ...],
         transport: httpx.BaseTransport | None = None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        usage_limiter: UsageLimiter | None = None,
     ) -> SiliconFlowTurnMeaningAdapter:
         ready = config.require_ready()
         if ready.format_repair_attempts != 0:
@@ -47,6 +49,7 @@ class SiliconFlowTurnMeaningAdapter(TurnMeaningAdapterBase):
             daily_call_cap=ready.daily_call_cap,
             transport=transport,
             clock=clock,
+            usage_limiter=usage_limiter,
         )
 
     def __init__(
@@ -62,6 +65,7 @@ class SiliconFlowTurnMeaningAdapter(TurnMeaningAdapterBase):
         daily_call_cap: int,
         transport: httpx.BaseTransport | None = None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        usage_limiter: UsageLimiter | None = None,
     ) -> None:
         super().__init__(
             provider="siliconflow",
@@ -75,6 +79,7 @@ class SiliconFlowTurnMeaningAdapter(TurnMeaningAdapterBase):
             daily_call_cap=daily_call_cap,
             transport=transport,
             clock=clock,
+            usage_limiter=usage_limiter,
         )
 
     def _request_body(

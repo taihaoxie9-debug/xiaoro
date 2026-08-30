@@ -11,14 +11,33 @@ from pydantic import (
     model_validator,
 )
 
-from app.guide.feedback.contracts import ConversationSnapshot
+from app.guide.feedback.contracts import (
+    ConversationSnapshot,
+    PendingClarificationSlot,
+    PendingReplySlot,
+)
 from app.guide.feedback.focus_state import (
     ConfirmedImageProductRef,
+)
+from app.guide.intent.contracts import (
+    PublicIntentMode,
+    TaskPlan,
+    revalidate_task_plan,
+)
+from app.guide.intent.responsibility_matrix import (
+    DialogueState,
+    ObjectCardinality,
+    ObjectType,
     ProcessorKind,
+    Responsibility,
+    ResponsibilityPresentationMode,
+    decision_for_responsibility,
+    resolve_responsibility,
 )
 from app.guide.retrieval.product_name_resolver import (
     ProductResolutionIssue,
     ResolvedProductBinding,
+    merge_batch_and_specific_bindings,
 )
 from app.guide.understanding.contracts import (
     ReferenceDraft,
@@ -73,8 +92,10 @@ class _StrictFrozen(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
 
 
-class UnifiedRouteDecision(_StrictFrozen):
+class _RouteSelection(_StrictFrozen):
     processor: ProcessorKind
+    responsibility: Responsibility
+    presentation_mode: ResponsibilityPresentationMode
     continuity: ContinuityKind
     focus_source: FocusSource
     product_bindings: tuple[ResolvedProductBinding, ...] = ()
@@ -92,10 +113,42 @@ class UnifiedRouteDecision(_StrictFrozen):
 
     @model_validator(mode="after")
     def validate_route_shape(self) -> Self:
+        responsibility_decision = decision_for_responsibility(
+            self.responsibility
+        )
+        processor_matches = (
+            self.processor == responsibility_decision.processor
+            or (
+                self.responsibility is Responsibility.COMPARISON
+                and self.processor == "image_comparison"
+            )
+        )
+        if (
+            not processor_matches
+            or self.presentation_mode
+            != responsibility_decision.presentation_mode
+        ):
+            raise ValueError(
+                "route processor and presentation must match responsibility"
+            )
         binding_count = len(self.product_bindings)
-        if self.processor == "comparison" and not 2 <= binding_count <= 3:
+        if (
+            self.processor == "comparison"
+            and not 2 <= binding_count <= 3
+        ):
             raise ValueError(
                 "comparison route requires two or three products"
+            )
+        if (
+            self.processor == "image_comparison"
+            and (
+                not 2 <= binding_count <= 4
+                or self.focus_source != "confirmed_image"
+            )
+        ):
+            raise ValueError(
+                "image comparison route requires two to four "
+                "confirmed-image products"
             )
         if (
             self.processor == "product_knowledge"
@@ -104,7 +157,7 @@ class UnifiedRouteDecision(_StrictFrozen):
             raise ValueError(
                 "product knowledge route requires one product"
             )
-        if self.processor == "image_identity" and not 1 <= binding_count <= 3:
+        if self.processor == "image_identity" and not 1 <= binding_count <= 4:
             raise ValueError(
                 "image identity route requires confirmed products"
             )
@@ -128,6 +181,23 @@ class UnifiedRouteDecision(_StrictFrozen):
         return self
 
 
+class UnifiedRouteDecision(_RouteSelection):
+    task_plan: TaskPlan
+    public_intent_mode: PublicIntentMode | None = None
+
+    @model_validator(mode="after")
+    def validate_public_intent_owner(self) -> Self:
+        outcome_owned = self.processor in {
+            "consultation",
+            "safety_escalation",
+        }
+        if outcome_owned != (self.public_intent_mode is None):
+            raise ValueError(
+                "route public intent ownership is invalid"
+            )
+        return self
+
+
 def reconcile_product_resolution_issue(
     *,
     understanding: StructuredUnderstanding,
@@ -138,6 +208,14 @@ def reconcile_product_resolution_issue(
         raise TypeError(
             "understanding must be an exact StructuredUnderstanding"
         )
+    if (
+        issue in {"missing_reference", "ambiguous_reference"}
+        and any(
+            reference.kind == "current_item"
+            for reference in understanding.references
+        )
+    ):
+        return None
     if issue != "missing_reference":
         return issue
     mention_spans = {
@@ -195,7 +273,7 @@ def reconcile_product_resolution_issue(
     return issue
 
 
-def route_unified_turn(
+def _select_unified_route(
     *,
     meaning: TurnMeaning,
     understanding: StructuredUnderstanding,
@@ -206,7 +284,7 @@ def route_unified_turn(
     pending_reply_kind: PendingReplyKind | None = None,
     transition_operations: Sequence[TransitionOperation] = (),
     safety_signal: AdmittedSafetySignal | None = None,
-) -> UnifiedRouteDecision:
+) -> _RouteSelection:
     if type(meaning) is not TurnMeaning:
         raise TypeError("meaning must be an exact TurnMeaning")
     if type(understanding) is not StructuredUnderstanding:
@@ -242,8 +320,17 @@ def route_unified_turn(
         safety_signal is not None
         and safety_signal.requires_escalation
     ):
-        return UnifiedRouteDecision(
-            processor="safety_escalation",
+        responsibility = resolve_responsibility(
+            operation=meaning.operation_hint,
+            cardinality="zero",
+            object_type="none",
+            dialogue_state=_dialogue_state(snapshot),
+            safety=True,
+        )
+        return _RouteSelection(
+            processor=responsibility.processor,
+            responsibility=responsibility.responsibility,
+            presentation_mode=responsibility.presentation_mode,
             continuity=(
                 "continue"
                 if _continues_active_safety_escalation(
@@ -260,16 +347,37 @@ def route_unified_turn(
         )
 
     explicit_new_task = meaning.continuity_hint == "new_task"
+    pending_turn = _pending_turn(snapshot)
     if (
-        snapshot is not None
-        and snapshot.pending_turn is not None
+        pending_turn is not None
         and pending_reply_kind is not None
         and pending_reply_kind != "replace_task"
         and not explicit_new_task
     ):
         return _pending_route(
             pending_reply_kind,
-            gap=snapshot.pending_turn.gap,
+            gap=pending_turn.gap,
+        )
+    if (
+        _active_processor(snapshot) == "consultation"
+        and meaning.operation_hint
+        in {"followup", "clarification"}
+        and not meaning.reference_mentions
+        and not understanding.product_mentions
+    ):
+        responsibility = decision_for_responsibility(
+            Responsibility.CONSULTATION
+        )
+        return _RouteSelection(
+            processor=responsibility.processor,
+            responsibility=responsibility.responsibility,
+            presentation_mode=responsibility.presentation_mode,
+            continuity=_continuity(
+                meaning,
+                snapshot=snapshot,
+                operations=operations,
+            ),
+            focus_source="consultation",
         )
     if product_resolution_issue is not None:
         return _clarification(
@@ -305,13 +413,42 @@ def route_unified_turn(
         snapshot=snapshot,
         operations=operations,
     )
-    processor = _select_processor(
+    if _uncertainties_require_clarification(
+        understanding=understanding,
+        bindings=resolved_bindings,
+    ):
+        return _clarification(
+            understanding.uncertainties[0].detail,
+            code=_clarification_code(
+                understanding=understanding,
+                meaning=meaning,
+            ),
+            continuity=continuity,
+        )
+    object_type = _matrix_object_type(
         meaning=meaning,
         understanding=understanding,
-        snapshot=snapshot,
+        focus_source=focus_source,
         bindings=resolved_bindings,
-        has_current_images=bool(images),
     )
+    cardinality = _matrix_cardinality(
+        meaning=meaning,
+        focus_source=focus_source,
+        bindings=resolved_bindings,
+    )
+    operation = _operation_for_current_batch(
+        meaning=meaning,
+        understanding=understanding,
+        cardinality=cardinality,
+    )
+    responsibility = resolve_responsibility(
+        operation=operation,
+        cardinality=cardinality,
+        object_type=object_type,
+        dialogue_state=_dialogue_state(snapshot),
+        safety=False,
+    )
+    processor = responsibility.processor
     if (
         processor == "general_knowledge"
         and _active_processor(snapshot) != "general_knowledge"
@@ -328,8 +465,9 @@ def route_unified_turn(
         processor == "product_knowledge"
         and focus_source == "explicit_product"
         and snapshot is not None
-        and snapshot.clarification is not None
-        and snapshot.clarification.gap is ClarificationCode.REFERENCE
+        and _pending_clarification(snapshot) is not None
+        and _pending_clarification(snapshot).gap
+        is ClarificationCode.REFERENCE
         and meaning.continuity_hint != "new_task"
     ):
         continuity = "supplement"
@@ -348,6 +486,15 @@ def route_unified_turn(
     ):
         continuity = "replace_task"
 
+    if processor == "consultation":
+        return _RouteSelection(
+            processor=processor,
+            responsibility=responsibility.responsibility,
+            presentation_mode=responsibility.presentation_mode,
+            continuity=continuity,
+            focus_source="consultation",
+            product_bindings=(),
+        )
     if processor == "comparison":
         if len(resolved_bindings) > 3:
             return _clarification(
@@ -369,18 +516,19 @@ def route_unified_turn(
         )
     if processor == "clarification":
         return _clarification(
-            understanding.uncertainties[0].detail
-            if understanding.uncertainties
-            else "请再明确一下这次想完成的事情。",
+            _matrix_clarification(
+                responsibility.clarification_code
+            ),
             code=_clarification_code(
                 understanding=understanding,
                 meaning=meaning,
             ),
             continuity=continuity,
         )
-
-    return UnifiedRouteDecision(
+    return _RouteSelection(
         processor=processor,
+        responsibility=responsibility.responsibility,
+        presentation_mode=responsibility.presentation_mode,
         continuity=continuity,
         focus_source=(
             focus_source
@@ -391,14 +539,172 @@ def route_unified_turn(
     )
 
 
+def route_unified_turn(
+    *,
+    meaning: TurnMeaning,
+    understanding: StructuredUnderstanding,
+    snapshot: ConversationSnapshot | None,
+    product_bindings: Sequence[ResolvedProductBinding] = (),
+    current_image_products: Sequence[ConfirmedImageProductRef] = (),
+    product_resolution_issue: ProductResolutionIssue | None = None,
+    pending_reply_kind: PendingReplyKind | None = None,
+    transition_operations: Sequence[TransitionOperation] = (),
+    safety_signal: AdmittedSafetySignal | None = None,
+    task_plan: TaskPlan,
+) -> UnifiedRouteDecision:
+    if type(task_plan) is not TaskPlan:
+        raise TypeError("task_plan must be an exact pre-routing TaskPlan")
+    selected = _select_unified_route(
+        meaning=meaning,
+        understanding=understanding,
+        snapshot=snapshot,
+        product_bindings=product_bindings,
+        current_image_products=current_image_products,
+        product_resolution_issue=product_resolution_issue,
+        pending_reply_kind=pending_reply_kind,
+        transition_operations=transition_operations,
+        safety_signal=safety_signal,
+    )
+    final_task = _finalize_route_task(
+        task_plan=task_plan,
+        decision=selected,
+    )
+    return UnifiedRouteDecision.model_validate(
+        {
+            **selected.model_dump(mode="python"),
+            "task_plan": final_task,
+            "public_intent_mode": _public_intent_mode(
+                decision=selected,
+                task=final_task,
+                has_current_images=bool(current_image_products),
+            ),
+        },
+        strict=True,
+    )
+
+
+def _public_intent_mode(
+    *,
+    decision: _RouteSelection,
+    task: TaskPlan,
+    has_current_images: bool,
+) -> PublicIntentMode | None:
+    if decision.processor in {"consultation", "safety_escalation"}:
+        return None
+    if decision.processor == "image_identity":
+        return "image_identity"
+    if decision.processor == "image_comparison":
+        return "image_compare"
+    if has_current_images and decision.processor == "recommendation":
+        return "image_recommend"
+    if (
+        has_current_images
+        and decision.processor == "comparison"
+        and decision.product_bindings
+        and all(
+            binding.source_kind == "image_ordinal"
+            for binding in decision.product_bindings
+        )
+    ):
+        return "image_compare"
+    return task.mode
+
+
+def _finalize_route_task(
+    *,
+    task_plan: TaskPlan,
+    decision: _RouteSelection,
+) -> TaskPlan:
+    product_ids = tuple(dict.fromkeys(
+        binding.product_id for binding in decision.product_bindings
+    ))
+    task_product_ids = (
+        ()
+        if (
+            decision.processor == "image_comparison"
+            and len(product_ids) < 2
+        )
+        else product_ids
+    )
+    if decision.processor == "clarification":
+        return revalidate_task_plan(
+            task_plan,
+            update={
+                "mode": "clarify",
+                "product_ids": [],
+                "similarity_anchor_product_id": None,
+                "required_evidence": [],
+                "clarification": decision.clarification,
+                "clarification_code": decision.clarification_code,
+            },
+        )
+    if decision.responsibility is Responsibility.COMPARISON:
+        task_plan = revalidate_task_plan(
+            task_plan,
+            update={
+                "mode": "comparison",
+                "recommendation_mode": None,
+                "recommendation_mode_basis": None,
+                "recommendation_count": None,
+                "product_ids": list(task_product_ids),
+                "required_evidence": (
+                    ["canonical_product"]
+                    if decision.product_bindings
+                    else []
+                ),
+                "similarity_anchor_product_id": None,
+                "clarification": None,
+                "clarification_code": None,
+            },
+        )
+    if task_plan.mode != "recommend" and (
+        task_product_ids
+        and tuple(task_plan.product_ids) != task_product_ids
+    ):
+        task_plan = revalidate_task_plan(
+            task_plan,
+            update={"product_ids": list(task_product_ids)},
+        )
+    if (
+        decision.processor == "recommendation"
+        and task_plan.mode == "suitability"
+    ):
+        task_plan = revalidate_task_plan(
+            task_plan,
+            update={
+                "mode": "recommend",
+                "recommendation_mode": "explore",
+                "recommendation_mode_basis": "broad_exploration",
+                "recommendation_count": 3,
+            },
+        )
+    if (
+        decision.processor == "recommendation"
+        and decision.focus_source == "confirmed_image"
+        and len(product_ids) == 1
+        and task_plan.mode == "recommend"
+        and task_plan.similarity_anchor_product_id is None
+    ):
+        task_plan = revalidate_task_plan(
+            task_plan,
+            update={"similarity_anchor_product_id": product_ids[0]},
+        )
+    return task_plan
+
+
 def _pending_route(
     reply_kind: PendingReplyKind,
     *,
     gap: ClarificationCode,
-) -> UnifiedRouteDecision:
+) -> _RouteSelection:
     if reply_kind in {"affirm", "correct", "supplement"}:
-        return UnifiedRouteDecision(
-            processor="recommendation",
+        responsibility = decision_for_responsibility(
+            Responsibility.RECOMMENDATION
+        )
+        return _RouteSelection(
+            processor=responsibility.processor,
+            responsibility=responsibility.responsibility,
+            presentation_mode=responsibility.presentation_mode,
             continuity={
                 "affirm": "continue",
                 "correct": "correct",
@@ -417,75 +723,123 @@ def _pending_route(
     )
 
 
-def _select_processor(
+def _matrix_object_type(
     *,
     meaning: TurnMeaning,
     understanding: StructuredUnderstanding,
-    snapshot: ConversationSnapshot | None,
+    focus_source: FocusSource,
     bindings: tuple[ResolvedProductBinding, ...],
-    has_current_images: bool,
-) -> ProcessorKind:
-    operation = meaning.operation_hint
-    if _uncertainties_require_clarification(
-        understanding=understanding,
-        bindings=bindings,
-    ):
-        return "clarification"
-    if operation == "image_identity":
-        return "image_identity" if bindings else "clarification"
-    if _single_image_product_batch_requests_alternatives(
-        meaning=meaning,
-        binding_count=len(bindings),
-        has_current_images=has_current_images,
-    ):
-        return "recommendation"
-    if operation == "comparison":
-        return "comparison"
-    if has_current_images and len(bindings) >= 2:
-        return "comparison"
-    if operation == "recommendation":
-        return "recommendation"
-    if operation == "image_similarity":
-        return "recommendation"
-    if operation == "suitability":
-        return "product_knowledge" if bindings else "clarification"
-    if operation == "assessment":
-        return "product_knowledge" if bindings else "consultation"
-    if operation == "knowledge":
+) -> ObjectType:
+    reference_kinds = {
+        item.kind for item in understanding.references
+    }
+    if bindings:
+        if "image_ordinal" in reference_kinds:
+            return (
+                "image_ordinals"
+                if all(
+                    binding.source_kind == "image_ordinal"
+                    for binding in bindings
+                )
+                else "explicit_products"
+            )
+        if "candidate_ordinal" in reference_kinds:
+            return "candidate_ordinals"
+        if "current_batch" in reference_kinds:
+            return "current_batch"
+        if "current_item" in reference_kinds:
+            return "current_product"
+    if focus_source == "explicit_product":
+        return "explicit_products"
+    if focus_source == "confirmed_image":
+        return "confirmed_images"
+    if bindings:
+        return "explicit_products"
+    object_mentions = tuple(
+        item
+        for item in meaning.reference_mentions
+        if item.object_family_hint in {"product", "image"}
+    )
+    if object_mentions:
         return (
-            "product_knowledge"
-            if bindings
-            else "general_knowledge"
+            "image_ordinals"
+            if any(
+                item.object_family_hint == "image"
+                for item in object_mentions
+            )
+            else "explicit_products"
         )
-    if operation == "followup":
-        if len(bindings) >= 2 and _active_processor(snapshot) == "comparison":
-            return "comparison"
-        if len(bindings) == 1:
-            return "product_knowledge"
-        active = _active_processor(snapshot)
-        if active in {
-            "recommendation",
-            "comparison",
-            "product_knowledge",
-            "general_knowledge",
-            "consultation",
-        }:
-            return active
-        return "clarification"
-    if operation == "clarification":
-        if bindings and meaning.question_meaning:
-            return "product_knowledge"
-        if (
-            _active_processor(snapshot) == "consultation"
-            and meaning.continuity_hint != "new_task"
-        ):
-            return "consultation"
-        return "clarification"
-    if has_current_images:
-        return "image_identity"
-    if understanding.goal is UnderstandingGoal.KNOWLEDGE:
-        return "general_knowledge"
-    return "clarification"
+    if meaning.operation_hint == "knowledge":
+        return "topic"
+    return "none"
+
+
+def _matrix_cardinality(
+    *,
+    meaning: TurnMeaning,
+    focus_source: FocusSource,
+    bindings: tuple[ResolvedProductBinding, ...],
+) -> ObjectCardinality:
+    count = len(bindings)
+    if (
+        meaning.operation_hint == "comparison"
+        and count == 1
+        and focus_source == "confirmed_image"
+        and any(
+            item.plurality_hint == "single"
+            and item.ordinal_hint is None
+            for item in meaning.reference_mentions
+        )
+    ):
+        return "unresolved"
+    if count == 0 and any(
+        item.object_family_hint in {"product", "image"}
+        for item in meaning.reference_mentions
+    ):
+        return "unresolved"
+    if count == 0:
+        return "zero"
+    if count == 1:
+        return "one"
+    if count <= 3:
+        return "two_or_three"
+    if count == 4:
+        return "four"
+    return "over_limit"
+
+
+def _operation_for_current_batch(
+    *,
+    meaning: TurnMeaning,
+    understanding: StructuredUnderstanding,
+    cardinality: ObjectCardinality,
+) -> str:
+    """Keep an existing candidate batch in comparison ownership."""
+    operation = understanding.goal.value
+    if (
+        operation == "recommendation"
+        and meaning.continuity_hint != "new_task"
+        and cardinality == "two_or_three"
+        and any(
+            reference.kind == "current_batch"
+            for reference in understanding.references
+        )
+    ):
+        return "comparison"
+    return operation
+
+
+def _matrix_clarification(code: str | None) -> str:
+    return {
+        "reference_over_limit": (
+            "一次最多比较三款，请保留最想看的三款。"
+        ),
+        "comparison_requires_multiple": (
+            "商品对比需要明确两到三款商品。"
+        ),
+        "reference_unresolved": "请明确这次指的是哪一款商品。",
+        None: "请再明确一下这次想完成的事情。",
+    }[code]
 
 
 def _uncertainties_require_clarification(
@@ -512,31 +866,6 @@ def _uncertainties_require_clarification(
     )
 
 
-def _single_image_product_batch_requests_alternatives(
-    *,
-    meaning: TurnMeaning,
-    binding_count: int,
-    has_current_images: bool,
-) -> bool:
-    return (
-        has_current_images
-        and binding_count == 1
-        and meaning.operation_hint == "comparison"
-        and (
-            (
-                not meaning.product_mentions
-                and not meaning.reference_mentions
-            )
-            or any(
-                mention.object_family_hint == "product"
-                and mention.plurality_hint == "batch"
-                and mention.ordinal_hint is None
-                for mention in meaning.reference_mentions
-            )
-        )
-    )
-
-
 def _resolve_bindings(
     *,
     understanding: StructuredUnderstanding,
@@ -547,7 +876,12 @@ def _resolve_bindings(
     operation_hint: str,
 ) -> tuple[tuple[ResolvedProductBinding, ...], FocusSource]:
     reference_bindings: list[ResolvedProductBinding] = []
+    batch_reference_bindings: list[ResolvedProductBinding] = []
+    specific_reference_bindings: list[ResolvedProductBinding] = []
     image_reference_bindings: list[ResolvedProductBinding] = []
+    source_ordered_bindings: list[
+        tuple[bool, int, int, int, ResolvedProductBinding]
+    ] = []
     reference_source: FocusSource = "none"
     for reference in understanding.references:
         resolved, source = _bindings_for_reference(
@@ -557,27 +891,86 @@ def _resolve_bindings(
         )
         if resolved:
             reference_bindings.extend(resolved)
-            if reference.kind == "image_ordinal":
+            if reference.kind == "current_batch":
+                batch_reference_bindings.extend(resolved)
+            elif reference.kind in {
+                "current_item",
+                "candidate_ordinal",
+            }:
+                specific_reference_bindings.extend(resolved)
+            elif reference.kind == "image_ordinal":
                 image_reference_bindings.extend(resolved)
+            if reference.kind != "current_batch":
+                span = reference.source_span
+                source_ordered_bindings.extend(
+                    (
+                        span is None,
+                        span.start if span is not None else 0,
+                        span.end if span is not None else 0,
+                        len(source_ordered_bindings),
+                        binding,
+                    )
+                    for binding in resolved
+                )
             reference_source = source
+
+    for binding in explicit_bindings:
+        span = binding.source_span
+        source_ordered_bindings.append(
+            (
+                span is None,
+                span.start if span is not None else 0,
+                span.end if span is not None else 0,
+                len(source_ordered_bindings),
+                binding,
+            )
+        )
+    merged_non_batch_bindings = _merge_source_ordered_bindings(
+        item[-1] for item in sorted(source_ordered_bindings)
+    )
 
     if (
         operation_hint == "image_similarity"
         and image_reference_bindings
     ):
         return (
-            _deduplicate_bindings(image_reference_bindings),
+            _merge_source_ordered_bindings(image_reference_bindings),
             "confirmed_image",
         )
+    if image_reference_bindings:
+        return (
+            merged_non_batch_bindings,
+            "confirmed_image",
+        )
+    if explicit_bindings and specific_reference_bindings:
+        return merged_non_batch_bindings, reference_source
     if (
-        explicit_bindings
+        operation_hint == "recommendation"
+        and continuity_hint == "new_task"
         and any(
             item.kind == "current_batch"
             for item in understanding.references
         )
     ):
-        combined = (*reference_bindings, *explicit_bindings)
-        return _deduplicate_bindings(combined), "candidate_batch"
+        if explicit_bindings:
+            return (
+                _deduplicate_bindings(explicit_bindings),
+                "explicit_product",
+            )
+        return (), "none"
+    if batch_reference_bindings:
+        combined = merge_batch_and_specific_bindings(
+            batch_reference_bindings,
+            merged_non_batch_bindings,
+        )
+        return (
+            combined,
+            (
+                "explicit_product"
+                if len(combined) == 1 and explicit_bindings
+                else "candidate_batch"
+            ),
+        )
     if (
         operation_hint == "comparison"
         and len(explicit_bindings) == 1
@@ -597,12 +990,16 @@ def _resolve_bindings(
     if (
         operation_hint == "image_similarity"
         and snapshot is not None
-        and snapshot.focus_state is not None
+        and snapshot.image_slot is not None
     ):
-        committed_images = (
-            snapshot.focus_state.confirmed_image_products
+        committed_images = snapshot.image_slot.confirmed_products
+        current_product_id = (
+            snapshot.active_focus.object_id
+            if snapshot.active_focus is not None
+            and snapshot.active_focus.slot == "image"
+            and isinstance(snapshot.active_focus.object_id, int)
+            else None
         )
-        current_product_id = snapshot.focus_state.current_product_id
         focused_image = next(
             (
                 item
@@ -620,7 +1017,7 @@ def _resolve_bindings(
             )
     if current_image_products:
         return (
-            _deduplicate_bindings(
+            tuple(
                 _image_binding(item)
                 for item in current_image_products
             ),
@@ -648,7 +1045,7 @@ def _bindings_for_reference(
         candidate = next(
             (
                 item
-                for item in snapshot.candidates
+                for item in _candidate_batch(snapshot)
                 if item.ordinal == reference.ordinal
             ),
             None,
@@ -661,7 +1058,7 @@ def _bindings_for_reference(
         return (
             tuple(
                 _candidate_binding(item)
-                for item in snapshot.candidates
+                for item in _candidate_batch(snapshot)
             ),
             "candidate_batch",
         )
@@ -671,8 +1068,8 @@ def _bindings_for_reference(
             tuple(
                 item
                 for item in (
-                    snapshot.focus_state.confirmed_image_products
-                    if snapshot.focus_state is not None
+                    snapshot.image_slot.confirmed_products
+                    if snapshot.image_slot is not None
                     else ()
                 )
                 if (
@@ -695,9 +1092,9 @@ def _bindings_for_reference(
         images = (
             current_image_products
             or (
-                snapshot.focus_state.confirmed_image_products
+                snapshot.image_slot.confirmed_products
                 if snapshot is not None
-                and snapshot.focus_state is not None
+                and snapshot.image_slot is not None
                 else ()
             )
         )
@@ -719,15 +1116,67 @@ def _bindings_for_reference(
 def _current_product_binding(
     snapshot: ConversationSnapshot,
 ) -> ResolvedProductBinding | None:
-    if (
-        snapshot.focus_state is not None
-        and snapshot.focus_state.current_product_id is not None
-    ):
-        product_id = snapshot.focus_state.current_product_id
+    focus = snapshot.active_focus
+    if focus is not None and focus.slot == "image":
         image = next(
             (
                 item
-                for item in snapshot.focus_state.confirmed_image_products
+                for item in (
+                    snapshot.image_slot.confirmed_products
+                    if snapshot.image_slot is not None
+                    else ()
+                )
+                if (
+                    item.image_ordinal == focus.ordinal
+                    and item.product_id == focus.object_id
+                )
+            ),
+            None,
+        )
+        return _image_binding(image) if image is not None else None
+    if focus is not None and focus.slot == "recommendation":
+        ordinal = (
+            snapshot.recommendation_slot.focused_candidate_ordinal
+            if snapshot.recommendation_slot is not None
+            else None
+        )
+        candidate = next(
+            (
+                item
+                for item in (
+                    snapshot.recommendation_slot.candidates
+                    if snapshot.recommendation_slot is not None
+                    else ()
+                )
+                if item.ordinal == ordinal
+            ),
+            None,
+        )
+        return (
+            _candidate_binding(candidate)
+            if candidate is not None
+            else None
+        )
+    product_id = (
+        snapshot.product_slot.focused_product_id
+        if snapshot.product_slot is not None
+        else None
+    )
+    if product_id is None and (
+        snapshot.active_focus is not None
+        and snapshot.active_focus.slot == "image"
+        and isinstance(snapshot.active_focus.object_id, int)
+    ):
+        product_id = snapshot.active_focus.object_id
+    if product_id is not None:
+        image = next(
+            (
+                item
+                for item in (
+                    snapshot.image_slot.confirmed_products
+                    if snapshot.image_slot is not None
+                    else ()
+                )
                 if item.product_id == product_id
             ),
             None,
@@ -738,13 +1187,19 @@ def _current_product_binding(
                 image.variant_scope if image is not None else None
             ),
             source_text="current_product",
+            source_kind="current_product",
         )
-    if snapshot.focused_candidate_ordinal is not None:
+    focused_candidate_ordinal = (
+        snapshot.recommendation_slot.focused_candidate_ordinal
+        if snapshot.recommendation_slot is not None
+        else None
+    )
+    if focused_candidate_ordinal is not None:
         candidate = next(
             (
                 item
-                for item in snapshot.candidates
-                if item.ordinal == snapshot.focused_candidate_ordinal
+                for item in snapshot.recommendation_slot.candidates
+                if item.ordinal == focused_candidate_ordinal
             ),
             None,
         )
@@ -758,6 +1213,8 @@ def _candidate_binding(candidate) -> ResolvedProductBinding:
         product_id=candidate.product_id,
         variant_scope=None,
         source_text=f"candidate_ordinal:{candidate.ordinal}",
+        source_kind="candidate_ordinal",
+        source_ordinal=candidate.ordinal,
     )
 
 
@@ -768,6 +1225,8 @@ def _image_binding(
         product_id=image.product_id,
         variant_scope=image.variant_scope,
         source_text=f"image_ordinal:{image.image_ordinal}",
+        source_kind="image_ordinal",
+        source_ordinal=image.image_ordinal,
     )
 
 
@@ -786,6 +1245,37 @@ def _deduplicate_bindings(
     return tuple(unique.values())
 
 
+def _merge_source_ordered_bindings(
+    bindings,
+) -> tuple[ResolvedProductBinding, ...]:
+    ordered = tuple(bindings)
+    image_product_keys = {
+        (binding.product_id, binding.variant_scope)
+        for binding in ordered
+        if binding.source_kind == "image_ordinal"
+    }
+    selected: list[ResolvedProductBinding] = []
+    seen_product_keys: set[tuple[int, str | None]] = set()
+    seen_image_sources: set[int] = set()
+    for binding in ordered:
+        product_key = (binding.product_id, binding.variant_scope)
+        if binding.source_kind == "image_ordinal":
+            if binding.source_ordinal in seen_image_sources:
+                continue
+            assert binding.source_ordinal is not None
+            seen_image_sources.add(binding.source_ordinal)
+            selected.append(binding)
+            continue
+        if (
+            product_key in image_product_keys
+            or product_key in seen_product_keys
+        ):
+            continue
+        seen_product_keys.add(product_key)
+        selected.append(binding)
+    return tuple(selected)
+
+
 def _continuity(
     meaning: TurnMeaning,
     *,
@@ -794,10 +1284,14 @@ def _continuity(
 ) -> ContinuityKind:
     if meaning.continuity_hint == "new_task":
         return "replace_task"
+    operation_set = set(operations)
+    if (
+        "replace" in operation_set
+        or {"remove", "add"} <= operation_set
+    ):
+        return "correct"
     if "remove" in operations:
         return "withdraw"
-    if "replace" in operations:
-        return "correct"
     if "add" in operations:
         return "supplement"
     if meaning.continuity_hint == "return_to_focus":
@@ -817,20 +1311,96 @@ def _continues_active_safety_escalation(
     return (
         _active_processor(snapshot) == "safety_escalation"
         or (
-            snapshot.consultation is not None
-            and snapshot.consultation.medical_escalation is not None
+            snapshot.consultation_slot is not None
+            and snapshot.consultation_slot.state.medical_escalation
+            is not None
         )
     )
+
+
+def _candidate_batch(snapshot: ConversationSnapshot):
+    if (
+        snapshot.active_focus is not None
+        and snapshot.active_focus.slot == "product"
+        and snapshot.product_slot is not None
+    ):
+        return snapshot.product_slot.products
+    if (
+        snapshot.active_owner is Responsibility.COMPARISON
+        and snapshot.active_focus is not None
+        and snapshot.active_focus.slot == "image"
+    ):
+        if (
+            snapshot.image_slot is None
+            or snapshot.image_slot.card_display is None
+            or snapshot.product_slot is None
+            or tuple(
+                item.product_id
+                for item in snapshot.product_slot.products
+            )
+            != snapshot.image_slot.card_display.visible_product_ids
+        ):
+            return ()
+        return snapshot.product_slot.products
+    if snapshot.recommendation_slot is not None:
+        return snapshot.recommendation_slot.candidates
+    if snapshot.product_slot is not None:
+        return snapshot.product_slot.products
+    return ()
+
+
+def _pending_turn(snapshot: ConversationSnapshot | None):
+    if (
+        snapshot is not None
+        and isinstance(snapshot.reply_slot, PendingReplySlot)
+    ):
+        return snapshot.reply_slot.value
+    return None
+
+
+def _pending_clarification(
+    snapshot: ConversationSnapshot | None,
+):
+    if (
+        snapshot is not None
+        and isinstance(
+            snapshot.reply_slot,
+            PendingClarificationSlot,
+        )
+    ):
+        return snapshot.reply_slot.value
+    return None
 
 
 def _active_processor(
     snapshot: ConversationSnapshot | None,
 ) -> ProcessorKind | None:
-    return (
-        snapshot.focus_state.active_processor
-        if snapshot is not None and snapshot.focus_state is not None
-        else None
-    )
+    if snapshot is None or snapshot.active_owner is None:
+        return None
+    return decision_for_responsibility(
+        snapshot.active_owner
+    ).processor
+
+
+def _dialogue_state(
+    snapshot: ConversationSnapshot | None,
+) -> DialogueState:
+    if snapshot is None:
+        return "empty"
+    if snapshot.reply_slot is not None:
+        return "pending_clarification"
+    active = _active_processor(snapshot)
+    return {
+        "recommendation": "recommendation_batch",
+        "comparison": "comparison_batch",
+        "product_knowledge": "single_product_focus",
+        "general_knowledge": "general_knowledge",
+        "consultation": "consultation",
+        "image_identity": "confirmed_image_product",
+        "clarification": "pending_clarification",
+        "safety_escalation": "safety_escalation",
+        None: "empty",
+    }[active]
 
 
 def _processor_focus_source(
@@ -871,6 +1441,8 @@ def _clarification_code(
             "ambiguous_reference",
             "ambiguous_candidate_reference",
             "ambiguous_image_reference",
+            "too_many_candidate_references",
+            "too_many_image_references",
         })
     ):
         return ClarificationCode.REFERENCE
@@ -890,9 +1462,14 @@ def _clarification(
     *,
     code: ClarificationCode,
     continuity: ContinuityKind,
-) -> UnifiedRouteDecision:
-    return UnifiedRouteDecision(
-        processor="clarification",
+) -> _RouteSelection:
+    responsibility = decision_for_responsibility(
+        Responsibility.CLARIFICATION
+    )
+    return _RouteSelection(
+        processor=responsibility.processor,
+        responsibility=responsibility.responsibility,
+        presentation_mode=responsibility.presentation_mode,
         continuity=continuity,
         focus_source="none",
         clarification=message,

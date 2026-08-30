@@ -19,16 +19,7 @@ class _Strict(BaseModel):
 
 
 class ConsultationObservation(_Strict):
-    code: Literal[
-        "post_cleanse_tightness",
-        "t_zone_oiliness",
-        "recurrent_redness",
-        "stinging",
-        "flaking",
-    ] | None = None
-    answer: Literal["yes", "no", "sometimes", "unknown"] | None = None
-    observation_id: str | None = Field(
-        default=None,
+    observation_id: str = Field(
         pattern=r"^obs_[a-z0-9_]{1,48}$",
     )
     dimension: Literal[
@@ -44,13 +35,13 @@ class ConsultationObservation(_Strict):
         "broken_skin",
         "oozing",
         "product_tolerance",
-    ] | None = None
+    ]
     state: Literal[
         "present",
         "absent",
         "sometimes",
         "unknown",
-    ] | None = None
+    ]
     location: Literal[
         "t_zone",
         "forehead",
@@ -81,8 +72,7 @@ class ConsultationObservation(_Strict):
         "severe",
         "unknown",
     ] | None = None
-    source_text: str | None = Field(
-        default=None,
+    source_text: str = Field(
         min_length=1,
         max_length=256,
     )
@@ -94,52 +84,6 @@ class ConsultationObservation(_Strict):
             max_length=160,
         ),
     ]
-
-    @model_validator(mode="after")
-    def validate_observation_shape(self) -> Self:
-        is_legacy = self.code is not None or self.answer is not None
-        is_dynamic = any(
-            value is not None
-            for value in (
-                self.observation_id,
-                self.dimension,
-                self.state,
-                self.source_text,
-            )
-        )
-        if is_legacy == is_dynamic:
-            raise ValueError(
-                "consultation observation must be legacy or dynamic"
-            )
-        if is_legacy:
-            if self.code is None or self.answer is None:
-                raise ValueError(
-                    "legacy observation requires code and answer"
-                )
-            if any(
-                value is not None
-                for value in (
-                    self.location,
-                    self.trigger,
-                    self.duration,
-                    self.severity,
-                )
-            ):
-                raise ValueError(
-                    "legacy observation forbids dynamic qualifiers"
-                )
-            return self
-        if (
-            self.observation_id is None
-            or self.dimension is None
-            or self.state is None
-            or self.source_text is None
-        ):
-            raise ValueError(
-                "dynamic observation requires id, dimension, state, and source"
-            )
-        return self
-
 
 class ProvisionalConsultationConclusion(_Strict):
     skin_target: Literal[

@@ -22,6 +22,7 @@ from app.guide.intent.contracts import (
     TaskConstraint,
     TaskPlan,
 )
+from app.guide.intent.responsibility_matrix import Responsibility
 from app.guide.understanding.contracts import (
     BudgetDraft,
     CategoryDraft,
@@ -52,6 +53,7 @@ from app.guide.retrieval.category_taxonomy import (
 def plan_task(
     understanding: StructuredUnderstanding,
     *,
+    responsibility: Responsibility | None = None,
     resolved_product_ids: Sequence[int] = (),
     product_resolution_issue: Literal[
         "missing_reference",
@@ -63,6 +65,13 @@ def plan_task(
     if not isinstance(understanding, StructuredUnderstanding):
         raise TypeError(
             "understanding must be a validated StructuredUnderstanding"
+        )
+    if (
+        responsibility is not None
+        and not isinstance(responsibility, Responsibility)
+    ):
+        raise TypeError(
+            "responsibility must be Responsibility or None"
         )
     if (
         isinstance(resolved_product_ids, (str, bytes))
@@ -90,7 +99,67 @@ def plan_task(
             understanding,
             message=message,
         )
+    execution_goal = (
+        UnderstandingGoal.COMPARISON
+        if responsibility is Responsibility.COMPARISON
+        else understanding.goal
+    )
     constraints = compile_task_constraints(understanding)
+    if (
+        execution_goal
+        in {
+            UnderstandingGoal.RECOMMENDATION,
+            UnderstandingGoal.IMAGE_SIMILARITY,
+        }
+        and (
+            understanding.recommendation_mode is None
+            or understanding.recommendation_mode_basis is None
+            or (
+                understanding.recommendation_mode == "fit"
+                and understanding.recommendation_count is None
+            )
+        )
+    ):
+        raise ValueError(
+            "recommendation understanding requires complete outcome"
+        )
+    recommendation_mode = (
+        understanding.recommendation_mode
+        if execution_goal
+        in {
+            UnderstandingGoal.RECOMMENDATION,
+            UnderstandingGoal.IMAGE_SIMILARITY,
+        }
+        else None
+    )
+    recommendation_mode_basis = (
+        understanding.recommendation_mode_basis
+        if recommendation_mode is not None
+        else None
+    )
+    recommendation_count = (
+        understanding.recommendation_count
+        if recommendation_mode is not None
+        else None
+    )
+    if (
+        recommendation_mode == "explore"
+        and recommendation_count is None
+    ):
+        recommendation_count = 3
+    clarification_recommendation_outcome = (
+        {
+            "recommendation_mode": recommendation_mode,
+            "recommendation_mode_basis": recommendation_mode_basis,
+            "recommendation_count": recommendation_count,
+        }
+        if execution_goal
+        in {
+            UnderstandingGoal.RECOMMENDATION,
+            UnderstandingGoal.IMAGE_SIMILARITY,
+        }
+        else {}
+    )
     references = list(understanding.references)
     product_mentions = list(understanding.product_mentions)
     product_ids = list(resolved_product_ids)
@@ -103,10 +172,11 @@ def plan_task(
             product_mentions=product_mentions,
             required_evidence=[],
             clarification=(
-                "商品名称未能唯一绑定 Canonical 目录，"
-                "请提供完整商品名称。"
+                "这个名称可能对应多款商品，"
+                "请补充品牌和完整商品名称。"
             ),
             clarification_code=ClarificationCode.REFERENCE,
+            **clarification_recommendation_outcome,
         )
     if (
         understanding.uncertainties
@@ -126,8 +196,9 @@ def plan_task(
             clarification_code=_understanding_clarification_code(
                 understanding
             ),
+            **clarification_recommendation_outcome,
         )
-    if understanding.goal is UnderstandingGoal.IMAGE_SIMILARITY:
+    if execution_goal is UnderstandingGoal.IMAGE_SIMILARITY:
         if len(product_ids) != 1:
             return TaskPlan(
                 mode="clarify",
@@ -140,9 +211,13 @@ def plan_task(
                     "请明确要以哪一张已确认图片作为相似款参考。"
                 ),
                 clarification_code=ClarificationCode.REFERENCE,
+                **clarification_recommendation_outcome,
             )
         return TaskPlan(
             mode="recommend",
+            recommendation_mode=recommendation_mode,
+            recommendation_mode_basis=recommendation_mode_basis,
+            recommendation_count=recommendation_count,
             referenced_image_ids=[],
             constraints=constraints,
             references=references,
@@ -157,14 +232,14 @@ def plan_task(
             question_meaning=understanding.question_meaning,
             safety_sensitive=understanding.safety_sensitive,
         )
-    if understanding.goal in {
+    if execution_goal in {
         UnderstandingGoal.COMPARISON,
         UnderstandingGoal.SUITABILITY,
         UnderstandingGoal.KNOWLEDGE,
         UnderstandingGoal.FOLLOWUP,
     }:
         return _plan_semantic_task(
-            understanding.goal,
+            execution_goal,
             constraints=constraints,
             references=references,
             product_mentions=product_mentions,
@@ -174,8 +249,21 @@ def plan_task(
             ),
             question_meaning=understanding.question_meaning,
             safety_sensitive=understanding.safety_sensitive,
+            requested_comparison_dimensions=(
+                _current_comparison_dimensions(
+                    understanding,
+                    message=message,
+                )
+                if execution_goal
+                in {
+                    UnderstandingGoal.COMPARISON,
+                    UnderstandingGoal.SUITABILITY,
+                    UnderstandingGoal.FOLLOWUP,
+                }
+                else ()
+            ),
         )
-    if understanding.goal is not UnderstandingGoal.RECOMMENDATION:
+    if execution_goal is not UnderstandingGoal.RECOMMENDATION:
         return TaskPlan(
             mode="clarify",
             referenced_image_ids=[],
@@ -210,23 +298,226 @@ def plan_task(
                 "洁面/卸妆和香水；请明确品类。"
             ),
             clarification_code=ClarificationCode.TOPIC,
+            **clarification_recommendation_outcome,
+        )
+
+    free_descriptors = _compile_free_descriptors(understanding)
+    relative_requirements = _compile_relative_requirements(
+        understanding
+    )
+    if (
+        recommendation_mode == "fit"
+        and not _has_usable_fit_need(
+            constraints=constraints,
+            free_descriptors=free_descriptors,
+            relative_requirements=relative_requirements,
+        )
+        and not _inherits_fit_need(understanding)
+    ):
+        return TaskPlan(
+            mode="clarify",
+            referenced_image_ids=[],
+            constraints=constraints,
+            references=references,
+            product_mentions=product_mentions,
+            required_evidence=[],
+            clarification=(
+                "请再补充一个最在意的肤质、功效、肤感或使用场景，"
+                "我再帮你选最适合的一款。"
+            ),
+            clarification_code=ClarificationCode.GOAL,
+            **clarification_recommendation_outcome,
         )
 
     return TaskPlan(
         mode="recommend",
+        recommendation_mode=recommendation_mode,
+        recommendation_mode_basis=recommendation_mode_basis,
+        recommendation_count=recommendation_count,
         referenced_image_ids=[],
         constraints=constraints,
         references=references,
         product_mentions=product_mentions,
         product_ids=product_ids,
         required_evidence=["canonical_product"],
-        free_descriptors=_compile_free_descriptors(understanding),
-        relative_requirements=_compile_relative_requirements(
-            understanding
-        ),
+        free_descriptors=free_descriptors,
+        relative_requirements=relative_requirements,
         question_meaning=understanding.question_meaning,
         safety_sensitive=understanding.safety_sensitive,
         clarification=None,
+    )
+
+
+def _current_comparison_dimensions(
+    understanding: StructuredUnderstanding,
+    *,
+    message: str | None = None,
+) -> tuple[str, ...]:
+    context_filled_kinds = {
+        parts[1]
+        for trace in understanding.signal_trace
+        if (
+            trace.resolution == "context_fills"
+            and len(parts := trace.field.split(".")) >= 3
+            and parts[0] == "context"
+        )
+    }
+    dimensions = list(
+        _explicit_comparison_dimensions(
+            _mask_product_mentions(
+                message,
+                product_mentions=understanding.product_mentions,
+            )
+        )
+        if message is not None
+        else ()
+    )
+    for draft in understanding.exact_constraints:
+        if (
+            isinstance(draft, BudgetDraft)
+            and "budget" not in context_filled_kinds
+        ):
+            dimensions.append("reference_price")
+        elif (
+            isinstance(draft, EfficacyDraft)
+            and "efficacy" not in context_filled_kinds
+        ):
+            dimensions.append("efficacy")
+        elif (
+            isinstance(draft, SkinDraft)
+            and "skin" not in context_filled_kinds
+        ):
+            dimensions.append("suitable_skin")
+        elif isinstance(draft, InclusionDraft):
+            dimensions.append("ingredients_present")
+    for constraint in _compile_preference_drafts(understanding):
+        if isinstance(constraint, ConceptConstraint):
+            _append_comparison_dimension(
+                dimensions,
+                constraint.concept_id,
+            )
+        elif isinstance(constraint, FacetConstraint):
+            _append_comparison_dimension(
+                dimensions,
+                constraint.field_key,
+            )
+    for draft in understanding.relative_drafts:
+        _append_comparison_dimension(
+            dimensions,
+            "reference_price"
+            if draft.field_key == "price"
+            else draft.concept_id or draft.field_key,
+        )
+    return tuple(dict.fromkeys(dimensions))
+
+
+def _mask_product_mentions(
+    message: str,
+    *,
+    product_mentions: Sequence[ProductMentionDraft],
+) -> str:
+    characters = list(message)
+    for mention in product_mentions:
+        span = mention.source_span
+        if message[span.start:span.end] != mention.text:
+            return message
+        characters[span.start:span.end] = " " * (
+            span.end - span.start
+        )
+    return "".join(characters)
+
+
+def _append_comparison_dimension(
+    dimensions: list[str],
+    dimension_id: str,
+) -> None:
+    parent = dimension_id.split(".", 1)[0]
+    if dimension_id != parent and parent in dimensions:
+        dimensions[dimensions.index(parent)] = dimension_id
+        return
+    if dimension_id == parent and any(
+        item.startswith(f"{parent}.") for item in dimensions
+    ):
+        return
+    if dimension_id not in dimensions:
+        dimensions.append(dimension_id)
+
+
+def _explicit_comparison_dimensions(
+    message: str,
+) -> tuple[str, ...]:
+    aliases = {
+        "efficacy": ("功效", "作用"),
+        "texture": ("质地", "肤感"),
+        "reference_price": ("参考价", "价格", "价钱"),
+        "suitable_skin": ("适合肤质", "肤质"),
+        "ingredients_present": ("核心成分", "成分"),
+        "spf_pa": ("防晒指数", "SPF", "PA"),
+        "water_resistance": ("防水",),
+        "finish": ("妆效",),
+        "coverage": ("遮瑕",),
+        "longevity": ("持妆",),
+    }
+    found: list[tuple[int, int, str]] = []
+    for dimension_id, terms in aliases.items():
+        positions = [
+            (message.find(term), len(term))
+            for term in terms
+            if message.find(term) >= 0
+        ]
+        if not positions:
+            continue
+        start, length = min(positions)
+        prefix = message[max(0, start - 6):start]
+        suffix = message[start + length:start + length + 5]
+        if (
+            any(
+                prefix.endswith(marker)
+                for marker in (
+                    "不考虑",
+                    "不用考虑",
+                    "忽略",
+                    "不看",
+                    "不比较",
+                )
+            )
+            or suffix.startswith(("不限", "不作要求"))
+        ):
+            continue
+        found.append((start, -length, dimension_id))
+    return tuple(
+        dimension_id
+        for _, _, dimension_id in sorted(found)
+    )
+
+
+def _has_usable_fit_need(
+    *,
+    constraints: Sequence[TaskConstraint],
+    free_descriptors: Sequence[FreeDescriptor],
+    relative_requirements: Sequence[RelativeRequirement],
+) -> bool:
+    return (
+        any(
+            not isinstance(
+                constraint,
+                (BudgetConstraint, CategoryConstraint),
+            )
+            for constraint in constraints
+        )
+        or bool(free_descriptors)
+        or bool(relative_requirements)
+    )
+
+
+def _inherits_fit_need(
+    understanding: StructuredUnderstanding,
+) -> bool:
+    return any(
+        trace.field == "recommendation_mode"
+        and trace.resolution == "context_fills"
+        and trace.exact_value == "fit"
+        for trace in understanding.signal_trace
     )
 
 
@@ -414,6 +705,7 @@ def _plan_semantic_task(
     product_mentions: list[ProductMentionDraft],
     product_ids: list[int],
     relative_requirements: list[RelativeRequirement],
+    requested_comparison_dimensions: tuple[str, ...],
     question_meaning: str | None,
     safety_sensitive: bool,
 ) -> TaskPlan:
@@ -487,6 +779,9 @@ def _plan_semantic_task(
         product_ids=product_ids,
         required_evidence=["canonical_product"],
         relative_requirements=relative_requirements,
+        requested_comparison_dimensions=(
+            requested_comparison_dimensions
+        ),
         question_meaning=question_meaning,
         safety_sensitive=safety_sensitive,
     )
@@ -550,6 +845,8 @@ def _understanding_clarification_code(
         "ambiguous_reference",
         "ambiguous_candidate_reference",
         "ambiguous_image_reference",
+        "too_many_candidate_references",
+        "too_many_image_references",
     }:
         return ClarificationCode.REFERENCE
     if issue in {"ambiguous_category", "missing_category"}:

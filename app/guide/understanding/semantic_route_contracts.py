@@ -3,7 +3,13 @@ from __future__ import annotations
 from enum import Enum
 from typing import ClassVar, Self
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    model_serializer,
+    model_validator,
+)
 
 from app.guide.understanding.contracts import (
     TopicCode,
@@ -46,8 +52,13 @@ class SemanticRouteBindingAuthority(BaseModel):
     awaiting_reply: bool
     candidate_ordinals: tuple[int, ...] = Field(max_length=4)
     current_item_ordinal: int | None = Field(default=None, ge=1, le=4)
+    current_item_available: bool = False
     current_batch_available: bool
     image_ordinals: tuple[int, ...] = Field(max_length=4)
+    confirmed_image_ordinals: tuple[int, ...] = Field(
+        default_factory=tuple,
+        max_length=4,
+    )
     current_image_ordinal: int | None = Field(default=None, ge=1, le=4)
     current_topic: TopicCode | None
     previous_constraint_kinds: tuple[
@@ -55,6 +66,13 @@ class SemanticRouteBindingAuthority(BaseModel):
         ...,
     ] = Field(max_length=5)
     pending_clarification: ClarificationCode | None
+
+    @model_serializer(mode="wrap")
+    def omit_empty_confirmed_image_ordinals(self, handler):
+        payload = handler(self)
+        if not self.confirmed_image_ordinals:
+            payload.pop("confirmed_image_ordinals", None)
+        return payload
 
     @classmethod
     def from_context(
@@ -70,10 +88,17 @@ class SemanticRouteBindingAuthority(BaseModel):
                 range(1, context.visible_candidate_count + 1)
             ),
             current_item_ordinal=context.focused_candidate_ordinal,
+            current_item_available=(
+                context.current_item_available
+                or context.focused_candidate_ordinal is not None
+            ),
             current_batch_available=(
                 context.visible_candidate_count > 0
             ),
             image_ordinals=tuple(range(1, context.image_count + 1)),
+            confirmed_image_ordinals=(
+                context.confirmed_image_ordinals
+            ),
             current_image_ordinal=context.focused_image_ordinal,
             current_topic=context.active_topic,
             previous_constraint_kinds=context.active_constraint_kinds,
@@ -102,6 +127,13 @@ class SemanticRouteBindingAuthority(BaseModel):
             raise ValueError(
                 "current item must reference an admitted candidate"
             )
+        if (
+            self.current_item_ordinal is not None
+            and not self.current_item_available
+        ):
+            raise ValueError(
+                "focused candidate requires a current product"
+            )
         if self.image_ordinals != tuple(
             range(1, len(self.image_ordinals) + 1)
         ):
@@ -112,6 +144,17 @@ class SemanticRouteBindingAuthority(BaseModel):
         ):
             raise ValueError(
                 "current image must reference an admitted image"
+            )
+        if (
+            self.confirmed_image_ordinals
+            != tuple(sorted(set(self.confirmed_image_ordinals)))
+            or not set(self.confirmed_image_ordinals).issubset(
+                self.image_ordinals
+            )
+        ):
+            raise ValueError(
+                "confirmed image ordinals must be sorted, unique, and "
+                "admitted"
             )
         if len(self.previous_constraint_kinds) != len(
             set(self.previous_constraint_kinds)

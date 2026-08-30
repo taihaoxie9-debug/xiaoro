@@ -6,6 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.guide.feedback.contracts import ConversationVersionRef
+from app.guide.feedback.contracts import ConversationSnapshot
 from app.guide.feedback.event_contracts import (
     FeedbackActorContext,
     FeedbackEventId,
@@ -49,6 +50,10 @@ class FeedbackTargetReceipt(_FrozenContract):
     profile_version: int | None = Field(default=None, ge=1)
 
 
+class FeedbackTargetRegistrationRequest(_FrozenContract):
+    conversation_version: int = Field(ge=1)
+
+
 class PreparedFeedbackTarget(_FrozenContract):
     target: TrustedFeedbackTarget
     receipt: FeedbackTargetReceipt
@@ -67,73 +72,39 @@ class FeedbackEventReceipt(_FrozenContract):
     occurred_at: datetime
 
 
-class FeedbackDeliveryTracker:
-    """Recognize one complete, non-clarifying response with visible cards."""
+def feedback_completion_from_snapshot(
+    snapshot: ConversationSnapshot,
+) -> FeedbackCompletion | None:
+    if type(snapshot) is not ConversationSnapshot:
+        raise TypeError("snapshot must be an exact ConversationSnapshot")
+    card_display = _active_card_display(snapshot)
+    if (
+        card_display is None
+        or card_display.mode == "none"
+        or card_display.max_cards == 0
+    ):
+        return None
+    return FeedbackCompletion(
+        conversation_version=snapshot.version,
+        card_display=card_display,
+    )
 
-    def __init__(self) -> None:
-        self._card_display: CardDisplayContract | None = None
-        self._conversation_version: int | None = None
-        self._blocked = False
 
-    def observe(self, event_name: str, event_data: object) -> None:
-        if self._conversation_version is not None:
-            self._blocked = True
-            return
-        if event_name in {"clarify", "error"}:
-            self._blocked = True
-            return
-        if (
-            event_name == "message"
-            and isinstance(event_data, dict)
-            and event_data.get("clarify") is True
-        ):
-            self._blocked = True
-            return
-        if event_name == "card_display_contract":
-            try:
-                contract = CardDisplayContract.model_validate(event_data)
-            except (TypeError, ValueError):
-                self._blocked = True
-                return
-            if (
-                self._card_display is not None
-                or contract.mode == "none"
-                or contract.max_cards == 0
-            ):
-                self._blocked = True
-                return
-            self._card_display = contract
-            return
-        if event_name == "end":
-            if (
-                not isinstance(event_data, dict)
-                or not isinstance(
-                    event_data.get("conversation_version"),
-                    int,
-                )
-                or isinstance(
-                    event_data.get("conversation_version"),
-                    bool,
-                )
-                or event_data["conversation_version"] < 0
-            ):
-                self._blocked = True
-                return
-            self._conversation_version = event_data[
-                "conversation_version"
-            ]
-
-    def completion(self) -> FeedbackCompletion | None:
-        if (
-            self._blocked
-            or self._card_display is None
-            or self._conversation_version is None
-        ):
-            return None
-        return FeedbackCompletion(
-            conversation_version=self._conversation_version,
-            card_display=self._card_display,
-        )
+def _active_card_display(
+    snapshot: ConversationSnapshot,
+) -> CardDisplayContract | None:
+    focus = snapshot.active_focus
+    if focus is None:
+        return None
+    slot = {
+        "recommendation": snapshot.recommendation_slot,
+        "product": snapshot.product_slot,
+        "image": snapshot.image_slot,
+        "consultation": snapshot.consultation_slot,
+        "knowledge": snapshot.knowledge_slot,
+        "reply": None,
+    }[focus.slot]
+    return slot.card_display if slot is not None else None
 
 
 class TrustedFeedbackService:

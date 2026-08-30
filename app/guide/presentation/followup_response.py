@@ -2,7 +2,7 @@ from app.guide.decision.contracts import FollowupDecisionResult
 from app.guide.feedback.contracts import ConversationSnapshot
 from app.guide.presentation.contracts import ProductCard, ProductCardFacts
 from app.guide.presentation.response_planning import (
-    project_public_category_facts,
+    build_product_card,
 )
 from app.guide.understanding.contracts import FollowupAction
 
@@ -21,35 +21,21 @@ def build_followup_cards(
     snapshot: ConversationSnapshot,
     product_facts: dict[int, ProductCardFacts],
 ) -> list[ProductCard]:
+    if snapshot.recommendation_slot is None:
+        raise ValueError("followup requires recommendation slot")
     references = {
-        item.product_id: item for item in snapshot.candidates
+        item.product_id: item
+        for item in snapshot.recommendation_slot.candidates
     }
     cards: list[ProductCard] = []
     for product_id in result.selected_product_ids:
         reference = references[product_id]
         facts = product_facts[product_id]
         cards.append(
-            ProductCard(
-                product_id=product_id,
-                category_profile=facts.category_profile,
-                category_facts=project_public_category_facts(
-                    facts.category_fields
-                ),
-                variant_scope=facts.variant_scope,
-                specification=facts.specification,
-                name=facts.name,
-                brand=facts.brand,
-                category=facts.category,
-                price=facts.price,
-                image_url=facts.image_url,
-                detail_url=facts.detail_url,
-                platform=facts.platform,
-                image_source_sha256=facts.image_source_sha256,
+            build_product_card(
+                facts,
                 skin_match=reference.skin_match,
-                matched_efficacies=list(
-                    reference.matched_efficacies
-                ),
-                fact_warnings=list(facts.fact_warnings),
+                matched_efficacies=reference.matched_efficacies,
             )
         )
     return cards

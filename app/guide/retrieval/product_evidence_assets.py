@@ -11,6 +11,7 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    field_serializer,
     field_validator,
     model_validator,
 )
@@ -190,6 +191,13 @@ class SelectionProjection(_StrictFrozenModel):
             return frozenset(value)
         return value
 
+    @field_serializer("capabilities", when_used="json")
+    def serialize_capabilities(
+        self,
+        value: frozenset[str],
+    ) -> list[str]:
+        return sorted(value)
+
     @model_validator(mode="after")
     def validate_projection(self) -> Self:
         if self.normalized_value != self.normalized_value.strip():
@@ -314,6 +322,17 @@ class ProductEvidenceBlock(_StrictFrozenModel):
         if isinstance(value, (list, tuple, set)):
             return frozenset(value)
         return value
+
+    @field_serializer(
+        "allowed_uses",
+        "forbidden_uses",
+        when_used="json",
+    )
+    def serialize_use_sets(
+        self,
+        value: frozenset[str],
+    ) -> list[str]:
+        return sorted(value)
 
     @model_validator(mode="after")
     def validate_evidence(self) -> Self:

@@ -6,7 +6,14 @@ from typing import Any, Protocol
 
 from pydantic import BaseModel, ConfigDict
 
-from app.guide.retrieval.image_contracts import ImageIndexRuntimeLock
+from app.guide.retrieval.image_contracts import (
+    ImageIndexRuntimeLock,
+    ImageRetrievalRequest,
+)
+from app.guide.understanding.image_contracts import (
+    ImageIdentityObservation,
+    ImageIdentityTrace,
+)
 
 
 class ImageIndexHealthPort(Protocol):
@@ -39,39 +46,54 @@ class ImageRecommendationRuntime:
     def __init__(
         self,
         *,
-        builder: Callable[[], object],
+        processor: object,
+        evidence_collector: object,
+        ensure_model_ready: Callable[[], None],
         health_check: ImageIndexHealthPort,
         runtime_lock: ImageIndexRuntimeLock,
     ) -> None:
-        self._builder = builder
+        if processor is evidence_collector:
+            raise TypeError(
+                "image processor and evidence collector must be distinct"
+            )
+        self._processor = processor
+        self._evidence_collector = evidence_collector
+        self._ensure_model_ready = ensure_model_ready
         self._health_check = health_check
         self._runtime_lock = runtime_lock
-        self._orchestrator: object | None = None
-        self._build_failed = False
+        self._model_ready: bool | None = None
         self._lock = RLock()
 
-    def get_orchestrator(self):
-        index_health = self._health_check.check()
-        if not index_health.healthy:
+    @property
+    def processor(self) -> object:
+        return self._processor
+
+    @property
+    def evidence_collector(self) -> object:
+        return self._evidence_collector
+
+    def _check_model(self) -> None:
+        if self._model_ready is True:
+            return
+        if self._model_ready is False:
             raise ImageRuntimeUnavailable(
-                tuple(index_health.issues)
+                ("image_runtime_unavailable",)
             )
         with self._lock:
-            if self._orchestrator is not None:
-                return self._orchestrator
-            if self._build_failed:
+            if self._model_ready is True:
+                return
+            if self._model_ready is False:
                 raise ImageRuntimeUnavailable(
                     ("image_runtime_unavailable",)
                 )
             try:
-                orchestrator = self._builder()
+                self._ensure_model_ready()
             except Exception:
-                self._build_failed = True
+                self._model_ready = False
                 raise ImageRuntimeUnavailable(
                     ("image_runtime_unavailable",)
                 ) from None
-            self._orchestrator = orchestrator
-            return orchestrator
+            self._model_ready = True
 
     def health(self) -> ImageRuntimeHealth:
         index_health = self._health_check.check()
@@ -81,13 +103,29 @@ class ImageRecommendationRuntime:
                 issues=tuple(index_health.issues),
             )
         try:
-            self.get_orchestrator()
+            self._check_model()
         except ImageRuntimeUnavailable as error:
             return self._health(
                 healthy=False,
                 issues=error.issues,
             )
         return self._health(healthy=True, issues=())
+
+    def trace_identity_request(
+        self,
+        request: ImageRetrievalRequest,
+    ) -> tuple[ImageIdentityObservation, ImageIdentityTrace]:
+        trace = getattr(
+            self._evidence_collector,
+            "trace_identity_request",
+            None,
+        )
+        if not callable(trace):
+            raise TypeError(
+                "image evidence collector must expose "
+                "trace_identity_request"
+            )
+        return trace(request)
 
     def _health(
         self,

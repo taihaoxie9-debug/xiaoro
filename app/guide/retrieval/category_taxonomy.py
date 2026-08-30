@@ -36,6 +36,21 @@ def canonical_categories_for(topic: TopicCode) -> frozenset[str]:
     return _CATEGORY_FAMILIES[topic]
 
 
+def most_specific_compatible_topic(
+    left: TopicCode,
+    right: TopicCode,
+) -> TopicCode | None:
+    if left is right:
+        return left
+    left_categories = canonical_categories_for(left)
+    right_categories = canonical_categories_for(right)
+    if left_categories < right_categories:
+        return left
+    if right_categories < left_categories:
+        return right
+    return None
+
+
 def category_profile_for_topic(topic: TopicCode) -> CategoryProfile:
     return _TOPIC_PROFILES[topic]
 

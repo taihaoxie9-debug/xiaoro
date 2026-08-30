@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import stat
 import tempfile
+from threading import RLock
 from typing import Any, Literal
 
 import numpy as np
@@ -197,6 +198,77 @@ class OpenClipImageEncoder:
             raise
         except Exception as exc:
             raise OpenClipModelError("model_inference_failed") from exc
+
+
+class DeferredOpenClipImageEncoder:
+    """Keep the approved model identity fixed while loading weights on use."""
+
+    def __init__(self, spec: OpenClipModelSpec) -> None:
+        spec.validate_static_contract()
+        self._spec = spec
+        self._model_lock = ApprovedImageModelLock(
+            approval_id=LOCKED_APPROVAL_ID,
+            model_name=LOCKED_ARTIFACT_MODEL_NAME,
+            weights_sha256=LOCKED_WEIGHT_SHA256,
+            preprocessing_version=LOCKED_PREPROCESS_VERSION,
+            vector_dimension=LOCKED_VECTOR_DIMENSION,
+        )
+        self._encoder: OpenClipImageEncoder | None = None
+        self._failure_code: str | None = None
+        self._lock = RLock()
+
+    @property
+    def model_lock(self) -> ApprovedImageModelLock:
+        return self._model_lock
+
+    def ensure_ready(self) -> None:
+        self._loaded_encoder()
+
+    def encode_paths(
+        self,
+        paths: Sequence[Path],
+        *,
+        batch_size: int,
+    ) -> np.ndarray:
+        return self._loaded_encoder().encode_paths(
+            paths,
+            batch_size=batch_size,
+        )
+
+    def encode_bytes(self, content: bytes) -> np.ndarray:
+        return self._loaded_encoder().encode_bytes(content)
+
+    def encode_contents(
+        self,
+        contents: Sequence[bytes],
+        *,
+        batch_size: int,
+    ) -> np.ndarray:
+        return self._loaded_encoder().encode_contents(
+            contents,
+            batch_size=batch_size,
+        )
+
+    def _loaded_encoder(self) -> OpenClipImageEncoder:
+        if self._encoder is not None:
+            return self._encoder
+        if self._failure_code is not None:
+            raise OpenClipModelError(self._failure_code)
+        with self._lock:
+            if self._encoder is not None:
+                return self._encoder
+            if self._failure_code is not None:
+                raise OpenClipModelError(self._failure_code)
+            try:
+                encoder = OpenClipImageEncoder(self._spec)
+            except OpenClipModelError as exc:
+                self._failure_code = exc.code
+                raise
+            except Exception as exc:
+                self._failure_code = "model_load_failed"
+                raise OpenClipModelError("model_load_failed") from exc
+            self._encoder = encoder
+            return encoder
 
 
 @contextmanager

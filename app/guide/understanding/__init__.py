@@ -32,6 +32,7 @@ from app.guide.understanding.ports import (
     OcrObservationPort,
     SemanticIntentPort,
     TextUnderstandingPort,
+    UnifiedUnderstandingPort,
     VisualObservationPort,
 )
 
@@ -62,6 +63,7 @@ __all__ = [
     "SourceSpan",
     "TextUnderstandingPort",
     "TopicCode",
+    "UnifiedUnderstandingPort",
     "UnderstandingGoal",
     "VisualCandidateObservation",
     "VisualObservationPort",

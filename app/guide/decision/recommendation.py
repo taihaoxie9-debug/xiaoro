@@ -49,6 +49,9 @@ from app.guide.retrieval.category_taxonomy import (
     canonical_categories_for,
 )
 from app.guide.retrieval.contracts import RetrievalResult
+from app.guide.retrieval.ingredient_entities import (
+    ingredient_entities_match,
+)
 from app.guide.retrieval.selection_parent_concept_reader import (
     SelectionParentConceptReader,
 )
@@ -365,7 +368,7 @@ def decide_recommendation(
             )
             continue
 
-        skin_match = _skin_match(product, skin)
+        skin_match = resolve_skin_match(product, skin)
         if skin_match == "mismatch":
             evaluations.append(
                 _evaluation(
@@ -653,12 +656,14 @@ def _exclusion_disposition(
     bool,
 ]:
     for exclusion in exclusions:
-        term = exclusion.value.casefold()
         present = product.ingredients_present or ()
         absent = product.verified_absences or ()
         if (
             product.ingredients_present_state is FactState.KNOWN
-            and any(term in value.casefold() for value in present)
+            and any(
+                ingredient_entities_match(exclusion.value, value)
+                for value in present
+            )
         ):
             return "excluded_exclusion_match", False
         if (
@@ -668,7 +673,10 @@ def _exclusion_disposition(
             return "excluded_evidence_unknown", True
         if (
             product.verified_absences_state is FactState.KNOWN
-            and any(term in value.casefold() for value in absent)
+            and any(
+                ingredient_entities_match(exclusion.value, value)
+                for value in absent
+            )
         ):
             continue
         return "excluded_evidence_unknown", False
@@ -715,7 +723,7 @@ def _efficacy_match(
     return "matched", matches
 
 
-def _skin_match(
+def resolve_skin_match(
     product: DecisionProductFacts,
     constraint: SkinConstraint | None,
 ) -> SkinMatch:

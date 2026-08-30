@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import re
 from typing import Literal
+import unicodedata
 
 from pydantic import (
     BaseModel,
@@ -32,6 +34,21 @@ AdmissionDisposition = Literal[
     "deferred_until_topic",
     "rejected_protocol",
 ]
+
+_RESULT_COUNT_PATTERN = re.compile(
+    r"(?P<count>[1-4一二两三四])\s*(?:款|个|支|瓶|种)"
+)
+_RESULT_COUNT_VALUES = {
+    "1": 1,
+    "一": 1,
+    "2": 2,
+    "二": 2,
+    "两": 2,
+    "3": 3,
+    "三": 3,
+    "4": 4,
+    "四": 4,
+}
 
 
 class _StrictFrozen(BaseModel):
@@ -71,6 +88,7 @@ def admit_turn_meaning(
     message: str,
     meaning: TurnMeaning,
     topic: TopicCode | None,
+    active_topic: TopicCode | None = None,
     concept_catalog: ConceptPreferenceCatalog | None,
 ) -> SemanticAdmissionResult:
     if not isinstance(message, str) or not message.strip():
@@ -79,6 +97,11 @@ def admit_turn_meaning(
         raise TypeError("meaning must be an exact TurnMeaning")
     if topic is not None and not isinstance(topic, TopicCode):
         raise TypeError("topic must be a TopicCode or None")
+    if active_topic is not None and not isinstance(
+        active_topic,
+        TopicCode,
+    ):
+        raise TypeError("active_topic must be a TopicCode or None")
     if (
         concept_catalog is not None
         and not isinstance(concept_catalog, ConceptPreferenceCatalog)
@@ -120,16 +143,67 @@ def admit_turn_meaning(
                 reason="closed topic protocol value",
             )
         )
-
-    outcomes.extend(
-        _source_bound_outcome(
-            message,
-            atom_kind="reference",
-            raw_text=item.raw_text,
-            normalized_value=item.object_family_hint,
+    if meaning.recommendation_mode is not None:
+        outcomes.append(
+            AdmissionOutcome(
+                atom_kind="recommendation_mode",
+                raw_text=meaning.recommendation_mode,
+                disposition="admitted",
+                normalized_value=meaning.recommendation_mode,
+                reason="closed recommendation outcome value",
+            )
         )
-        for item in meaning.reference_mentions
-    )
+        assert meaning.recommendation_mode_basis is not None
+        outcomes.append(
+            _source_bound_outcome(
+                message,
+                atom_kind="recommendation_mode_basis",
+                raw_text=meaning.recommendation_mode_basis.source_text,
+                normalized_value=(
+                    meaning.recommendation_mode_basis.basis
+                ),
+            )
+        )
+    if meaning.recommendation_count is not None:
+        assert meaning.recommendation_mode is not None
+        assert meaning.recommendation_mode_basis is not None
+        outcomes.append(
+            _recommendation_count_outcome(
+                message,
+                mode=meaning.recommendation_mode,
+                count=meaning.recommendation_count,
+                source_text=(
+                    meaning.recommendation_mode_basis.source_text
+                ),
+            )
+        )
+
+    for item in meaning.reference_mentions:
+        if (
+            item.object_family_hint == "topic"
+            and meaning.continuity_hint == "return_to_focus"
+            and meaning.product_mentions
+            and topic is not None
+            and active_topic is topic
+        ):
+            outcomes.append(
+                AdmissionOutcome(
+                    atom_kind="reference",
+                    raw_text=item.raw_text,
+                    disposition="admitted",
+                    normalized_value=item.object_family_hint,
+                    reason="typed current topic matches active context",
+                )
+            )
+            continue
+        outcomes.append(
+            _source_bound_outcome(
+                message,
+                atom_kind="reference",
+                raw_text=item.raw_text,
+                normalized_value=item.object_family_hint,
+            )
+        )
     outcomes.extend(
         _source_bound_outcome(
             message,
@@ -157,6 +231,27 @@ def admit_turn_meaning(
         )
         for item in meaning.preference_candidates
     )
+    outcomes.extend(
+        _source_bound_outcome(
+            message,
+            atom_kind="constraint_change",
+            raw_text=item.raw_text,
+            normalized_value=(
+                f"{item.parent_concept}:{item.requested_change}"
+            ),
+        )
+        for item in meaning.constraint_changes
+    )
+    if meaning.pending_response_hint != "unknown":
+        outcomes.append(
+            AdmissionOutcome(
+                atom_kind="pending_response",
+                raw_text=meaning.pending_response_hint,
+                disposition="admitted",
+                normalized_value=meaning.pending_response_hint,
+                reason="closed pending response hint",
+            )
+        )
     outcomes.extend(
         _source_bound_outcome(
             message,
@@ -255,6 +350,56 @@ def _source_bound_outcome(
     )
 
 
+def _recommendation_count_outcome(
+    message: str,
+    *,
+    mode: str,
+    count: int,
+    source_text: str,
+) -> AdmissionOutcome:
+    if not has_source_bound_recommendation_count(
+        message,
+        source_text,
+        count,
+    ):
+        return AdmissionOutcome(
+            atom_kind="recommendation_count",
+            raw_text=source_text,
+            disposition="rejected_protocol",
+            normalized_value=None,
+            reason="source text does not bind the result count",
+        )
+    return AdmissionOutcome(
+        atom_kind="recommendation_count",
+        raw_text=source_text,
+        disposition="admitted",
+        normalized_value=str(count),
+        reason="result count is uniquely source-bound",
+    )
+
+
+def has_source_bound_recommendation_count(
+    message: str,
+    source_text: str,
+    expected_count: int,
+) -> bool:
+    source = _source_bound_outcome(
+        message,
+        atom_kind="recommendation_count",
+        raw_text=source_text,
+        normalized_value=str(expected_count),
+    )
+    if source.disposition == "rejected_protocol":
+        return False
+    normalized = unicodedata.normalize("NFKC", message)
+    grounded_counts = {
+        _RESULT_COUNT_VALUES[match.group("count")]
+        for match in _RESULT_COUNT_PATTERN.finditer(normalized)
+        if not normalized[:match.start()].rstrip().endswith("第")
+    }
+    return grounded_counts == {expected_count}
+
+
 def _preference_outcome(
     message: str,
     *,
@@ -272,6 +417,17 @@ def _preference_outcome(
     )
     if source.disposition == "rejected_protocol":
         return source
+    if (
+        candidate.field_key == "ingredient"
+        and candidate.polarity == "avoid"
+    ):
+        return AdmissionOutcome(
+            atom_kind="preference",
+            raw_text=candidate.raw_text,
+            disposition="rejected_protocol",
+            normalized_value=None,
+            reason="ingredient exclusions require ingredient_exclusion",
+        )
     if candidate.strength != "ordinary":
         return AdmissionOutcome(
             atom_kind="preference",
