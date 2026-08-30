@@ -14,18 +14,25 @@ from pydantic import (
     model_validator,
 )
 
+from app.guide.intent.responsibility_matrix import Responsibility
 from app.guide.presentation.copywriter_contracts import (
     ApprovedSoftFact,
     CategoryProfileValue,
     CopyLengthBudget,
     CopySlot,
     CopywriterDraft,
+    CopywriterSection,
+    DimensionId,
     DirectCaution,
     FactAttribution,
     LockedFact,
     PresentationMode,
     PresentationPacket,
     PresentationSectionSpec,
+    RecommendationMode,
+    build_copywriter_section_specs,
+    responsibility_for_presentation_mode,
+    section_copy_blocks_include_winner_claim,
 )
 from app.guide.presentation.copywriter_validation import (
     CopywriterValidationError,
@@ -80,8 +87,36 @@ def _require_unique(values: Sequence[str], *, label: str) -> None:
 class GateSoftFact(_StrictFrozenModel):
     fact_id: str = Field(min_length=1, max_length=160)
     field_key: str = Field(pattern=r"^[a-z][a-z0-9_]{1,63}$")
+    dimension_ids: tuple[DimensionId, ...] = ()
     plain_meaning: str = Field(min_length=1, max_length=512)
     attribution: FactAttribution
+
+    @field_validator("dimension_ids", mode="before")
+    @classmethod
+    def freeze_dimension_ids(cls, value: object) -> object:
+        return _tuple(value)
+
+    @model_validator(mode="after")
+    def validate_dimensions(self) -> Self:
+        dimension_ids = (
+            self.dimension_ids
+            if self.dimension_ids
+            else (self.field_key,)
+        )
+        if any(
+            dimension_id != self.field_key
+            and not dimension_id.startswith(f"{self.field_key}.")
+            for dimension_id in dimension_ids
+        ):
+            raise ValueError(
+                "gate soft fact dimensions must belong to its field"
+            )
+        _require_unique(
+            dimension_ids,
+            label="gate soft fact dimension IDs",
+        )
+        object.__setattr__(self, "dimension_ids", dimension_ids)
+        return self
 
 
 class GateLockedFact(_StrictFrozenModel):
@@ -151,6 +186,7 @@ class GateSlot(_StrictFrozenModel):
                     fact_id=fact.fact_id,
                     product_id=self.product_id,
                     field_key=fact.field_key,
+                    dimension_ids=fact.dimension_ids,
                     plain_meaning=fact.plain_meaning,
                     attribution=fact.attribution,
                     source_refs=(
@@ -213,11 +249,13 @@ class PresentationCopyGateCase(_StrictFrozenModel):
     ] = "guide-presentation-copy-gate-v1"
     case_id: str = Field(min_length=1, max_length=128)
     mode: PresentationMode
+    recommendation_mode: RecommendationMode | None = None
     user_need_summary: str = Field(min_length=1, max_length=512)
     winner_status: str | None = Field(default=None, max_length=96)
     slots: tuple[GateSlot, ...] = Field(default_factory=tuple, max_length=4)
     required_slots: tuple[str, ...]
     allowed_soft_fact_ids: dict[str, tuple[str, ...]]
+    required_dimensions: tuple[str, ...] = ()
     locked_atoms: tuple[str, ...]
     winner_language_policy: WinnerLanguagePolicy
     required_attribution: tuple[RequiredAttribution, ...] = ()
@@ -228,6 +266,7 @@ class PresentationCopyGateCase(_StrictFrozenModel):
     @field_validator(
         "slots",
         "required_slots",
+        "required_dimensions",
         "locked_atoms",
         "required_attribution",
         "forbidden_factual_claims",
@@ -250,6 +289,20 @@ class PresentationCopyGateCase(_StrictFrozenModel):
 
     @model_validator(mode="after")
     def validate_fixture_truth(self) -> Self:
+        responsibility = responsibility_for_presentation_mode(self.mode)
+        if responsibility is Responsibility.RECOMMENDATION:
+            if self.recommendation_mode is None:
+                raise ValueError(
+                    "recommendation copy gate requires recommendation mode"
+                )
+        elif self.recommendation_mode is not None:
+            raise ValueError(
+                "non-recommendation copy gate forbids recommendation mode"
+            )
+        _require_unique(
+            self.required_dimensions,
+            label="required dimensions",
+        )
         slot_ids = tuple(slot.slot_id for slot in self.slots)
         if slot_ids != self.required_slots:
             raise ValueError("required slots must match fixture slot order")
@@ -322,6 +375,10 @@ class PresentationCopyGateCase(_StrictFrozenModel):
         copy_slots = tuple(slot.to_copy_slot() for slot in self.slots)
         return PresentationPacket(
             mode=self.mode,
+            responsibility=responsibility_for_presentation_mode(
+                self.mode
+            ),
+            recommendation_mode=self.recommendation_mode,
             user_need_summary=self.user_need_summary,
             winner_status=self.winner_status,
             slots=copy_slots,
@@ -329,6 +386,7 @@ class PresentationCopyGateCase(_StrictFrozenModel):
                 mode=self.mode,
                 slot_ids=self.required_slots,
             ),
+            requested_dimensions=self.required_dimensions,
             copy_budget=CopyLengthBudget(
                 summary_max_chars=180,
                 positioning_max_chars=90,
@@ -372,7 +430,6 @@ class PresentationCopyGateRow(_StrictFrozenModel):
                 self.hard_atom_violation_count,
                 self.winner_language_violation_count,
                 self.attribution_violation_count,
-                self.fact_coverage_violation_count,
                 self.internal_language_violation_count,
             )
         )
@@ -508,7 +565,11 @@ def evaluate_copy_gate_output(
         }
         and _passes_readability(case, draft)
     )
-    hard_total = call_violation + sum(violations.values())
+    hard_total = call_violation + sum(
+        count
+        for name, count in violations.items()
+        if name != "coverage"
+    )
     return PresentationCopyGateRow(
         case_id=case.case_id,
         provider_call_count=provider_call_count,
@@ -534,6 +595,7 @@ def evaluate_copy_gate_output(
         passed=(
             validation_code is None
             and hard_total == 0
+            and violations["coverage"] == 0
             and readability_passed
         ),
     )
@@ -587,7 +649,11 @@ def summarize_copy_gate(
             row.internal_language_violation_count for row in normalized
         ),
     }
-    hard_violation_count = sum(counts.values())
+    hard_violation_count = sum(
+        count
+        for name, count in counts.items()
+        if name != "coverage"
+    )
     schema_rate = (
         schema_valid_count / case_count if case_count else 0.0
     )
@@ -610,9 +676,15 @@ def summarize_copy_gate(
         (row.minimum_fact_coverage for row in normalized),
         default=0.0,
     )
+    minimum_qualified_count = (
+        (case_count * 9 + 9) // 10
+        if case_count
+        else 0
+    )
+    passed_count = sum(row.passed for row in normalized)
     return PresentationCopyGateSummary(
         case_count=case_count,
-        passed_count=sum(row.passed for row in normalized),
+        passed_count=passed_count,
         schema_valid_count=schema_valid_count,
         readability_passed_count=readability_passed_count,
         fact_coverage_passed_count=fact_coverage_passed_count,
@@ -635,9 +707,10 @@ def summarize_copy_gate(
         hard_violation_count=hard_violation_count,
         passed=(
             case_count > 0
-            and schema_rate >= 0.95
-            and readability_rate >= 0.90
-            and fact_coverage_rate == 1.0
+            and passed_count >= minimum_qualified_count
+            and schema_valid_count >= minimum_qualified_count
+            and readability_passed_count >= minimum_qualified_count
+            and fact_coverage_passed_count >= minimum_qualified_count
             and internal_language_rate == 1.0
             and hard_violation_count == 0
         ),
@@ -649,22 +722,23 @@ def _section_order(
     mode: PresentationMode,
     slot_ids: tuple[str, ...],
 ) -> tuple[PresentationSectionSpec, ...]:
-    if mode == "consultation":
+    responsibility = responsibility_for_presentation_mode(mode)
+    if mode == "clarification":
+        return (PresentationSectionSpec(kind="question"),)
+    if mode == "error":
+        return (PresentationSectionSpec(kind="error"),)
+    if responsibility.value == "consultation":
         return (
             PresentationSectionSpec(kind="observation"),
             PresentationSectionSpec(kind="summary"),
         )
-    if mode == "general_knowledge":
+    if responsibility.value == "general_knowledge":
         return (
             PresentationSectionSpec(kind="general_knowledge"),
         )
-    if not slot_ids:
+    if responsibility.value == "image_identity":
         return (
-            PresentationSectionSpec(kind="summary"),
-            PresentationSectionSpec(kind="closing"),
-        )
-    if mode == "product_knowledge":
-        return (
+            PresentationSectionSpec(kind="observation"),
             *(
                 PresentationSectionSpec(
                     kind="product",
@@ -674,31 +748,57 @@ def _section_order(
             ),
             PresentationSectionSpec(kind="full_cards"),
         )
-    sections = [PresentationSectionSpec(kind="summary")]
-    if mode in {"comparison", "image_comparison"}:
-        sections.append(PresentationSectionSpec(kind="comparison"))
-    sections.extend(
-        PresentationSectionSpec(
-            kind="product",
-            slot_id=slot_id,
-        )
-        for slot_id in slot_ids
-    )
-    sections.extend(
-        (
+    if not slot_ids:
+        return (
+            PresentationSectionSpec(kind="summary"),
             PresentationSectionSpec(kind="closing"),
-            PresentationSectionSpec(kind="full_cards"),
-            PresentationSectionSpec(kind="pitfalls"),
         )
+    if responsibility.value == "product_knowledge":
+        return (
+            PresentationSectionSpec(kind="summary"),
+            PresentationSectionSpec(kind="answer"),
+            PresentationSectionSpec(kind="full_cards"),
+        )
+    if responsibility.value == "single_product_suitability":
+        return (
+            PresentationSectionSpec(kind="summary"),
+            PresentationSectionSpec(kind="judgement"),
+            PresentationSectionSpec(kind="full_cards"),
+        )
+    if responsibility.value == "comparison":
+        return (
+            PresentationSectionSpec(kind="summary"),
+            PresentationSectionSpec(kind="comparison"),
+            PresentationSectionSpec(kind="full_cards"),
+        )
+    return (
+        PresentationSectionSpec(kind="summary"),
+        *(
+            PresentationSectionSpec(
+                kind="product",
+                slot_id=slot_id,
+            )
+            for slot_id in slot_ids
+        ),
+        PresentationSectionSpec(kind="closing"),
+        PresentationSectionSpec(kind="full_cards"),
     )
-    return tuple(sections)
 
 
 def _parse_draft(output: object) -> CopywriterDraft:
     if isinstance(output, CopywriterDraft):
         return output
     if isinstance(output, (str, bytes, bytearray)):
+        raw = json.loads(output)
+        if not section_copy_blocks_include_winner_claim(raw):
+            raise ValueError(
+                "section copy is missing structured winner claim"
+            )
         return CopywriterDraft.model_validate_json(output, strict=True)
+    if not section_copy_blocks_include_winner_claim(output):
+        raise ValueError(
+            "section copy is missing structured winner claim"
+        )
     return CopywriterDraft.model_validate_json(
         json.dumps(
             output,
@@ -746,15 +846,17 @@ def _record_validation_violation(
 
 def _rendered_copy(draft: CopywriterDraft) -> str:
     return " ".join(
-        (
-            draft.summary_copy,
-            *(
-                text
-                for item in draft.product_copy
-                for text in (item.positioning, item.advisor_reason)
+        text
+        for section in draft.sections
+        for text in (
+            section.content.text,
+            (
+                section.advisor_reason.text
+                if section.advisor_reason is not None
+                else ""
             ),
-            draft.closing_copy or "",
         )
+        if text
     )
 
 
@@ -766,38 +868,101 @@ def _fact_ids_match_fixture(
     case: PresentationCopyGateCase,
     draft: CopywriterDraft,
 ) -> bool:
-    if tuple(item.slot_id for item in draft.product_copy) != (
-        case.required_slots
-    ):
+    specs = build_copywriter_section_specs(case.packet)
+    section_by_key = {
+        (section.kind, section.slot_id): section
+        for section in draft.sections
+    }
+    if set(section_by_key) != {
+        (spec.kind, spec.slot_id) for spec in specs
+    }:
         return False
-    return all(
-        set(item.used_soft_fact_ids).issubset(
-            case.allowed_soft_fact_ids[item.slot_id]
-        )
-        for item in draft.product_copy
-    )
+    for spec in specs:
+        section = section_by_key[(spec.kind, spec.slot_id)]
+        allowed = set(spec.allowed_fact_ids)
+        used = {
+            *section.content.used_fact_ids,
+            *(
+                section.advisor_reason.used_fact_ids
+                if section.advisor_reason is not None
+                else ()
+            ),
+        }
+        if not used.issubset(allowed):
+            return False
+    return True
 
 
 def _minimum_fact_coverage(
     case: PresentationCopyGateCase,
     draft: CopywriterDraft,
 ) -> float:
-    copy_by_slot = {
-        item.slot_id: item for item in draft.product_copy
+    if not case.required_dimensions:
+        return 1.0
+    specs = build_copywriter_section_specs(case.packet)
+    facts_by_id = {
+        fact.fact_id: fact
+        for slot in case.slots
+        for fact in slot.soft_facts
     }
-    coverage = []
-    for slot in case.slots:
-        allowed = set(case.allowed_soft_fact_ids[slot.slot_id])
-        if not allowed:
-            continue
-        item = copy_by_slot.get(slot.slot_id)
-        used = (
-            set(item.used_soft_fact_ids)
-            if item is not None
-            else set()
+    used = {
+        fact_id
+        for section in draft.sections
+        for fact_id in (
+            *section.content.used_fact_ids,
+            *(
+                section.advisor_reason.used_fact_ids
+                if section.advisor_reason is not None
+                else ()
+            ),
         )
-        coverage.append(len(used & allowed) / len(allowed))
-    return min(coverage, default=1.0)
+    }
+    covered_dimensions = {
+        dimension_id
+        for dimension_id in case.required_dimensions
+        if any(
+            _fact_covers_dimension(
+                facts_by_id[fact_id],
+                dimension_id,
+            )
+            for fact_id in used
+            if fact_id in facts_by_id
+        )
+    }
+    model_owned_required_dimensions = {
+        dimension_id
+        for dimension_id in case.required_dimensions
+        if any(
+            _fact_covers_dimension(
+                facts_by_id[fact_id],
+                dimension_id,
+            )
+            for spec in specs
+            if spec.content_source == "approved_facts"
+            for fact_id in spec.allowed_fact_ids
+            if fact_id in facts_by_id
+        )
+    }
+    return (
+        (
+            len(
+                model_owned_required_dimensions
+                & covered_dimensions
+            )
+            / len(model_owned_required_dimensions)
+        )
+        if model_owned_required_dimensions
+        else 1.0
+    )
+
+
+def _fact_covers_dimension(
+    fact: GateSoftFact,
+    dimension_id: str,
+) -> bool:
+    if "." not in dimension_id:
+        return fact.field_key == dimension_id
+    return dimension_id in fact.dimension_ids
 
 
 def _contains_internal_language(text: str) -> bool:
@@ -809,16 +974,41 @@ def _attribution_matches_fixture(
     case: PresentationCopyGateCase,
     draft: CopywriterDraft,
 ) -> bool:
-    copy_by_slot = {
-        item.slot_id: item for item in draft.product_copy
-    }
+    sections_by_slot: dict[str, list[CopywriterSection]] = {}
+    for section in draft.sections:
+        if section.slot_id is not None:
+            sections_by_slot.setdefault(section.slot_id, []).append(
+                section
+            )
     for requirement in case.required_attribution:
-        item = copy_by_slot.get(requirement.slot_id)
-        if item is None:
-            return False
-        if requirement.fact_id not in item.used_soft_fact_ids:
+        sections = sections_by_slot.get(requirement.slot_id, ())
+        used = {
+            fact_id
+            for section in sections
+            for fact_id in (
+                *section.content.used_fact_ids,
+                *(
+                    section.advisor_reason.used_fact_ids
+                    if section.advisor_reason is not None
+                    else ()
+                ),
+            )
+        }
+        if requirement.fact_id not in used:
             continue
-        text = f"{item.positioning} {item.advisor_reason}"
+        text = " ".join(
+            value
+            for section in sections
+            for value in (
+                section.content.text,
+                (
+                    section.advisor_reason.text
+                    if section.advisor_reason is not None
+                    else None
+                ),
+            )
+            if value is not None
+        )
         if not any(
             marker in text
             for marker in requirement.accepted_markers
@@ -832,41 +1022,49 @@ def _passes_readability(
     draft: CopywriterDraft,
 ) -> bool:
     rubric = case.readability
-    if len(draft.summary_copy.strip()) < rubric.summary_min_chars:
-        return False
-    if rubric.require_closing:
-        if draft.closing_copy is None:
-            return False
-        if len(draft.closing_copy.strip()) < rubric.closing_min_chars:
-            return False
-    for item in draft.product_copy:
-        positioning_length = len(item.positioning.strip())
-        reason_length = len(item.advisor_reason.strip())
-        if reason_length < rubric.product_field_min_chars:
-            return False
-        if positioning_length < rubric.product_field_min_chars:
-            concise_floor = min(5, rubric.product_field_min_chars)
-            if (
-                positioning_length < concise_floor
-                or positioning_length + reason_length
-                < rubric.product_field_min_chars * 2
-            ):
-                return False
-    if (
-        rubric.require_soft_fact_use
-        and any(
-            slot.soft_facts and not item.used_soft_fact_ids
-            for slot, item in zip(
-                case.slots,
-                draft.product_copy,
-                strict=True,
-            )
-        )
+    specs = build_copywriter_section_specs(case.packet)
+    sections = {
+        (section.kind, section.slot_id): section
+        for section in draft.sections
+    }
+    summary = next(
+        (
+            sections[(spec.kind, spec.slot_id)]
+            for spec in specs
+            if spec.kind in {"summary", "general_knowledge"}
+        ),
+        None,
+    )
+    if summary is not None and (
+        len(summary.content.text.strip()) < rubric.summary_min_chars
     ):
         return False
-    lowered = _rendered_copy(draft).casefold()
+    closing = sections.get(("closing", None))
+    if rubric.require_closing:
+        if closing is None or (
+            len(closing.content.text.strip()) < rubric.closing_min_chars
+        ):
+            return False
+    for spec in specs:
+        if spec.kind != "product":
+            continue
+        section = sections[(spec.kind, spec.slot_id)]
+        if section.advisor_reason is None:
+            return False
+        if (
+            len(section.content.text.strip())
+            + len(section.advisor_reason.text.strip())
+            < rubric.product_field_min_chars * 2
+        ):
+            return False
+    if (
+        rubric.require_soft_fact_use
+        and case.required_dimensions
+        and _minimum_fact_coverage(case, draft) < 1.0
+    ):
+        return False
     return not any(
-        term in lowered
+        term in _rendered_copy(draft).casefold()
         for term in (
             "数据库",
             "系统提示",

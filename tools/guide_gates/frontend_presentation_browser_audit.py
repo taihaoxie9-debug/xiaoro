@@ -9,18 +9,33 @@ from typing import Any
 from PIL import Image
 from playwright.sync_api import Page, sync_playwright
 
+from app.guide.adapters.catalog import CanonicalProductReader
+from app.guide.adapters.catalog.canonical_guide_catalog import (
+    CanonicalGuideCatalog,
+)
+from app.guide.adapters.catalog.seed_product_assets import (
+    load_seed_product_assets,
+)
+from app.guide.application.public_event_envelope import (
+    project_frontend_product,
+)
+from app.guide.presentation.response_planning import build_product_card
+from app.guide.retrieval.product_display_assets import (
+    ProductDisplayBindingReader,
+    load_product_display_assets,
+)
+from app.guide_runtime.composition import (
+    GUIDE_PRODUCT_DISPLAY_MANIFEST_SHA256,
+    GUIDE_PRODUCT_DISPLAY_RELATIVE_PATH,
+    build_category_fact_reader,
+)
+
 
 ROOT = Path(__file__).resolve().parents[2]
 MODE_FIXTURE = (
     ROOT
     / "tests/fixtures/guide/presentation/"
     "frontend_mode_matrix_v1.jsonl"
-)
-CANONICAL_PRODUCTS = (
-    ROOT / "data/canonical/core_products_v1.jsonl"
-)
-PRODUCT_IMAGES = (
-    ROOT / "data/canonical/seed_product_images_v1.jsonl"
 )
 AUDIT_ROOT = ROOT / "docs/audits/frontend-integration"
 SCREENSHOTS = AUDIT_ROOT / "screenshots"
@@ -220,21 +235,6 @@ async ({caseRow, products}) => {
         data: presentation
     });
     state = api.reduceGuideEvent(state, {
-        event: 'message',
-        data: {
-            content: (
-                presentationMode === 'general_knowledge'
-                    ? '这是代码保留的知识回答。'
-                    : presentationMode === 'product_knowledge'
-                        ? '这是代码保留的商品事实回答。'
-                        : presentationMode === 'consultation'
-                            ? '这是代码保留的观察结论。'
-                            : '展示完成。'
-            ),
-            done: false
-        }
-    });
-    state = api.reduceGuideEvent(state, {
         event: 'end',
         data: {conversation_version: 1}
     });
@@ -397,72 +397,42 @@ def _jsonl(path: Path) -> tuple[dict[str, Any], ...]:
 
 
 def _products() -> list[dict[str, Any]]:
-    canonical = {
-        row["product_id"]: row
-        for row in _jsonl(CANONICAL_PRODUCTS)
-        if row["product_id"] in PRODUCT_IDS
-    }
-    assets = {
-        row["product_id"]: row
-        for row in _jsonl(PRODUCT_IMAGES)
-        if row["product_id"] in PRODUCT_IDS
-    }
-    output = []
-    for product_id in PRODUCT_IDS:
-        fields = canonical[product_id]["fields"]
-        value = lambda key: fields[key]["value"]
-        brand = str(value("brand") or "").strip()
-        category = str(value("category") or "").strip()
-        name = str(value("product_identity") or "").strip()
-        if name in {"", "无", "未知", "未命名"}:
-            name = " ".join(
-                part for part in (brand, category) if part
-            ) or f"商品 {product_id}"
-        output.append({
-            "id": product_id,
-            "product_id": product_id,
-            "category_profile": "suncare",
-            "category_facts": [
-                {
-                    "field_key": "suitable_skin",
-                    "label": "适用肤质",
-                    "value": ["以已核对信息为准"],
-                    "state": "known",
-                },
-                {
-                    "field_key": "texture",
-                    "label": "质地",
-                    "value": ["轻盈清爽"],
-                    "state": "known",
-                },
-                {
-                    "field_key": "spf_pa",
-                    "label": "防晒指数",
-                    "value": None,
-                    "state": "unavailable",
-                },
-                {
-                    "field_key": "water_resistance",
-                    "label": "防水性",
-                    "value": None,
-                    "state": "unavailable",
-                },
-            ],
-            "name": name,
-            "display_name": name,
-            "brand": brand,
-            "category": category,
-            "price": str(value("price")),
-            "image_url": assets[product_id]["image_url"],
-            "detail_url": f"/api/v1/search/products/{product_id}",
-            "platform": "本地核验资产",
-            "description": "当前卡片仅展示已核对事实。",
-            "efficacy_match": "not_applicable",
-            "matched_efficacies": [],
-            "suitable_skin": "以已核对信息为准",
-            "fact_warnings": [],
-        })
-    return output
+    canonical_root = ROOT / "data" / "canonical"
+    reader = CanonicalProductReader.from_files(
+        manifest_path=canonical_root / "core_products_v1_manifest.json",
+        products_path=canonical_root / "core_products_v1.jsonl",
+    )
+    assets = load_seed_product_assets(
+        manifest_path=canonical_root / "seed_product_images_v1_manifest.json",
+        products_path=canonical_root / "seed_product_images_v1.jsonl",
+        asset_root=ROOT,
+    )
+    display_assets = load_product_display_assets(
+        manifest_path=ROOT / GUIDE_PRODUCT_DISPLAY_RELATIVE_PATH,
+        expected_manifest_sha256=(
+            GUIDE_PRODUCT_DISPLAY_MANIFEST_SHA256
+        ),
+    )
+    catalog = CanonicalGuideCatalog(
+        reader,
+        product_assets=assets,
+        category_fact_port=build_category_fact_reader(
+            reader,
+            repo_root=ROOT,
+        ),
+        product_display_bindings=ProductDisplayBindingReader(
+            display_assets
+        ),
+    )
+    return [
+        project_frontend_product(
+            build_product_card(
+                catalog.get_presentation_facts(product_id),
+                skin_match="unknown",
+            )
+        )
+        for product_id in PRODUCT_IDS
+    ]
 
 
 def _pixel_ratio(path: Path) -> float:
@@ -480,6 +450,35 @@ def _pixel_ratio(path: Path) -> float:
 def _network_failure_text(request) -> str:
     failure = request.failure
     return f"{request.method} {request.url}: {failure or 'failed'}"
+
+
+def _validate_live_sse_lifecycle(
+    events: list[dict[str, Any]],
+) -> list[str]:
+    event_names = [
+        event.get("event")
+        if isinstance(event, dict)
+        else None
+        for event in events
+    ]
+    valid = (
+        bool(event_names)
+        and all(
+            isinstance(event_name, str) and event_name
+            for event_name in event_names
+        )
+        and event_names[0] == "start"
+        and event_names.count("start") == 1
+        and event_names[-1] == "end"
+        and event_names.count("end") == 1
+        and event_names.count("presentation_contract") == 1
+        and not {"clarify", "error", "message"}.intersection(event_names)
+    )
+    if not valid:
+        raise AssertionError(
+            f"live SSE lifecycle is invalid: {event_names!r}"
+        )
+    return event_names
 
 
 def _new_page(browser, *, viewport: dict[str, int]):
@@ -638,9 +637,10 @@ def _audit_live_sse(browser, *, url: str) -> dict[str, Any]:
     )
     if capture_errors:
         raise AssertionError(capture_errors)
-    event_names = [event["event"] for event in events]
+    event_names = _validate_live_sse_lifecycle(events)
     presentation_index = event_names.index("presentation_contract")
-    message_index = event_names.index("message")
+    end_index = event_names.index("end")
+    message_count = event_names.count("message")
     presentation = events[presentation_index]["data"]
     telemetry = presentation["telemetry"]
     screenshot = SCREENSHOTS / "live-recommend-desktop.jpg"
@@ -661,9 +661,9 @@ def _audit_live_sse(browser, *, url: str) -> dict[str, Any]:
             "presentation_contract.telemetry"
         ),
         "third_model_call_count": 0,
-        "presentation_before_message": (
-            presentation_index < message_index
-        ),
+        "lifecycle_valid": True,
+        "presentation_before_end": presentation_index < end_index,
+        "message_count": message_count,
         "thinking_started_immediately": thinking_started,
         "thinking_removed_after_first_character": (
             page.locator(".guide-thinking-pipeline").count() == 0
@@ -815,7 +815,9 @@ def main() -> int:
         not defects
         and not live["console_errors"]
         and not live["network_failures"]
-        and live["presentation_before_message"]
+        and live["lifecycle_valid"]
+        and live["presentation_before_end"]
+        and live["message_count"] == 0
         and live["thinking_removed_after_first_character"]
     )
     print(json.dumps({

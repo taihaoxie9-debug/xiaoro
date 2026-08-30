@@ -50,6 +50,9 @@ def task(topic: TopicCode = TopicCode.SERUM) -> TaskPlan:
         )
     return TaskPlan(
         mode="recommend",
+        recommendation_mode="explore",
+        recommendation_mode_basis="broad_exploration",
+        recommendation_count=3,
         referenced_image_ids=[],
         constraints=constraints,
         required_evidence=["canonical_product"],

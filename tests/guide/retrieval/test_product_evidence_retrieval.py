@@ -12,7 +12,35 @@ from app.guide.retrieval.product_evidence_reader import (
 from app.guide.retrieval.product_evidence_retrieval import (
     EvidenceQuery,
     ProductEvidenceRetriever,
+    prepare_evidence_search,
 )
+
+
+def test_evidence_query_carries_no_raw_request_text_or_source_spans() -> None:
+    assert "raw_question" not in EvidenceQuery.model_fields
+    assert "question_meaning" not in EvidenceQuery.model_fields
+    assert "product_mention_spans" not in EvidenceQuery.model_fields
+
+
+def _query(
+    *,
+    product_ids: tuple[int, ...],
+    raw_question: str,
+    question_meaning: str,
+    safety_sensitive: bool,
+    product_mention_spans: tuple[tuple[int, int], ...] = (),
+    product_identity_names: tuple[str, ...] = (),
+) -> EvidenceQuery:
+    return EvidenceQuery(
+        product_ids=product_ids,
+        search=prepare_evidence_search(
+            source_text=raw_question,
+            question_meaning=question_meaning,
+            product_mention_spans=product_mention_spans,
+        ),
+        safety_sensitive=safety_sensitive,
+        product_identity_names=product_identity_names,
+    )
 
 
 def _source(product_id: int, index: int) -> dict[str, object]:
@@ -699,7 +727,7 @@ def _reader() -> ProductEvidenceReader:
 
 def test_indirect_slippage_question_uses_meaning_not_fixed_tag() -> None:
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(78,),
             raw_question="它那个布会不会老往下掉？",
             question_meaning="询问面膜是否服帖、是否容易滑落",
@@ -712,11 +740,25 @@ def test_indirect_slippage_question_uses_meaning_not_fixed_tag() -> None:
     assert packet.selected[0].evidence.product_id == 78
 
 
+def test_ungrounded_question_meaning_cannot_nominate_evidence_alone() -> None:
+    packet = ProductEvidenceRetriever(_reader()).retrieve(
+        _query(
+            product_ids=(78,),
+            raw_question="这款整体怎么样？",
+            question_meaning="询问面膜是否服帖、是否容易滑落",
+            safety_sensitive=False,
+        )
+    )
+
+    assert packet.selected == ()
+    assert packet.missing_aspects
+
+
 def test_confirmed_product_name_span_does_not_pollute_relevance() -> None:
     product_name = "新老包装随机发货产品功效成分不变"
     raw_question = f"{product_name}那个布会不会老往下掉？"
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(78,),
             raw_question=raw_question,
             question_meaning="询问面膜是否服帖、是否容易滑落",
@@ -725,13 +767,16 @@ def test_confirmed_product_name_span_does_not_pollute_relevance() -> None:
         )
     )
 
-    assert packet.query.raw_question == raw_question
+    assert not (
+        set(packet.query.search.product_mention_features)
+        & set(packet.query.search.combined_features)
+    )
     assert "不易滑落" in packet.selected[0].evidence.exact_text
 
 
 def test_red_hot_face_paraphrase_selects_test_with_qualifiers() -> None:
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(78,),
             raw_question="我脸红得跟着火一样，这个能干嘛？",
             question_meaning="询问对泛红和肌肤灼热的相关证据",
@@ -747,7 +792,7 @@ def test_red_hot_face_paraphrase_selects_test_with_qualifiers() -> None:
 
 def test_packaging_question_works_without_free_descriptor() -> None:
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(78,),
             raw_question="收到的怎么和图片长得不一样？",
             question_meaning="询问收到的商品包装与页面图片不同",
@@ -762,7 +807,7 @@ def test_packaging_question_works_without_free_descriptor() -> None:
 
 def test_direct_faq_outranks_broad_variant_overlap() -> None:
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(120,),
             raw_question="刚喷为什么一股酒精味？",
             question_meaning="询问新香水初喷酒精味的原因",
@@ -778,7 +823,7 @@ def test_product_name_repeated_in_meaning_does_not_outrank_faq() -> None:
     product_name = "祖玛珑英国梨与小苍兰"
     raw_question = f"{product_name}刚喷为什么一股酒精味？"
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(120,),
             raw_question=raw_question,
             question_meaning=(
@@ -803,7 +848,7 @@ def test_canonical_identity_is_removed_from_translated_meaning() -> None:
     )
     raw_question = f"{overextended_mention}对应老版哪个色号？"
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(80,),
             raw_question=raw_question,
             question_meaning=(
@@ -824,7 +869,7 @@ def test_confirmed_variant_scope_does_not_promote_product_family() -> None:
     product_name = "迪奥烈艳蓝金唇膏 丝绒 999"
     raw_question = f"{product_name}到底是什么妆效？"
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(115,),
             raw_question=raw_question,
             question_meaning="询问999色号的妆效",
@@ -840,7 +885,7 @@ def test_confirmed_variant_scope_does_not_promote_product_family() -> None:
 
 def test_one_character_descriptor_cannot_dominate_capacity_question() -> None:
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(143,),
             raw_question="经典五号这瓶多大？",
             question_meaning="询问香水容量规格",
@@ -854,16 +899,117 @@ def test_one_character_descriptor_cannot_dominate_capacity_question() -> None:
         for item in packet.selected
     )
     assert packet.ambiguity_reasons == (
-        "已审核证据包含多个容量规格变体："
+        "这款有多个容量规格变体："
         "中文标签所示100ml经典版本为100ml；"
         "买家照片所示N°5 EDP 35ml喷雾为35ml / 1.2 fl. oz.。"
-        "当前问题未限定具体规格，请核对所选或收到的版本。",
+        "购买前请核对所选或收到的具体规格。",
+    )
+
+
+def test_explicit_variant_inside_product_mention_selects_that_variant_without_ambiguity(
+) -> None:
+    mention = "香奈儿五号香水经典花香调 35ml"
+    packet = ProductEvidenceRetriever(_reader()).retrieve(
+        _query(
+            product_ids=(143,),
+            raw_question=f"{mention} 是多大？",
+            question_meaning="询问香奈儿五号香水经典花香调 35ml 的容量规格",
+            safety_sensitive=False,
+            product_mention_spans=((0, len(mention)),),
+            product_identity_names=(mention,),
+        )
+    )
+
+    assert "35ml" in packet.selected[0].evidence.exact_text
+    assert not any(
+        "100ml" in item.evidence.exact_text
+        for item in packet.selected
+    )
+    assert packet.ambiguity_reasons == ()
+
+
+def test_shared_variant_feature_does_not_resolve_capacity_ambiguity() -> None:
+    mention = "香奈儿五号 EDP"
+    packet = ProductEvidenceRetriever(_reader()).retrieve(
+        _query(
+            product_ids=(143,),
+            raw_question=f"{mention} 是多大？",
+            question_meaning=f"询问 {mention} 的容量规格",
+            safety_sensitive=False,
+            product_mention_spans=((0, len(mention)),),
+            product_identity_names=(mention,),
+        )
+    )
+
+    assert any(
+        "100ml" in item.evidence.exact_text
+        for item in packet.selected
+    )
+    assert any(
+        "35ml" in item.evidence.exact_text
+        for item in packet.selected
+    )
+    assert len(packet.ambiguity_reasons) == 1
+    ambiguity = packet.ambiguity_reasons[0]
+    assert "多个容量规格变体" in ambiguity
+    assert "中文标签所示100ml经典版本为100ml" in ambiguity
+    assert "买家照片所示N°5 EDP 35ml喷雾为35ml / 1.2 fl. oz." in ambiguity
+
+
+def test_multi_product_variant_cues_are_scoped_to_their_product() -> None:
+    first = "祖玛珑英国梨与小苍兰买家照片包装"
+    second = "香奈儿五号100ml经典版本"
+    separator = "和"
+    raw_question = f"{first}{separator}{second}分别是什么规格？"
+    second_start = len(first) + len(separator)
+    packet = ProductEvidenceRetriever(
+        _reader(),
+        per_product_limit=8,
+        total_limit=16,
+    ).retrieve(
+        _query(
+            product_ids=(120, 143),
+            raw_question=raw_question,
+            question_meaning=(
+                f"分别询问{first}与{second}的商品规格"
+            ),
+            safety_sensitive=False,
+            product_mention_spans=(
+                (0, len(first)),
+                (second_start, second_start + len(second)),
+            ),
+            product_identity_names=(first, second),
+        )
+    )
+
+    selected_for_chanel = tuple(
+        item.evidence
+        for item in packet.selected
+        if item.evidence.product_id == 143
+    )
+    assert selected_for_chanel
+    assert any(
+        "100ml" in item.exact_text
+        for item in selected_for_chanel
+    )
+    assert not any(
+        "35ml" in item.exact_text
+        for item in selected_for_chanel
+    )
+    assert {
+        item.variant_scope
+        for item in selected_for_chanel
+        if item.subject_scope == "exact_variant"
+    } == {"中文标签所示100ml经典版本"}
+    assert not any(
+        "多个容量规格变体" in reason
+        for reason in packet.ambiguity_reasons
     )
 
 
 def test_unrelated_query_does_not_expand_capacity_variants() -> None:
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(143,),
             raw_question="这款闻起来清爽吗？",
             question_meaning="询问香水的清爽气味",
@@ -884,7 +1030,7 @@ def test_provenance_contrast_cannot_replace_requested_content() -> None:
     )
     raw_question = f"{product_name}提亮是商家说的还是有人测过？"
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(67,),
             raw_question=raw_question,
             question_meaning=(
@@ -904,7 +1050,7 @@ def test_provenance_contrast_cannot_replace_requested_content() -> None:
 
 def test_free_descriptor_is_supporting_not_dominant_signal() -> None:
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(117,),
             raw_question="茶牛郎适合画什么妆？",
             question_meaning="询问茶牛郎色号适合的妆容",
@@ -922,7 +1068,7 @@ def test_confirmed_variant_name_scopes_generic_question() -> None:
     )
     raw_question = f"{product_name}适合画什么妆？"
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(117,),
             raw_question=raw_question,
             question_meaning="适合用这款眼影画什么类型的妆容",
@@ -936,7 +1082,7 @@ def test_confirmed_variant_name_scopes_generic_question() -> None:
 
 def test_partial_free_descriptor_overlap_can_nominate_direct_scene() -> None:
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(57,),
             raw_question="哪个更适合海边？",
             question_meaning="比较防晒的海边场景证据",
@@ -949,7 +1095,7 @@ def test_partial_free_descriptor_overlap_can_nominate_direct_scene() -> None:
 
 def test_retrieval_never_crosses_product_scope() -> None:
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(34,),
             raw_question="它会不会往下掉？",
             question_meaning="询问膜布是否容易滑落",
@@ -969,7 +1115,7 @@ def test_retrieval_never_crosses_product_scope() -> None:
 
 def test_safety_query_returns_transcript_with_fail_closed_caveat() -> None:
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(78,),
             raw_question="医美后一定安全吗？",
             question_meaning="询问特殊美容项目后使用是否安全",
@@ -981,14 +1127,14 @@ def test_safety_query_returns_transcript_with_fail_closed_caveat() -> None:
         "safety_transcript"
     )
     assert packet.safety_caveats == (
-        "现有相关内容属于商家安全宣称，未经强证据核实，"
-        "不能作为安全保证或硬筛依据。",
+        "这段内容是品牌给出的安全说明，"
+        "不能把它当作个人安全保证。",
     )
 
 
 def test_safety_query_nominates_transcript_across_plain_paraphrase() -> None:
     packet = ProductEvidenceRetriever(_reader()).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(78,),
             raw_question="医美后一定安全吗？",
             question_meaning="询问医美后是否安全",
@@ -1004,8 +1150,68 @@ def test_safety_query_nominates_transcript_across_plain_paraphrase() -> None:
         packet.selected[0].evidence.exact_text
     )
     assert packet.safety_caveats == (
-        "现有相关内容属于商家安全宣称，未经强证据核实，"
-        "不能作为安全保证或硬筛依据。",
+        "这段内容是品牌给出的安全说明，"
+        "不能把它当作个人安全保证。",
+    )
+
+
+def test_safety_transcript_requires_matching_safety_topic() -> None:
+    packet = ProductEvidenceRetriever(_reader()).retrieve(
+        _query(
+            product_ids=(78,),
+            raw_question="孕期用它一定安全吗？",
+            question_meaning="询问孕期使用是否安全",
+            safety_sensitive=True,
+        )
+    )
+
+    assert not any(
+        item.evidence.management_label == "safety_transcript"
+        for item in packet.selected
+    )
+    assert packet.safety_caveats == (
+        "这款没有足以确认该安全问题的信息，"
+        "不能把它当作个人安全保证。",
+    )
+
+
+def test_safety_transcript_rejects_single_character_topic_overlap() -> None:
+    packet = ProductEvidenceRetriever(_reader()).retrieve(
+        _query(
+            product_ids=(78,),
+            raw_question="开封后一定安全吗？",
+            question_meaning="询问开封后的使用安全",
+            safety_sensitive=True,
+        )
+    )
+
+    assert not any(
+        item.evidence.management_label == "safety_transcript"
+        for item in packet.selected
+    )
+    assert packet.safety_caveats == (
+        "这款没有足以确认该安全问题的信息，"
+        "不能把它当作个人安全保证。",
+    )
+
+
+def test_safety_query_without_safety_transcript_stays_natural() -> None:
+    packet = ProductEvidenceRetriever(_reader()).retrieve(
+        _query(
+            product_ids=(120,),
+            raw_question="孕期用它一定安全吗？",
+            question_meaning="询问孕期使用是否安全",
+            safety_sensitive=True,
+        )
+    )
+
+    assert not any(
+        item.evidence.management_label == "safety_transcript"
+        for item in packet.selected
+    )
+    assert packet.safety_caveats == (
+        "这款没有足以确认该安全问题的信息，"
+        "不能把它当作个人安全保证。",
     )
 
 
@@ -1015,7 +1221,7 @@ def test_packet_obeys_per_product_and_total_evidence_budgets() -> None:
         per_product_limit=2,
         total_limit=3,
     ).retrieve(
-        EvidenceQuery(
+        _query(
             product_ids=(78, 34),
             raw_question="把这两个的所有信息都讲讲",
             question_meaning="询问两个商品的完整商品信息和使用方式",

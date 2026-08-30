@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -10,28 +11,23 @@ from app.guide.adapters.llm.deepseek_turn_meaning import (
 from app.guide.adapters.llm.siliconflow_turn_meaning import (
     SiliconFlowTurnMeaningAdapter,
 )
-from app.guide.application.contracts import UserTurn
+from app.guide.application.contracts import TurnIdentity, UserTurn
 from app.guide.understanding.contracts import (
     TopicCode,
     UnderstandingGoal,
-)
-from app.guide.understanding.parallel_understanding import (
-    ParallelUnderstanding,
 )
 from app.guide.understanding.single_call_understanding import (
     SingleCallUnderstanding,
 )
 from app.guide.understanding.semantic_contracts import (
     SemanticContext,
-    SemanticGoal,
-    SemanticIntentProposal,
 )
+from app.guide.understanding.turn_meaning_contracts import TurnMeaning
 from app.guide.understanding.text_understanding import (
     ExactOnlyTextUnderstanding,
 )
 from app.guide_runtime.composition import (
     build_consultation_vertical_runtime,
-    build_runtime_orchestrator,
     build_text_understanding,
 )
 from app.guide_runtime.llm_config import (
@@ -49,27 +45,56 @@ class FakeSemanticPort:
         self,
         message: str,
         context: SemanticContext,
-    ) -> SemanticIntentProposal:
-        del message, context
+    ) -> TurnMeaning:
+        del context
         self.calls += 1
-        return SemanticIntentProposal(
-            goal=SemanticGoal.RECOMMENDATION,
-            topic=self.topic,
-            concerns=(),
-            observations=(),
-            references=(),
-            confidence=0.99,
-            clarification_hint=None,
+        return TurnMeaning(
+            operation_hint="recommendation",
+            recommendation_mode="explore",
+            recommendation_count=None,
+            recommendation_mode_basis={
+                "basis": "broad_exploration",
+                "source_text": message,
+            },
+            topic_hint=self.topic.value,
+            continuity_hint="new_task",
+            subject_scope_hint="self",
+            question_meaning=message,
+            safety_language="ordinary",
         )
 
 
 def _turn(message: str, *, version: int = 0) -> UserTurn:
+    session_id = "composition-understanding"
     return UserTurn(
-        session_id="composition-understanding",
+        identity=TurnIdentity(
+            session_id=session_id,
+            request_id=f"request_{session_id}_{version:04d}",
+            turn_id=f"turn_{session_id}_{version:04d}",
+        ),
+        session_id=session_id,
         message=message,
         image_bundle_id=None,
         conversation_version=version,
     )
+
+
+def _events(frames) -> list[tuple[str, dict]]:
+    events = []
+    for frame in frames:
+        lines = frame.decode("utf-8").splitlines()
+        name = next(
+            line.removeprefix("event: ")
+            for line in lines
+            if line.startswith("event: ")
+        )
+        payload = "".join(
+            line.removeprefix("data: ")
+            for line in lines
+            if line.startswith("data: ")
+        )
+        events.append((name, json.loads(payload)))
+    return events
 
 
 def test_build_text_understanding_without_key_fails_closed_by_default(
@@ -80,7 +105,7 @@ def test_build_text_understanding_without_key_fails_closed_by_default(
     understanding = build_text_understanding()
 
     assert isinstance(understanding, ExactOnlyTextUnderstanding)
-    result = understanding.understand(
+    result = understanding.translate(
         "500 内适合油敏肌的防晒",
         context=SemanticContext(
             conversation_version=0,
@@ -89,22 +114,18 @@ def test_build_text_understanding_without_key_fails_closed_by_default(
             confirmed_profile_fields=(),
         ),
     )
-    assert result.topic is TopicCode.SUNSCREEN
-    assert result.goal is UnderstandingGoal.CLARIFICATION
-    assert result.uncertainties
-    assert any(
-        trace.resolution == "semantic_unavailable"
-        for trace in result.signal_trace
-    )
+    assert type(result) is TurnMeaning
+    assert result.operation_hint == "clarification"
+    assert result.topic_hint is None
 
 
-def test_build_text_understanding_without_key_allows_closed_exact_control(
+def test_build_text_understanding_without_key_returns_fallback_meaning(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.delenv("GUIDE_LLM_API_KEY", raising=False)
     understanding = build_text_understanding()
 
-    result = understanding.understand(
+    result = understanding.translate(
         "后来改选洁面！！！",
         context=SemanticContext(
             conversation_version=0,
@@ -112,19 +133,14 @@ def test_build_text_understanding_without_key_allows_closed_exact_control(
             visible_candidate_count=0,
             confirmed_profile_fields=(),
         ),
-        semantic_required=False,
     )
 
-    assert result.topic is TopicCode.CLEANSER
-    assert result.goal is UnderstandingGoal.RECOMMENDATION
-    assert result.uncertainties == []
-    assert any(
-        trace.resolution == "semantic_skipped_by_contract"
-        for trace in result.signal_trace
-    )
+    assert type(result) is TurnMeaning
+    assert result.operation_hint == "clarification"
+    assert result.topic_hint is None
 
 
-def test_build_text_understanding_with_injected_semantic_port_is_parallel(
+def test_build_text_understanding_with_injected_turn_meaning_port_is_single_call(
     tmp_path: Path,
 ) -> None:
     semantic = FakeSemanticPort(TopicCode.FRAGRANCE)
@@ -134,9 +150,9 @@ def test_build_text_understanding_with_injected_semantic_port_is_parallel(
         state_dir=tmp_path / "cache-state",
     )
 
-    assert isinstance(understanding, ParallelUnderstanding)
+    assert isinstance(understanding, SingleCallUnderstanding)
     assert understanding._semantic is semantic
-    result = understanding.understand(
+    result = understanding.translate(
         "夏天涂的味道好闻的东西",
         context=SemanticContext(
             conversation_version=0,
@@ -145,7 +161,8 @@ def test_build_text_understanding_with_injected_semantic_port_is_parallel(
             confirmed_profile_fields=(),
         ),
     )
-    assert result.topic is TopicCode.FRAGRANCE
+    assert type(result) is TurnMeaning
+    assert result.topic_hint == TopicCode.FRAGRANCE.value
     assert semantic.calls == 1
 
 
@@ -178,7 +195,7 @@ def test_explicit_semantic_port_needs_no_fabricated_model_identity(
         state_dir=tmp_path / "cache-state",
     )
 
-    assert isinstance(understanding, ParallelUnderstanding)
+    assert isinstance(understanding, SingleCallUnderstanding)
     assert understanding._semantic is semantic
     source = (
         Path(__file__).resolve().parents[3]
@@ -238,7 +255,7 @@ def test_official_deepseek_config_builds_deepseek_turn_meaning_adapter(
     understanding._semantic.close()
 
 
-def test_consultation_recommendation_uses_injected_parallel_understanding(
+def test_consultation_runtime_uses_injected_single_call_understanding(
     tmp_path: Path,
 ) -> None:
     semantic = FakeSemanticPort(TopicCode.FRAGRANCE)
@@ -249,44 +266,48 @@ def test_consultation_recommendation_uses_injected_parallel_understanding(
     )
 
     assert isinstance(
-        runtime.recommendation._understanding,
-        ParallelUnderstanding,
+        runtime.unified._understanding._understanding,
+        SingleCallUnderstanding,
     )
-    events = list(
-        runtime.recommendation.stream(
+    session_id = "consultation-semantic-recommendation"
+    events = _events(
+        runtime.unified.stream(
             UserTurn(
-                session_id="consultation-semantic-recommendation",
-                message="夏天闻起来清爽的东西",
-                profile_owner=runtime.profile_owner(
-                    "consultation-semantic-recommendation"
+                identity=TurnIdentity(
+                    session_id=session_id,
+                    request_id=f"request_{session_id}_0000",
+                    turn_id=f"turn_{session_id}_0000",
                 ),
+                session_id=session_id,
+                message="夏天闻起来清爽的东西",
+                profile_owner=runtime.profile_owner(session_id),
                 image_bundle_id=None,
                 conversation_version=0,
             )
         )
     )
-    intent = next(event for event in events if event.event == "intent")
-    assert intent.data.mode == "recommend"
-    assert intent.data.category_profile.value == "fragrance"
+    intent = next(data for name, data in events if name == "intent")
+    assert intent["intent"] == "recommend"
+    assert intent["category_profile"] == "fragrance"
     assert semantic.calls == 1
 
 
-def test_runtime_orchestrator_accepts_injected_semantic_port_offline(
+def test_unified_runtime_accepts_injected_turn_meaning_port_offline(
     tmp_path: Path,
 ) -> None:
     semantic = FakeSemanticPort(TopicCode.FRAGRANCE)
 
-    orchestrator = build_runtime_orchestrator(
+    runtime = build_consultation_vertical_runtime(
         state_dir=tmp_path / "runtime-state",
         semantic_intent=semantic,
     )
-    events = list(
-        orchestrator.stream(_turn("夏天涂的味道好闻的东西"))
+    events = _events(
+        runtime.unified.stream(_turn("夏天涂的味道好闻的东西"))
     )
 
-    intent = next(event for event in events if event.event == "intent")
-    assert intent.data.mode == "recommend"
-    assert intent.data.category_profile.value == "fragrance"
+    intent = next(data for name, data in events if name == "intent")
+    assert intent["intent"] == "recommend"
+    assert intent["category_profile"] == "fragrance"
     assert semantic.calls >= 1
 
 

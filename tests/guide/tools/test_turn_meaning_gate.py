@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from app.guide.intent.concept_preferences import (
@@ -7,8 +8,10 @@ from app.guide.intent.concept_preferences import (
 )
 from app.guide.understanding.turn_meaning_contracts import TurnMeaning
 from app.guide_runtime.composition import build_selection_concept_assets
+from tools.guide_gates import turn_meaning_gate as gate_module
 from tools.guide_gates.turn_meaning_gate import (
     TurnMeaningGateRow,
+    build_reaudited_rows,
     evaluate_gate_case,
     load_gate_cases,
     summarize_gate,
@@ -19,7 +22,7 @@ _FIXTURE = Path(
     "tests/fixtures/guide/intent/turn_meaning_gate_v1.jsonl"
 )
 _REVIEW = Path(
-    "docs/audits/semantic-turn-meaning/fixture_review_v1.jsonl"
+    "tests/fixtures/guide/intent/turn_meaning_gate_review_v1.jsonl"
 )
 
 
@@ -32,6 +35,12 @@ def _catalog() -> ConceptPreferenceCatalog:
 def _meaning(**updates) -> TurnMeaning:
     payload = {
         "operation_hint": "recommendation",
+        "recommendation_mode": "explore",
+        "recommendation_count": 3,
+        "recommendation_mode_basis": {
+            "basis": "broad_exploration",
+            "source_text": "推荐",
+        },
         "topic_hint": None,
         "reference_mentions": [],
         "product_mentions": [],
@@ -43,7 +52,63 @@ def _meaning(**updates) -> TurnMeaning:
         "safety_language": "ordinary",
     }
     payload.update(updates)
+    if payload["operation_hint"] == "image_similarity":
+        payload.update(
+            {
+                "recommendation_mode": "explore",
+                "recommendation_count": None,
+                "recommendation_mode_basis": {
+                    "basis": "similar_alternatives",
+                    "source_text": payload["reference_mentions"][0][
+                        "raw_text"
+                    ],
+                },
+            }
+        )
+    elif payload["operation_hint"] != "recommendation":
+        payload.update(
+            {
+                "recommendation_mode": None,
+                "recommendation_count": None,
+                "recommendation_mode_basis": None,
+            }
+        )
     return TurnMeaning.model_validate(payload, strict=True)
+
+
+def test_recommendation_outcome_uses_typed_budget_not_case_identity() -> None:
+    bounded = gate_module._expected_recommendation_outcome(
+        family="recommendation",
+        operations=("recommendation",),
+        expected_mode="recommend",
+        has_explicit_budget=True,
+    )
+    broad = gate_module._expected_recommendation_outcome(
+        family="recommendation",
+        operations=("recommendation",),
+        expected_mode="recommend",
+        has_explicit_budget=False,
+    )
+
+    assert bounded == ("explore", "bounded_exploration")
+    assert broad == ("explore", "broad_exploration")
+
+
+def test_knowledge_contract_does_not_require_profile_observations() -> None:
+    _, rows = build_reaudited_rows(
+        "tests/fixtures/guide/intent/semantic_intent_ab_v2.jsonl"
+    )
+    knowledge_rows = [
+        row for row in rows if row["family"] == "knowledge"
+    ]
+
+    assert knowledge_rows
+    assert all(
+        row["translation"]["required_observations"] == []
+        and "observation_candidates"
+        not in row["translation"]["required_fields"]
+        for row in knowledge_rows
+    )
 
 
 def test_reaudited_fixture_has_128_unique_four_layer_rows() -> None:
@@ -70,6 +135,29 @@ def test_reaudited_fixture_has_128_unique_four_layer_rows() -> None:
     assert all(case.translation.required_fields for case in cases)
     assert all(case.binding is not None for case in cases)
     assert all(case.execution is not None for case in cases)
+
+
+def test_reaudit_preserves_every_source_message_byte_for_byte() -> None:
+    source_path = Path(
+        "tests/fixtures/guide/intent/semantic_intent_ab_v2.jsonl"
+    )
+    source_messages = {
+        row["case_id"]: row["message"]
+        for row in (
+            json.loads(line)
+            for line in source_path.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        )
+    }
+
+    review_rows, gate_rows = build_reaudited_rows(source_path)
+
+    assert {
+        row["case_id"]: row["message"] for row in review_rows
+    } == source_messages
+    assert {
+        row["case_id"]: row["message"] for row in gate_rows
+    } == source_messages
 
 
 def test_known_false_truths_are_explicitly_corrected() -> None:
@@ -141,7 +229,142 @@ def test_equivalent_image_raw_text_is_scored_by_binding_not_json() -> None:
     assert result.translation_passed
     assert result.source_grounded
     assert result.binding_passed
+    assert result.semantic_actual_outcome is not None
+    assert result.semantic_actual_outcome["recommendation_mode"] == (
+        "explore"
+    )
+    assert result.semantic_actual_outcome[
+        "recommendation_mode_basis"
+    ] == "similar_alternatives"
     assert result.full_json_equality_used is False
+
+
+def test_product_knowledge_reference_accepts_followup_operation() -> None:
+    case = next(
+        case
+        for case in load_gate_cases(_FIXTURE)
+        if case.case_id == "know-012-candidate-reference"
+    )
+    meaning = _meaning(
+        operation_hint="followup",
+        topic_hint="sunscreen",
+        continuity_hint="continue",
+        reference_mentions=[
+            {
+                "raw_text": "第二款",
+                "object_family_hint": "product",
+                "ordinal_hint": 2,
+                "plurality_hint": "single",
+            }
+        ],
+        question_meaning="第二款提到的水感质地是什么意思",
+    )
+
+    result = evaluate_gate_case(
+        case=case,
+        meaning=meaning,
+        concept_catalog=_catalog(),
+        provider_call_count=1,
+    )
+
+    assert result.translation_passed
+    assert result.binding_passed
+    assert result.task_plan_passed
+
+
+def test_budget_revision_accepts_recommendation_operation() -> None:
+    case = next(
+        case
+        for case in load_gate_cases(_FIXTURE)
+        if case.case_id == "follow-009-budget-revision"
+    )
+    meaning = _meaning(
+        operation_hint="recommendation",
+        recommendation_mode="explore",
+        recommendation_count=None,
+        recommendation_mode_basis={
+            "basis": "bounded_exploration",
+            "source_text": "三百以内",
+        },
+        topic_hint="sunscreen",
+        continuity_hint="continue",
+        budget_candidates=[
+            {
+                "raw_text": "三百以内",
+                "relation": "maximum",
+                "minimum": None,
+                "maximum": "300",
+            }
+        ],
+        preference_candidates=[
+            {
+                "field_key": "ingredient_exclusion",
+                "concept_id": None,
+                "polarity": "avoid",
+                "raw_text": "酒精",
+                "strength": "ordinary",
+            }
+        ],
+    )
+
+    result = evaluate_gate_case(
+        case=case,
+        meaning=meaning,
+        concept_catalog=_catalog(),
+        provider_call_count=1,
+    )
+
+    assert result.translation_passed
+    assert result.task_plan_passed
+
+
+def test_referenced_constraint_followup_does_not_hide_recommendation_route() -> None:
+    case = next(
+        case
+        for case in load_gate_cases(_FIXTURE)
+        if case.case_id == "follow-012-alcohol-followup"
+    )
+    meaning = _meaning(
+        operation_hint="recommendation",
+        recommendation_count=None,
+        recommendation_mode_basis={
+            "basis": "broad_exploration",
+            "source_text": "第二款",
+        },
+        topic_hint="serum",
+        continuity_hint="continue",
+        reference_mentions=[
+            {
+                "raw_text": "第二款",
+                "object_family_hint": "product",
+                "ordinal_hint": 2,
+                "plurality_hint": "single",
+            }
+        ],
+        preference_candidates=[
+            {
+                "field_key": "ingredient_exclusion",
+                "concept_id": None,
+                "polarity": "avoid",
+                "raw_text": "酒精",
+                "strength": "ordinary",
+            }
+        ],
+        question_meaning="询问第二款产品是否不含酒精",
+    )
+
+    result = evaluate_gate_case(
+        case=case,
+        meaning=meaning,
+        concept_catalog=_catalog(),
+        provider_call_count=1,
+    )
+
+    assert not result.translation_passed
+    assert result.binding_passed
+    assert not result.task_plan_passed
+    assert result.semantic_equivalence_passed is False
+    assert result.semantic_mismatch_code == "responsibility"
 
 
 def test_extra_unasserted_semantics_do_not_fail_translation() -> None:
@@ -152,6 +375,12 @@ def test_extra_unasserted_semantics_do_not_fail_translation() -> None:
     )
     meaning = _meaning(
         operation_hint="recommendation",
+        recommendation_mode="explore",
+        recommendation_count=None,
+        recommendation_mode_basis={
+            "basis": "broad_exploration",
+            "source_text": "想找",
+        },
         topic_hint="sunscreen",
         preference_candidates=[
             {
@@ -181,6 +410,44 @@ def test_extra_unasserted_semantics_do_not_fail_translation() -> None:
 
     assert result.translation_passed
     assert result.source_grounded
+
+
+def test_recommendation_mode_basis_must_be_source_grounded() -> None:
+    case = next(
+        case
+        for case in load_gate_cases(_FIXTURE)
+        if case.case_id == "rec-006-paraphrase-sunscreen"
+    )
+    meaning = _meaning(
+        operation_hint="recommendation",
+        recommendation_mode="fit",
+        recommendation_count=1,
+        recommendation_mode_basis={
+            "basis": "personal_suitability",
+            "source_text": "最适合",
+        },
+        topic_hint="sunscreen",
+        preference_candidates=[
+            {
+                "field_key": "usage_context",
+                "concept_id": None,
+                "raw_text": "通勤",
+                "polarity": "prefer",
+                "strength": "ordinary",
+            },
+        ],
+    )
+
+    result = evaluate_gate_case(
+        case=case,
+        meaning=meaning,
+        concept_catalog=_catalog(),
+        provider_call_count=1,
+    )
+
+    assert result.source_grounded is False
+    assert result.invented_source_atom_count == 1
+    assert result.passed is False
 
 
 def test_invented_raw_text_is_a_hard_grounding_failure() -> None:

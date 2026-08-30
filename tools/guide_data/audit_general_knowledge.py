@@ -375,6 +375,11 @@ def _build_block(
             "title": candidate.title,
             "section_title": candidate.section_title,
             "exact_text": candidate.exact_text,
+            "public_text": (
+                candidate.exact_text
+                if review.review_decision == "general_answer"
+                else None
+            ),
             "source_path": candidate.source_path,
             "source_sha256": candidate.source_sha256,
             "block_sha256": candidate.block_sha256,

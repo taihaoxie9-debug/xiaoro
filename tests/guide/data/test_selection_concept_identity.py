@@ -4,7 +4,9 @@ import re
 
 from app.guide.retrieval.category_profiles import category_profile_for
 from app.guide.understanding.contracts import EfficacyTarget
-from app.guide_runtime.composition import build_runtime_orchestrator
+from app.guide_runtime.composition import (
+    build_consultation_vertical_runtime,
+)
 
 
 _MACHINE_VALUE = re.compile(r"[a-z0-9_+./ -]+")
@@ -16,9 +18,9 @@ _CLOSED_EFFICACY_VALUES = frozenset(
 def test_soft_selection_concepts_have_user_matchable_identities(
     tmp_path,
 ) -> None:
-    runtime = build_runtime_orchestrator(
+    runtime = build_consultation_vertical_runtime(
         state_dir=tmp_path / "state",
-    )
+    ).recommendation
     catalog = runtime._decision_facts
     unresolved: list[tuple[int, str, str]] = []
 
@@ -54,9 +56,9 @@ def test_soft_selection_concepts_have_user_matchable_identities(
 def test_reviewed_concepts_merge_without_weakening_safety_roles(
     tmp_path,
 ) -> None:
-    runtime = build_runtime_orchestrator(
+    runtime = build_consultation_vertical_runtime(
         state_dir=tmp_path / "state",
-    )
+    ).recommendation
     catalog = runtime._decision_facts
 
     def facts_for(product_id: int):
@@ -100,4 +102,3 @@ def test_reviewed_concepts_merge_without_weakening_safety_roles(
             and fact.normalized_value == "清爽"
         ]
     ) == 1
-

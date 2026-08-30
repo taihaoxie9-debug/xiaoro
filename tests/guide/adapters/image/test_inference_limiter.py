@@ -7,7 +7,7 @@ from multiprocessing import get_context
 import os
 from pathlib import Path
 import stat
-from threading import Event, Lock
+from threading import Event, Lock, Thread
 import time
 from typing import Any
 
@@ -32,7 +32,7 @@ def _run_process_limited_task(
     if not start.wait(timeout=5):
         raise RuntimeError("multiprocessing start barrier timed out")
 
-    with module.image_inference_slot():
+    with module.image_inference_slot(timeout=None):
         with active.get_lock():
             active.value += 1
             maximum_active.value = max(maximum_active.value, active.value)
@@ -58,7 +58,10 @@ def _run_process_thread_limited_tasks(
         raise RuntimeError("mixed concurrency start barrier timed out")
 
     def run() -> None:
-        with module.image_inference_slot(lock_dir=lock_dir):
+        with module.image_inference_slot(
+            lock_dir=lock_dir,
+            timeout=None,
+        ):
             with active.get_lock():
                 active.value += 1
                 maximum_active.value = max(
@@ -86,7 +89,10 @@ def _hold_process_slot(
     release: Any,
 ) -> None:
     module = _subject()
-    with module.image_inference_slot(lock_dir=lock_dir):
+    with module.image_inference_slot(
+        lock_dir=lock_dir,
+        timeout=None,
+    ):
         entered.put(os.getpid())
         if not release.wait(timeout=5):
             raise RuntimeError("process holder release barrier timed out")
@@ -140,6 +146,33 @@ def test_limiter_enforces_two_slot_peak_across_processes(
     assert [process.exitcode for process in processes] == [0, 0, 0, 0]
     assert maximum_active.value <= 2
     assert active.value == 0
+
+
+def test_default_slot_acquisition_fails_fast_when_capacity_is_exhausted(
+    tmp_path: Path,
+) -> None:
+    module = _subject()
+    finished = Event()
+    outcomes: list[str] = []
+
+    def contend() -> None:
+        try:
+            with module.image_inference_slot(lock_dir=tmp_path):
+                outcomes.append("acquired")
+        except TimeoutError:
+            outcomes.append("busy")
+        finally:
+            finished.set()
+
+    worker = Thread(target=contend, daemon=True)
+    with module.image_inference_slot(lock_dir=tmp_path, timeout=None):
+        with module.image_inference_slot(lock_dir=tmp_path, timeout=None):
+            worker.start()
+            finished_while_capacity_was_held = finished.wait(timeout=0.25)
+    worker.join(timeout=1)
+
+    assert finished_while_capacity_was_held is True
+    assert outcomes == ["busy"]
 
 
 def test_limiter_enforces_two_slot_peak_across_processes_and_threads(
@@ -407,7 +440,10 @@ def test_zero_timeout_fails_when_both_slots_are_held(
     entered = [Event(), Event()]
 
     def hold_slot(index: int) -> None:
-        with module.image_inference_slot(lock_dir=tmp_path):
+        with module.image_inference_slot(
+            lock_dir=tmp_path,
+            timeout=None,
+        ):
             entered[index].set()
             release.wait(timeout=2)
 
@@ -641,7 +677,10 @@ def test_limiter_allows_at_most_two_inference_tasks_across_threads(
 
     def run(index: int) -> None:
         nonlocal active, maximum_active
-        with module.image_inference_slot(lock_dir=tmp_path):
+        with module.image_inference_slot(
+            lock_dir=tmp_path,
+            timeout=None,
+        ):
             with state_lock:
                 active += 1
                 maximum_active = max(maximum_active, active)

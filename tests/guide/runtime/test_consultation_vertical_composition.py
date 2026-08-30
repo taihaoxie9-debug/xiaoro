@@ -1,18 +1,17 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
+from types import SimpleNamespace
 
-from app.guide.application.contracts import UserTurn
-from app.guide.understanding.contracts import TopicCode
+from app.guide.application.contracts import TurnIdentity, UserTurn
 from app.guide.understanding.semantic_contracts import (
     SemanticContext,
-    SemanticGoal,
-    SemanticIntentProposal,
 )
-from tests.guide.semantic_test_port import ExactEchoSemanticPort
+from app.guide.understanding.turn_meaning_contracts import TurnMeaning
 
 
-class StaticSemanticPort:
+class ConsultationTurnMeaningPort:
     def __init__(self) -> None:
         self.calls = 0
 
@@ -20,18 +19,153 @@ class StaticSemanticPort:
         self,
         message: str,
         context: SemanticContext,
-    ) -> SemanticIntentProposal:
-        del message, context
+    ) -> TurnMeaning:
         self.calls += 1
-        return SemanticIntentProposal(
-            goal=SemanticGoal.RECOMMENDATION,
-            topic=TopicCode.SUNSCREEN,
-            concerns=(),
-            observations=(),
-            references=(),
-            confidence=0.99,
-            clarification_hint=None,
+        if context.conversation_version == 0:
+            return TurnMeaning(
+                operation_hint="assessment",
+                topic_hint="skincare",
+                continuity_hint="new_task",
+                subject_scope_hint="self",
+                observation_candidates=(
+                    {
+                        "observation_id": "obs_dry_cheeks",
+                        "code": "dryness",
+                        "present": True,
+                        "qualifier": None,
+                        "raw_text": "两颊干燥",
+                        "location": "cheeks",
+                        "trigger": None,
+                        "duration": None,
+                        "severity": None,
+                    },
+                    {
+                        "observation_id": "obs_no_oil",
+                        "code": "oiliness",
+                        "present": False,
+                        "qualifier": None,
+                        "raw_text": "T区不油",
+                        "location": "t_zone",
+                        "trigger": None,
+                        "duration": None,
+                        "severity": None,
+                    },
+                    {
+                        "observation_id": "obs_seasonal_redness",
+                        "code": "redness",
+                        "present": True,
+                        "qualifier": None,
+                        "raw_text": "换季泛红",
+                        "location": None,
+                        "trigger": "seasonal",
+                        "duration": None,
+                        "severity": None,
+                    },
+                    {
+                        "observation_id": "obs_tolerance",
+                        "code": "product_tolerance",
+                        "present": True,
+                        "qualifier": None,
+                        "raw_text": "平时保湿不刺痛",
+                        "location": None,
+                        "trigger": "ordinary_skincare",
+                        "duration": None,
+                        "severity": None,
+                    },
+                    {
+                        "observation_id": "obs_no_pain",
+                        "code": "pain",
+                        "present": False,
+                        "qualifier": None,
+                        "raw_text": "现在也不疼",
+                        "location": None,
+                        "trigger": None,
+                        "duration": "current",
+                        "severity": None,
+                    },
+                ),
+                consultation_hypothesis={
+                    "base_skin_direction": "dry",
+                    "stable_tendencies": ("seasonal_redness",),
+                    "current_conditions": ("redness",),
+                    "supporting_observation_ids": (
+                        "obs_dry_cheeks",
+                        "obs_no_oil",
+                        "obs_seasonal_redness",
+                        "obs_tolerance",
+                        "obs_no_pain",
+                    ),
+                },
+                next_observation_gap="confirmation",
+                question_meaning="根据完整观察形成待确认肤质结论",
+                safety_language="ordinary",
+            )
+        if context.conversation_version == 1:
+            return TurnMeaning(
+                operation_hint="assessment",
+                topic_hint="skincare",
+                continuity_hint="continue",
+                subject_scope_hint="self",
+                pending_response_hint="affirm",
+                preference_candidates=(
+                    {
+                        "field_key": "skin",
+                        "concept_id": "skin.dry",
+                        "raw_text": "干皮",
+                        "polarity": "prefer",
+                        "strength": "ordinary",
+                    },
+                ),
+                question_meaning="确认干性肤质结论",
+                safety_language="ordinary",
+            )
+        return self._recommendation_meaning(message)
+
+    @staticmethod
+    def _recommendation_meaning(message: str) -> TurnMeaning:
+        skin_preferences = (
+            (
+                {
+                    "field_key": "skin",
+                    "concept_id": "skin.oily",
+                    "raw_text": "油性",
+                    "polarity": "prefer",
+                    "strength": "ordinary",
+                },
+            )
+            if "油性" in message
+            else ()
         )
+        return TurnMeaning(
+            operation_hint="recommendation",
+            recommendation_mode="explore",
+            recommendation_mode_basis={
+                "basis": "bounded_exploration",
+                "source_text": message,
+            },
+            topic_hint="sunscreen",
+            continuity_hint="new_task",
+            subject_scope_hint="self",
+            budget_candidates=(
+                (
+                    {
+                        "raw_text": "500元内",
+                        "relation": "maximum",
+                        "minimum": None,
+                        "maximum": "500",
+                    },
+                )
+                if "500" in message
+                else ()
+            ),
+            preference_candidates=skin_preferences,
+            question_meaning="推荐适合当前条件的防晒",
+            safety_language="ordinary",
+        )
+
+
+class StaticSemanticPort(ConsultationTurnMeaningPort):
+    pass
 
 
 def _runtime(
@@ -48,7 +182,7 @@ def _runtime(
         semantic_intent=(
             semantic_intent
             if semantic_intent is not None
-            else ExactEchoSemanticPort()
+            else ConsultationTurnMeaningPort()
         ),
     )
 
@@ -61,11 +195,49 @@ def _turn(
     session_id: str,
 ) -> UserTurn:
     return UserTurn(
+        identity=TurnIdentity(
+            session_id=session_id,
+            request_id=f"request_{session_id}_{version:04d}",
+            turn_id=f"turn_{session_id}_{version:04d}",
+        ),
         session_id=session_id,
         message=message,
         profile_owner=runtime.profile_owner(session_id),
         conversation_version=version,
     )
+
+
+def _namespace(value):
+    if isinstance(value, dict):
+        return SimpleNamespace(
+            **{key: _namespace(item) for key, item in value.items()}
+        )
+    if isinstance(value, list):
+        return [_namespace(item) for item in value]
+    return value
+
+
+def _decode_events(frames):
+    events = []
+    for frame in frames:
+        lines = frame.decode("utf-8").splitlines()
+        name = next(
+            line.removeprefix("event: ")
+            for line in lines
+            if line.startswith("event: ")
+        )
+        payload = "".join(
+            line.removeprefix("data: ")
+            for line in lines
+            if line.startswith("data: ")
+        )
+        events.append(
+            SimpleNamespace(
+                event=name,
+                data=_namespace(json.loads(payload)),
+            )
+        )
+    return events
 
 
 def _consult(
@@ -75,8 +247,8 @@ def _consult(
     version: int,
     session_id: str,
 ):
-    return list(
-        runtime.consultation.stream(
+    return _decode_events(
+        runtime.unified.stream(
             _turn(
                 runtime,
                 message,
@@ -90,12 +262,7 @@ def _consult(
 def _confirm_dry_profile(runtime, *, session_id: str) -> int:
     version = 0
     for message in (
-        "我不知道自己是什么肤质",
-        "会",
-        "不会",
-        "不会",
-        "不会",
-        "不会",
+        "两颊干燥，T区不油，换季泛红，平时保湿不刺痛，现在也不疼",
         "我确认是干皮",
     ):
         events = _consult(
@@ -118,12 +285,9 @@ def test_composition_uses_durable_owner_bound_sqlite_state(
 
     version = _confirm_dry_profile(runtime, session_id=session_id)
 
-    assert version == 8
+    assert version == 2
     assert runtime.conversation_state.database_path == (
         tmp_path / "state" / "conversations.sqlite3"
-    )
-    assert runtime.profile_state.database_path == (
-        tmp_path / "state" / "profiles.sqlite3"
     )
     stored = runtime.conversation_state.load(session_id)
     assert stored is not None
@@ -131,20 +295,11 @@ def test_composition_uses_durable_owner_bound_sqlite_state(
     assert profile is not None
     assert profile.base_skin is not None
     assert profile.base_skin.value == "dry"
-    assert runtime.profile_state.load(owner) is None
-
     restarted = _runtime(tmp_path)
-    restarted_turn = _turn(
-        restarted,
-        "500元内防晒",
-        version=version,
-        session_id=session_id,
-    )
-    assert restarted.consultation.has_session(restarted_turn)
     restarted_snapshot = restarted.conversation_state.load(session_id)
     assert restarted_snapshot is not None
     assert restarted_snapshot.session_profile == profile
-    assert restarted.profile_state.load(owner) is None
+    assert restarted_snapshot.profile_owner == owner
 
 
 def test_confirmed_profile_only_fills_missing_recommendation_skin(
@@ -154,8 +309,8 @@ def test_confirmed_profile_only_fills_missing_recommendation_skin(
     session_id = "consultation-profile-fill-session"
     version = _confirm_dry_profile(runtime, session_id=session_id)
 
-    events = list(
-        runtime.recommendation.stream(
+    events = _decode_events(
+        runtime.unified.stream(
             _turn(
                 runtime,
                 "500元内防晒",
@@ -169,8 +324,8 @@ def test_confirmed_profile_only_fills_missing_recommendation_skin(
     assert not any(event.event == "error" for event in events)
     stored = runtime.conversation_state.load(session_id)
     assert stored is not None
-    assert stored.query_context is not None
-    assert stored.query_context.skin == "dry"
+    assert stored.recommendation_slot is not None
+    assert stored.recommendation_slot.query_context.skin == "dry"
 
 
 def test_current_explicit_skin_wins_without_overwriting_profile(
@@ -179,14 +334,13 @@ def test_current_explicit_skin_wins_without_overwriting_profile(
     runtime = _runtime(tmp_path)
     session_id = "consultation-explicit-wins-session"
     version = _confirm_dry_profile(runtime, session_id=session_id)
-    owner = runtime.profile_owner(session_id)
     before_snapshot = runtime.conversation_state.load(session_id)
     assert before_snapshot is not None
     before = before_snapshot.session_profile
     assert before is not None
 
-    events = list(
-        runtime.recommendation.stream(
+    events = _decode_events(
+        runtime.unified.stream(
             _turn(
                 runtime,
                 "500元内油性防晒",
@@ -200,10 +354,9 @@ def test_current_explicit_skin_wins_without_overwriting_profile(
     assert not any(event.event == "error" for event in events)
     stored = runtime.conversation_state.load(session_id)
     assert stored is not None
-    assert stored.query_context is not None
-    assert stored.query_context.skin == "oily"
+    assert stored.recommendation_slot is not None
+    assert stored.recommendation_slot.query_context.skin == "oily"
     assert stored.session_profile == before
-    assert runtime.profile_state.load(owner) is None
 
 
 def test_consultation_followup_ordinary_text_uses_semantic_port(
@@ -214,8 +367,8 @@ def test_consultation_followup_ordinary_text_uses_semantic_port(
     session_id = "consultation-semantic-followup-session"
     version = _confirm_dry_profile(runtime, session_id=session_id)
 
-    events = list(
-        runtime.recommendation.stream(
+    events = _decode_events(
+        runtime.unified.stream(
             _turn(
                 runtime,
                 "夏天涂着不容易晒黑的东西",
@@ -227,10 +380,10 @@ def test_consultation_followup_ordinary_text_uses_semantic_port(
 
     intent = next(event for event in events if event.event == "intent")
     products = next(event for event in events if event.event == "products")
-    assert intent.data.mode == "recommend"
-    assert intent.data.category_profile.value == "suncare"
+    assert intent.data.intent == "recommend"
+    assert intent.data.category_profile == "suncare"
     assert products.data.cards
-    assert semantic.calls == 1
+    assert semantic.calls == 3
 
 
 def test_profile_owner_is_server_composed_and_session_bound(

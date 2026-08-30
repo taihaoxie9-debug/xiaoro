@@ -3,18 +3,33 @@ from datetime import UTC, datetime
 import pytest
 from pydantic import ValidationError
 
+import app.guide.feedback.delivery as delivery
 from app.guide.feedback.delivery import (
-    FeedbackDeliveryTracker,
+    FeedbackCompletion,
     FeedbackEventReceipt,
     FeedbackEventSubmission,
     FeedbackTargetReceipt,
+    feedback_completion_from_snapshot,
     TrustedFeedbackService,
+)
+from app.guide.feedback.contracts import (
+    ConversationSnapshot,
+    DisplayedCandidateRef,
+    ImageSlotState,
+    ProductSlotState,
+    RecommendationQueryContext,
+    RecommendationSlotState,
 )
 from app.guide.feedback.event_contracts import (
     FeedbackActorContext,
     RecordedFeedbackEvent,
 )
 from app.guide.feedback.profile_contracts import ProfileOwnerRef
+from app.guide.feedback.focus_state import (
+    ActiveFocus,
+    ConfirmedImageProductRef,
+)
+from app.guide.intent.responsibility_matrix import Responsibility
 from app.guide.presentation.contracts import CardDisplayContract
 
 
@@ -76,69 +91,225 @@ def _card_display() -> CardDisplayContract:
     )
 
 
-def test_delivery_tracker_completes_only_nonzero_successful_response() -> None:
-    tracker = FeedbackDeliveryTracker()
-
-    tracker.observe(
-        "card_display_contract",
-        _card_display().model_dump(mode="json"),
+def _completion() -> FeedbackCompletion:
+    return FeedbackCompletion(
+        conversation_version=4,
+        card_display=_card_display(),
     )
-    assert tracker.completion() is None
 
-    tracker.observe("end", {"conversation_version": 4})
 
-    completion = tracker.completion()
+def _candidate(
+    product_id: int,
+    ordinal: int,
+) -> DisplayedCandidateRef:
+    return DisplayedCandidateRef(
+        product_id=product_id,
+        ordinal=ordinal,
+        skin_match="unknown",
+        matched_efficacies=(),
+    )
+
+
+def _mixed_image_product_comparison_snapshot(
+    *,
+    image_ids: tuple[int, ...],
+    product_ids: tuple[int, ...],
+) -> ConversationSnapshot:
+    card_display = CardDisplayContract(
+        mode="comparison",
+        visible_product_ids=product_ids,
+        max_cards=len(product_ids),
+        reason="comparison",
+    )
+    snapshot = ConversationSnapshot(
+        session_id="mixed-image-product-comparison",
+        version=3,
+        active_owner=Responsibility.COMPARISON,
+        active_focus=ActiveFocus(
+            slot="image",
+            object_id=image_ids[0],
+            ordinal=1,
+        ),
+        product_slot=ProductSlotState(
+            products=tuple(
+                _candidate(product_id, ordinal)
+                for ordinal, product_id in enumerate(
+                    product_ids,
+                    start=1,
+                )
+            ),
+        ),
+        image_slot=ImageSlotState(
+            confirmed_products=tuple(
+                ConfirmedImageProductRef(
+                    image_ordinal=ordinal,
+                    product_id=product_id,
+                )
+                for ordinal, product_id in enumerate(
+                    image_ids,
+                    start=1,
+                )
+            ),
+            focused_image_ordinal=1,
+            card_display=card_display,
+        ),
+    )
+    return snapshot
+
+
+def _image_identity_snapshot(
+    *,
+    product_ids: tuple[int, ...],
+    terminal_display: CardDisplayContract | None = None,
+) -> ConversationSnapshot:
+    card_display = (
+        terminal_display
+        if terminal_display is not None
+        else CardDisplayContract(
+            mode="recommendation",
+            visible_product_ids=product_ids,
+            max_cards=len(product_ids),
+            reason="recommendation",
+        )
+    )
+    snapshot = ConversationSnapshot(
+        session_id="multi-image-identity",
+        version=4,
+        active_owner=Responsibility.IMAGE_IDENTITY,
+        active_focus=ActiveFocus(slot="image"),
+        image_slot=ImageSlotState(
+            confirmed_products=tuple(
+                ConfirmedImageProductRef(
+                    image_ordinal=ordinal,
+                    product_id=product_id,
+                )
+                for ordinal, product_id in enumerate(
+                    product_ids,
+                    start=1,
+                )
+            ),
+            card_display=card_display,
+        ),
+    )
+    return snapshot
+
+
+def test_feedback_delivery_has_no_event_stream_rederivation_bridge() -> None:
+    assert not hasattr(delivery, "FeedbackDeliveryTracker")
+
+
+def test_feedback_completion_is_derived_from_committed_snapshot() -> None:
+    card_display = CardDisplayContract(
+        mode="recommendation",
+        visible_product_ids=(91, 38),
+        max_cards=2,
+        reason="recommendation",
+    )
+    snapshot = ConversationSnapshot(
+        session_id="feedback-completion",
+        version=3,
+        active_owner=Responsibility.RECOMMENDATION,
+        active_focus=ActiveFocus(slot="recommendation"),
+        recommendation_slot=RecommendationSlotState(
+            query_context=RecommendationQueryContext(
+                category="serum",
+                recommendation_mode="explore",
+                recommendation_mode_basis="broad_exploration",
+                recommendation_count=2,
+            ),
+            candidates=(
+                DisplayedCandidateRef(
+                    product_id=91,
+                    ordinal=1,
+                    skin_match="unknown",
+                    matched_efficacies=(),
+                ),
+                DisplayedCandidateRef(
+                    product_id=38,
+                    ordinal=2,
+                    skin_match="unknown",
+                    matched_efficacies=(),
+                ),
+            ),
+            card_display=card_display,
+        ),
+    )
+
+    completion = feedback_completion_from_snapshot(snapshot)
+
     assert completion is not None
-    assert completion.conversation_version == 4
-    assert completion.card_display == _card_display()
+    assert completion.conversation_version == 3
+    assert completion.card_display == card_display
 
 
-@pytest.mark.parametrize(
-    "events",
-    [
-        [
-            (
-                "card_display_contract",
-                {
-                    "mode": "none",
-                    "visible_product_ids": [],
-                    "max_cards": 0,
-                    "reason": "knowledge_only",
-                },
-            ),
-            ("end", {"conversation_version": 1}),
-        ],
-        [
-            (
-                "card_display_contract",
-                _card_display().model_dump(mode="json"),
-            ),
-            ("message", {"clarify": True, "content": "请补充信息"}),
-            ("end", {"conversation_version": 1}),
-        ],
-        [
-            (
-                "card_display_contract",
-                _card_display().model_dump(mode="json"),
-            ),
-            ("error", {"error": "GUIDE_INTERNAL_ERROR"}),
-        ],
-        [
-            (
-                "card_display_contract",
-                _card_display().model_dump(mode="json"),
-            ),
-        ],
-    ],
-)
-def test_delivery_tracker_rejects_zero_card_clarify_error_and_abort(
-    events,
-) -> None:
-    tracker = FeedbackDeliveryTracker()
-    for event_name, event_data in events:
-        tracker.observe(event_name, event_data)
+def test_feedback_completion_uses_full_mixed_comparison_display() -> None:
+    snapshot = _mixed_image_product_comparison_snapshot(
+        image_ids=(53,),
+        product_ids=(53, 55),
+    )
 
-    assert tracker.completion() is None
+    completion = feedback_completion_from_snapshot(snapshot)
+
+    assert completion is not None
+    assert completion.card_display == CardDisplayContract(
+        mode="comparison",
+        visible_product_ids=(53, 55),
+        max_cards=2,
+        reason="comparison",
+    )
+
+
+def test_feedback_completion_supports_multi_image_identity_display() -> None:
+    terminal_display = CardDisplayContract(
+        mode="recommendation",
+        visible_product_ids=(57, 53),
+        max_cards=2,
+        reason="recommendation",
+    )
+    snapshot = _image_identity_snapshot(
+        product_ids=(53, 55, 57),
+        terminal_display=terminal_display,
+    )
+
+    completion = feedback_completion_from_snapshot(snapshot)
+
+    assert completion is not None
+    assert completion.card_display == terminal_display
+
+
+def test_feedback_completion_ignores_dormant_slot_display() -> None:
+    dormant_display = CardDisplayContract(
+        mode="recommendation",
+        visible_product_ids=(91, 38),
+        max_cards=2,
+        reason="recommendation",
+    )
+    snapshot = ConversationSnapshot(
+        session_id="dormant-display",
+        version=5,
+        active_owner=Responsibility.IMAGE_IDENTITY,
+        active_focus=ActiveFocus(slot="image"),
+        recommendation_slot=RecommendationSlotState(
+            query_context=RecommendationQueryContext(
+                category="serum",
+                recommendation_mode="explore",
+                recommendation_mode_basis="broad_exploration",
+                recommendation_count=2,
+            ),
+            candidates=(_candidate(91, 1), _candidate(38, 2)),
+            card_display=dormant_display,
+        ),
+        image_slot=ImageSlotState(
+            confirmed_products=(
+                ConfirmedImageProductRef(
+                    image_ordinal=1,
+                    product_id=53,
+                ),
+            ),
+        ),
+    )
+
+    assert feedback_completion_from_snapshot(snapshot) is None
 
 
 def test_service_prepares_receipt_without_persisting_until_committed() -> None:
@@ -149,16 +320,10 @@ def test_service_prepares_receipt_without_persisting_until_committed() -> None:
         profiles=profiles,
         recorder=_Recorder(),
     )
-    tracker = FeedbackDeliveryTracker()
-    tracker.observe(
-        "card_display_contract",
-        _card_display().model_dump(mode="json"),
-    )
-    tracker.observe("end", {"conversation_version": 4})
 
     prepared = service.prepare_completed(
         actor=_ACTOR,
-        completion=tracker.completion(),
+        completion=_completion(),
     )
 
     assert prepared is not None
@@ -199,16 +364,10 @@ def test_service_register_completed_remains_compatible() -> None:
         profiles=_Profiles(version=None),
         recorder=_Recorder(),
     )
-    tracker = FeedbackDeliveryTracker()
-    tracker.observe(
-        "card_display_contract",
-        _card_display().model_dump(mode="json"),
-    )
-    tracker.observe("end", {"conversation_version": 4})
 
     receipt = service.register_completed(
         actor=_ACTOR,
-        completion=tracker.completion(),
+        completion=_completion(),
     )
 
     assert receipt == FeedbackTargetReceipt(

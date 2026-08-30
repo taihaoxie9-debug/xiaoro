@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import json
 from hashlib import sha256
+import os
 from pathlib import Path
+import subprocess
+import sys
 
+import pytest
 from app.guide.adapters.llm.contracts import (
     SemanticProviderFailure,
     SemanticProviderFailureCode,
@@ -24,6 +28,83 @@ from tools.guide_gates.turn_meaning_gate import load_gate_cases
 _CASES = Path(
     "tests/fixtures/guide/intent/turn_meaning_gate_v1.jsonl"
 )
+_ROOT = Path(__file__).resolve().parents[3]
+
+
+@pytest.mark.parametrize(
+    ("script", "arguments"),
+    (
+        (
+            "run_real_turn_meaning_gate.py",
+            ("--output-dir", "/tmp/unbound-turn-meaning"),
+        ),
+        (
+            "real_transition_probes.py",
+            ("--output-dir", "/tmp/unbound-transition-probes"),
+        ),
+        (
+            "run_real_presentation_copy_gate.py",
+            (
+                "--cases",
+                "tests/fixtures/guide/presentation/"
+                "copy_gate_v3_production.jsonl",
+                "--output-dir",
+                "/tmp/unbound-copy-gate",
+                "--run-id",
+                "unbound",
+                "--prior-call-count",
+                "0",
+                "--copywriter-call-cap",
+                "1000",
+                "--reserved-future-calls",
+                "0",
+            ),
+        ),
+        (
+            "single_call_semantic_pilot.py",
+            (
+                "--cases",
+                "unused.jsonl",
+                "--output-dir",
+                "/tmp/unbound-semantic-pilot",
+            ),
+        ),
+        (
+            "run_real_continuous_conversation_gate.py",
+            (
+                "--cases",
+                "unused.jsonl",
+                "--manifest",
+                "unused.json",
+                "--output",
+                "/tmp/unbound-continuous.json",
+            ),
+        ),
+        (
+            "run_real_continuous_conversation_browser_audit.py",
+            (),
+        ),
+    ),
+)
+def test_unbound_real_provider_clis_fail_closed(
+    script: str,
+    arguments: tuple[str, ...],
+) -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(_ROOT / "tools/guide_gates" / script),
+            *arguments,
+        ],
+        cwd=_ROOT,
+        env={**os.environ, "PYTHONPATH": str(_ROOT)},
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 7
+    assert "unbound_real_execution_disabled" in completed.stdout
 
 
 def _catalog() -> ConceptPreferenceCatalog:
@@ -33,10 +114,33 @@ def _catalog() -> ConceptPreferenceCatalog:
 
 
 def _meaning(case) -> TurnMeaning:
+    operation = (
+        case.translation.allowed_operation_hints[0].value
+    )
+    recommendation_mode = (
+        case.execution.expected_recommendation_mode
+        if operation in {"recommendation", "image_similarity"}
+        else None
+    )
+    recommendation_basis = (
+        case.execution.expected_recommendation_mode_basis
+        if recommendation_mode is not None
+        else None
+    )
     return TurnMeaning.model_validate(
         {
-            "operation_hint": (
-                case.translation.allowed_operation_hints[0].value
+            "operation_hint": operation,
+            "recommendation_mode": recommendation_mode,
+            "recommendation_count": (
+                1 if recommendation_mode == "fit" else None
+            ),
+            "recommendation_mode_basis": (
+                {
+                    "basis": recommendation_basis,
+                    "source_text": case.message,
+                }
+                if recommendation_basis is not None
+                else None
             ),
             "topic_hint": (
                 case.translation.allowed_topic_hints[0].value

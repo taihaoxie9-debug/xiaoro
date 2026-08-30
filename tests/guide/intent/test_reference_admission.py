@@ -22,21 +22,28 @@ def _authority(
     *,
     candidates: tuple[int, ...] = (),
     current_item: int | None = None,
+    current_item_available: bool = False,
     images: tuple[int, ...] = (),
+    confirmed_images: tuple[int, ...] = (),
     current_image: int | None = None,
     topic: TopicCode | None = None,
     previous: tuple[ActiveConstraintKind, ...] = (),
+    active_dialogue: str | None = None,
 ) -> SemanticRouteBindingAuthority:
     return SemanticRouteBindingAuthority(
         candidate_ordinals=candidates,
         current_item_ordinal=current_item,
+        current_item_available=(
+            current_item_available or current_item is not None
+        ),
         current_batch_available=bool(candidates),
         image_ordinals=images,
+        confirmed_image_ordinals=confirmed_images,
         current_image_ordinal=current_image,
         current_topic=topic,
         previous_constraint_kinds=previous,
         pending_clarification=None,
-        active_dialogue=None,
+        active_dialogue=active_dialogue,
         awaiting_reply=False,
     )
 
@@ -47,16 +54,17 @@ def _mention(
     family: str,
     ordinal: int | None = None,
     plurality: str = "single",
+    batch_size: int | None = None,
 ) -> TurnReferenceMention:
-    return TurnReferenceMention.model_validate(
-        {
-            "raw_text": raw_text,
-            "object_family_hint": family,
-            "ordinal_hint": ordinal,
-            "plurality_hint": plurality,
-        },
-        strict=True,
-    )
+    payload = {
+        "raw_text": raw_text,
+        "object_family_hint": family,
+        "ordinal_hint": ordinal,
+        "plurality_hint": plurality,
+    }
+    if batch_size is not None:
+        payload["batch_size_hint"] = batch_size
+    return TurnReferenceMention.model_validate(payload, strict=True)
 
 
 @pytest.mark.parametrize(
@@ -105,6 +113,13 @@ def _mention(
             "这个适合我吗",
             _mention("这个", family="product"),
             _authority(candidates=(1,), current_item=1),
+            "current_item",
+            None,
+        ),
+        (
+            "它那个测试靠谱吗",
+            _mention("它", family="product"),
+            _authority(current_item_available=True),
             "current_item",
             None,
         ),
@@ -180,6 +195,37 @@ def test_unknown_family_ordinal_collision_clarifies() -> None:
     assert caught.value.code == "ambiguous"
 
 
+def test_unnumbered_image_reference_binds_sole_confirmed_image() -> None:
+    admitted = admit_reference(
+        message="图片里的 B5 和第一款哪个更适合我",
+        mention=_mention("图片里的", family="image"),
+        authority=_authority(
+            candidates=(1, 2),
+            images=(1,),
+            confirmed_images=(1,),
+            topic=TopicCode.SERUM,
+            previous=(ActiveConstraintKind.CATEGORY,),
+        ),
+    )
+
+    assert admitted.kind == "image_ordinal"
+    assert admitted.ordinal == 1
+
+
+def test_unnumbered_image_reference_does_not_guess_multiple_images() -> None:
+    with pytest.raises(ReferenceAdmissionError) as caught:
+        admit_reference(
+            message="图片里的商品怎么样",
+            mention=_mention("图片里的商品", family="image"),
+            authority=_authority(
+                images=(1, 2),
+                confirmed_images=(1, 2),
+            ),
+        )
+
+    assert caught.value.code == "unbound"
+
+
 def test_batch_plurality_overrides_non_authoritative_count_ordinal() -> None:
     admitted = admit_reference(
         message="这两款防晒怎么选",
@@ -190,6 +236,58 @@ def test_batch_plurality_overrides_non_authoritative_count_ordinal() -> None:
             plurality="batch",
         ),
         authority=_authority(candidates=(1, 2, 3)),
+    )
+
+    assert admitted.kind == "current_batch"
+    assert admitted.ordinal is None
+
+
+def test_typed_batch_size_rejects_ambiguous_subset() -> None:
+    with pytest.raises(ReferenceAdmissionError) as caught:
+        admit_reference(
+            message="这两款防晒怎么选",
+            mention=_mention(
+                "这两款防晒",
+                family="product",
+                plurality="batch",
+                batch_size=2,
+            ),
+            authority=_authority(candidates=(1, 2, 3)),
+        )
+
+    assert caught.value.code == "ambiguous"
+
+
+def test_typed_batch_size_binds_complete_visible_batch() -> None:
+    admitted = admit_reference(
+        message="这两款防晒怎么选",
+        mention=_mention(
+            "这两款防晒",
+            family="product",
+            plurality="batch",
+            batch_size=2,
+        ),
+        authority=_authority(candidates=(1, 2)),
+    )
+
+    assert admitted.kind == "current_batch"
+
+
+@pytest.mark.parametrize("raw_text", ("哪个", "哪款", "哪一个"))
+def test_comparison_interrogative_binds_current_batch(
+    raw_text: str,
+) -> None:
+    admitted = admit_reference(
+        message=f"那{raw_text}更适合油敏肌",
+        mention=_mention(
+            raw_text,
+            family="unknown",
+            plurality="unknown",
+        ),
+        authority=_authority(
+            candidates=(1, 2),
+            active_dialogue="comparison",
+        ),
     )
 
     assert admitted.kind == "current_batch"

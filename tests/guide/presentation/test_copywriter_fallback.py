@@ -11,10 +11,15 @@ from app.guide.presentation.copywriter_contracts import (
     PresentationMode,
     PresentationPacket,
     PresentationSectionSpec,
+    build_copywriter_section_specs,
+    responsibility_for_presentation_mode,
 )
 from app.guide.presentation.copywriter_fallback import fallback_copy
 from app.guide.presentation.copywriter_validation import (
     validate_copywriter_draft,
+)
+from app.guide.presentation.public_fact_contracts import (
+    ProjectedPublicFact,
 )
 
 
@@ -47,6 +52,34 @@ INTERNAL_PUBLIC_TERMS = (
 )
 
 
+def _section(
+    draft,
+    kind: str,
+    slot_id: str | None = None,
+):
+    return next(
+        section
+        for section in draft.sections
+        if (section.kind, section.slot_id) == (kind, slot_id)
+    )
+
+
+def _rendered_sections(draft) -> str:
+    return " ".join(
+        text
+        for section in draft.sections
+        for text in (
+            section.content.text,
+            (
+                section.advisor_reason.text
+                if section.advisor_reason is not None
+                else ""
+            ),
+        )
+        if text
+    )
+
+
 def _packet(mode: PresentationMode) -> PresentationPacket:
     has_product = mode in PRODUCT_MODES
     first = CopySlot(
@@ -62,6 +95,18 @@ def _packet(mode: PresentationMode) -> PresentationPacket:
                 plain_meaning="质地轻薄清透、不黏腻",
                 attribution="verified_fact",
                 source_refs=("source:soft",),
+            ),
+        ),
+        detail_facts=(
+            ProjectedPublicFact(
+                fact_id="soft-texture",
+                product_id=55,
+                field_key="texture",
+                label="质地",
+                display_value="轻薄清透、不黏腻",
+                source_refs=("source:soft",),
+                source_kind="evidence",
+                attribution="verified_fact",
             ),
         ),
         locked_facts=(
@@ -93,7 +138,7 @@ def _packet(mode: PresentationMode) -> PresentationPacket:
         ),
     )
     slots = (first,) if has_product else ()
-    if mode == "comparison":
+    if mode in {"comparison", "image_comparison"}:
         second = first.model_copy(
             update={
                 "slot_id": "p2",
@@ -108,6 +153,16 @@ def _packet(mode: PresentationMode) -> PresentationPacket:
                     )
                     for fact in first.approved_soft_facts
                 ),
+                "detail_facts": tuple(
+                    fact.model_copy(
+                        update={
+                            "fact_id": f"{fact.fact_id}-second",
+                            "product_id": 57,
+                            "source_refs": ("source:soft:second",),
+                        }
+                    )
+                    for fact in first.detail_facts
+                ),
                 "locked_facts": (),
                 "required_cautions": (),
             },
@@ -117,23 +172,39 @@ def _packet(mode: PresentationMode) -> PresentationPacket:
         section_order = (
             PresentationSectionSpec(kind="summary"),
             PresentationSectionSpec(kind="comparison"),
-            PresentationSectionSpec(kind="product", slot_id="p1"),
-            PresentationSectionSpec(kind="product", slot_id="p2"),
-            PresentationSectionSpec(kind="closing"),
             PresentationSectionSpec(kind="full_cards"),
-            PresentationSectionSpec(kind="pitfalls"),
         )
-    elif mode == "recommendation":
+    elif mode in {
+        "recommendation",
+        "followup",
+        "revision",
+        "image_recommendation",
+    }:
         section_order = (
             PresentationSectionSpec(kind="summary"),
             PresentationSectionSpec(kind="product", slot_id="p1"),
             PresentationSectionSpec(kind="closing"),
             PresentationSectionSpec(kind="full_cards"),
-            PresentationSectionSpec(kind="pitfalls"),
         )
     elif mode == "product_knowledge":
         section_order = (
-            PresentationSectionSpec(kind="product", slot_id="p1"),
+            PresentationSectionSpec(kind="summary"),
+            PresentationSectionSpec(kind="answer"),
+            PresentationSectionSpec(kind="full_cards"),
+        )
+    elif mode in {"single_product", "image_suitability"}:
+        section_order = (
+            PresentationSectionSpec(kind="summary"),
+            PresentationSectionSpec(kind="judgement"),
+            PresentationSectionSpec(kind="full_cards"),
+        )
+    elif mode == "image_identity":
+        section_order = (
+            PresentationSectionSpec(kind="observation"),
+            PresentationSectionSpec(
+                kind="product",
+                slot_id="p1",
+            ),
             PresentationSectionSpec(kind="full_cards"),
         )
     elif mode == "clarification":
@@ -149,22 +220,21 @@ def _packet(mode: PresentationMode) -> PresentationPacket:
         section_order = (
             PresentationSectionSpec(kind="general_knowledge"),
         )
-    elif has_product:
-        section_order = (
-            PresentationSectionSpec(kind="summary"),
-            PresentationSectionSpec(kind="product", slot_id="p1"),
-            PresentationSectionSpec(kind="closing"),
-            PresentationSectionSpec(kind="full_cards"),
-            PresentationSectionSpec(kind="pitfalls"),
-        )
     else:
-        section_order = (
-            PresentationSectionSpec(kind="summary"),
-            PresentationSectionSpec(kind="closing"),
-            PresentationSectionSpec(kind="evidence"),
-        )
+        raise AssertionError(f"unsupported test mode {mode}")
     return PresentationPacket(
         mode=mode,
+        responsibility=responsibility_for_presentation_mode(mode),
+        recommendation_mode=(
+            "explore"
+            if mode in {
+                "recommendation",
+                "followup",
+                "revision",
+                "image_recommendation",
+            }
+            else None
+        ),
         user_need_summary="需要一段稳定保底文案",
         winner_status="INSUFFICIENT_FOR_WINNER",
         slots=slots,
@@ -192,10 +262,20 @@ def test_fallback_is_mode_specific_valid_and_deterministic(
 
     assert first == second
     assert first.mode == mode
-    assert first.summary_copy
-    assert len(first.summary_copy) <= packet.copy_budget.summary_max_chars
-    assert tuple(item.slot_id for item in first.product_copy) == tuple(
-        slot.slot_id for slot in packet.slots
+    assert [
+        (section.kind, section.slot_id)
+        for section in first.sections
+    ] == [
+        (spec.kind, spec.slot_id)
+        for spec in build_copywriter_section_specs(packet)
+    ]
+    assert all(
+        len(section.content.text) <= spec.copy_max_chars
+        for section, spec in zip(
+            first.sections,
+            build_copywriter_section_specs(packet),
+            strict=True,
+        )
     )
     assert validate_copywriter_draft(packet, first) == first
 
@@ -208,16 +288,7 @@ def test_fallback_never_exposes_internal_processing_language(
     mode: PresentationMode,
 ) -> None:
     draft = fallback_copy(_packet(mode))
-    rendered = " ".join(
-        (
-            draft.summary_copy,
-            *(
-                f"{item.positioning} {item.advisor_reason or ''}"
-                for item in draft.product_copy
-            ),
-            draft.closing_copy or "",
-        )
-    )
+    rendered = _rendered_sections(draft)
 
     assert not any(term in rendered for term in INTERNAL_PUBLIC_TERMS)
     assert "品牌主打：品牌主打" not in rendered
@@ -227,27 +298,106 @@ def test_fallback_uses_soft_meaning_without_leaking_code_owned_facts() -> None:
     packet = _packet("recommendation")
 
     draft = fallback_copy(packet)
-    rendered = " ".join(
-        [
-            draft.summary_copy,
-            *(
-                f"{item.positioning} {item.advisor_reason}"
-                for item in draft.product_copy
-            ),
-            draft.closing_copy or "",
-        ]
-    )
+    rendered = _rendered_sections(draft)
+    product = _section(draft, "product", "p1")
 
     assert "轻薄清透" in rendered
-    assert draft.product_copy[0].used_soft_fact_ids == (
+    assert {
+        *product.content.used_fact_ids,
+        *product.advisor_reason.used_fact_ids,
+    } == {
         "soft-texture",
-    )
+    }
     assert "绝不能出现在文案里的商品名" not in rendered
     assert "88.11" not in rendered
     assert "氧化锌" not in rendered
     assert "特别敏感人群请勿使用" not in rendered
 
 
+def test_fallback_keeps_facts_out_of_constraints_only_summary() -> None:
+    packet = _packet("single_product")
+
+    draft = fallback_copy(packet)
+    summary = _section(draft, "summary")
+
+    assert summary.content.used_fact_ids == ()
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_fallback_selects_the_requested_child_dimension() -> None:
+    base = _packet("product_knowledge")
+    facts = (
+        ApprovedSoftFact(
+            fact_id="soft-anti-age",
+            product_id=55,
+            field_key="efficacy",
+            dimension_ids=("efficacy.anti_age",),
+            plain_meaning="紧致淡纹",
+            attribution="verified_fact",
+            source_refs=("source:anti-age",),
+        ),
+        ApprovedSoftFact(
+            fact_id="soft-repair",
+            product_id=55,
+            field_key="efficacy",
+            dimension_ids=("efficacy.repair",),
+            plain_meaning="修护屏障",
+            attribution="verified_fact",
+            source_refs=("source:repair",),
+        ),
+    )
+    packet = base.model_copy(
+        update={
+            "slots": (
+                base.slots[0].model_copy(
+                    update={"approved_soft_facts": facts}
+                ),
+            ),
+            "requested_dimensions": ("efficacy.repair",),
+        }
+    )
+
+    draft = fallback_copy(packet)
+    answer = _section(draft, "answer", "p1")
+
+    assert answer.content.used_fact_ids == ("soft-repair",)
+
+
+def test_fallback_deduplicates_fact_covering_multiple_dimensions() -> None:
+    base = _packet("recommendation")
+    shared_fact = ApprovedSoftFact(
+        fact_id="soft-shared",
+        product_id=55,
+        field_key="texture",
+        dimension_ids=(
+            "texture.refreshing",
+            "texture.moisturizing",
+            "texture.lightweight",
+        ),
+        plain_meaning="修护屏障且肤感水润",
+        attribution="verified_fact",
+        source_refs=("source:shared",),
+    )
+    packet = base.model_copy(
+        update={
+            "slots": (
+                base.slots[0].model_copy(
+                    update={"approved_soft_facts": (shared_fact,)}
+                ),
+            ),
+            "requested_dimensions": (
+                "texture.refreshing",
+                "texture.moisturizing",
+                "texture.lightweight",
+            ),
+        }
+    )
+
+    draft = fallback_copy(packet)
+
+    product = _section(draft, "product", "p1")
+    assert product.content.used_fact_ids == ("soft-shared",)
+    assert validate_copywriter_draft(packet, draft) == draft
 def test_fallback_preserves_merchant_and_consumer_attribution() -> None:
     base = _packet("recommendation")
     slot = base.slots[0].model_copy(
@@ -275,10 +425,11 @@ def test_fallback_preserves_merchant_and_consumer_attribution() -> None:
     packet = base.model_copy(update={"slots": (slot,)})
 
     draft = fallback_copy(packet)
+    product = _section(draft, "product", "p1")
     product_text = " ".join(
         (
-            draft.product_copy[0].positioning,
-            draft.product_copy[0].advisor_reason,
+            product.content.text,
+            product.advisor_reason.text,
         )
     )
 
@@ -287,7 +438,57 @@ def test_fallback_preserves_merchant_and_consumer_attribution() -> None:
     assert validate_copywriter_draft(packet, draft) == draft
 
 
-def test_fallback_covers_at_least_eighty_percent_of_soft_facts() -> None:
+def test_fallback_keeps_approved_merchant_numbers_and_ingredients() -> None:
+    base = _packet("recommendation")
+    slot = base.slots[0].model_copy(
+        update={
+            "approved_soft_facts": (
+                ApprovedSoftFact(
+                    fact_id="merchant-efficacy",
+                    product_id=55,
+                    field_key="efficacy",
+                    plain_meaning="品牌主打：12周充盈凹陷",
+                    attribution="merchant_claim",
+                    source_refs=("source:merchant:efficacy",),
+                ),
+                ApprovedSoftFact(
+                    fact_id="merchant-ingredient",
+                    product_id=55,
+                    field_key="ingredients_present",
+                    plain_meaning="品牌主打：12%玻色因溶液、透明质酸",
+                    attribution="merchant_claim",
+                    source_refs=("source:merchant:ingredient",),
+                ),
+            )
+        }
+    )
+    packet = base.model_copy(
+        update={
+            "slots": (slot,),
+            "copy_budget": CopyLengthBudget(
+                summary_max_chars=180,
+                positioning_max_chars=200,
+                advisor_reason_max_chars=120,
+                closing_max_chars=180,
+            ),
+        }
+    )
+
+    draft = fallback_copy(packet)
+    product = _section(draft, "product", "p1")
+    product_text = " ".join(
+        (
+            product.content.text,
+            product.advisor_reason.text,
+        )
+    )
+
+    assert "12周充盈凹陷" in product_text
+    assert "12%玻色因溶液" in product_text
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_fallback_uses_substantive_subset_without_forcing_full_coverage() -> None:
     base = _packet("recommendation")
     facts = tuple(
         ApprovedSoftFact(
@@ -314,12 +515,17 @@ def test_fallback_covers_at_least_eighty_percent_of_soft_facts() -> None:
     packet = base.model_copy(update={"slots": (slot,)})
 
     draft = fallback_copy(packet)
+    product = _section(draft, "product", "p1")
 
-    assert len(draft.product_copy[0].used_soft_fact_ids) >= 4
+    used = {
+        *product.content.used_fact_ids,
+        *product.advisor_reason.used_fact_ids,
+    }
+    assert 1 <= len(used) <= 2
     assert validate_copywriter_draft(packet, draft) == draft
 
 
-def test_fallback_compacts_long_merged_atoms_without_losing_coverage() -> None:
+def test_fallback_compacts_long_merged_atoms_without_forcing_coverage() -> None:
     base = _packet("recommendation")
     facts = tuple(
         ApprovedSoftFact(
@@ -352,6 +558,65 @@ def test_fallback_compacts_long_merged_atoms_without_losing_coverage() -> None:
     packet = base.model_copy(update={"slots": (slot,)})
 
     draft = fallback_copy(packet)
+    product = _section(draft, "product", "p1")
 
-    assert len(draft.product_copy[0].used_soft_fact_ids) == 7
+    used = {
+        *product.content.used_fact_ids,
+        *product.advisor_reason.used_fact_ids,
+    }
+    assert 1 <= len(used) <= 2
+    assert validate_copywriter_draft(packet, draft) == draft
+
+
+def test_fallback_covers_requested_dimensions_instead_of_first_two_facts() -> None:
+    base = _packet("product_knowledge")
+    facts = (
+        ApprovedSoftFact(
+            fact_id="soft-efficacy",
+            product_id=55,
+            field_key="efficacy",
+            plain_meaning="修护屏障",
+            attribution="verified_fact",
+            source_refs=("source:efficacy",),
+        ),
+        ApprovedSoftFact(
+            fact_id="soft-texture",
+            product_id=55,
+            field_key="texture",
+            plain_meaning="轻薄清爽",
+            attribution="verified_fact",
+            source_refs=("source:texture",),
+        ),
+        ApprovedSoftFact(
+            fact_id="soft-fragrance",
+            product_id=55,
+            field_key="fragrance_description",
+            plain_meaning="清新香调",
+            attribution="verified_fact",
+            source_refs=("source:fragrance",),
+        ),
+    )
+    packet = base.model_copy(
+        update={
+            "slots": (
+                base.slots[0].model_copy(
+                    update={"approved_soft_facts": facts}
+                ),
+            ),
+            "requested_dimensions": (
+                "efficacy",
+                "texture",
+                "fragrance_description",
+            ),
+        }
+    )
+
+    draft = fallback_copy(packet)
+    answer = _section(draft, "answer", "p1")
+
+    assert set(answer.content.used_fact_ids) == {
+        "soft-efficacy",
+        "soft-texture",
+        "soft-fragrance",
+    }
     assert validate_copywriter_draft(packet, draft) == draft

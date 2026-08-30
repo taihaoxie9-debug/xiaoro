@@ -8,6 +8,9 @@
 """
 from __future__ import annotations
 
+from decimal import Decimal
+import inspect
+
 import pytest
 from pydantic import ValidationError
 
@@ -22,7 +25,9 @@ from app.guide.intent.contracts import (
     SkinConstraint,
 )
 from app.guide.intent.signal_merger import merge_intent_signals
+from app.guide.intent.responsibility_matrix import Responsibility
 from app.guide.understanding.contracts import (
+    BudgetDraft,
     CategoryDraft,
     EfficacyDraft,
     EfficacyTarget,
@@ -31,6 +36,7 @@ from app.guide.understanding.contracts import (
     ProductMentionDraft,
     ReferenceDraft,
     SignalTrace,
+    SkinTarget,
     SourceSpan,
     StructuredUnderstanding,
     TopicCode,
@@ -41,7 +47,7 @@ from app.guide.understanding.semantic_contracts import (
     ClarificationCode,
     SemanticLaneDisposition,
 )
-from app.guide.understanding.text_understanding import understand_text
+from tests.guide.legacy_text_understanding import understand_text
 
 
 _TASK29_CATEGORY_QUANTIFIERS = (
@@ -90,12 +96,265 @@ def plan():
 
 def test_full_query_becomes_recommend_plan_without_clarification() -> None:
     understanding = understand_text("500 内适合油敏肌的防晒")
+    assert understanding.recommendation_mode == "explore"
+    assert (
+        understanding.recommendation_mode_basis
+        == "broad_exploration"
+    )
+    assert understanding.recommendation_count == 3
+
     task = plan()(understanding)
 
     assert isinstance(task, TaskPlan)
     assert task.mode == "recommend"
     assert task.clarification is None
     assert "canonical_product" in task.required_evidence
+
+
+def test_route_responsibility_controls_mode_without_mutating_understanding(
+) -> None:
+    planner = plan()
+    assert "responsibility" in inspect.signature(planner).parameters
+    understanding = understand_text(
+        "500 内适合油敏肌的防晒"
+    )
+    original = understanding.model_dump(mode="python")
+
+    task = planner(
+        understanding,
+        responsibility=Responsibility.COMPARISON,
+        resolved_product_ids=(38, 91),
+    )
+
+    assert task.mode == "comparison"
+    assert task.product_ids == [38, 91]
+    assert understanding.model_dump(mode="python") == original
+
+
+def test_explore_recommendation_preserves_typed_result_count() -> None:
+    understanding = understand_text(
+        "500 内适合油敏肌的防晒"
+    ).model_copy(
+        update={
+            "recommendation_mode": "explore",
+            "recommendation_count": 2,
+            "recommendation_mode_basis": "count_requested",
+        }
+    )
+
+    task = plan()(understanding)
+
+    assert task.mode == "recommend"
+    assert task.recommendation_mode == "explore"
+    assert task.recommendation_count == 2
+    assert task.recommendation_mode_basis == "count_requested"
+
+
+def test_fit_recommendation_requires_one_result_and_usable_need() -> None:
+    understanding = understand_text(
+        "500 内适合油敏肌的防晒"
+    ).model_copy(
+        update={
+            "recommendation_mode": "fit",
+            "recommendation_count": 1,
+            "recommendation_mode_basis": "personal_suitability",
+        }
+    )
+
+    task = plan()(understanding)
+
+    assert task.mode == "recommend"
+    assert task.recommendation_mode == "fit"
+    assert task.recommendation_count == 1
+    assert task.recommendation_mode_basis == "personal_suitability"
+
+
+def test_fit_without_usable_need_returns_typed_clarification() -> None:
+    understanding = understand_text(
+        "给我推荐 500 内的防晒"
+    ).model_copy(
+        update={
+            "recommendation_mode": "fit",
+            "recommendation_count": 1,
+            "recommendation_mode_basis": "single_best_request",
+        }
+    )
+
+    task = plan()(understanding)
+
+    assert task.mode == "clarify"
+    assert task.clarification_code is ClarificationCode.GOAL
+    assert task.recommendation_mode == "fit"
+    assert task.recommendation_mode_basis == "single_best_request"
+    assert task.recommendation_count == 1
+
+
+def test_plan_task_rejects_missing_recommendation_basis() -> None:
+    understanding = understand_text(
+        "500 内适合油敏肌的防晒"
+    ).model_copy(
+        update={
+            "recommendation_mode": "fit",
+            "recommendation_mode_basis": None,
+            "recommendation_count": 1,
+        }
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="recommendation understanding requires complete outcome",
+    ):
+        plan()(understanding)
+
+
+@pytest.mark.parametrize(
+    ("recommendation_mode", "recommendation_mode_basis"),
+    (
+        ("explore", "single_best_request"),
+        ("fit", "broad_exploration"),
+    ),
+)
+def test_task_plan_rejects_cross_parent_recommendation_basis(
+    recommendation_mode: str,
+    recommendation_mode_basis: str,
+) -> None:
+    task = plan()(understand_text("500 内适合油敏肌的防晒"))
+
+    with pytest.raises(
+        ValidationError,
+        match="recommendation mode basis must be parent-scoped",
+    ):
+        TaskPlan.model_validate(
+            {
+                **task.model_dump(mode="python"),
+                "recommendation_mode": recommendation_mode,
+                "recommendation_mode_basis": (
+                    recommendation_mode_basis
+                ),
+                "recommendation_count": (
+                    1 if recommendation_mode == "fit" else 2
+                ),
+            },
+            strict=True,
+        )
+
+
+def test_structured_understanding_rejects_cross_parent_basis() -> None:
+    understanding = understand_text("500 内适合油敏肌的防晒")
+
+    with pytest.raises(
+        ValidationError,
+        match="recommendation mode basis must be parent-scoped",
+    ):
+        StructuredUnderstanding.model_validate(
+            {
+                **understanding.model_dump(mode="python"),
+                "recommendation_mode": "fit",
+                "recommendation_mode_basis": "broad_exploration",
+                "recommendation_count": 1,
+            },
+            strict=True,
+        )
+
+
+def test_comparison_dimensions_come_from_current_turn_atoms() -> None:
+    understanding = StructuredUnderstanding(
+        goal=UnderstandingGoal.COMPARISON,
+        topic=TopicCode.SERUM,
+        observations=[],
+        exact_constraints=[
+            CategoryDraft(value=TopicCode.SERUM),
+            BudgetDraft(maximum=Decimal("500")),
+        ],
+        preference_drafts=[
+            PreferenceDraft(
+                field_key="texture",
+                value="清爽",
+                preference_kind="concept",
+                concept_id="texture.refreshing",
+            )
+        ],
+        semantic_proposals=[],
+        signal_trace=[],
+        references=[],
+        product_mentions=[],
+        image_references=[],
+        uncertainties=[],
+        confidence=1.0,
+    )
+
+    task = plan()(understanding, resolved_product_ids=(38, 91))
+
+    assert task.requested_comparison_dimensions == (
+        "reference_price",
+        "texture.refreshing",
+    )
+
+
+def test_current_skin_comparison_adds_suitable_skin_dimension() -> None:
+    understanding = StructuredUnderstanding(
+        goal=UnderstandingGoal.COMPARISON,
+        topic=TopicCode.SERUM,
+        observations=[],
+        exact_constraints=[
+            CategoryDraft(value=TopicCode.SERUM),
+            understanding_contracts.SkinDraft(
+                value=SkinTarget.OILY_SENSITIVE
+            ),
+        ],
+        preference_drafts=[],
+        semantic_proposals=[],
+        signal_trace=[],
+        references=[],
+        product_mentions=[],
+        image_references=[],
+        uncertainties=[],
+        confidence=1.0,
+    )
+
+    task = plan()(understanding, resolved_product_ids=(129, 33))
+
+    assert task.requested_comparison_dimensions == ("suitable_skin",)
+
+
+def test_inherited_budget_does_not_add_comparison_price_dimension() -> None:
+    understanding = StructuredUnderstanding(
+        goal=UnderstandingGoal.COMPARISON,
+        topic=TopicCode.SERUM,
+        observations=[],
+        exact_constraints=[
+            CategoryDraft(value=TopicCode.SERUM),
+            BudgetDraft(maximum=Decimal("500")),
+        ],
+        preference_drafts=[
+            PreferenceDraft(
+                field_key="texture",
+                value="清爽",
+                preference_kind="concept",
+                concept_id="texture.refreshing",
+            )
+        ],
+        semantic_proposals=[],
+        signal_trace=[
+            SignalTrace(
+                field="context.budget.session",
+                exact_value=None,
+                semantic_value="maximum=500",
+                resolution="context_fills",
+            )
+        ],
+        references=[],
+        product_mentions=[],
+        image_references=[],
+        uncertainties=[],
+        confidence=1.0,
+    )
+
+    task = plan()(understanding, resolved_product_ids=(38, 91))
+
+    assert task.requested_comparison_dimensions == (
+        "texture.refreshing",
+    )
 
 
 def test_product_question_plan_carries_unrestricted_meaning() -> None:
@@ -853,6 +1112,9 @@ def test_same_clarification_copy_preserves_typed_semantic_hint() -> None:
     def planning_input(code: ClarificationCode) -> StructuredUnderstanding:
         return StructuredUnderstanding(
             goal=UnderstandingGoal.RECOMMENDATION,
+                recommendation_mode="explore",
+                recommendation_mode_basis="broad_exploration",
+                recommendation_count=3,
             topic=None,
             observations=[],
             exact_constraints=[],
@@ -1428,6 +1690,9 @@ def test_fuzzy_budget_clarification_is_typed_and_meaningful(
 def test_applicable_preference_draft_compiles_to_facet_constraint() -> None:
     understanding = StructuredUnderstanding(
         goal=UnderstandingGoal.RECOMMENDATION,
+        recommendation_mode="explore",
+        recommendation_mode_basis="broad_exploration",
+        recommendation_count=3,
         topic=TopicCode.BASE_MAKEUP,
         observations=[],
         exact_constraints=[
@@ -1460,6 +1725,9 @@ def test_applicable_preference_draft_compiles_to_facet_constraint() -> None:
 def test_multiple_values_for_one_field_compile_as_independent_slots() -> None:
     understanding = StructuredUnderstanding(
         goal=UnderstandingGoal.RECOMMENDATION,
+        recommendation_mode="explore",
+        recommendation_mode_basis="broad_exploration",
+        recommendation_count=3,
         topic=TopicCode.SKINCARE,
         observations=[],
         exact_constraints=[
@@ -1507,6 +1775,9 @@ def test_absolute_ingredient_presence_compiles_to_hard_inclusion() -> None:
 def test_non_applicable_or_unknown_preference_draft_is_dropped() -> None:
     understanding = StructuredUnderstanding(
         goal=UnderstandingGoal.RECOMMENDATION,
+        recommendation_mode="explore",
+        recommendation_mode_basis="broad_exploration",
+        recommendation_count=3,
         topic=TopicCode.SUNSCREEN,
         observations=[],
         exact_constraints=[
@@ -1538,6 +1809,9 @@ def test_hard_constraint_revision_confirmation_blocks_retrieval() -> None:
     task = plan()(
         StructuredUnderstanding(
             goal=UnderstandingGoal.RECOMMENDATION,
+            recommendation_mode="explore",
+            recommendation_mode_basis="broad_exploration",
+            recommendation_count=3,
             topic=TopicCode.FRAGRANCE,
             observations=[],
             exact_constraints=[
@@ -1590,3 +1864,44 @@ def test_all_compiled_constraints_are_typed() -> None:
         "category",
         "exclude",
     }
+
+
+def test_task_plan_does_not_fabricate_missing_recommendation_basis() -> None:
+    with pytest.raises(
+        ValidationError,
+        match="recommend plan requires recommendation mode basis",
+    ):
+        TaskPlan(
+            mode="recommend",
+            recommendation_mode="fit",
+            recommendation_count=1,
+            referenced_image_ids=[],
+            constraints=[
+                CategoryConstraint(value=TopicCode.SERUM),
+                SkinConstraint(value=SkinTarget.SENSITIVE),
+            ],
+            required_evidence=["canonical_product"],
+        )
+
+
+def test_revalidated_task_copy_rejects_missing_recommendation_basis() -> None:
+    assert hasattr(intent_contracts, "revalidate_task_plan")
+    source = TaskPlan(
+        mode="followup",
+        referenced_image_ids=[],
+        constraints=[CategoryConstraint(value=TopicCode.SERUM)],
+        required_evidence=["canonical_product"],
+    )
+
+    with pytest.raises(
+        ValidationError,
+        match="recommend plan requires recommendation mode basis",
+    ):
+        intent_contracts.revalidate_task_plan(
+            source,
+            update={
+                "mode": "recommend",
+                "recommendation_mode": "fit",
+                "recommendation_count": 1,
+            },
+        )

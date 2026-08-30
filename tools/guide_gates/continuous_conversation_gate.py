@@ -76,6 +76,10 @@ class ContinuousTurnExpectation(_StrictFrozen):
     acceptable_semantic: SemanticExpectation
     expected_bindings: tuple[ResolvedProductBinding, ...] = ()
     expected_route: RouteExpectation
+    acceptable_routes: tuple[RouteExpectation, ...] = Field(
+        default=(),
+        exclude=True,
+    )
     expected_snapshot_subset: dict[str, JsonValue]
     expected_task_plan_subset: dict[str, JsonValue]
     expected_card_ids: tuple[int, ...] = Field(
@@ -90,6 +94,7 @@ class ContinuousTurnExpectation(_StrictFrozen):
     @field_validator(
         "image_fixture_ids",
         "expected_bindings",
+        "acceptable_routes",
         "expected_card_ids",
         mode="before",
     )
@@ -137,6 +142,26 @@ class ContinuousTurnExpectation(_StrictFrozen):
             set(self.expected_card_ids)
         ):
             raise ValueError("expected card IDs must be unique")
+        route_keys = tuple(
+            (
+                route.processor,
+                route.continuity,
+                route.focus_source,
+            )
+            for route in self.acceptable_routes
+        )
+        expected_route_key = (
+            self.expected_route.processor,
+            self.expected_route.continuity,
+            self.expected_route.focus_source,
+        )
+        if (
+            len(route_keys) != len(set(route_keys))
+            or expected_route_key in route_keys
+        ):
+            raise ValueError(
+                "acceptable routes must be unique alternatives"
+            )
         return self
 
 
@@ -190,7 +215,6 @@ PublicEvent = tuple[str, dict[str, Any]]
 
 class ContinuousRuntimeTurnResult(_StrictFrozen):
     events: tuple[PublicEvent, ...] = Field(min_length=1)
-    delivery_event: Any | None = Field(default=None, exclude=True)
     semantic_admission_passed: bool
     bindings: tuple[ResolvedProductBinding, ...] = ()
     route: RouteExpectation
@@ -221,10 +245,6 @@ class ContinuousRuntime(Protocol):
         meaning: TurnMeaning,
         image_fixture_ids: tuple[str, ...],
     ) -> ContinuousRuntimeTurnResult: ...
-
-    def commit(self, terminal_event: PublicEvent) -> None: ...
-
-    def discard(self, terminal_event: object) -> None: ...
 
     def load_snapshot(
         self,
@@ -310,13 +330,7 @@ def execute_continuous_trajectory(
                 "runtime must return ContinuousRuntimeTurnResult"
             )
         events = runtime_result.events
-        delivery_event = (
-            runtime_result.delivery_event
-            if runtime_result.delivery_event is not None
-            else events[-1]
-        )
         if not events or events[-1][0] != "end":
-            runtime.discard(delivery_event)
             raise ContinuousTrajectoryExecutionError(
                 f"{turn.turn_id} did not emit terminal end"
             )
@@ -328,11 +342,9 @@ def execute_continuous_trajectory(
             type(terminal_version) is not int
             or terminal_version != version + 1
         ):
-            runtime.discard(delivery_event)
             raise ContinuousTrajectoryExecutionError(
                 f"{turn.turn_id} did not advance exactly once"
             )
-        runtime.commit(delivery_event)
         snapshot = runtime.load_snapshot(
             trajectory.trajectory_id
         )
@@ -341,14 +353,7 @@ def execute_continuous_trajectory(
                 f"{turn.turn_id} committed snapshot version drifted"
             )
         card_ids = _public_card_ids(events)
-        public_messages = tuple(
-            str(data["content"])
-            for event, data in events
-            if (
-                event == "message"
-                and isinstance(data.get("content"), str)
-            )
-        )
+        public_messages = _public_messages(events)
         traces.append(ContinuousTurnTrace(
             turn_id=turn.turn_id,
             starting_version=version,
@@ -397,6 +402,31 @@ def _public_card_ids(
             if type(product_id) is int and product_id not in ids:
                 ids.append(product_id)
     return tuple(ids)
+
+
+def _public_messages(
+    events: Sequence[PublicEvent],
+) -> tuple[str, ...]:
+    messages: list[str] = []
+    for event, data in events:
+        if event == "clarify":
+            question = data.get("question")
+            if isinstance(question, str) and question:
+                messages.append(question)
+            continue
+        if event != "presentation_contract":
+            continue
+        sections = data.get("sections")
+        if not isinstance(sections, (list, tuple)):
+            continue
+        for section in sections:
+            if not isinstance(section, dict):
+                continue
+            for key in ("copy_text", "advisor_reason"):
+                value = section.get(key)
+                if isinstance(value, str) and value:
+                    messages.append(value)
+    return tuple(messages)
 
 
 __all__ = [

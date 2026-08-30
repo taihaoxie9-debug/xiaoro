@@ -99,6 +99,29 @@ class FakeOcrObservationPort:
         self.calls.append((request, canonical_identity))
         return self.observation
 
+    def observe_with_trace(
+        self,
+        request: ImageRetrievalRequest,
+        canonical_identity: Any,
+    ):
+        self.calls.append((request, canonical_identity))
+        contracts = _contracts()
+        return (
+            self.observation,
+            contracts.OcrIdentityTrace(
+                engine="fake-ocr",
+                engine_version="test",
+                minimum_evidence_confidence=0.9,
+                lines=(
+                    contracts.OcrTraceLine(
+                        text="Canonical Brand",
+                        confidence=0.99,
+                    ),
+                ),
+                evidence_line_count=1,
+            ),
+        )
+
 
 class FakeCanonicalIdentityCatalog:
     def __init__(
@@ -316,6 +339,75 @@ def test_clear_top_candidate_at_threshold_confirms_canonical_identity() -> None:
     assert ocr_port.calls[0][1].product_id == 1
 
 
+def test_trace_reuses_one_visual_and_one_ocr_observation() -> None:
+    contracts = _contracts()
+    observer, visual_port, ocr_port = _observer(
+        visual_observation=_visual_observation((1, 0.91), (2, 0.82)),
+        ocr_observation=_ocr_observation(),
+        identities={1: _canonical_identity(1), 2: _canonical_identity(2)},
+    )
+
+    observation, trace = observer.observe_with_trace(_request())
+
+    assert trace.observation == observation
+    assert trace.visual == visual_port.observation
+    assert trace.ocr_observation == ocr_port.observation
+    assert trace.ocr_diagnostic.engine == "fake-ocr"
+    assert trace.minimum_similarity == pytest.approx(0.8)
+    assert trace.minimum_margin == pytest.approx(0.1)
+    assert len(visual_port.requests) == 1
+    assert len(ocr_port.calls) == 1
+    assert observation.identity_state is contracts.IdentityState.CONFIRMED
+
+
+def test_pre_ocr_failure_still_returns_complete_private_trace() -> None:
+    contracts = _contracts()
+    observer, visual_port, ocr_port = _observer(
+        visual_observation=_visual_observation((1, 0.79), (2, 0.70)),
+        ocr_observation=_ocr_observation(),
+        identities={1: _canonical_identity(1), 2: _canonical_identity(2)},
+    )
+
+    observation, trace = observer.observe_with_trace(_request())
+
+    assert observation.identity_state is contracts.IdentityState.LOW_CONFIDENCE
+    assert trace.observation == observation
+    assert trace.visual == visual_port.observation
+    assert trace.ocr_observation.state is contracts.OcrObservationState.NOT_RUN
+    assert trace.ocr_diagnostic.engine == "not_run"
+    assert trace.ocr_diagnostic.lines == ()
+    assert len(visual_port.requests) == 1
+    assert ocr_port.calls == []
+
+
+def test_private_trace_rejects_mismatched_ocr_observation() -> None:
+    contracts = _contracts()
+    observer, _, _ = _observer(
+        visual_observation=_visual_observation((1, 0.91), (2, 0.70)),
+        ocr_observation=_ocr_observation(),
+        identities={1: _canonical_identity(1), 2: _canonical_identity(2)},
+    )
+    observation, trace = observer.observe_with_trace(_request())
+
+    with pytest.raises(ValidationError, match="OCR observation"):
+        contracts.ImageIdentityTrace(
+            visual=trace.visual,
+            ocr_observation=contracts.OcrIdentityObservation(
+                state=contracts.OcrObservationState.OBSERVED,
+                brand_consistency=(
+                    contracts.IdentityEvidenceConsistency.CONFLICT
+                ),
+                product_name_consistency=(
+                    contracts.IdentityEvidenceConsistency.CONSISTENT
+                ),
+            ),
+            ocr_diagnostic=trace.ocr_diagnostic,
+            observation=observation,
+            minimum_similarity=trace.minimum_similarity,
+            minimum_margin=trace.minimum_margin,
+        )
+
+
 def test_decimal_threshold_equality_confirms_canonical_identity() -> None:
     contracts = _contracts()
     observer, _, ocr_port = _observer(
@@ -332,11 +424,14 @@ def test_decimal_threshold_equality_confirms_canonical_identity() -> None:
     assert len(ocr_port.calls) == 1
 
 
-def test_margin_materially_below_threshold_remains_ambiguous() -> None:
+def test_near_candidates_without_ocr_corroboration_remain_ambiguous() -> None:
     contracts = _contracts()
     observer, _, ocr_port = _observer(
         visual_observation=_visual_observation((1, 0.899999), (2, 0.8)),
-        ocr_observation=_ocr_observation(),
+        ocr_observation=_ocr_observation(
+            brand="indeterminate",
+            product_name="indeterminate",
+        ),
         identities={1: _canonical_identity(1), 2: _canonical_identity(2)},
     )
 
@@ -348,7 +443,7 @@ def test_margin_materially_below_threshold_remains_ambiguous() -> None:
         is contracts.IdentityState.AMBIGUOUS_CANDIDATES
     )
     assert observation.confirmed_product_id is None
-    assert ocr_port.calls == []
+    assert len(ocr_port.calls) == 1
 
 
 def test_ocr_not_configured_is_explicit_and_never_fakes_success() -> None:
@@ -580,7 +675,7 @@ def test_low_confidence_candidate_fails_closed_without_running_ocr() -> None:
     assert ocr_port.calls == []
 
 
-def test_near_scored_multiple_candidates_fail_closed() -> None:
+def test_near_scored_candidates_confirm_with_independent_ocr_support() -> None:
     contracts = _contracts()
     observer, _, ocr_port = _observer(
         visual_observation=_visual_observation((1, 0.91), (2, 0.82)),
@@ -590,14 +685,11 @@ def test_near_scored_multiple_candidates_fail_closed() -> None:
 
     observation = observer.observe(_request())
 
-    assert (
-        observation.identity_state
-        is contracts.IdentityState.AMBIGUOUS_CANDIDATES
-    )
-    assert observation.confirmed_product_id is None
+    assert observation.identity_state is contracts.IdentityState.CONFIRMED
+    assert observation.confirmed_product_id == 1
     assert observation.candidate_product_ids == (1, 2)
     assert observation.similarity_margin == pytest.approx(0.09)
-    assert ocr_port.calls == []
+    assert len(ocr_port.calls) == 1
 
 
 def test_no_candidates_fails_closed() -> None:

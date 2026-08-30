@@ -25,7 +25,7 @@ from app.guide.intent.concept_preferences import (
 )
 from app.guide.understanding.turn_meaning_contracts import TurnMeaning
 from app.guide_runtime.composition import build_selection_concept_assets
-from tools.guide_gates.run_official_deepseek_smoke import (
+from tools.guide_gates.private_api_key import (
     DEFAULT_KEY_PATH,
     KeyPrecheckError,
     read_private_api_key,
@@ -315,42 +315,12 @@ def _parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = _parse_args()
-    try:
-        api_key = read_private_api_key(args.key_path)
-    except KeyPrecheckError as error:
-        print(json.dumps({
-            "status": "key_precheck_failed",
-            "code": error.code.value,
-        }))
-        return 5
-    assets = build_selection_concept_assets()
-    prompt_catalog = tuple(sorted({
-        item.concept_id for item in assets.projections
+    del args
+    print(json.dumps({
+        "status": "unbound_real_execution_disabled",
+        "use": "run_final_real_translation.py",
     }))
-    concept_catalog = ConceptPreferenceCatalog.from_projections(
-        assets.projections
-    )
-    cases = load_gate_cases(args.cases)
-    adapter = DeepSeekTurnMeaningAdapter(
-        api_key=api_key,
-        model=args.model,
-        timeout_seconds=12.0,
-        max_tokens=1024,
-        concept_catalog=prompt_catalog,
-        daily_budget_cny=Decimal("100.00"),
-        daily_call_cap=len(cases),
-    )
-    try:
-        report = run_real_gate(
-            adapter=adapter,
-            cases=cases,
-            concept_catalog=concept_catalog,
-            output_dir=args.output_dir,
-        )
-    finally:
-        adapter.close()
-    print(report.model_dump_json())
-    return 0 if report.passed else 3
+    return 7
 
 
 if __name__ == "__main__":

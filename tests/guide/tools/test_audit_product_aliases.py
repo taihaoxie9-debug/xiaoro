@@ -14,7 +14,14 @@ from tools.guide_data.audit_product_aliases import (
 ROOT = Path(__file__).resolve().parents[3]
 CANONICAL = ROOT / "data" / "canonical"
 EVIDENCE = ROOT / "data" / "guide_product_evidence"
-LEGACY = ROOT.parent / "xiaoro-shopping-master"
+LEGACY_ALIAS_FIXTURE = (
+    ROOT
+    / "tests"
+    / "fixtures"
+    / "guide"
+    / "aliases"
+    / "legacy_product_alias_maps.py"
+)
 
 
 def _write_jsonl(path: Path, rows: list[dict[str, object]]) -> Path:
@@ -269,7 +276,7 @@ def test_publisher_emits_only_runtime_aliases_with_bound_manifest(
     assert manifest["canonical_sha256"] == "c" * 64
 
 
-def test_repository_alias_audit_covers_current_catalog_evidence_and_legacy() -> None:
+def test_repository_alias_audit_covers_catalog_evidence_and_legacy_snapshot() -> None:
     manifest = json.loads(
         (EVIDENCE / "product_evidence_v1_manifest.json").read_text(
             encoding="utf-8"
@@ -281,11 +288,7 @@ def test_repository_alias_audit_covers_current_catalog_evidence_and_legacy() -> 
         canonical_path=CANONICAL / "core_products_v1.jsonl",
         evidence_path=evidence_path,
         review_path=CANONICAL / "product_alias_reviews_v1.jsonl",
-        legacy_paths=(
-            LEGACY / "app" / "services" / "intent.py",
-            LEGACY / "app" / "services" / "agent.py",
-            LEGACY / "app" / "services" / "v2" / "turn_parser.py",
-        ),
+        legacy_paths=(LEGACY_ALIAS_FIXTURE,),
     )
 
     assert audit.report.canonical_product_count == 103

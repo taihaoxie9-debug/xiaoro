@@ -9,7 +9,6 @@ from app.guide_runtime.llm_config import (
     GuideLlmConfig,
     GuideLlmConfigError,
     GuideLlmConfigErrorCode,
-    GuideRuntimeFlags,
 )
 
 
@@ -31,35 +30,13 @@ def _clear_environment(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv(name, raising=False)
 
 
-def test_unified_router_defaults_disabled(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.delenv(
-        "GUIDE_UNIFIED_ROUTER_ENABLED",
-        raising=False,
-    )
+def test_production_configuration_has_no_legacy_router_switch() -> None:
+    source = (
+        _REPO_ROOT / "app" / "guide_runtime" / "llm_config.py"
+    ).read_text(encoding="utf-8")
 
-    assert GuideRuntimeFlags.from_environment().unified_router is False
-
-
-def test_unified_router_accepts_explicit_true(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("GUIDE_UNIFIED_ROUTER_ENABLED", "true")
-
-    assert GuideRuntimeFlags.from_environment().unified_router is True
-
-
-def test_unified_router_rejects_unknown_boolean(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("GUIDE_UNIFIED_ROUTER_ENABLED", "sometimes")
-
-    with pytest.raises(
-        ValueError,
-        match="GUIDE_UNIFIED_ROUTER_ENABLED",
-    ):
-        GuideRuntimeFlags.from_environment()
+    assert "GUIDE_UNIFIED_ROUTER_ENABLED" not in source
+    assert "GuideRuntimeFlags" not in source
 
 
 def test_default_configuration_is_disabled_and_model_unselected(
@@ -188,31 +165,16 @@ def test_invalid_environment_fails_closed_without_echoing_values(
     assert all(value not in str(caught.value) for value in environment.values())
 
 
-@pytest.mark.parametrize(
-    ("environment", "code"),
-    (
-        ({}, GuideLlmConfigErrorCode.API_KEY_MISSING),
-        (
-            {"GUIDE_LLM_API_KEY": "configuration-test-secret"},
-            GuideLlmConfigErrorCode.MODEL_UNSELECTED,
-        ),
-    ),
-)
-def test_require_ready_fails_closed_for_missing_key_or_model(
+def test_require_ready_fails_closed_for_absent_provider(
     monkeypatch: pytest.MonkeyPatch,
-    environment: dict[str, str],
-    code: GuideLlmConfigErrorCode,
 ) -> None:
     _clear_environment(monkeypatch)
-    for name, value in environment.items():
-        monkeypatch.setenv(name, value)
     config = GuideLlmConfig.from_environment()
 
     with pytest.raises(GuideLlmConfigError) as caught:
         config.require_ready()
 
-    assert caught.value.code is code
-    assert "configuration-test-secret" not in str(caught.value)
+    assert caught.value.code is GuideLlmConfigErrorCode.API_KEY_MISSING
 
 
 def test_runtime_requirements_pin_httpx_for_intent_adapter() -> None:

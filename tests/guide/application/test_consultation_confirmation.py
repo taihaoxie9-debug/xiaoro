@@ -5,40 +5,18 @@ from pathlib import Path
 
 import pytest
 
-from app.guide.application.consultation_assessment import (
-    ConsultationAssessmentResult,
-    assess_consultation,
-)
 from app.guide.feedback.consultation_state import ConsultationSubstate
-from app.guide.understanding.consultation_contracts import (
-    ConsultationObservation,
-)
-from app.guide.understanding.consultation_questions import (
-    ObservationAnswer,
-    observable_questions,
+from tests.guide.semantic_test_port import (
+    AssessmentFixture,
+    consultation_assessment_fixture,
+    consultation_from_answers,
 )
 
 
 def _consultation(
-    answers: Sequence[ObservationAnswer] = ("yes", "unknown"),
+    answers: Sequence[str] = ("yes", "unknown"),
 ) -> ConsultationSubstate:
-    return ConsultationSubstate(
-        observations=[
-            ConsultationObservation(
-                code=question.code,
-                answer=answer,
-                source_turn_id=f"turn_{index:016d}",
-            )
-            for index, (question, answer) in enumerate(
-                zip(
-                    observable_questions(),
-                    answers,
-                    strict=False,
-                ),
-                start=1,
-            )
-        ]
-    )
+    return consultation_from_answers(answers)
 
 
 def _assessment(
@@ -46,17 +24,17 @@ def _assessment(
     *,
     conversation_version: int,
     escalation=None,
-) -> ConsultationAssessmentResult:
-    return assess_consultation(
+) -> AssessmentFixture:
+    return consultation_assessment_fixture(
         consultation,
-        current_conversation_version=conversation_version,
+        conversation_version=conversation_version,
         conclusion_source_turn_id="turn_assessment_000001",
         escalation=escalation,
     )
 
 
 def _stage(
-    answers: Sequence[ObservationAnswer] = ("yes", "unknown"),
+    answers: Sequence[str] = ("yes", "unknown"),
     *,
     conversation_version: int = 17,
     escalation=None,
@@ -82,7 +60,7 @@ def _stage(
 
 
 def _safety_context(
-    assessment: ConsultationAssessmentResult,
+    assessment: AssessmentFixture,
 ) -> dict[str, object]:
     payload = assessment.confirmable_assessment.conclusion.model_dump()
     payload.pop("confirmed_by_user")
@@ -139,6 +117,27 @@ def test_confirmation_is_pure_transition_for_external_conversation_cas(
         consultation.observations
     )
     assert "profile" not in output.model_dump()
+
+
+def test_prevalidated_confirmation_transition_accepts_no_message() -> None:
+    from app.guide.application.consultation_confirmation import (
+        confirm_prevalidated_conclusion,
+    )
+
+    _, _, pending = _stage()
+
+    confirmed = confirm_prevalidated_conclusion(
+        pending.next_consultation,
+        current_conversation_version=pending.output.conversation_version,
+        source_turn_id="turn_prevalidated_confirm_0001",
+        expected_skin_target="dry",
+        expected_conclusion_source_turn_id="turn_assessment_000001",
+    )
+
+    assert confirmed.output.conclusion.confirmed_by_user is True
+    assert confirmed.output.confirmation_source_turn_id == (
+        "turn_prevalidated_confirm_0001"
+    )
 
 
 def test_confirmation_uses_only_caller_authoritative_conversation_version(

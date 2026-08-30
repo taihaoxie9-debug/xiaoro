@@ -14,6 +14,7 @@ from tools.guide_gates.continuous_conversation_blind_fixture import (
     normalized_messages,
 )
 from tools.guide_gates.continuous_conversation_fixture import (
+    canonical_trajectory_json,
     load_frozen_trajectories,
     load_trajectory_pool,
     no_simple_paraphrase_pairs,
@@ -231,7 +232,19 @@ def test_pending_turn_family_contains_clarification_then_resume() -> None:
         assert first.expected_route.processor == "clarification"
         assert first.expected_clarification is True
         assert first.expected_card_ids == ()
+        assert first.expected_snapshot_subset["pending_turn"] == {
+            "gap": "budget",
+            "resume_mode": "recommendation",
+            "resume_context": {"category": "serum"},
+        }
+        assert (
+            "clarification"
+            in second.acceptable_semantic.operation_hints
+        )
+        assert None in second.acceptable_semantic.topic_hints
+        assert "skincare" in second.acceptable_semantic.topic_hints
         assert second.expected_route.processor == "recommendation"
+        assert second.expected_route.continuity == "correct"
         assert second.expected_clarification is False
         assert second.expected_card_ids
 
@@ -310,7 +323,8 @@ def test_load_blind_exams_rejects_manifest_hash_drift(
     lines[0] = ContinuousTrajectory.model_validate(
         drifted,
         strict=True,
-    ).model_dump_json()
+    )
+    lines[0] = canonical_trajectory_json(lines[0])
     a_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     with pytest.raises(ValueError, match="manifest hash mismatch"):

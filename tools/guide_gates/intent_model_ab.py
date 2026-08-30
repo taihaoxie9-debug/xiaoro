@@ -1001,11 +1001,13 @@ def _legacy_v2_case_payload(case: IntentCase) -> dict[str, object]:
     before = payload.get("before_state")
     if isinstance(before, dict):
         before.pop("concepts", None)
+        before.pop("similarity_anchor_product_id", None)
     expected = payload.get("expected")
     if isinstance(expected, dict):
         final_state = expected.get("final_state")
         if isinstance(final_state, dict):
             final_state.pop("concepts", None)
+            final_state.pop("similarity_anchor_product_id", None)
     return payload
 
 

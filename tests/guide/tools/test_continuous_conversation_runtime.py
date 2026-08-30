@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
+from app.guide.application.contracts import TurnIdentity
 from app.guide.understanding.turn_meaning_contracts import TurnMeaning
 from tools.guide_gates.continuous_conversation_gate import (
     ContinuousTrajectory,
@@ -48,9 +50,8 @@ def _trajectory() -> ContinuousTrajectory:
                         "focus_source": "knowledge_topic",
                     },
                     "expected_snapshot_subset": {
-                        "focus_state": {
-                            "active_processor": "general_knowledge",
-                        }
+                        "active_owner": "general_knowledge",
+                        "active_focus": {"slot": "knowledge"},
                     },
                     "expected_task_plan_subset": {},
                     "expected_card_ids": [],
@@ -145,6 +146,66 @@ def test_local_runtime_executes_five_real_sequential_sse_turns(
         for turn in trace.turns
     )
     assert all(turn.public_messages for turn in trace.turns)
+    identities = runtime._observer.turn_identities
+    assert len(identities) == 5
+    assert all(type(identity) is TurnIdentity for identity in identities)
+    assert {
+        identity.session_id for identity in identities
+    } == {trajectory.trajectory_id}
+    assert len({identity.request_id for identity in identities}) == 5
+    assert len({identity.turn_id for identity in identities}) == 5
+    assert all(
+        len(identity.request_id) >= 16
+        and len(identity.turn_id) >= 16
+        and identity.request_id != identity.turn_id
+        for identity in identities
+    )
+    registry = runtime._vertical.unified._processor_registry
+    assert registry["image_identity"] is runtime._vertical.image_processor
+    assert registry["image_comparison"] is runtime._vertical.image_processor
+    assert not hasattr(runtime, "_image_processor")
+
+
+def test_local_runtime_uses_typed_clarify_event_for_clarification(
+    tmp_path: Path,
+) -> None:
+    trajectory = _trajectory()
+    runtime = build_local_continuous_runtime(
+        trajectory,
+        tmp_path / "typed-clarification-state",
+        repo_root=Path.cwd(),
+    )
+    runtime._observer.compiled_understanding = object()
+    runtime._observer.decision = SimpleNamespace(
+        processor="recommendation",
+        continuity="replace_task",
+        focus_source="none",
+        product_bindings=(),
+        task_plan=SimpleNamespace(
+            model_dump=lambda **_: {"mode": "clarify"}
+        ),
+    )
+    events = (
+        ("intent", {"intent": "recommend"}),
+        (
+            "clarify",
+            {
+                "question": "请补充一个更明确的使用场景。",
+                "clarification_code": "goal",
+            },
+        ),
+        ("end", {"conversation_version": 1}),
+    )
+
+    result = runtime._observed_runtime_result(events=events)
+
+    assert result.semantic_admission_passed is False
+    assert result.clarification is True
+    assert tuple(event for event, _ in result.events) == (
+        "intent",
+        "clarify",
+        "end",
+    )
 
 
 def _consultation_meaning(
@@ -468,19 +529,17 @@ def test_local_runtime_product_interruption_returns_to_consultation(
             },
             {
                 "operation_hint": "recommendation",
+                "recommendation_mode": "explore",
+                "recommendation_mode_basis": {
+                    "basis": "broad_exploration",
+                    "source_text": "选",
+                },
                 "topic_hint": "serum",
                 "continuity_hint": "new_task",
                 "subject_scope_hint": "self",
                 "reference_mentions": [],
                 "product_mentions": [],
-                "budget_candidates": [
-                    {
-                        "raw_text": "三百以内",
-                        "relation": "maximum",
-                        "minimum": None,
-                        "maximum": "300",
-                    }
-                ],
+                "budget_candidates": [],
                 "observation_candidates": [],
                 "preference_candidates": [],
                 "relative_candidates": [],
@@ -615,6 +674,172 @@ def test_local_runtime_image_followup_presents_product_knowledge(
     assert "error" not in trace.turns[1].event_names
 
 
+def test_local_runtime_keeps_image_presentation_after_budget_revision(
+    tmp_path: Path,
+) -> None:
+    trajectory = next(
+        item
+        for item in load_frozen_trajectories()
+        if item.trajectory_id == "image-budget-similarity"
+    )
+    similarity_message = (
+        "以照片里的清透防晒乳为参照找相似方向，"
+        "但预算必须在一百以内"
+    )
+    trajectory = trajectory.model_copy(
+        update={
+            "turns": (
+                *trajectory.turns[:2],
+                trajectory.turns[2].model_copy(
+                    update={"message": similarity_message},
+                    deep=True,
+                ),
+                *trajectory.turns[3:],
+            ),
+        },
+        deep=True,
+    )
+
+    def meaning(**updates: object) -> TurnMeaning:
+        payload: dict[str, object] = {
+            "operation_hint": "recommendation",
+            "topic_hint": "sunscreen",
+            "continuity_hint": "continue",
+            "subject_scope_hint": "self",
+            "reference_mentions": [],
+            "product_mentions": [],
+            "budget_candidates": [],
+            "observation_candidates": [],
+            "preference_candidates": [],
+            "relative_candidates": [],
+            "consultation_hypothesis": None,
+            "next_observation_gap": None,
+            "question_meaning": None,
+            "safety_language": "ordinary",
+        }
+        payload.update(updates)
+        return TurnMeaning.model_validate(payload, strict=True)
+
+    meanings = (
+        meaning(
+            operation_hint="image_identity",
+            continuity_hint="new_task",
+            reference_mentions=[{
+                "raw_text": "照片",
+                "object_family_hint": "image",
+                "ordinal_hint": None,
+                "plurality_hint": "batch",
+            }],
+            product_mentions=[{"raw_text": "清透防晒乳"}],
+            question_meaning="识别照片里的清透防晒乳",
+        ),
+        meaning(
+            operation_hint="followup",
+            topic_hint=None,
+            reference_mentions=[{
+                "raw_text": "它",
+                "object_family_hint": "image",
+                "ordinal_hint": 1,
+                "plurality_hint": "single",
+            }],
+            question_meaning="核对图片商品的规格",
+        ),
+        meaning(
+            operation_hint="image_similarity",
+            recommendation_mode="explore",
+            recommendation_mode_basis={
+                "basis": "similar_alternatives",
+                "source_text": "相似",
+            },
+            reference_mentions=[{
+                "raw_text": "照片里的清透防晒乳",
+                "object_family_hint": "image",
+                "ordinal_hint": 1,
+                "plurality_hint": "single",
+            }],
+            product_mentions=[{"raw_text": "清透防晒乳"}],
+            budget_candidates=[{
+                "raw_text": "一百以内",
+                "relation": "maximum",
+                "minimum": None,
+                "maximum": "100",
+            }],
+            question_meaning=similarity_message,
+        ),
+        meaning(
+            recommendation_mode="explore",
+            recommendation_mode_basis={
+                "basis": "bounded_exploration",
+                "source_text": "预算放到一百五",
+            },
+            budget_candidates=[{
+                "raw_text": "一百五",
+                "relation": "maximum",
+                "minimum": None,
+                "maximum": "150",
+            }],
+            preference_candidates=[{
+                "field_key": "texture",
+                "concept_id": "texture.refreshing",
+                "raw_text": "清爽",
+                "polarity": "prefer",
+                "strength": "ordinary",
+            }],
+            question_meaning="预算改为一百五并保持清爽通勤",
+        ),
+        meaning(
+            operation_hint="followup",
+            reference_mentions=[{
+                "raw_text": "第二款",
+                "object_family_hint": "product",
+                "ordinal_hint": 2,
+                "plurality_hint": "single",
+            }],
+            question_meaning="询问新结果的第二款",
+        ),
+    )
+    runtime = build_local_continuous_runtime(
+        trajectory,
+        tmp_path / "image-budget-revision-state",
+        repo_root=Path.cwd(),
+    )
+
+    trace = execute_continuous_trajectory(
+        trajectory,
+        runtime=runtime,
+        meanings=meanings,
+    )
+
+    similarity = trace.turns[2]
+    assert similarity.event_names[-1] == "end"
+    assert "error" not in similarity.event_names
+    assert similarity.route.focus_source == "confirmed_image"
+    assert similarity.final_snapshot.recommendation_slot is not None
+    assert (
+        similarity.final_snapshot.recommendation_slot.query_context
+        .similarity_anchor_product_id
+        == 55
+    )
+    revision = trace.turns[3]
+    assert revision.route.continuity == "correct"
+    assert len(revision.card_ids) == 3
+    assert 55 not in revision.card_ids
+    assert revision.final_snapshot.recommendation_slot is not None
+    assert tuple(
+        item.product_id
+        for item in revision.final_snapshot.recommendation_slot.candidates
+    ) == revision.card_ids
+    assert revision.presentation_mode == "recommendation"
+    assert (
+        revision.final_snapshot.recommendation_slot.query_context
+        .similarity_anchor_product_id
+        == 55
+    )
+    assert trace.turns[4].bindings[0].product_id == (
+        revision.card_ids[1]
+    )
+
+
 def _image_trajectory() -> ContinuousTrajectory:
     payload = _trajectory().model_dump(mode="json")
     payload["trajectory_id"] = "runtime-image-identity"
@@ -634,6 +859,8 @@ def _image_trajectory() -> ContinuousTrajectory:
                 "product_id": 53,
                 "variant_scope": None,
                 "source_text": "image_ordinal:1",
+                "source_kind": "image_ordinal",
+                "source_ordinal": 1,
             }
         ],
         "expected_route": {
@@ -642,10 +869,20 @@ def _image_trajectory() -> ContinuousTrajectory:
             "focus_source": "confirmed_image",
         },
         "expected_snapshot_subset": {
-            "has_image_delivery": True,
-            "focus_state": {
-                "active_processor": "image_identity",
-                "current_product_id": 53,
+            "active_owner": "image_identity",
+            "active_focus": {
+                "slot": "image",
+                "object_id": 53,
+                "ordinal": 1,
+            },
+            "image_slot": {
+                "kind": "image",
+                "confirmed_products": [{
+                    "image_ordinal": 1,
+                    "product_id": 53,
+                    "variant_scope": None,
+                }],
+                "focused_image_ordinal": 1,
             },
         },
         "expected_task_plan_subset": {},
@@ -701,7 +938,7 @@ def test_local_runtime_materializes_real_image_fixture(
     assert [binding.product_id for binding in first.bindings] == [53]
     assert first.card_ids == (53,)
     assert first.presentation_mode == "image_identity"
-    assert first.final_snapshot.has_image_delivery is True
+    assert first.final_snapshot.image_slot is not None
 
 
 def test_multi_image_runtime_reports_the_actual_public_route(
@@ -740,45 +977,44 @@ def test_multi_image_runtime_reports_the_actual_public_route(
         meaning=meaning,
         image_fixture_ids=trajectory.turns[0].image_fixture_ids,
     )
-    committed = False
-    try:
-        public_intent = next(
-            data["intent"]
-            for event, data in result.events
-            if event == "intent"
-        )
-        public_processor = {
-            "comparison": "comparison",
-            "image_identity": "image_identity",
-        }[public_intent]
-        product_ids = tuple(
-            item["id"]
-            for event, data in result.events
-            if event == "products"
-            for item in data["products"]
-        )
-        presentation_mode = next(
-            data["mode"]
-            for event, data in result.events
-            if event == "presentation_contract"
-        )
+    observed_decision = runtime._observer.decision
+    assert observed_decision is not None
+    assert result.task_plan == observed_decision.task_plan.model_dump(
+        mode="json"
+    )
+    public_intent = next(
+        data["intent"]
+        for event, data in result.events
+        if event == "intent"
+    )
+    public_processor = {
+        "comparison": "comparison",
+        "image_identity": "image_identity",
+    }[public_intent]
+    product_ids = tuple(
+        item["id"]
+        for event, data in result.events
+        if event == "products"
+        for item in data["products"]
+    )
+    presentation_mode = next(
+        data["mode"]
+        for event, data in result.events
+        if event == "presentation_contract"
+    )
 
-        assert result.route.processor == public_processor
-        assert result.route.processor == "image_identity"
-        assert product_ids == (53, 55)
-        assert presentation_mode == "image_identity"
+    assert result.route.processor == public_processor
+    assert result.route.processor == "image_identity"
+    assert product_ids == (53, 55)
+    assert presentation_mode == "image_identity"
 
-        runtime.commit(result.delivery_event)
-        committed = True
-        snapshot = runtime.load_snapshot(trajectory.trajectory_id)
-        assert snapshot.has_image_delivery is True
-        assert snapshot.focus_state is not None
-        assert snapshot.focus_state.active_processor == "image_identity"
-        assert snapshot.focus_state.current_product_id is None
-        assert [
-            item.product_id
-            for item in snapshot.focus_state.confirmed_image_products
-        ] == [53, 55]
-    finally:
-        if not committed:
-            runtime.discard(result.delivery_event)
+    snapshot = runtime.load_snapshot(trajectory.trajectory_id)
+    assert snapshot.active_owner.value == "image_identity"
+    assert snapshot.active_focus is not None
+    assert snapshot.active_focus.slot == "image"
+    assert snapshot.active_focus.object_id is None
+    assert snapshot.image_slot is not None
+    assert [
+        item.product_id
+        for item in snapshot.image_slot.confirmed_products
+    ] == [53, 55]

@@ -29,6 +29,23 @@ DEFAULT_MANIFEST_PATH = Path(
     "tests/fixtures/guide/conversation/"
     "continuous_20x5_v1_manifest.json"
 )
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+_SEALED_V2_SCHEMA = "guide-continuous-blind-fixture-manifest-v2"
+_SEALED_V2_CANONICAL = Path(
+    "data/canonical/core_products_v1.jsonl"
+)
+_SEALED_V2_MODE_MATRIX = Path(
+    "docs/audits/continuous-conversation/"
+    "presentation-mode-matrix-v2.json"
+)
+_SEALED_V2_IMAGE_GROUND_TRUTH = Path(
+    "docs/audits/continuous-conversation/"
+    "real-image-ground-truth-v1.json"
+)
+_SEALED_V2_SEEN_LEDGER = Path(
+    "docs/audits/continuous-conversation/"
+    "seen-message-ledger-v1.json"
+)
 
 
 class ContinuousFixtureManifest(BaseModel):
@@ -73,6 +90,25 @@ def normalize_message(message: str) -> str:
             character.isspace()
             or unicodedata.category(character).startswith("P")
         )
+    )
+
+
+def canonical_trajectory_json(
+    trajectory: ContinuousTrajectory,
+) -> str:
+    if type(trajectory) is not ContinuousTrajectory:
+        raise TypeError(
+            "continuous fixture requires an exact ContinuousTrajectory"
+        )
+    payload = trajectory.model_dump()
+    for turn in payload["turns"]:
+        for binding in turn["expected_bindings"]:
+            if binding["source_span"] is None:
+                del binding["source_span"]
+    return json.dumps(
+        payload,
+        ensure_ascii=False,
+        separators=(",", ":"),
     )
 
 
@@ -135,7 +171,7 @@ def _load_jsonl(path: Path) -> tuple[ContinuousTrajectory, ...]:
                 "invalid continuous trajectory at "
                 f"line {line_number}"
             ) from exc
-        if trajectory.model_dump_json() != line:
+        if canonical_trajectory_json(trajectory) != line:
             raise ValueError(
                 "continuous fixture JSONL must use canonical model order"
             )
@@ -189,7 +225,7 @@ def _trajectory_bytes(
 ) -> bytes:
     return (
         b"\n".join(
-            trajectory.model_dump_json().encode("utf-8")
+            canonical_trajectory_json(trajectory).encode("utf-8")
             for trajectory in trajectories
         )
         + b"\n"
@@ -242,8 +278,26 @@ def load_frozen_trajectories(
     fixture_path = Path(path)
     manifest_file = Path(manifest_path)
     try:
+        manifest_payload = json.loads(
+            manifest_file.read_text(encoding="utf-8")
+        )
+    except (OSError, ValueError) as exc:
+        raise ValueError(
+            "continuous fixture manifest is unavailable or invalid"
+        ) from exc
+    if manifest_payload.get("schema_version") == _SEALED_V2_SCHEMA:
+        return _load_sealed_v2_trajectories(
+            fixture_path=fixture_path,
+            manifest=manifest_payload,
+        )
+    try:
         manifest = ContinuousFixtureManifest.model_validate_json(
-            manifest_file.read_text(encoding="utf-8"),
+            json.dumps(
+                manifest_payload,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ),
             strict=True,
         )
         selected_bytes = fixture_path.read_bytes()
@@ -266,6 +320,176 @@ def load_frozen_trajectories(
             "continuous fixture manifest hash mismatch"
         )
     return selected
+
+
+def _load_sealed_v2_trajectories(
+    *,
+    fixture_path: Path,
+    manifest: dict[str, object],
+) -> tuple[ContinuousTrajectory, ...]:
+    try:
+        selected_bytes = fixture_path.read_bytes()
+        selected = _load_jsonl(fixture_path)
+        canonical_path = _REPO_ROOT / _SEALED_V2_CANONICAL
+        mode_matrix_path = _REPO_ROOT / _SEALED_V2_MODE_MATRIX
+        image_ground_truth_path = (
+            _REPO_ROOT / _SEALED_V2_IMAGE_GROUND_TRUTH
+        )
+        seen_ledger_path = _REPO_ROOT / _SEALED_V2_SEEN_LEDGER
+        canonical_bytes = canonical_path.read_bytes()
+        mode_matrix_bytes = mode_matrix_path.read_bytes()
+        image_ground_truth_bytes = image_ground_truth_path.read_bytes()
+        seen_ledger_bytes = seen_ledger_path.read_bytes()
+        seen_ledger = json.loads(seen_ledger_bytes)
+    except (OSError, ValueError) as exc:
+        raise ValueError(
+            "continuous fixture manifest is unavailable or invalid"
+        ) from exc
+
+    selected_ids = tuple(
+        trajectory.trajectory_id for trajectory in selected
+    )
+    messages = tuple(
+        turn.message
+        for trajectory in selected
+        for turn in trajectory.turns
+    )
+    normalized = tuple(normalize_message(message) for message in messages)
+    canonical_ids = {
+        json.loads(line)["product_id"]
+        for line in canonical_bytes.decode("utf-8").splitlines()
+        if line
+    }
+    referenced_ids = {
+        product_id
+        for trajectory in selected
+        for turn in trajectory.turns
+        for product_id in (
+            *turn.expected_card_ids,
+            *(
+                binding.product_id
+                for binding in turn.expected_bindings
+            ),
+        )
+    }
+    seen_hashes = set(seen_ledger.get("seen_message_hashes", ()))
+    normalized_hashes = {
+        sha256(message.encode("utf-8")).hexdigest()
+        for message in normalized
+    }
+    label = (
+        "A"
+        if "_a_" in fixture_path.name
+        else "B"
+        if "_b_" in fixture_path.name
+        else None
+    )
+    expected_hashes = {
+        "selected_sha256": sha256(selected_bytes).hexdigest(),
+        "selected_ids_sha256": _line_hash(selected_ids),
+        "selected_messages_sha256": _line_hash(messages),
+    }
+    optional_normalized_hash = manifest.get(
+        "normalized_messages_sha256"
+    )
+    if optional_normalized_hash is not None:
+        expected_hashes["normalized_messages_sha256"] = _line_hash(
+            normalized
+        )
+    manifest_hashes = {
+        "canonical": (
+            manifest.get("canonical_products_sha256")
+            or manifest.get("canonical_sha256")
+        ),
+        "mode_matrix": manifest.get(
+            "presentation_mode_matrix_sha256"
+        ),
+        "image_ground_truth": (
+            manifest.get("image_ground_truth_sha256")
+            or manifest.get("real_image_ground_truth_sha256")
+        ),
+        "seen_ledger": (
+            manifest.get("seen_ledger_sha256")
+            or manifest.get("seen_message_ledger_sha256")
+        ),
+    }
+    actual_asset_hashes = {
+        "canonical": sha256(canonical_bytes).hexdigest(),
+        "mode_matrix": sha256(mode_matrix_bytes).hexdigest(),
+        "image_ground_truth": sha256(
+            image_ground_truth_bytes
+        ).hexdigest(),
+        "seen_ledger": sha256(seen_ledger_bytes).hexdigest(),
+    }
+    truth_file = manifest.get("mechanical_truth_file")
+    truth_sha256 = manifest.get("mechanical_truth_sha256")
+    if (truth_file is None) != (truth_sha256 is None):
+        raise ValueError(
+            "continuous fixture manifest hash mismatch"
+        )
+    if truth_file is not None:
+        if (
+            not isinstance(truth_file, str)
+            or Path(truth_file).name != truth_file
+            or not isinstance(truth_sha256, str)
+        ):
+            raise ValueError(
+                "continuous fixture manifest hash mismatch"
+            )
+        try:
+            truth_bytes = (
+                fixture_path.parent / truth_file
+            ).read_bytes()
+        except OSError as exc:
+            raise ValueError(
+                "continuous fixture manifest hash mismatch"
+            ) from exc
+        if sha256(truth_bytes).hexdigest() != truth_sha256:
+            raise ValueError(
+                "continuous fixture manifest hash mismatch"
+            )
+    declared_ids = manifest.get("canonical_product_ids_used")
+    if any(
+        (
+            manifest.get(key) != value
+            for key, value in expected_hashes.items()
+        )
+    ) or any(
+        manifest_hashes[key] != value
+        for key, value in actual_asset_hashes.items()
+    ) or any(
+        (
+            manifest.get("blind_label") != label,
+            manifest.get("selected_file") != fixture_path.name,
+            manifest.get("selected_count") != 20,
+            manifest.get("selected_turn_count") != 100,
+            len(selected) != 20,
+            len(messages) != 100,
+            len(set(normalized)) != 100,
+            any(
+                trajectory.subject_scope != "self"
+                for trajectory in selected
+            ),
+            bool(normalized_hashes.intersection(seen_hashes)),
+            not referenced_ids.issubset(canonical_ids),
+            (
+                declared_ids is not None
+                and set(declared_ids) != referenced_ids
+            ),
+            not isinstance(manifest.get("coverage_counts"), dict),
+            not manifest.get("coverage_counts"),
+        )
+    ):
+        raise ValueError(
+            "continuous fixture manifest hash mismatch"
+        )
+    return selected
+
+
+def _line_hash(values: Sequence[str]) -> str:
+    return sha256(
+        (("\n".join(values)) + "\n").encode("utf-8")
+    ).hexdigest()
 
 
 def freeze_continuous_fixtures(
@@ -299,6 +523,7 @@ __all__ = [
     "BACKEND_SELECTION_SEED",
     "ContinuousFixtureManifest",
     "build_continuous_fixture_manifest",
+    "canonical_trajectory_json",
     "freeze_continuous_fixtures",
     "load_frozen_trajectories",
     "load_trajectory_pool",

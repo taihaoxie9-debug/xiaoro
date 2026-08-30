@@ -24,7 +24,7 @@ from app.guide.adapters.llm.deepseek_intent import (
 )
 from app.guide.adapters.llm.provider_common import OpenAIJsonClient
 from app.guide.understanding.colloquial_budget import parse_colloquial_budget
-from tools.guide_gates.run_official_deepseek_smoke import read_private_api_key
+from tools.guide_gates.private_api_key import read_private_api_key
 
 
 PilotGoal = Literal[
@@ -702,45 +702,12 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
 
 def main(argv: Sequence[str] | None = None) -> int:
     arguments = _parse_args(argv)
-    api_key = read_private_api_key(
-        "/private/tmp/xiaoro-deepseek-api-key"
-    )
-    cases = load_pilot_cases(arguments.cases)
-    with OpenAIJsonClient(
-        api_key=api_key,
-        base_url=DEEPSEEK_OFFICIAL_BASE_URL,
-        timeout_seconds=20.0,
-        transport=None,
-    ) as client:
-
-        def complete(
-            messages: tuple[dict[str, str], dict[str, str]],
-        ) -> PilotCompletion:
-            result = client.request(
-                {
-                    "model": DEEPSEEK_V4_PRO_MODEL,
-                    "messages": list(messages),
-                    "response_format": {"type": "json_object"},
-                    "temperature": 0,
-                    "max_tokens": 512,
-                    "thinking": {"type": "disabled"},
-                    "stream": False,
-                }
-            )
-            return PilotCompletion(
-                content=result.content,
-                prompt_tokens=result.usage.get("prompt_tokens"),
-                completion_tokens=result.usage.get("completion_tokens"),
-            )
-
-        summary = run_pilot(
-            cases=cases,
-            output_dir=arguments.output_dir,
-            complete=complete,
-            model=DEEPSEEK_V4_PRO_MODEL,
-        )
-    print(summary.model_dump_json())
-    return 0
+    del arguments
+    print(json.dumps({
+        "status": "unbound_real_execution_disabled",
+        "use": "run_final_real_translation.py",
+    }))
+    return 7
 
 
 if __name__ == "__main__":

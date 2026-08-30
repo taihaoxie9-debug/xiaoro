@@ -121,14 +121,13 @@ def test_invalid_copywriter_environment_fails_closed(
     assert value not in str(caught.value)
 
 
-def test_require_ready_rejects_half_configured_copywriter(
+def test_from_environment_rejects_half_configured_copywriter(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _clear(monkeypatch)
     monkeypatch.setenv("GUIDE_COPY_LLM_API_KEY", "secret-copy-key")
-    config = CopywriterLlmConfig.from_environment()
 
     with pytest.raises(CopywriterConfigError) as caught:
-        config.require_ready()
+        CopywriterLlmConfig.from_environment()
 
     assert caught.value.code is CopywriterConfigErrorCode.MODEL_UNSELECTED

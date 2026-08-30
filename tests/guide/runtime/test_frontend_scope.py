@@ -109,8 +109,21 @@ def _javascript_function_source(
     signature: str,
     next_signature: str,
 ) -> str:
-    start = html.index(signature)
-    end = html.index(next_signature, start)
+    start = html.index(
+        (
+            "function displayProducts("
+            if signature == "function displayProducts(products)"
+            else signature
+        )
+    )
+    end = html.index(
+        (
+            "\n        // 显示通用底部商品卡：只消费后端合同给出的字段。"
+            if next_signature.strip() == "// 显示商品卡片"
+            else next_signature
+        ),
+        start,
+    )
     return html[start:end]
 
 
@@ -145,8 +158,8 @@ def test_chat_page_has_offline_icons_and_runtime_scope_controls() -> None:
     assert "runtimeStatusPill" in html
     assert "slice1_text_skincare" in html
     assert "文本护肤 · 单图识别/适配 · 2–3 图比较" in html
-    assert "matched_efficacies" in html
-    assert "recommendation-efficacies" in html
+    assert "compact_tags" in html
+    assert "recommendation-contract-tag" in html
     assert "lumi_conversation_versions_v1" in html
     assert "getConversationVersion" in html
     assert "setConversationVersion" in html
@@ -161,6 +174,37 @@ def test_consultation_observation_uses_rose_label_without_left_rule() -> None:
     assert "border-left: 0;" in html
     assert ".guide-presentation-observation h3 {" in html
     assert "color: var(--primary-deep);" in html
+
+
+def test_product_title_and_advisor_label_use_rose_accent() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+
+    assert ".guide-presentation-product h3 {" in html
+    assert ".guide-product-advisor-reason strong {" in html
+    assert ".guide-presentation-product h3 {\n            color: var(--primary-deep);" in html
+    assert ".guide-product-advisor-reason strong {\n            color: var(--primary-deep);" in html
+
+
+def test_ordinary_product_references_do_not_inherit_rose_accent() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+
+    assert (
+        ".guide-product-ref {\n"
+        "            margin: 0 3px;\n"
+        "            padding: 0;\n"
+        "            border: 0;\n"
+        "            border-bottom: 1px solid currentColor;\n"
+        "            background: transparent;\n"
+        "            color: inherit;"
+    ) in html
+    assert (
+        ".guide-product-ref:hover {\n"
+        "            color: var(--primary);"
+    ) in html
+    assert (
+        ".guide-product-ref:focus-visible {\n"
+        "            color: var(--primary);"
+    ) in html
 
 
 def test_session_id_source_uses_only_browser_cryptography() -> None:
@@ -400,6 +444,97 @@ def test_request_cleanup_only_releases_the_same_context() -> None:
         "requestContext.controller.signal.aborted"
         in function_body
     )
+
+
+def test_stream_resynchronizes_authoritative_version_before_turn_request() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    stream_body = _javascript_function_source(
+        html,
+        "async function sendStreamingMessage(",
+        "\n        function buildDetailedProductReason",
+    )
+
+    sync_position = stream_body.index(
+        "await synchronizeConversationVersion("
+    )
+    payload_position = stream_body.index("const bodyPayload =")
+    request_position = stream_body.index(
+        "fetch('/api/v1/chat/stream'"
+    )
+
+    assert sync_position < payload_position < request_position
+    assert (
+        "`/api/v1/chat/sessions/${encodeURIComponent(sessionId)}/version`"
+        in html
+    )
+    assert "signal: requestContext.controller.signal" in stream_body
+
+
+def test_version_sync_rejects_committed_turn_that_was_not_rendered() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    bounded_source = _javascript_function_source(
+        html,
+        "function createBoundedRequestController(",
+        "\n\n        async function synchronizeConversationVersion",
+    )
+    sync_source = _javascript_function_source(
+        html,
+        "async function synchronizeConversationVersion(",
+        "\n\n        async function fetchFeedbackTarget",
+    )
+
+    result = _execute_node_json(
+        f"""
+const vm = require('node:vm');
+const writes = [];
+const context = vm.createContext({{
+  AbortController,
+  DOMException,
+  setTimeout,
+  clearTimeout,
+  CONVERSATION_VERSION_SYNC_TIMEOUT_MS: 3000,
+  getConversationVersion() {{ return 1; }},
+  setConversationVersion(sessionId, version) {{
+    writes.push([sessionId, version]);
+  }},
+  async fetch() {{
+    return {{
+      ok: true,
+      async json() {{
+        return {{
+          session_id: 'session-version-gap',
+          conversation_version: 2,
+        }};
+      }},
+    }};
+  }},
+}});
+vm.runInContext({json.dumps(bounded_source)}, context);
+vm.runInContext({json.dumps(sync_source)}, context);
+(async () => {{
+  let error = null;
+  let message = null;
+  try {{
+    await context.synchronizeConversationVersion(
+      'session-version-gap'
+    );
+  }} catch (caught) {{
+    error = caught.code;
+    message = caught.message;
+  }}
+  process.stdout.write(JSON.stringify({{ error, message, writes }}));
+}})();
+"""
+    )
+
+    assert result == {
+        "error": "GUIDE_VERSION_SYNC_RECOVERY_REQUIRED",
+        "message": (
+            "当前会话有一轮未完整显示。为避免跳过上下文，"
+            "请开始新的咨询。"
+        ),
+        "writes": [],
+    }
 
 
 def test_sse_parse_errors_are_terminal_before_business_event_handling() -> None:
@@ -652,11 +787,17 @@ def test_clean_runtime_does_not_call_legacy_image_analysis() -> None:
     )
     function_body = html[function_start:function_end]
 
-    assert "if (GUIDE_RUNTIME_MODE && images?.length)" in function_body
+    assert (
+        "if (GUIDE_RUNTIME_MODE && images?.length)"
+        in function_body
+    )
+    clean_start = function_body.index(
+        "if (GUIDE_RUNTIME_MODE && images?.length)"
+    )
     clean_branch = function_body[
-        function_body.index("if (GUIDE_RUNTIME_MODE && images?.length)") :
-        function_body.index(
+        clean_start : function_body.index(
             "if (options.resolveImageContext && images?.length)",
+            clean_start,
         )
     ]
     assert "uploadImageBundle(" in clean_branch
@@ -677,7 +818,7 @@ def test_frontend_renders_typed_image_model_and_index_versions() -> None:
         "function displayImageObservation(observation)"
     )
     display_end = html.index(
-        "\n        // 显示商品卡片",
+        "\n        // 显示通用底部商品卡：只消费后端合同给出的字段。",
         display_start,
     )
     display_body = html[display_start:display_end]
@@ -1191,6 +1332,11 @@ process.stdout.write(JSON.stringify({{
     visible_product_ids: [4, 2],
     max_cards: 2,
   }}),
+  recommendationFour: ids({{
+    mode: 'recommendation',
+    visible_product_ids: [1, 2, 3, 4],
+    max_cards: 4,
+  }}),
   none: ids({{
     mode: 'none',
     visible_product_ids: [],
@@ -1214,6 +1360,7 @@ process.stdout.write(JSON.stringify({{
         "legacy": [1, 2, 3],
         "single": [3],
         "comparison": [4, 2],
+        "recommendationFour": [1, 2, 3, 4],
         "none": [],
         "missing": "CARD_DISPLAY_CONTRACT_MISMATCH",
         "countMismatch": "CARD_DISPLAY_CONTRACT_MISMATCH",
@@ -1397,7 +1544,7 @@ process.stdout.write(JSON.stringify({{
     assert "answer" not in category_source
     assert "source_refs" not in category_source
     assert "capabilities" not in category_source
-    assert "expectedCategoryProfile" in display_source
+    assert "expectedCategoryProfile" not in display_source
     assert "buildCategoryFactsHtml(" not in display_source
     assert "categoryFactsHtml" not in display_source
 
@@ -1662,6 +1809,16 @@ const decisionData = {{
     final_recommendation: null,
   }},
 }};
+const presentationContract = {{
+  responsibility: 'recommendation',
+  mode: 'recommendation',
+  visible_product_ids: [53, 55],
+  card_display: contract,
+  winner: {{
+    status: 'selected',
+    winner_product_id: 53,
+  }},
+}};
 function errorFor(payload) {{
   try {{
     validateGuideTerminalPayload(payload);
@@ -1676,6 +1833,7 @@ process.stdout.write(JSON.stringify({{
     answerContract: answerData.answer_contract,
     answerData,
     cardDisplayContract: contract,
+    presentationContract,
     products,
     decisionProductIds: [53, 55],
     decisionData,
@@ -1685,6 +1843,7 @@ process.stdout.write(JSON.stringify({{
     answerContract: null,
     answerData: null,
     cardDisplayContract: null,
+    presentationContract: null,
     products: [],
   }}),
   missingAnswer: errorFor({{
@@ -1692,6 +1851,7 @@ process.stdout.write(JSON.stringify({{
     answerContract: null,
     answerData: null,
     cardDisplayContract: contract,
+    presentationContract,
     products,
     decisionProductIds: [53, 55],
     decisionData,
@@ -1711,6 +1871,7 @@ process.stdout.write(JSON.stringify({{
       product_count: 1,
     }},
     cardDisplayContract: contract,
+    presentationContract,
     products,
     decisionProductIds: [53, 55],
     decisionData,
@@ -1720,6 +1881,7 @@ process.stdout.write(JSON.stringify({{
     answerContract: answerData.answer_contract,
     answerData,
     cardDisplayContract: contract,
+    presentationContract,
     products: [
       {{ id: 55, product_id: 55 }},
       {{ id: 53, product_id: 53 }},
@@ -1785,6 +1947,13 @@ const base = {{
   answerContract,
   answerData,
   cardDisplayContract: zeroCards,
+  presentationContract: {{
+    responsibility: 'consultation',
+    mode: 'consultation',
+    visible_product_ids: [],
+    card_display: zeroCards,
+    winner: {{ status: 'not_applicable' }},
+  }},
   products: [],
   decisionProductIds: null,
   decisionData: null,
@@ -1943,6 +2112,21 @@ const base = {{
     max_cards: 2,
     reason: 'comparison',
   }},
+  presentationContract: {{
+    responsibility: 'comparison',
+    mode: 'comparison',
+    visible_product_ids: [53, 55],
+    card_display: {{
+      mode: 'comparison',
+      visible_product_ids: [53, 55],
+      max_cards: 2,
+      reason: 'comparison',
+    }},
+    winner: {{
+      status: 'selected',
+      winner_product_id: 55,
+    }},
+  }},
   products: [
     {{ id: 53, product_id: 53 }},
     {{ id: 55, product_id: 55 }},
@@ -2083,6 +2267,7 @@ def test_terminal_payload_accepts_exact_four_image_comparison() -> None:
     ]
     comparison = {
         "status": "winner",
+        "context_source": "current_upload",
         "references": references,
         "winner_reference": references[1],
         "tie_reason": None,
@@ -2115,6 +2300,21 @@ def test_terminal_payload_accepts_exact_four_image_comparison() -> None:
             "visible_product_ids": product_ids,
             "max_cards": 4,
             "reason": "comparison",
+        },
+        "presentationContract": {
+            "responsibility": "comparison",
+            "mode": "comparison",
+            "visible_product_ids": product_ids,
+            "card_display": {
+                "mode": "comparison",
+                "visible_product_ids": product_ids,
+                "max_cards": 4,
+                "reason": "comparison",
+            },
+            "winner": {
+                "status": "selected",
+                "winner_product_id": product_ids[1],
+            },
         },
         "products": [
             {"id": product_id, "product_id": product_id}
@@ -2172,6 +2372,101 @@ process.stdout.write(JSON.stringify({{ valid, invalidResult }}));
         "valid": product_ids,
         "invalidResult": "GUIDE_RESPONSE_CONTRACT_INVALID",
     }
+
+
+def test_terminal_payload_accepts_confirmed_session_image_comparison() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    select_source = _javascript_function_source(
+        html,
+        "function selectContractProducts(products, contract)",
+        "\n\n        function validateGuideTerminalPayload",
+    )
+    validate_source = _javascript_function_source(
+        html,
+        "function validateGuideTerminalPayload(",
+        "\n\n        // 发送流式消息",
+    )
+    result = _execute_node_json(
+        f"""
+{select_source}
+{validate_source}
+const productIds = [53, 55];
+const references = [
+  {{ ordinal: 1, image_id: 'image-1', product_id: 53 }},
+  {{ ordinal: 2, image_id: 'image-2', product_id: 55 }},
+];
+const comparison = {{
+  status: 'winner',
+  context_source: 'confirmed_session',
+  references,
+  winner_reference: references[0],
+  tie_reason: null,
+  comparison_dimensions: ['price'],
+  evidence_refs: ['price:53', 'price:55'],
+  evaluated_price_facts: references.map(reference => ({{
+    reference,
+    state: 'known',
+    value: '100',
+    source_refs: [`price:${{reference.product_id}}`],
+  }})),
+}};
+const answer = {{
+  product_count: 2,
+  winner_status: 'winner',
+  has_unknown_skin: true,
+}};
+const payload = {{
+  intent: 'image_compare',
+  answerContract: answer,
+  answerData: {{ answer_contract: answer, ...answer }},
+  cardDisplayContract: {{
+    mode: 'comparison',
+    visible_product_ids: productIds,
+    max_cards: 2,
+    reason: 'comparison',
+  }},
+  presentationContract: {{
+    responsibility: 'comparison',
+    mode: 'comparison',
+    visible_product_ids: productIds,
+    card_display: {{
+      mode: 'comparison',
+      visible_product_ids: productIds,
+      max_cards: 2,
+      reason: 'comparison',
+    }},
+    winner: {{
+      status: 'selected',
+      winner_product_id: 53,
+    }},
+  }},
+  products: productIds.map(id => ({{ id, product_id: id }})),
+  comparisonData: comparison,
+  decisionProductIds: productIds,
+  decisionData: {{
+    ordered_product_ids: productIds,
+    winner_status: 'winner',
+    comparison_data: comparison,
+    decision_process: {{
+      steps: [{{
+        data: {{
+          winner_status: 'winner',
+          products: 2,
+          outcome: comparison,
+        }},
+      }}],
+      final_recommendation: null,
+    }},
+  }},
+  imageObservations: [],
+}};
+process.stdout.write(JSON.stringify(
+  validateGuideTerminalPayload(payload).map(item => item.id)
+));
+"""
+    )
+
+    assert result == [53, 55]
 
 
 def test_frontend_requires_terminal_end_before_render_or_persistence() -> None:
@@ -2598,31 +2893,33 @@ process.stdout.write(JSON.stringify(
     assert guard_pos < clear_pos < send_pos
 
 
-def test_runtime_image_default_prompt_matches_bundle_cardinality() -> None:
+def test_runtime_image_action_matches_bundle_cardinality() -> None:
     html = CHAT_HTML.read_text(encoding="utf-8")
     function_source = _javascript_function_source(
         html,
-        "function defaultRuntimeImagePrompt(imageCount)",
+        "function runtimeImageAction(imageCount)",
         "\n\n        function getRuntimeImageDraftError",
     )
     result = _execute_node_json(
         f"""
 {function_source}
 process.stdout.write(JSON.stringify([
-  defaultRuntimeImagePrompt(1),
-  defaultRuntimeImagePrompt(2),
-  defaultRuntimeImagePrompt(3),
-  defaultRuntimeImagePrompt(4),
+  runtimeImageAction(1),
+  runtimeImageAction(2),
+  runtimeImageAction(3),
+  runtimeImageAction(4),
 ]));
 """
     )
 
     assert result == [
-        "请为这张图片找同品类相似商品",
-        "请比较这两张图片对应的商品",
-        "请按上传顺序比较这三张图片对应的商品",
-        "请按上传顺序比较这四张图片对应的商品",
+        "identify",
+        "compare",
+        "compare",
+        "compare",
     ]
+    assert "defaultRuntimeImagePrompt" not in html
+    assert "bodyPayload.image_action = imageAction" in html
 
 
 def test_frontend_buffers_two_image_observations_in_event_order() -> None:

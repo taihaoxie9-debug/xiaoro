@@ -7,34 +7,203 @@ from pathlib import Path
 
 import pytest
 
+import tools.guide_gates.run_real_continuous_conversation_gate as gate_runner
 from app.guide.adapters.llm.contracts import (
+    SemanticProviderFailure,
+    SemanticProviderFailureCode,
     SemanticTokenUsage,
     TurnMeaningCallResult,
 )
 from app.guide.feedback.contracts import (
     ClarificationProgress,
+    ConsultationSlotState,
     ConversationSnapshot,
     DisplayedCandidateRef,
+    ImageSlotState,
+    KnowledgeSlotState,
+    PendingClarificationSlot,
+    PendingReplySlot,
+    PendingTurn,
     RecommendationQueryContext,
-    StoredConcept,
+    RecommendationSlotState,
+    ProductSlotState,
 )
-from app.guide.feedback.focus_state import FocusState
+from app.guide.feedback.consultation_state import ConsultationSubstate
+from app.guide.feedback.focus_state import (
+    ActiveFocus,
+    ConfirmedImageProductRef,
+)
+from app.guide.intent.responsibility_matrix import Responsibility
+from app.guide.retrieval.product_name_resolver import (
+    ResolvedProductBinding,
+)
 from app.guide.understanding.turn_meaning_contracts import TurnMeaning
 from app.guide.understanding.semantic_contracts import ClarificationCode
-from tools.guide_gates.continuous_conversation_fixture import (
-    load_frozen_trajectories,
-)
 from tools.guide_gates.continuous_conversation_gate import (
     ContinuousFailureLayer,
     ContinuousRuntimeTurnResult,
     ContinuousTrajectory,
     ContinuousTurnTrace,
 )
+from tools.guide_gates.continuous_conversation_mechanical_truth import (
+    TurnTruthRequirement,
+)
 from tools.guide_gates.run_real_continuous_conversation_gate import (
+    blind_qualification_passed,
     evaluate_continuous_turn,
     replay_captured_continuous_gate,
     run_real_continuous_gate,
 )
+
+
+def _physical_turn(
+    trajectory_id: str,
+    ordinal: int,
+    *,
+    processor: str = "general_knowledge",
+    cards: tuple[int, ...] = (),
+    safety: bool = False,
+    clarification: bool = False,
+) -> dict[str, object]:
+    operation = {
+        "clarification": "clarification",
+        "general_knowledge": "knowledge",
+        "recommendation": "recommendation",
+        "safety_escalation": "assessment",
+    }[processor]
+    topic = "serum" if processor == "recommendation" else "skincare"
+    slot = {
+        "clarification": "reply",
+        "general_knowledge": "knowledge",
+        "recommendation": "recommendation",
+        "safety_escalation": "consultation",
+    }[processor]
+    snapshot: dict[str, object] = {
+        "active_owner": processor,
+        "active_focus": {"slot": slot},
+    }
+    if processor == "recommendation":
+        snapshot["recommendation_slot"] = {
+            "query_context": {
+                "category": "serum",
+                "budget_maximum": "300",
+                "recommendation_mode": "explore",
+                "recommendation_mode_basis": "broad_exploration",
+                "recommendation_count": 3,
+            },
+        }
+    elif processor == "clarification":
+        snapshot["reply_slot"] = {
+            "kind": "clarification",
+            "value": {"gap": "reference", "attempts": 1},
+        }
+    return {
+        "turn_id": f"{trajectory_id}-t{ordinal}",
+        "message": f"{trajectory_id} turn {ordinal}",
+        "acceptable_semantic": {
+            "operation_hints": [operation],
+            "topic_hints": [topic],
+            "continuity_hints": ["new_task"],
+            "subject_scope_hints": ["self"],
+        },
+        "expected_bindings": [],
+        "expected_route": {
+            "processor": processor,
+            "continuity": "replace_task",
+            "focus_source": {
+                "clarification": "none",
+                "general_knowledge": "knowledge_topic",
+                "recommendation": "none",
+                "safety_escalation": "consultation",
+            }[processor],
+        },
+        "expected_snapshot_subset": snapshot,
+        "expected_task_plan_subset": (
+            {"mode": "clarify"}
+            if clarification
+            else {"mode": "recommend"}
+            if processor == "recommendation"
+            else {}
+        ),
+        "expected_card_ids": list(cards),
+        "expected_safety": safety,
+        "expected_clarification": clarification,
+        "expected_presentation_mode": (
+            None
+            if clarification
+            else "consultation"
+            if safety
+            else "recommendation"
+            if processor == "recommendation"
+            else "general_knowledge"
+        ),
+        "public_answer_policy": (
+            "clarification"
+            if clarification
+            else "safety"
+            if safety
+            else "recommendation"
+            if processor == "recommendation"
+            else "general_knowledge"
+        ),
+    }
+
+
+def _physical_trajectory(
+    trajectory_id: str,
+    *,
+    first_processor: str = "general_knowledge",
+    first_cards: tuple[int, ...] = (),
+    first_safety: bool = False,
+    first_clarification: bool = False,
+) -> ContinuousTrajectory:
+    return ContinuousTrajectory.model_validate(
+        {
+            "trajectory_id": trajectory_id,
+            "subject_scope": "self",
+            "route_families": [first_processor],
+            "turns": [
+                _physical_turn(
+                    trajectory_id,
+                    ordinal,
+                    processor=(
+                        first_processor
+                        if ordinal == 1
+                        else "general_knowledge"
+                    ),
+                    cards=first_cards if ordinal == 1 else (),
+                    safety=first_safety and ordinal == 1,
+                    clarification=(
+                        first_clarification and ordinal == 1
+                    ),
+                )
+                for ordinal in range(1, 6)
+            ],
+        },
+        strict=True,
+    )
+
+
+def _physical_trajectories() -> tuple[ContinuousTrajectory, ...]:
+    return (
+        _physical_trajectory("runner-general-a"),
+        _physical_trajectory("runner-general-b"),
+        _physical_trajectory(
+            "runner-safety",
+            first_processor="safety_escalation",
+            first_safety=True,
+        ),
+        _physical_trajectory(
+            "recovery-ambiguous-product",
+            first_processor="clarification",
+            first_clarification=True,
+        ),
+        _physical_trajectory(
+            "shop-repair-budget-return",
+            first_processor="recommendation",
+            first_cards=(38, 91),
+        ),
+    )
 
 
 def _meaning(turn) -> TurnMeaning:
@@ -131,6 +300,24 @@ class _DurabilityAdapter(_RecordingAdapter):
         return super().propose_with_result(message, context)
 
 
+class _InvalidOutputAdapter(_RecordingAdapter):
+    def propose_with_result(self, message, context):
+        if len(self.calls) == 2:
+            self.calls.append((message, context))
+            raise SemanticProviderFailure(
+                SemanticProviderFailureCode.INVALID_OUTPUT,
+                raw_content="{}",
+                trace_id="sha256:invalid-output-test",
+                usage=SemanticTokenUsage(
+                    prompt_tokens=9,
+                    completion_tokens=1,
+                    total_tokens=10,
+                    cached_tokens=0,
+                ),
+            )
+        return super().propose_with_result(message, context)
+
+
 class _ForbiddenCopywriter:
     calls = 0
 
@@ -170,104 +357,219 @@ class _Runtime:
         self._execute_count += 1
         processor = turn.expected_route.processor
         if self._wrong_first_route and self._execute_count == 1:
-            processor = "general_knowledge"
-        expected_snapshot = turn.expected_snapshot_subset
-        expected_focus = expected_snapshot.get("focus_state", {})
-        focus_processor = expected_focus.get(
-            "active_processor",
-            processor,
-        )
-        expected_clarification = expected_snapshot.get(
-            "clarification"
-        )
-        clarification = (
-            ClarificationProgress(
-                gap=ClarificationCode(
-                    expected_clarification["gap"]
-                ),
-                attempts=expected_clarification["attempts"],
+            processor = (
+                "recommendation"
+                if processor == "general_knowledge"
+                else "general_knowledge"
             )
-            if isinstance(expected_clarification, dict)
+        expected_snapshot = turn.expected_snapshot_subset
+        expected_focus = expected_snapshot.get("active_focus", {})
+        focus_processor = str(
+            expected_snapshot.get("active_owner") or processor
+        )
+        focus_slot = expected_focus.get("slot")
+        if not isinstance(focus_slot, str):
+            focus_slot = {
+                "recommendation": "recommendation",
+                "product_knowledge": "product",
+                "comparison": "product",
+                "consultation": "consultation",
+                "safety_escalation": "consultation",
+                "general_knowledge": "knowledge",
+                "image_identity": "image",
+                "clarification": "reply",
+            }[focus_processor]
+        expected_recommendation = expected_snapshot.get(
+            "recommendation_slot"
+        )
+        expected_query = (
+            expected_recommendation.get("query_context")
+            if isinstance(expected_recommendation, dict)
             else None
         )
-        expected_query = expected_snapshot.get("query_context")
         query_context = (
-            RecommendationQueryContext(
-                category=expected_query["category"],
-                budget_minimum=(
-                    Decimal(expected_query["budget_minimum"])
-                    if expected_query.get("budget_minimum") is not None
-                    else None
-                ),
-                budget_maximum=(
-                    Decimal(expected_query["budget_maximum"])
-                    if expected_query.get("budget_maximum") is not None
-                    else None
-                ),
-                skin=expected_query.get("skin"),
-                efficacy=expected_query.get("efficacy"),
-                concepts=tuple(
-                    StoredConcept(
-                        field_key=item["field_key"],
-                        concept_id=item["concept_id"],
-                        polarity=item["polarity"],
-                    )
-                    for item in expected_query.get("concepts", ())
-                ),
+            RecommendationQueryContext.model_validate(
+                {
+                    "recommendation_mode": "explore",
+                    "recommendation_mode_basis": (
+                        "broad_exploration"
+                    ),
+                    "recommendation_count": 3,
+                    **expected_query,
+                },
+                strict=False,
             )
             if isinstance(expected_query, dict)
             else None
         )
-        current_product_id = (
-            turn.expected_bindings[0].product_id
-            if processor == "product_knowledge"
-            and len(turn.expected_bindings) == 1
-            else None
-        )
-        self._pending = ConversationSnapshot(
-            session_id=session_id,
-            version=conversation_version + 1,
-            query_context=(
-                query_context
-                or (
-                    RecommendationQueryContext(category="serum")
-                    if current_product_id is not None
-                    else None
-                )
-            ),
-            candidates=(
+        product_ids = tuple(
+            dict.fromkeys(
                 (
-                    DisplayedCandidateRef(
-                        product_id=current_product_id,
-                        ordinal=1,
-                        skin_match="not_applicable",
-                        matched_efficacies=(),
+                    *turn.expected_card_ids,
+                    *(
+                        binding.product_id
+                        for binding in turn.expected_bindings
                     ),
                 )
-                if current_product_id is not None
-                else (
-                    tuple(
-                        DisplayedCandidateRef(
-                            product_id=product_id,
-                            ordinal=index,
-                            skin_match="not_applicable",
-                            matched_efficacies=(),
-                        )
-                        for index, product_id in enumerate(
-                            turn.expected_card_ids,
-                            start=1,
-                        )
+            )
+        )
+        candidates = tuple(
+            DisplayedCandidateRef(
+                product_id=product_id,
+                ordinal=index,
+                skin_match="not_applicable",
+                matched_efficacies=(),
+            )
+            for index, product_id in enumerate(
+                product_ids,
+                start=1,
+            )
+        )
+        current_product_id = (
+            expected_focus.get("object_id")
+            if type(expected_focus.get("object_id")) is int
+            else product_ids[0]
+            if focus_slot == "product" and len(product_ids) == 1
+            else None
+        )
+        payload = (
+            self._current.model_dump(mode="python")
+            if self._current is not None
+            else {
+                "profile_owner": None,
+                "session_profile": None,
+                "recommendation_slot": None,
+                "product_slot": None,
+                "image_slot": None,
+                "consultation_slot": None,
+                "knowledge_slot": None,
+                "reply_slot": None,
+            }
+        )
+        payload.update({
+            "session_id": session_id,
+            "version": conversation_version + 1,
+            "active_owner": Responsibility(focus_processor),
+        })
+        if (
+            query_context is not None
+            or focus_slot == "recommendation"
+        ):
+            active_query = (
+                query_context
+                or (
+                    self._current.recommendation_slot.query_context
+                    if (
+                        self._current is not None
+                        and self._current.recommendation_slot is not None
                     )
-                    if query_context is not None
+                    else RecommendationQueryContext(
+                        category="serum",
+                        recommendation_mode="explore",
+                        recommendation_mode_basis="broad_exploration",
+                        recommendation_count=3,
+                    )
+                )
+            )
+            recommendation_candidates = (
+                candidates
+                if processor == "recommendation"
+                else (
+                    self._current.recommendation_slot.candidates
+                    if (
+                        self._current is not None
+                        and self._current.recommendation_slot is not None
+                    )
                     else ()
                 )
-            ),
-            focus_state=FocusState(
-                active_processor=focus_processor,
-                current_product_id=current_product_id,
-            ),
-            clarification=clarification,
+            )
+            payload["recommendation_slot"] = RecommendationSlotState(
+                query_context=active_query,
+                candidates=recommendation_candidates,
+                empty_result=not recommendation_candidates,
+            )
+        if focus_slot == "product":
+            payload["product_slot"] = ProductSlotState(
+                products=candidates,
+                focused_product_id=current_product_id,
+            )
+        expected_image = expected_snapshot.get("image_slot")
+        if isinstance(expected_image, dict):
+            confirmed = tuple(
+                ConfirmedImageProductRef.model_validate(
+                    item,
+                    strict=True,
+                )
+                for item in expected_image.get(
+                    "confirmed_products",
+                    (),
+                )
+            )
+            payload["image_slot"] = ImageSlotState(
+                confirmed_products=confirmed,
+                focused_image_ordinal=(
+                    confirmed[0].image_ordinal
+                    if len(confirmed) == 1
+                    else None
+                ),
+            )
+        if focus_slot == "consultation":
+            payload["consultation_slot"] = (
+                payload.get("consultation_slot")
+                or ConsultationSlotState(
+                    state=ConsultationSubstate()
+                )
+            )
+        if focus_slot == "knowledge":
+            payload["knowledge_slot"] = KnowledgeSlotState(
+                question=message,
+            )
+        expected_reply = expected_snapshot.get("reply_slot")
+        if isinstance(expected_reply, dict):
+            if expected_reply.get("kind") == "pending_reply":
+                payload["reply_slot"] = PendingReplySlot(
+                    value=PendingTurn.model_validate(
+                        expected_reply["value"],
+                        strict=False,
+                    )
+                )
+            else:
+                value = expected_reply["value"]
+                payload["reply_slot"] = PendingClarificationSlot(
+                    value=ClarificationProgress(
+                        gap=ClarificationCode(value["gap"]),
+                        attempts=value["attempts"],
+                    )
+                )
+        elif focus_slot == "reply":
+            payload["reply_slot"] = PendingClarificationSlot(
+                value=ClarificationProgress(
+                    gap=ClarificationCode.GOAL,
+                    attempts=1,
+                )
+            )
+        focused_image_ordinal = (
+            payload["image_slot"].focused_image_ordinal
+            if (
+                focus_slot == "image"
+                and isinstance(
+                    payload.get("image_slot"),
+                    ImageSlotState,
+                )
+            )
+            else None
         )
+        payload["active_focus"] = ActiveFocus(
+            slot=focus_slot,
+            object_id=current_product_id,
+            ordinal=focused_image_ordinal,
+        )
+        self._pending = ConversationSnapshot.model_validate(
+            payload,
+            strict=False,
+        )
+        self._current = self._pending
+        self._pending = None
         events: list[tuple[str, dict[str, object]]] = [
             ("start", {"session_id": session_id}),
             ("intent", {"intent": processor}),
@@ -318,16 +620,6 @@ class _Runtime:
             cross_session_leak=False,
         )
 
-    def commit(self, terminal_event) -> None:
-        assert terminal_event[0] == "end"
-        assert self._pending is not None
-        self._current = self._pending
-        self._pending = None
-
-    def discard(self, terminal_event) -> None:
-        del terminal_event
-        self._pending = None
-
     def load_snapshot(self, session_id: str) -> ConversationSnapshot:
         assert self._current is not None
         assert self._current.session_id == session_id
@@ -374,7 +666,7 @@ def _failing_runtime_factory():
 def test_real_gate_calls_provider_once_per_turn_and_never_copywriter(
     tmp_path: Path,
 ) -> None:
-    trajectories = load_frozen_trajectories()[:2]
+    trajectories = _physical_trajectories()[:2]
     adapter = _RecordingAdapter(trajectories)
     copywriter = _ForbiddenCopywriter()
     output_path = tmp_path / "capture.json"
@@ -402,11 +694,144 @@ def test_real_gate_calls_provider_once_per_turn_and_never_copywriter(
     assert len(artifact["results"]) == 10
 
 
+def test_real_gate_requires_complete_mechanical_truth_coverage(
+    tmp_path: Path,
+) -> None:
+    trajectories = _physical_trajectories()[:1]
+    first_turn = trajectories[0].turns[0]
+    truth = TurnTruthRequirement(
+        turn_id=first_turn.turn_id,
+        subject_scope_policy="inherited_self",
+        card_policy="none",
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="cover every turn",
+    ):
+        run_real_continuous_gate(
+            trajectories=trajectories,
+            adapter=_RecordingAdapter(trajectories),
+            copywriter=_ForbiddenCopywriter(),
+            runtime_factory=_runtime_factory(),
+            state_root=tmp_path / "state",
+            output_path=tmp_path / "capture.json",
+            truth_by_turn={first_turn.turn_id: truth},
+        )
+
+
+def test_blind_threshold_accepts_ninety_turns_and_eighteen_trajectories(
+) -> None:
+    assert blind_qualification_passed(
+        turn_count=100,
+        passed_turn_count=90,
+        trajectory_count=20,
+        passed_trajectory_count=18,
+        zero_tolerance_counters={
+            "wrong_product_or_image_binding_count": 0,
+            "unauthorized_state_transition_count": 0,
+            "hard_condition_override_count": 0,
+            "unsafe_downgrade_count": 0,
+            "cross_session_or_subject_leak_count": 0,
+            "internal_public_language_count": 0,
+            "stale_focus_hijack_count": 0,
+        },
+    )
+
+
+@pytest.mark.parametrize(
+    ("passed_turn_count", "passed_trajectory_count", "severe"),
+    (
+        (89, 20, 0),
+        (100, 17, 0),
+        (100, 20, 1),
+    ),
+)
+def test_blind_threshold_rejects_below_threshold_or_serious_failure(
+    passed_turn_count: int,
+    passed_trajectory_count: int,
+    severe: int,
+) -> None:
+    assert not blind_qualification_passed(
+        turn_count=100,
+        passed_turn_count=passed_turn_count,
+        trajectory_count=20,
+        passed_trajectory_count=passed_trajectory_count,
+        zero_tolerance_counters={
+            "wrong_product_or_image_binding_count": severe,
+            "unauthorized_state_transition_count": 0,
+            "hard_condition_override_count": 0,
+            "unsafe_downgrade_count": 0,
+            "cross_session_or_subject_leak_count": 0,
+            "internal_public_language_count": 0,
+            "stale_focus_hijack_count": 0,
+        },
+    )
+
+
+def test_build_adapter_caps_one_blind_exam_at_three_cny(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    def _adapter(**kwargs):
+        captured.update(kwargs)
+        return object()
+
+    monkeypatch.setattr(
+        gate_runner,
+        "DeepSeekTurnMeaningAdapter",
+        _adapter,
+    )
+
+    gate_runner._build_adapter(
+        api_key="secret",
+        model="deepseek-v4-pro",
+        concept_ids=("efficacy.repair",),
+        turn_count=100,
+    )
+
+    assert captured["daily_budget_cny"] == Decimal("3.00")
+    assert captured["daily_call_cap"] == 100
+
+
+def test_truth_spec_path_must_match_manifest_binding(
+    tmp_path: Path,
+) -> None:
+    truth = tmp_path / "paper_truth.json"
+    other = tmp_path / "other_truth.json"
+    truth.write_text("{}\n", encoding="utf-8")
+    other.write_text("{}\n", encoding="utf-8")
+    manifest = tmp_path / "paper_manifest.json"
+    manifest.write_text(
+        json.dumps({
+            "mechanical_truth_file": truth.name,
+            "mechanical_truth_sha256": sha256(
+                truth.read_bytes()
+            ).hexdigest(),
+        }),
+        encoding="utf-8",
+    )
+
+    gate_runner._validate_truth_spec_binding(
+        manifest_path=manifest,
+        truth_spec_path=truth,
+    )
+    with pytest.raises(
+        ValueError,
+        match="manifest-bound",
+    ):
+        gate_runner._validate_truth_spec_binding(
+            manifest_path=manifest,
+            truth_spec_path=other,
+        )
+
+
 def test_real_gate_persists_and_reports_progress_after_each_attempt(
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    trajectories = load_frozen_trajectories()[:1]
+    trajectories = _physical_trajectories()[:1]
     output_path = tmp_path / "progress.json"
     adapter = _DurabilityAdapter(trajectories, output_path)
 
@@ -433,10 +858,135 @@ def test_real_gate_persists_and_reports_progress_after_each_attempt(
     assert all("api_key" not in line.casefold() for line in progress)
 
 
+def test_invalid_output_scores_dependent_turns_and_continues(
+    tmp_path: Path,
+) -> None:
+    trajectories = _physical_trajectories()[:2]
+    adapter = _InvalidOutputAdapter(trajectories)
+    output_path = tmp_path / "invalid-output.json"
+
+    report = run_real_continuous_gate(
+        trajectories=trajectories,
+        adapter=adapter,
+        copywriter=_ForbiddenCopywriter(),
+        runtime_factory=_runtime_factory(),
+        state_root=tmp_path / "state",
+        output_path=output_path,
+    )
+    rows = json.loads(
+        output_path.read_text(encoding="utf-8")
+    )["results"]
+
+    assert report.turn_count == 10
+    assert report.provider_call_count == 8
+    assert report.failure_counts["model_translation"] == 3
+    assert report.passed_turn_count == 7
+    assert report.passed_trajectory_count == 1
+    assert len(adapter.calls) == 8
+    assert rows[2]["provider_output"] is None
+    assert rows[3]["provider_trace_id"] is None
+    assert rows[4]["provider_trace_id"] is None
+
+
+def test_resume_reuses_invalid_output_without_another_call(
+    tmp_path: Path,
+) -> None:
+    trajectories = _physical_trajectories()[:2]
+    complete_path = tmp_path / "complete.json"
+    run_real_continuous_gate(
+        trajectories=trajectories,
+        adapter=_InvalidOutputAdapter(trajectories),
+        copywriter=_ForbiddenCopywriter(),
+        runtime_factory=_runtime_factory(),
+        state_root=tmp_path / "initial-state",
+        output_path=complete_path,
+    )
+    artifact = json.loads(complete_path.read_text(encoding="utf-8"))
+    artifact["results"] = artifact["results"][:3]
+    artifact["summary"]["results_sha256"] = gate_runner._hash_json(
+        artifact["results"]
+    )
+    partial_path = tmp_path / "partial.json"
+    partial_path.write_text(
+        json.dumps(artifact, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    adapter = _RecordingAdapter(trajectories)
+
+    report = run_real_continuous_gate(
+        trajectories=trajectories,
+        adapter=adapter,
+        copywriter=_ForbiddenCopywriter(),
+        runtime_factory=_runtime_factory(),
+        state_root=tmp_path / "resumed-state",
+        output_path=tmp_path / "resumed.json",
+        resume_capture_path=partial_path,
+    )
+
+    assert report.turn_count == 10
+    assert report.provider_call_count == 8
+    assert report.reused_provider_call_count == 3
+    assert report.new_provider_call_count == 5
+    assert report.failure_counts["model_translation"] == 3
+    assert len(adapter.calls) == 5
+
+
+def test_resume_preserves_synthetic_dependency_rows_without_calls(
+    tmp_path: Path,
+) -> None:
+    trajectories = _physical_trajectories()[:2]
+    complete_path = tmp_path / "complete.json"
+    initial = run_real_continuous_gate(
+        trajectories=trajectories,
+        adapter=_InvalidOutputAdapter(trajectories),
+        copywriter=_ForbiddenCopywriter(),
+        runtime_factory=_runtime_factory(),
+        state_root=tmp_path / "initial-state",
+        output_path=complete_path,
+    )
+    adapter = _RecordingAdapter(trajectories)
+
+    resumed = run_real_continuous_gate(
+        trajectories=trajectories,
+        adapter=adapter,
+        copywriter=_ForbiddenCopywriter(),
+        runtime_factory=_runtime_factory(),
+        state_root=tmp_path / "resumed-state",
+        output_path=tmp_path / "resumed.json",
+        resume_capture_path=complete_path,
+    )
+
+    assert resumed.turn_count == 10
+    assert resumed.provider_call_count == initial.provider_call_count == 8
+    assert resumed.reused_provider_call_count == 8
+    assert resumed.new_provider_call_count == 0
+    assert resumed.skipped_dependency_turn_count == 2
+    assert adapter.calls == []
+
+
+def test_translation_failure_without_public_answer_is_not_unsafe() -> None:
+    trajectory = next(
+        item
+        for item in _physical_trajectories()
+        if any(turn.expected_safety for turn in item.turns)
+    )
+    turn = next(
+        turn for turn in trajectory.turns if turn.expected_safety
+    )
+
+    evaluation = gate_runner._failed_translation_evaluation(
+        trajectory_id=trajectory.trajectory_id,
+        turn=turn,
+    )
+
+    assert evaluation.failure_layer == "model_translation"
+    assert evaluation.unsafe_downgrade_count == 0
+
+
 def test_captured_replay_uses_zero_provider_calls(
     tmp_path: Path,
 ) -> None:
-    trajectories = load_frozen_trajectories()[:2]
+    trajectories = _physical_trajectories()[:2]
     capture_path = tmp_path / "capture.json"
     run_real_continuous_gate(
         trajectories=trajectories,
@@ -462,10 +1012,87 @@ def test_captured_replay_uses_zero_provider_calls(
     assert report.passed_trajectory_count == 2
 
 
+@pytest.mark.parametrize(
+    ("mutation", "error"),
+    (
+        ("provider_raw_output_sha256", "raw provider output hash"),
+        ("result_sha256", "result hash"),
+        ("summary_results_sha256", "summary results hash"),
+    ),
+)
+def test_captured_replay_rejects_stale_hash_bindings(
+    tmp_path: Path,
+    mutation: str,
+    error: str,
+) -> None:
+    trajectories = _physical_trajectories()[:1]
+    capture_path = tmp_path / "capture.json"
+    run_real_continuous_gate(
+        trajectories=trajectories,
+        adapter=_RecordingAdapter(trajectories),
+        copywriter=_ForbiddenCopywriter(),
+        runtime_factory=_runtime_factory(),
+        state_root=tmp_path / "capture-state",
+        output_path=capture_path,
+    )
+    artifact = json.loads(capture_path.read_text(encoding="utf-8"))
+    if mutation == "summary_results_sha256":
+        artifact["summary"]["results_sha256"] = "0" * 64
+    else:
+        artifact["results"][0][mutation] = "0" * 64
+        artifact["summary"]["results_sha256"] = gate_runner._hash_json(
+            artifact["results"]
+        )
+    capture_path.write_text(
+        json.dumps(artifact, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match=error):
+        replay_captured_continuous_gate(
+            trajectories=trajectories,
+            capture_path=capture_path,
+            runtime_factory=_runtime_factory(),
+            state_root=tmp_path / "replay-state",
+            output_path=tmp_path / "replay.json",
+        )
+
+
+def test_captured_replay_preserves_synthetic_dependency_rows(
+    tmp_path: Path,
+) -> None:
+    trajectories = _physical_trajectories()[:2]
+    capture_path = tmp_path / "capture.json"
+    replay_path = tmp_path / "replay.json"
+    run_real_continuous_gate(
+        trajectories=trajectories,
+        adapter=_InvalidOutputAdapter(trajectories),
+        copywriter=_ForbiddenCopywriter(),
+        runtime_factory=_runtime_factory(),
+        state_root=tmp_path / "capture-state",
+        output_path=capture_path,
+    )
+
+    report = replay_captured_continuous_gate(
+        trajectories=trajectories,
+        capture_path=capture_path,
+        runtime_factory=_runtime_factory(),
+        state_root=tmp_path / "replay-state",
+        output_path=replay_path,
+    )
+    rows = json.loads(replay_path.read_text(encoding="utf-8"))["results"]
+
+    assert report.provider_call_count == 0
+    assert report.replayed_turn_count == 10
+    assert report.failure_counts["model_translation"] == 3
+    assert report.unsafe_downgrade_count == 0
+    assert sum(not row["provider_call_attempted"] for row in rows) == 2
+
+
 def test_real_gate_resumes_green_global_prefix_without_recalling_provider(
     tmp_path: Path,
 ) -> None:
-    trajectories = load_frozen_trajectories()[:2]
+    trajectories = _physical_trajectories()[:2]
     complete_capture = tmp_path / "complete-capture.json"
     run_real_continuous_gate(
         trajectories=trajectories,
@@ -479,6 +1106,9 @@ def test_real_gate_resumes_green_global_prefix_without_recalling_provider(
         complete_capture.read_text(encoding="utf-8")
     )
     artifact["results"] = artifact["results"][:7]
+    artifact["summary"]["results_sha256"] = gate_runner._hash_json(
+        artifact["results"]
+    )
     partial_capture = tmp_path / "partial-capture.json"
     partial_capture.write_text(
         json.dumps(artifact, ensure_ascii=False),
@@ -507,7 +1137,7 @@ def test_real_gate_resumes_green_global_prefix_without_recalling_provider(
 def test_real_gate_rejects_resume_prompt_drift_before_provider_call(
     tmp_path: Path,
 ) -> None:
-    trajectories = load_frozen_trajectories()[:1]
+    trajectories = _physical_trajectories()[:1]
     capture_path = tmp_path / "capture.json"
     run_real_continuous_gate(
         trajectories=trajectories,
@@ -539,10 +1169,61 @@ def test_real_gate_rejects_resume_prompt_drift_before_provider_call(
     assert adapter.calls == []
 
 
+@pytest.mark.parametrize(
+    ("mutation", "error"),
+    (
+        ("provider_raw_output_sha256", "raw provider output hash"),
+        ("result_sha256", "result hash"),
+        ("summary_results_sha256", "summary results hash"),
+    ),
+)
+def test_real_gate_rejects_stale_resume_hash_bindings_before_provider_call(
+    tmp_path: Path,
+    mutation: str,
+    error: str,
+) -> None:
+    trajectories = _physical_trajectories()[:1]
+    capture_path = tmp_path / "capture.json"
+    run_real_continuous_gate(
+        trajectories=trajectories,
+        adapter=_RecordingAdapter(trajectories),
+        copywriter=_ForbiddenCopywriter(),
+        runtime_factory=_runtime_factory(),
+        state_root=tmp_path / "capture-state",
+        output_path=capture_path,
+    )
+    artifact = json.loads(capture_path.read_text(encoding="utf-8"))
+    if mutation == "summary_results_sha256":
+        artifact["summary"]["results_sha256"] = "0" * 64
+    else:
+        artifact["results"][0][mutation] = "0" * 64
+        artifact["summary"]["results_sha256"] = gate_runner._hash_json(
+            artifact["results"]
+        )
+    capture_path.write_text(
+        json.dumps(artifact, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    adapter = _RecordingAdapter(trajectories)
+
+    with pytest.raises(ValueError, match=error):
+        run_real_continuous_gate(
+            trajectories=trajectories,
+            adapter=adapter,
+            copywriter=_ForbiddenCopywriter(),
+            runtime_factory=_runtime_factory(),
+            state_root=tmp_path / "resume-state",
+            output_path=tmp_path / "resumed.json",
+            resume_capture_path=capture_path,
+        )
+
+    assert adapter.calls == []
+
+
 def test_real_gate_rejects_non_global_resume_prefix(
     tmp_path: Path,
 ) -> None:
-    trajectories = load_frozen_trajectories()[:1]
+    trajectories = _physical_trajectories()[:1]
     capture_path = tmp_path / "capture.json"
     run_real_continuous_gate(
         trajectories=trajectories,
@@ -580,7 +1261,7 @@ def test_real_gate_rejects_non_global_resume_prefix(
 def test_replay_revalidates_raw_json_after_contract_repair(
     tmp_path: Path,
 ) -> None:
-    trajectories = load_frozen_trajectories()[:1]
+    trajectories = _physical_trajectories()[:1]
     complete_capture = tmp_path / "complete-capture.json"
     run_real_continuous_gate(
         trajectories=trajectories,
@@ -613,6 +1294,25 @@ def test_replay_revalidates_raw_json_after_contract_repair(
     first_row["provider_raw_output_sha256"] = sha256(
         raw_output.encode("utf-8")
     ).hexdigest()
+    input_payload = {
+        "trajectory_id": first_row["trajectory_id"],
+        "turn_id": first_row["turn_id"],
+        "message": first_row["message"],
+        "starting_version": first_row["starting_version"],
+        "image_fixture_ids": list(
+            trajectories[0].turns[0].image_fixture_ids
+        ),
+    }
+    first_row["result_sha256"] = gate_runner._hash_json(
+        gate_runner._captured_result_payload(
+            source_row=first_row,
+            input_payload=input_payload,
+            context_payload=first_row["semantic_context"],
+        )
+    )
+    artifact["summary"]["results_sha256"] = gate_runner._hash_json(
+        artifact["results"]
+    )
     repaired_capture = tmp_path / "repaired-capture.json"
     repaired_capture.write_text(
         json.dumps(artifact, ensure_ascii=False),
@@ -636,7 +1336,7 @@ def test_replay_revalidates_raw_json_after_contract_repair(
 def test_partial_capture_replays_contiguous_captured_prefixes(
     tmp_path: Path,
 ) -> None:
-    trajectories = load_frozen_trajectories()[:2]
+    trajectories = _physical_trajectories()[:2]
     complete_capture = tmp_path / "complete-capture.json"
     run_real_continuous_gate(
         trajectories=trajectories,
@@ -653,6 +1353,9 @@ def test_partial_capture_replays_contiguous_captured_prefixes(
         *artifact["results"][:5],
         *artifact["results"][5:7],
     ]
+    artifact["summary"]["results_sha256"] = gate_runner._hash_json(
+        artifact["results"]
+    )
     partial_capture = tmp_path / "partial-capture.json"
     partial_capture.write_text(
         json.dumps(artifact, ensure_ascii=False),
@@ -677,10 +1380,62 @@ def test_partial_capture_replays_contiguous_captured_prefixes(
     assert report.provider_call_count == 0
 
 
+def test_cli_exposes_explicit_partial_replay_mode(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class ReplayReport:
+        passed = False
+
+        @staticmethod
+        def model_dump_json() -> str:
+            return "{}"
+
+    def replay(**kwargs):
+        captured.update(kwargs)
+        return ReplayReport()
+
+    monkeypatch.setattr(
+        gate_runner,
+        "replay_captured_continuous_gate",
+        replay,
+    )
+
+    exit_code = gate_runner.main([
+        "--cases",
+        "tests/fixtures/guide/conversation/"
+        "continuous_blind_b_replacement_20x5_v2.jsonl",
+        "--manifest",
+        "tests/fixtures/guide/conversation/"
+        "continuous_blind_b_replacement_20x5_v2_manifest.json",
+        "--output",
+        str(tmp_path / "replay.json"),
+        "--replay",
+        str(tmp_path / "partial.json"),
+        "--allow-partial-replay",
+    ])
+
+    assert exit_code == 3
+    assert captured["allow_partial"] is True
+
+
+def test_cli_exposes_truth_correction_overlay(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    with pytest.raises(SystemExit, match="0"):
+        gate_runner.main(["--help"])
+
+    help_text = capsys.readouterr().out
+    assert "--truth-correction" in help_text
+    assert "--outcome-scoring" in help_text
+
+
 def test_partial_capture_rejects_noncontiguous_trajectory_turns(
     tmp_path: Path,
 ) -> None:
-    trajectories = load_frozen_trajectories()[:1]
+    trajectories = _physical_trajectories()[:1]
     complete_capture = tmp_path / "complete-capture.json"
     run_real_continuous_gate(
         trajectories=trajectories,
@@ -720,7 +1475,7 @@ def test_partial_capture_rejects_noncontiguous_trajectory_turns(
 def test_capture_rejects_duplicate_turn_identities(
     tmp_path: Path,
 ) -> None:
-    trajectories = load_frozen_trajectories()[:1]
+    trajectories = _physical_trajectories()[:1]
     complete_capture = tmp_path / "complete-capture.json"
     run_real_continuous_gate(
         trajectories=trajectories,
@@ -757,7 +1512,7 @@ def test_capture_rejects_duplicate_turn_identities(
 def test_capture_rejects_input_identity_drift(
     tmp_path: Path,
 ) -> None:
-    trajectories = load_frozen_trajectories()[:1]
+    trajectories = _physical_trajectories()[:1]
     complete_capture = tmp_path / "complete-capture.json"
     run_real_continuous_gate(
         trajectories=trajectories,
@@ -793,7 +1548,7 @@ def test_capture_rejects_input_identity_drift(
 def test_failed_turn_records_exactly_one_earliest_layer(
     tmp_path: Path,
 ) -> None:
-    trajectories = load_frozen_trajectories()[:1]
+    trajectories = _physical_trajectories()[:1]
     output_path = tmp_path / "failed-capture.json"
 
     run_real_continuous_gate(
@@ -821,7 +1576,7 @@ def test_failed_turn_records_exactly_one_earliest_layer(
 def test_repair_qualification_stops_after_first_evaluated_failure(
     tmp_path: Path,
 ) -> None:
-    trajectories = load_frozen_trajectories()[:2]
+    trajectories = _physical_trajectories()[:2]
     output_path = tmp_path / "repair-stop.json"
     adapter = _RecordingAdapter(trajectories)
 
@@ -848,12 +1603,39 @@ def test_repair_qualification_stops_after_first_evaluated_failure(
     assert not report.passed
 
 
+def test_real_gate_stops_after_first_serious_failure_by_default(
+    tmp_path: Path,
+) -> None:
+    trajectories = _physical_trajectories()[:2]
+    output_path = tmp_path / "serious-stop.json"
+    adapter = _RecordingAdapter(trajectories)
+
+    report = run_real_continuous_gate(
+        trajectories=trajectories,
+        adapter=adapter,
+        copywriter=_ForbiddenCopywriter(),
+        runtime_factory=_failing_runtime_factory(),
+        state_root=tmp_path / "serious-stop-state",
+        output_path=output_path,
+    )
+    rows = json.loads(
+        output_path.read_text(encoding="utf-8")
+    )["results"]
+
+    assert report.provider_call_count == 1
+    assert report.turn_count == 1
+    assert report.unauthorized_state_transition_count == 1
+    assert len(adapter.calls) == 1
+    assert len(rows) == 1
+    assert not report.passed
+
+
 def test_clarification_event_is_a_complete_public_answer(
     tmp_path: Path,
 ) -> None:
     trajectory = next(
         item
-        for item in load_frozen_trajectories()
+        for item in _physical_trajectories()
         if item.trajectory_id == "recovery-ambiguous-product"
     )
     output_path = tmp_path / "clarification.json"
@@ -909,10 +1691,10 @@ def _crashing_runtime_factory(
     return build
 
 
-def test_runtime_exception_records_layer_and_continues_next_trajectory(
+def test_runtime_exception_records_layer_and_stops_paid_gate(
     tmp_path: Path,
 ) -> None:
-    trajectories = load_frozen_trajectories()[:2]
+    trajectories = _physical_trajectories()[:2]
     output_path = tmp_path / "runtime-error.json"
     adapter = _RecordingAdapter(trajectories)
 
@@ -940,20 +1722,19 @@ def test_runtime_exception_records_layer_and_continues_next_trajectory(
     assert crashed["evaluation"]["failure_layer"] == "state_transition"
     # The crashed trajectory does not chain further real calls after the crash.
     assert len(first_rows) == 3
-    # The next independent trajectory still runs its full five turns.
+    # A serious runtime failure stops the paid gate before another trajectory.
     assert report.trajectory_count == 2
-    assert (
-        len([r for r in rows if r["trajectory_id"] != first_id]) == 5
-    )
-    # Only 3 (crashed trajectory) + 5 (clean trajectory) provider calls.
-    assert report.provider_call_count == 8
+    assert len([r for r in rows if r["trajectory_id"] != first_id]) == 0
+    assert report.provider_call_count == 3
+    assert report.unauthorized_state_transition_count == 1
+    assert len(adapter.calls) == 3
     assert report.passed is False
 
 
 def test_runtime_failure_without_public_text_is_not_language_leak(
     tmp_path: Path,
 ) -> None:
-    trajectory = load_frozen_trajectories()[0]
+    trajectory = _physical_trajectories()[0]
     output_path = tmp_path / "runtime-public-error.json"
 
     class PublicFailureRuntime(_Runtime):
@@ -996,7 +1777,7 @@ def test_runtime_failure_without_public_text_is_not_language_leak(
 def test_capture_is_persisted_after_each_completed_turn(
     tmp_path: Path,
 ) -> None:
-    trajectory = load_frozen_trajectories()[0]
+    trajectory = _physical_trajectories()[0]
     output_path = tmp_path / "incremental.json"
 
     try:
@@ -1029,7 +1810,7 @@ def test_capture_is_persisted_after_each_completed_turn(
 def _recommendation_turn_and_trace():
     trajectory = next(
         item
-        for item in load_frozen_trajectories()
+        for item in _physical_trajectories()
         if item.trajectory_id == "shop-repair-budget-return"
     )
     turn = trajectory.turns[0]  # expects cards [38, 91], recommendation
@@ -1041,7 +1822,6 @@ def _recommendation_turn_and_trace():
         meaning=_meaning(turn),
         image_fixture_ids=(),
     )
-    runtime.commit(result.events[-1])
     snapshot = runtime.load_snapshot(trajectory.trajectory_id)
     trace = ContinuousTurnTrace(
         turn_id=turn.turn_id,
@@ -1080,7 +1860,302 @@ def test_recommendation_card_ranking_order_is_not_a_failure() -> None:
     assert evaluation.wrong_product_or_image_binding_count == 0
 
 
-def test_unexpected_extra_card_still_fails_data_coverage() -> None:
+def test_continuation_translation_accepts_context_inherited_topic() -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    turn = turn.model_copy(
+        update={
+            "expected_route": turn.expected_route.model_copy(
+                update={"continuity": "correct"},
+                deep=True,
+            ),
+        },
+        deep=True,
+    )
+    meaning = trace.meaning.model_copy(
+        update={"topic_hint": None},
+        deep=True,
+    )
+
+    assert gate_runner._translation_matches(turn, meaning) is True
+
+
+def test_new_task_translation_still_requires_expected_topic() -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    meaning = trace.meaning.model_copy(
+        update={"topic_hint": None},
+        deep=True,
+    )
+
+    assert gate_runner._translation_matches(turn, meaning) is False
+
+
+def test_audited_route_alternative_is_accepted() -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    alternative = turn.expected_route.model_copy(
+        update={"continuity": "supplement"},
+        deep=True,
+    )
+    turn = turn.model_copy(
+        update={"acceptable_routes": (alternative,)},
+        deep=True,
+    )
+    trace = trace.model_copy(
+        update={"route": alternative},
+        deep=True,
+    )
+
+    evaluation = evaluate_continuous_turn(
+        trajectory_id="shop-repair-budget-return",
+        turn=turn,
+        meaning=trace.meaning,
+        trace=trace,
+    )
+
+    assert evaluation.layer_evidence.route_selection is True
+
+
+def test_outcome_scoring_accepts_equivalent_internal_translation() -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    meaning = trace.meaning.model_copy(
+        update={
+            "operation_hint": "followup",
+            "topic_hint": "skincare",
+            "continuity_hint": "new_task",
+        },
+        deep=True,
+    )
+
+    evaluation = evaluate_continuous_turn(
+        trajectory_id="shop-repair-budget-return",
+        turn=turn,
+        meaning=meaning,
+        trace=trace,
+        outcome_scoring=True,
+    )
+
+    assert evaluation.layer_evidence.model_translation is True
+    assert evaluation.passed is True
+
+
+def test_outcome_scoring_accepts_internal_route_continuity() -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    trace = trace.model_copy(
+        update={
+            "route": trace.route.model_copy(
+                update={
+                    "continuity": "supplement",
+                    "focus_source": "confirmed_image",
+                },
+                deep=True,
+            )
+        },
+        deep=True,
+    )
+
+    evaluation = evaluate_continuous_turn(
+        trajectory_id="shop-repair-budget-return",
+        turn=turn,
+        meaning=trace.meaning,
+        trace=trace,
+        outcome_scoring=True,
+    )
+
+    assert evaluation.layer_evidence.route_selection is True
+    assert evaluation.passed is True
+
+
+def test_outcome_scoring_rejects_wrong_public_processor() -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    trace = trace.model_copy(
+        update={
+            "route": trace.route.model_copy(
+                update={"processor": "general_knowledge"},
+                deep=True,
+            ),
+            "presentation_mode": "general_knowledge",
+        },
+        deep=True,
+    )
+
+    evaluation = evaluate_continuous_turn(
+        trajectory_id="shop-repair-budget-return",
+        turn=turn,
+        meaning=trace.meaning,
+        trace=trace,
+        outcome_scoring=True,
+    )
+
+    assert evaluation.layer_evidence.route_selection is False
+    assert evaluation.failure_layer == "route_selection"
+
+
+def test_outcome_scoring_accepts_safe_consultation_processor_family(
+) -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    turn = turn.model_copy(
+        update={
+            "expected_safety": True,
+            "expected_route": turn.expected_route.model_copy(
+                update={"processor": "safety_escalation"},
+                deep=True,
+            ),
+        },
+        deep=True,
+    )
+    trace = trace.model_copy(
+        update={
+            "route": trace.route.model_copy(
+                update={"processor": "consultation"},
+                deep=True,
+            ),
+            "safety": True,
+            "presentation_mode": "consultation",
+        },
+        deep=True,
+    )
+
+    evaluation = evaluate_continuous_turn(
+        trajectory_id="shop-repair-budget-return",
+        turn=turn,
+        meaning=trace.meaning,
+        trace=trace,
+        outcome_scoring=True,
+    )
+
+    assert evaluation.layer_evidence.route_selection is True
+
+
+def test_outcome_scoring_wrong_processor_is_not_stale_focus_hijack(
+) -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    turn = turn.model_copy(
+        update={
+            "expected_route": turn.expected_route.model_copy(
+                update={"continuity": "return_to_focus"},
+                deep=True,
+            ),
+        },
+        deep=True,
+    )
+    trace = trace.model_copy(
+        update={
+            "route": trace.route.model_copy(
+                update={
+                    "processor": "image_identity",
+                    "focus_source": "confirmed_image",
+                },
+                deep=True,
+            ),
+        },
+        deep=True,
+    )
+
+    evaluation = evaluate_continuous_turn(
+        trajectory_id="shop-repair-budget-return",
+        turn=turn,
+        meaning=trace.meaning,
+        trace=trace,
+        outcome_scoring=True,
+    )
+
+    assert evaluation.layer_evidence.route_selection is False
+    assert evaluation.stale_focus_hijack_count == 0
+
+
+def test_outcome_scoring_ignores_equivalent_internal_task_mode() -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    turn = turn.model_copy(
+        update={
+            "expected_task_plan_subset": {"mode": "suitability"},
+        },
+        deep=True,
+    )
+
+    evaluation = evaluate_continuous_turn(
+        trajectory_id="shop-repair-budget-return",
+        turn=turn,
+        meaning=trace.meaning,
+        trace=trace,
+        outcome_scoring=True,
+    )
+
+    assert evaluation.layer_evidence.decision_execution is True
+
+
+def test_outcome_scoring_accepts_single_product_presentation_family(
+) -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    turn = turn.model_copy(
+        update={
+            "expected_route": turn.expected_route.model_copy(
+                update={"processor": "product_knowledge"},
+                deep=True,
+            ),
+            "expected_presentation_mode": "single_product",
+        },
+        deep=True,
+    )
+    trace = trace.model_copy(
+        update={
+            "route": trace.route.model_copy(
+                update={"processor": "product_knowledge"},
+                deep=True,
+            ),
+            "presentation_mode": "product_knowledge",
+        },
+        deep=True,
+    )
+
+    evaluation = evaluate_continuous_turn(
+        trajectory_id="shop-repair-budget-return",
+        turn=turn,
+        meaning=trace.meaning,
+        trace=trace,
+        outcome_scoring=True,
+    )
+
+    assert evaluation.layer_evidence.public_presentation is True
+
+
+def test_public_clarification_does_not_require_presentation_packet() -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    turn = turn.model_copy(
+        update={
+            "expected_clarification": True,
+            "expected_presentation_mode": "clarification",
+        },
+        deep=True,
+    )
+    trace = trace.model_copy(
+        update={
+            "clarification": True,
+            "presentation_mode": None,
+            "public_messages": (),
+        },
+        deep=True,
+    )
+
+    matched, internal_language = (
+        gate_runner._public_presentation_matches(turn, trace)
+    )
+
+    assert matched is True
+    assert internal_language is False
+
+
+def test_non_clarification_still_requires_presentation_packet() -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    trace = trace.model_copy(
+        update={"presentation_mode": None},
+        deep=True,
+    )
+
+    matched, _ = gate_runner._public_presentation_matches(turn, trace)
+
+    assert matched is False
+
+
+def test_recommendation_card_difference_is_not_wrong_binding() -> None:
     turn, trace = _recommendation_turn_and_trace()
     trace = trace.model_copy(update={"card_ids": (38, 91, 129)}, deep=True)
 
@@ -1092,4 +2167,218 @@ def test_unexpected_extra_card_still_fails_data_coverage() -> None:
     )
 
     assert evaluation.layer_evidence.data_coverage is False
+    assert evaluation.wrong_product_or_image_binding_count == 0
+
+
+def test_variable_recommendation_accepts_any_eligible_subset() -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    turn = turn.model_copy(
+        update={"expected_card_ids": ()},
+        deep=True,
+    )
+    trace = trace.model_copy(
+        update={"card_ids": (38, 129)},
+        deep=True,
+    )
+    truth = TurnTruthRequirement(
+        turn_id=turn.turn_id,
+        subject_scope_policy="inherited_self",
+        card_policy="eligible_subset",
+        eligible_product_ids=(38, 91, 129),
+        minimum_card_count=1,
+        maximum_card_count=3,
+    )
+
+    evaluation = evaluate_continuous_turn(
+        trajectory_id="shop-repair-budget-return",
+        turn=turn,
+        meaning=trace.meaning,
+        trace=trace,
+        truth=truth,
+    )
+
+    assert evaluation.layer_evidence.data_coverage is True
+
+
+def test_variable_recommendation_cards_do_not_have_to_match_anchor_binding(
+) -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    anchor = ResolvedProductBinding(
+        product_id=53,
+        variant_scope=None,
+        source_text="image_ordinal:1",
+        source_kind="image_ordinal",
+        source_ordinal=1,
+    )
+    turn = turn.model_copy(
+        update={
+            "expected_bindings": (anchor,),
+            "expected_card_ids": (),
+        },
+        deep=True,
+    )
+    trace = trace.model_copy(
+        update={
+            "bindings": (anchor,),
+            "card_ids": (38, 129),
+        },
+        deep=True,
+    )
+    truth = TurnTruthRequirement(
+        turn_id=turn.turn_id,
+        subject_scope_policy="inherited_self",
+        card_policy="eligible_subset",
+        eligible_product_ids=(38, 91, 129),
+        minimum_card_count=1,
+        maximum_card_count=3,
+    )
+
+    evaluation = evaluate_continuous_turn(
+        trajectory_id="shop-repair-budget-return",
+        turn=turn,
+        meaning=trace.meaning,
+        trace=trace,
+        truth=truth,
+    )
+
+    assert evaluation.layer_evidence.identity_binding is True
+    assert evaluation.layer_evidence.data_coverage is True
+    assert evaluation.wrong_product_or_image_binding_count == 0
+
+
+def test_variable_recommendation_rejects_ineligible_card() -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    turn = turn.model_copy(
+        update={"expected_card_ids": ()},
+        deep=True,
+    )
+    trace = trace.model_copy(
+        update={"card_ids": (38, 999)},
+        deep=True,
+    )
+    truth = TurnTruthRequirement(
+        turn_id=turn.turn_id,
+        subject_scope_policy="inherited_self",
+        card_policy="eligible_subset",
+        eligible_product_ids=(38, 91, 129),
+        minimum_card_count=1,
+        maximum_card_count=3,
+    )
+
+    evaluation = evaluate_continuous_turn(
+        trajectory_id="shop-repair-budget-return",
+        turn=turn,
+        meaning=trace.meaning,
+        trace=trace,
+        truth=truth,
+    )
+
+    assert evaluation.layer_evidence.data_coverage is False
     assert evaluation.wrong_product_or_image_binding_count == 1
+
+
+def test_state_mismatch_after_earlier_binding_failure_is_not_serious(
+) -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    trace = trace.model_copy(
+        update={
+            "bindings": (
+                ResolvedProductBinding(
+                    product_id=129,
+                    variant_scope=None,
+                    source_text="unexpected",
+                    source_kind="explicit_product",
+                ),
+            ),
+            "final_snapshot": trace.final_snapshot.model_copy(
+                update={
+                    "active_owner": None,
+                    "active_focus": None,
+                },
+                deep=True,
+            ),
+        },
+        deep=True,
+    )
+
+    evaluation = evaluate_continuous_turn(
+        trajectory_id="shop-repair-budget-return",
+        turn=turn,
+        meaning=trace.meaning,
+        trace=trace,
+    )
+
+    assert (
+        evaluation.failure_layer
+        is ContinuousFailureLayer.IDENTITY_BINDING
+    )
+    assert evaluation.wrong_product_or_image_binding_count == 1
+    assert evaluation.unauthorized_state_transition_count == 0
+
+
+def test_return_route_miss_without_wrong_identity_is_not_stale_hijack(
+) -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    turn = turn.model_copy(
+        update={
+            "expected_route": turn.expected_route.model_copy(
+                update={"continuity": "return_to_focus"},
+                deep=True,
+            ),
+        },
+        deep=True,
+    )
+
+    evaluation = evaluate_continuous_turn(
+        trajectory_id="shop-repair-budget-return",
+        turn=turn,
+        meaning=trace.meaning,
+        trace=trace,
+    )
+
+    assert (
+        evaluation.failure_layer
+        is ContinuousFailureLayer.ROUTE_SELECTION
+    )
+    assert evaluation.wrong_product_or_image_binding_count == 0
+    assert evaluation.stale_focus_hijack_count == 0
+
+
+def test_return_route_into_different_existing_focus_is_stale_hijack(
+) -> None:
+    turn, trace = _recommendation_turn_and_trace()
+    turn = turn.model_copy(
+        update={
+            "expected_route": turn.expected_route.model_copy(
+                update={"continuity": "return_to_focus"},
+                deep=True,
+            ),
+        },
+        deep=True,
+    )
+    trace = trace.model_copy(
+        update={
+            "route": trace.route.model_copy(
+                update={
+                    "processor": "general_knowledge",
+                    "focus_source": "knowledge_topic",
+                },
+                deep=True,
+            ),
+        },
+        deep=True,
+    )
+
+    evaluation = evaluate_continuous_turn(
+        trajectory_id="shop-repair-budget-return",
+        turn=turn,
+        meaning=trace.meaning,
+        trace=trace,
+    )
+
+    assert (
+        evaluation.failure_layer
+        is ContinuousFailureLayer.ROUTE_SELECTION
+    )
+    assert evaluation.wrong_product_or_image_binding_count == 0
+    assert evaluation.stale_focus_hijack_count == 1

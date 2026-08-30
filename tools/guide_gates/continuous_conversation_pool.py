@@ -9,6 +9,7 @@ from app.guide.retrieval.product_name_resolver import (
 )
 from tools.guide_gates.continuous_conversation_fixture import (
     DEFAULT_POOL_PATH,
+    canonical_trajectory_json,
     freeze_continuous_fixtures,
 )
 from tools.guide_gates.continuous_conversation_gate import (
@@ -46,10 +47,35 @@ def _binding(
     product_id: int,
     source_text: str,
 ) -> ResolvedProductBinding:
+    source_kind = (
+        "image_ordinal"
+        if source_text.startswith("image_ordinal:")
+        else (
+            "candidate_ordinal"
+            if source_text.startswith("candidate_ordinal:")
+            else (
+                source_text
+                if source_text
+                in {
+                    "current_batch",
+                    "current_item",
+                    "current_product",
+                }
+                else "explicit_product"
+            )
+        )
+    )
+    source_ordinal = (
+        int(source_text.rsplit(":", 1)[1])
+        if source_kind in {"image_ordinal", "candidate_ordinal"}
+        else None
+    )
     return ResolvedProductBinding(
         product_id=product_id,
         variant_scope=None,
         source_text=source_text,
+        source_kind=source_kind,
+        source_ordinal=source_ordinal,
     )
 
 
@@ -1570,7 +1596,7 @@ def write_reviewed_trajectory_pool(
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(
         b"\n".join(
-            trajectory.model_dump_json().encode("utf-8")
+            canonical_trajectory_json(trajectory).encode("utf-8")
             for trajectory in pool
         )
         + b"\n"

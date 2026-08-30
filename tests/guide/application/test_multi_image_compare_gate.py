@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import hashlib
-import hmac
 import importlib
+import inspect
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from itertools import permutations
@@ -11,7 +11,6 @@ from types import SimpleNamespace
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
-from app.guide.application.contracts import UserTurn
 from app.guide.decision.contracts import DecisionProductFacts, FactState
 from app.guide.decision.multi_image_compare_contracts import (
     MultiImageCompareDecisionResult,
@@ -133,27 +132,6 @@ def _context(
     )
 
 
-def _authorization_request(
-    *,
-    bundle_id: str = _BUNDLE_ID,
-    version: int = 1,
-    session_id: str = _SESSION_ID,
-    owner_token: str = _OWNER_TOKEN,
-):
-    subject = _subject()
-    turn = UserTurn(
-        session_id=session_id,
-        message="比较这几款",
-        image_bundle_id=bundle_id,
-        image_bundle_version=version,
-        image_bundle_token=owner_token,
-        conversation_version=0,
-    )
-    return subject.MultiImageCompareBundleAuthorizationRequest.from_user_turn(
-        turn
-    )
-
-
 def _facts(
     product_id: int,
     price: str | None = "100",
@@ -232,58 +210,6 @@ class FailingFacts(RecordingFacts):
         raise self.failure
 
 
-class RecordingBundleAuthorizer:
-    def __init__(
-        self,
-        bundle: ImageBundle,
-        *,
-        owner_token: str = _OWNER_TOKEN,
-    ) -> None:
-        self.bundle = bundle.model_copy(deep=True)
-        self.owner_token = owner_token
-        self.calls = []
-
-    def authorize(
-        self,
-        *,
-        bundle_id: str,
-        version: int,
-        session_id: str,
-        owner_token: str,
-    ) -> ImageBundle:
-        request = _subject().MultiImageCompareBundleAuthorizationRequest(
-            bundle_id=bundle_id,
-            version=version,
-            session_id=session_id,
-            owner_token=owner_token,
-        )
-        self.calls.append(request)
-        supplied_hash = hashlib.sha256(
-            owner_token.encode("utf-8")
-        ).hexdigest()
-        if (
-            bundle_id != self.bundle.bundle_id
-            or version != self.bundle.version
-            or session_id != self.bundle.session_id
-            or not hmac.compare_digest(
-                supplied_hash,
-                self.bundle.owner_token_sha256,
-            )
-        ):
-            raise RuntimeError("image bundle unavailable")
-        return self.bundle.model_copy(deep=True)
-
-
-class FailingBundleAuthorizer(RecordingBundleAuthorizer):
-    def __init__(self, failure: BaseException) -> None:
-        super().__init__(_bundle(3))
-        self.failure = failure
-
-    def authorize(self, **kwargs) -> ImageBundle:
-        self.calls.append(kwargs)
-        raise self.failure
-
-
 class RecordingDecision:
     def __init__(self) -> None:
         self.calls = []
@@ -345,7 +271,6 @@ def _service(
     count: int,
     *,
     bundle: ImageBundle | None = None,
-    authorizer: RecordingBundleAuthorizer | None = None,
     category_catalog: RecordingCategories | None = None,
     categories: list[CategoryRecord] | None = None,
     decision_facts: RecordingFacts | None = None,
@@ -384,60 +309,61 @@ def _service(
         )
     )
     decision_port = decision if decision is not None else RecordingDecision()
-    bundle_authorizer = (
-        authorizer
-        if authorizer is not None
-        else RecordingBundleAuthorizer(
-            bundle if bundle is not None else _bundle(count)
-        )
-    )
+    authorized_bundle = bundle if bundle is not None else _bundle(count)
     gate = _subject().ThreeToFourImageCompareGate(
-        bundle_authorizer=bundle_authorizer,
         category_catalog=category_port,
         decision_facts=fact_port,
         decision=decision_port,
     )
     return (
         gate,
-        bundle_authorizer,
+        authorized_bundle,
         category_port,
         fact_port,
         decision_port,
     )
 
 
-def _prepare(gate, context, authorization=None):
+def _prepare(gate, context, authorized_bundle=None):
     return gate.prepare(
         context,
-        authorization=authorization or _authorization_request(),
+        authorized_bundle=(
+            authorized_bundle
+            if authorized_bundle is not None
+            else _bundle(len(context.references))
+        ),
     )
 
 
-def test_authorization_request_is_typed_from_user_turn_without_token_repr() -> None:
-    request = _authorization_request()
-
-    assert request.bundle_id == _BUNDLE_ID
-    assert request.version == 1
-    assert request.session_id == _SESSION_ID
-    assert request.owner_token == _OWNER_TOKEN
-    assert _OWNER_TOKEN not in repr(request)
-    assert _OWNER_TOKEN not in str(request)
-
-
-def test_caller_cannot_supply_or_construct_authoritative_bundle_data() -> None:
+def test_gate_accepts_only_pre_authorized_bundle_evidence() -> None:
     subject = _subject()
-    gate, authorizer, categories, facts, decision = _service(3)
+    signature = inspect.signature(
+        subject.ThreeToFourImageCompareGate.prepare
+    )
+
+    assert "authorized_bundle" in signature.parameters
+    assert "authorization" not in signature.parameters
+    assert "bundle_authorizer" not in inspect.signature(
+        subject.ThreeToFourImageCompareGate
+    ).parameters
+    assert not hasattr(
+        subject,
+        "MultiImageCompareBundleAuthorizationRequest",
+    )
+
+
+def test_gate_rejects_legacy_authorization_arguments() -> None:
+    subject = _subject()
+    gate, _, categories, facts, decision = _service(3)
 
     assert not hasattr(subject, "MultiImageCompareBundleAuthority")
     assert not hasattr(subject, "MultiImageCompareAuthorityImage")
-    with pytest.raises(TypeError, match="current_bundle"):
+    with pytest.raises(TypeError, match="authorization"):
         gate.prepare(
             _context(3),
-            authorization=_authorization_request(),
-            current_bundle=_bundle(3),
+            authorization=object(),
         )
 
-    assert authorizer.calls == []
     assert categories.calls == 0
     assert facts.calls == []
     assert decision.calls == []
@@ -447,11 +373,12 @@ def test_caller_cannot_supply_or_construct_authoritative_bundle_data() -> None:
 def test_success_uses_authorized_bundle_ordinal_order_and_exact_cards(
     count: int,
 ) -> None:
-    gate, authorizer, categories, facts, decision = _service(count)
+    gate, authorized_bundle, categories, facts, decision = _service(count)
 
     result = _prepare(
         gate,
         _context(count),
+        authorized_bundle,
     )
 
     expected_ids = _PRODUCT_IDS[:count]
@@ -467,7 +394,6 @@ def test_success_uses_authorized_bundle_ordinal_order_and_exact_cards(
     assert result.card_intent.mode == "comparison"
     assert result.card_intent.visible_product_ids == expected_ids
     assert result.card_intent.reason == "comparison"
-    assert authorizer.calls == [_authorization_request()]
     assert categories.calls == 1
     assert facts.calls == list(expected_ids)
     assert len(decision.calls) == 1
@@ -477,7 +403,7 @@ def test_success_uses_authorized_bundle_ordinal_order_and_exact_cards(
 def test_requires_exactly_three_or_four_before_any_port_call(
     count: int,
 ) -> None:
-    gate, authorizer, categories, facts, decision = _service(3)
+    gate, _, categories, facts, decision = _service(3)
     context = MultiImageTaskContext.model_construct(
         mode="compare",
         bundle_id=_BUNDLE_ID,
@@ -492,12 +418,11 @@ def test_requires_exactly_three_or_four_before_any_port_call(
         ],
     )
 
-    result = _prepare(gate, context)
+    result = _prepare(gate, context, _bundle(3))
 
     assert result.kind == "clarification"
     assert result.code == "three_or_four_images_required"
     assert not hasattr(result, "card_intent")
-    assert authorizer.calls == []
     assert categories.calls == 0
     assert facts.calls == []
     assert decision.calls == []
@@ -527,7 +452,7 @@ def test_any_unconfirmed_identity_fails_closed_before_port_calls(
     state: IdentityState,
     code: str,
 ) -> None:
-    gate, authorizer, categories, facts, decision = _service(3)
+    gate, _, categories, facts, decision = _service(3)
     context = _context(
         3,
         states=(
@@ -545,14 +470,13 @@ def test_any_unconfirmed_identity_fails_closed_before_port_calls(
     assert result.image_id == "image_" + "2".zfill(32)
     assert result.identity_state is state
     assert not hasattr(result, "card_intent")
-    assert authorizer.calls == [_authorization_request()]
     assert categories.calls == 0
     assert facts.calls == []
     assert decision.calls == []
 
 
 def test_duplicate_confirmed_product_fails_closed() -> None:
-    gate, authorizer, categories, facts, decision = _service(3)
+    gate, _, categories, facts, decision = _service(3)
 
     result = _prepare(
         gate,
@@ -562,14 +486,13 @@ def test_duplicate_confirmed_product_fails_closed() -> None:
     assert result.kind == "clarification"
     assert result.code == "duplicate_product_identity"
     assert not hasattr(result, "card_intent")
-    assert authorizer.calls == [_authorization_request()]
     assert categories.calls == 0
     assert facts.calls == []
     assert decision.calls == []
 
 
 def test_non_contiguous_context_fails_closed_before_port_calls() -> None:
-    gate, authorizer, categories, facts, decision = _service(3)
+    gate, _, categories, facts, decision = _service(3)
     context = _context(3)
     context.references[1].ordinal = 3
     context.references[2].ordinal = 2
@@ -579,7 +502,6 @@ def test_non_contiguous_context_fails_closed_before_port_calls() -> None:
     assert result.kind == "error"
     assert result.code == "non_contiguous_image_ordinals"
     assert not hasattr(result, "card_intent")
-    assert authorizer.calls == []
     assert categories.calls == 0
     assert facts.calls == []
     assert decision.calls == []
@@ -614,74 +536,27 @@ def test_non_contiguous_context_fails_closed_before_port_calls() -> None:
 def test_context_must_match_server_bundle_authority_exactly(
     context: MultiImageTaskContext,
 ) -> None:
-    gate, authorizer, categories, facts, decision = _service(3)
+    gate, _, categories, facts, decision = _service(3)
 
     result = _prepare(gate, context)
 
     assert result.kind == "error"
     assert result.code == "bundle_authority_mismatch"
     assert not hasattr(result, "card_intent")
-    assert authorizer.calls == [_authorization_request()]
     assert categories.calls == 0
     assert facts.calls == []
     assert decision.calls == []
 
 
-@pytest.mark.parametrize(
-    ("field_name", "foreign_value"),
-    [
-        ("session_id", "foreign-session"),
-        ("bundle_id", "bundle_" + "b" * 32),
-        ("version", 2),
-        ("owner_token", "owner_" + "e" * 43),
-    ],
-)
-def test_invalid_bundle_credentials_fail_before_catalog_facts_and_decision(
-    field_name: str,
-    foreign_value: str | int,
-) -> None:
-    gate, authorizer, categories, facts, decision = _service(3)
-    arguments = {
-        "bundle_id": _BUNDLE_ID,
-        "version": 1,
-        "session_id": _SESSION_ID,
-        "owner_token": _OWNER_TOKEN,
-    }
-    arguments[field_name] = foreign_value
-    authorization = _authorization_request(**arguments)
+def test_authorized_bundle_must_be_exact_typed_evidence() -> None:
+    gate, _, categories, facts, decision = _service(3)
 
-    result = gate.prepare(
-        _context(3),
-        authorization=authorization,
-    )
+    with pytest.raises(TypeError, match="exact ImageBundle"):
+        gate.prepare(
+            _context(3),
+            authorized_bundle=SimpleNamespace(),
+        )
 
-    assert result.kind == "error"
-    assert result.code == "bundle_authority_mismatch"
-    assert not hasattr(result, "card_intent")
-    assert authorizer.calls == [authorization]
-    assert categories.calls == 0
-    assert facts.calls == []
-    assert decision.calls == []
-
-
-@pytest.mark.parametrize("failure_type", [RuntimeError, ValueError])
-def test_authorizer_ordinary_exception_is_typed_and_does_not_leak(
-    failure_type: type[Exception],
-) -> None:
-    private_detail = "private authorizer adapter failure"
-    authorizer = FailingBundleAuthorizer(failure_type(private_detail))
-    gate, _, categories, facts, decision = _service(
-        3,
-        authorizer=authorizer,
-    )
-
-    result = _prepare(gate, _context(3))
-
-    assert result.kind == "error"
-    assert result.code == "bundle_authority_mismatch"
-    assert private_detail not in result.model_dump_json()
-    assert not hasattr(result, "card_intent")
-    assert len(authorizer.calls) == 1
     assert categories.calls == 0
     assert facts.calls == []
     assert decision.calls == []
@@ -691,7 +566,7 @@ def test_authorizer_ordinary_exception_is_typed_and_does_not_leak(
 def test_authoritative_bundle_rejects_every_context_image_id_permutation(
     count: int,
 ) -> None:
-    gate, authorizer, categories, facts, decision = _service(count)
+    gate, authorized_bundle, categories, facts, decision = _service(count)
     canonical_order = tuple(range(1, count + 1))
 
     for image_order in permutations(canonical_order):
@@ -705,16 +580,12 @@ def test_authoritative_bundle_rejects_every_context_image_id_permutation(
         ):
             reference.image_id = f"image_{source_ordinal:032d}"
 
-        result = gate.prepare(
-            context,
-            authorization=_authorization_request(),
-        )
+        result = _prepare(gate, context, authorized_bundle)
 
         assert result.kind == "error"
         assert result.code == "bundle_authority_mismatch"
         assert not hasattr(result, "card_intent")
 
-    assert len(authorizer.calls) > 0
     assert categories.calls == 0
     assert facts.calls == []
     assert decision.calls == []
@@ -997,9 +868,7 @@ def test_mismatched_canonical_fact_identity_is_zero_card_error() -> None:
         ]
     )
     decision = RecordingDecision()
-    authorizer = RecordingBundleAuthorizer(_bundle(3))
     gate = _subject().ThreeToFourImageCompareGate(
-        bundle_authorizer=authorizer,
         category_catalog=categories,
         decision_facts=fact_port,
         decision=decision,
@@ -1101,19 +970,16 @@ def test_adapter_frozen_bypass_mutates_only_copy_and_is_detected() -> None:
 
 @pytest.mark.parametrize(
     "boundary",
-    ["authorizer", "category_catalog", "decision_facts", "decision"],
+    ["category_catalog", "decision_facts", "decision"],
 )
 def test_adapter_base_exception_is_not_swallowed(boundary: str) -> None:
     signal = FatalAdapterSignal(boundary)
     arguments = {
-        "authorizer": None,
         "category_catalog": None,
         "decision_facts": None,
         "decision": None,
     }
-    if boundary == "authorizer":
-        arguments["authorizer"] = FailingBundleAuthorizer(signal)
-    elif boundary == "category_catalog":
+    if boundary == "category_catalog":
         arguments["category_catalog"] = FailingCategories(signal)
     elif boundary == "decision_facts":
         arguments["decision_facts"] = FailingFacts(signal)

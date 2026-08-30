@@ -6,6 +6,7 @@ from app.guide.understanding.contracts import (
     CategoryDraft,
     ExactRevisionOperation,
     ExactRevisionTarget,
+    ReferenceDraft,
     SkinDraft,
     SkinTarget,
     TopicCode,
@@ -20,6 +21,78 @@ def _proofs(message: str):
     return parse_exact_revision_confirmations(message)
 
 
+def test_exact_parser_preserves_two_candidate_ordinals() -> None:
+    constraints, issues = parse_exact_constraints(
+        "第一款和第二款哪个更适合我"
+    )
+    references = [
+        item
+        for item in constraints
+        if isinstance(item, ReferenceDraft)
+    ]
+
+    assert [
+        (item.kind, item.ordinal)
+        for item in references
+    ] == [
+        ("candidate_ordinal", 1),
+        ("candidate_ordinal", 2),
+    ]
+    assert issues == []
+
+
+def test_exact_parser_preserves_current_batch_reference() -> None:
+    constraints, issues = parse_exact_constraints(
+        "这两款哪款更适合我现在敏感泛红"
+    )
+    references = [
+        item
+        for item in constraints
+        if isinstance(item, ReferenceDraft)
+    ]
+
+    assert [
+        (item.kind, item.ordinal)
+        for item in references
+    ] == [("current_batch", None)]
+    assert issues == []
+
+
+def test_exact_parser_preserves_three_image_ordinals() -> None:
+    constraints, issues = parse_exact_constraints(
+        "第一张、第二张和第三张放一起比较"
+    )
+    references = [
+        item
+        for item in constraints
+        if isinstance(item, ReferenceDraft)
+    ]
+
+    assert [
+        (item.kind, item.ordinal)
+        for item in references
+    ] == [
+        ("image_ordinal", 1),
+        ("image_ordinal", 2),
+        ("image_ordinal", 3),
+    ]
+    assert issues == []
+
+
+def test_exact_parser_rejects_four_candidate_ordinals() -> None:
+    constraints, issues = parse_exact_constraints(
+        "第一款第二款第三款第四款一起比较"
+    )
+
+    assert not any(
+        isinstance(item, ReferenceDraft)
+        for item in constraints
+    )
+    assert [item.code for item in issues] == [
+        "too_many_candidate_references"
+    ]
+
+
 def test_skin_revision_emits_code_owned_single_slot_proof() -> None:
     proofs = _proofs("肤质改成油敏肌")
 
@@ -31,6 +104,74 @@ def test_skin_revision_emits_code_owned_single_slot_proof() -> None:
     assert proofs[0].affected_value == "oily_sensitive"
     span = proofs[0].source_span
     assert "肤质改成油敏肌"[span.start:span.end] == "肤质改成油敏肌"
+
+
+@pytest.mark.parametrize(
+    "message",
+    (
+        "不考虑肤质，继续看修护精华",
+        "忽略肤质条件，只看功效和质地",
+        "肤质不限，其他要求不变",
+    ),
+)
+def test_skin_withdrawal_emits_code_owned_single_slot_proof(
+    message: str,
+) -> None:
+    proofs = _proofs(message)
+
+    skin_proof = next(
+        item
+        for item in proofs
+        if item.target is ExactRevisionTarget.SKIN
+    )
+    assert skin_proof.operation is (
+        ExactRevisionOperation.WITHDRAW_CONSTRAINT
+    )
+    assert skin_proof.affected_value is None
+    span = skin_proof.source_span
+    assert message[span.start:span.end]
+
+
+def test_efficacy_withdrawal_emits_code_owned_single_slot_proof() -> None:
+    proofs = _proofs("抗老先撤掉")
+
+    assert len(proofs) == 1
+    assert proofs[0].operation is (
+        ExactRevisionOperation.WITHDRAW_CONSTRAINT
+    )
+    assert proofs[0].target is ExactRevisionTarget.EFFICACY
+    assert proofs[0].affected_value == "anti_aging"
+    span = proofs[0].source_span
+    assert "抗老先撤掉"[span.start:span.end] == "抗老先撤掉"
+
+
+def test_efficacy_replacement_supersedes_withdrawal_in_compound_turn(
+) -> None:
+    message = "抗老先撤掉，改成保湿修护优先"
+    proofs = _proofs(message)
+
+    assert len(proofs) == 1
+    assert proofs[0].operation is (
+        ExactRevisionOperation.REVISE_CONSTRAINT
+    )
+    assert proofs[0].target is ExactRevisionTarget.EFFICACY
+    assert proofs[0].affected_value == "repair"
+    span = proofs[0].source_span
+    assert message[span.start:span.end] == "改成保湿修护"
+
+
+@pytest.mark.parametrize(
+    "message",
+    (
+        "如果抗老先撤掉会怎样",
+        "不要撤掉抗老",
+        "也许取消抗老",
+    ),
+)
+def test_nonassertive_efficacy_withdrawal_has_no_proof(
+    message: str,
+) -> None:
+    assert _proofs(message) == []
 
 
 @pytest.mark.parametrize(
@@ -193,6 +334,26 @@ def test_skincare_routine_phrase_does_not_add_second_product_topic(
         for item in constraints
         if isinstance(item, CategoryDraft)
     ] == expected_topics
+
+
+@pytest.mark.parametrize(
+    "message",
+    (
+        "想精简护肤，找三百以内的修护精华",
+        "护肤只留一支保湿精华，预算不超过三百",
+    ),
+)
+def test_parent_and_child_product_topics_choose_more_specific_topic(
+    message: str,
+) -> None:
+    constraints, issues = parse_exact_constraints(message)
+
+    assert issues == []
+    assert [
+        item.value
+        for item in constraints
+        if isinstance(item, CategoryDraft)
+    ] == [TopicCode.SERUM]
 
 
 @pytest.mark.parametrize(

@@ -9,6 +9,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from tools.guide_gates.continuous_conversation_fixture import (
+    canonical_trajectory_json,
     load_trajectory_pool,
     normalize_message,
 )
@@ -135,7 +136,7 @@ def _trajectory_bytes(
 ) -> bytes:
     return (
         b"\n".join(
-            trajectory.model_dump_json().encode("utf-8")
+            canonical_trajectory_json(trajectory).encode("utf-8")
             for trajectory in trajectories
         )
         + b"\n"

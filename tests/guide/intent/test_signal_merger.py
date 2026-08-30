@@ -5,7 +5,7 @@ from decimal import Decimal
 import pytest
 
 from app.guide.intent.signal_merger import merge_intent_signals
-from app.guide.intent.task_planning import plan_task
+from app.guide.intent.task_planning import plan_task as _plan_task
 from app.guide.understanding import exact_parsing
 from app.guide.understanding.contracts import (
     BudgetDraft,
@@ -188,6 +188,35 @@ _WITHDRAWAL_SEPARATORS = (
 )
 
 
+def _plan_with_explicit_test_outcome(
+    understanding: StructuredUnderstanding,
+):
+    if (
+        understanding.goal
+        in {
+            UnderstandingGoal.RECOMMENDATION,
+            UnderstandingGoal.IMAGE_SIMILARITY,
+        }
+        and understanding.recommendation_mode is None
+    ):
+        payload = understanding.model_dump(mode="python")
+        payload.update(
+            recommendation_mode="explore",
+            recommendation_mode_basis=(
+                "similar_alternatives"
+                if understanding.goal
+                is UnderstandingGoal.IMAGE_SIMILARITY
+                else "broad_exploration"
+            ),
+            recommendation_count=3,
+        )
+        understanding = StructuredUnderstanding.model_validate(
+            payload,
+            strict=True,
+        )
+    return _plan_task(understanding)
+
+
 def _selection_pipeline_record(
     message: str,
     topic: TopicCode,
@@ -205,7 +234,7 @@ def _selection_pipeline_record(
         exact_issues=issues,
         semantic=semantic,
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     return {
         "exact": {
@@ -493,7 +522,7 @@ def test_reference_kind_has_one_authority_across_full_pipeline(
         exact_issues=[],
         semantic=semantic,
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
     merger_ordinals = [
         reference.ordinal
         for reference in merged.references
@@ -541,7 +570,7 @@ def test_reference_kind_has_one_authority_across_full_pipeline(
         ),
     ),
 )
-def test_distinct_exact_ordinals_of_one_kind_fail_closed(
+def test_distinct_exact_ordinals_of_one_kind_remain_explicit(
     kind: str,
     message: str,
     issue_code: str,
@@ -564,20 +593,20 @@ def test_distinct_exact_ordinals_of_one_kind_fail_closed(
             ),
         ),
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert [
-        item
+        item.ordinal
         for item in constraints
         if isinstance(item, ReferenceDraft) and item.kind == kind
-    ] == []
-    assert [item.code for item in issues] == [issue_code]
+    ] == [2, 3]
+    assert issue_code not in {item.code for item in issues}
     assert [
-        item
+        item.ordinal
         for item in merged.references
         if item.kind == kind
-    ] == []
-    assert issue_code in {
+    ] == [2, 3]
+    assert issue_code not in {
         item.code
         for item in merged.uncertainties
     }
@@ -588,14 +617,18 @@ def test_distinct_exact_ordinals_of_one_kind_fail_closed(
     ] == [
         {
             "field": f"reference.{kind}",
-            "exact_value": None,
+            "exact_value": "2,3",
             "semantic_value": "2",
-            "resolution": "clarify",
+            "resolution": "exact_wins",
         }
     ]
-    assert task.mode == "clarify"
-    assert task.references == []
-    assert task.required_evidence == []
+    assert [
+        item.ordinal
+        for item in task.references
+        if item.kind == kind
+    ] == [2, 3]
+    assert task.mode == "recommend"
+    assert task.required_evidence == ["canonical_product"]
 
 
 @pytest.mark.parametrize(
@@ -634,7 +667,7 @@ def test_repeated_identical_exact_ordinal_is_one_reference(
             ),
         ),
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
     exact_references = [
         item
         for item in constraints
@@ -684,7 +717,7 @@ def test_exact_candidate_and_image_ordinals_coexist_by_kind() -> None:
             references=semantic_references,
         ),
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert issues == []
     assert [
@@ -725,10 +758,15 @@ def test_exact_candidate_and_image_ordinals_coexist_by_kind() -> None:
         ),
     ),
 )
-def test_merger_normalizes_conflicting_typed_exact_references(
+def test_merger_preserves_distinct_typed_exact_references(
     kind: str,
     issue_code: str,
 ) -> None:
+    message = (
+        "第二款和第三款香水"
+        if kind == "candidate_ordinal"
+        else "第二张和第三张香水"
+    )
     exact = [
         CategoryDraft(value=TopicCode.FRAGRANCE),
         ReferenceDraft(
@@ -744,7 +782,7 @@ def test_merger_normalizes_conflicting_typed_exact_references(
     ]
 
     merged = merge_intent_signals(
-        message="第二款和第三款香水",
+        message=message,
         exact_constraints=exact,
         exact_issues=[],
         semantic=_proposal(
@@ -760,25 +798,29 @@ def test_merger_normalizes_conflicting_typed_exact_references(
             ),
         ),
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert [
-        item
+        item.ordinal
         for item in merged.exact_constraints
         if isinstance(item, ReferenceDraft) and item.kind == kind
-    ] == []
+    ] == [2, 3]
     assert [
-        item
+        item.ordinal
         for item in merged.references
         if item.kind == kind
-    ] == []
-    assert issue_code in {
+    ] == [2, 3]
+    assert issue_code not in {
         item.code
         for item in merged.uncertainties
     }
-    assert task.mode == "clarify"
-    assert task.references == []
-    assert task.required_evidence == []
+    assert [
+        item.ordinal
+        for item in task.references
+        if item.kind == kind
+    ] == [2, 3]
+    assert task.mode == "recommend"
+    assert task.required_evidence == ["canonical_product"]
 
 
 @pytest.mark.parametrize("ingredient", ("酒精", "香精"))
@@ -1368,7 +1410,7 @@ def test_ordinal_reference_remains_typed_through_full_pipeline() -> None:
         exact_issues=issues,
         semantic=semantic,
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
     expected_span = {
         "start": message.index("第二款"),
         "end": message.index("第二款") + len("第二款"),
@@ -1704,6 +1746,46 @@ def test_matching_exact_and_semantic_topic_agree_without_duplication() -> None:
     assert merged.uncertainties == []
 
 
+@pytest.mark.parametrize(
+    ("exact_topic", "semantic_topic", "expected_resolution"),
+    (
+        (
+            TopicCode.SERUM,
+            TopicCode.SKINCARE,
+            "exact_wins",
+        ),
+        (
+            TopicCode.SKINCARE,
+            TopicCode.SERUM,
+            "semantic_fills",
+        ),
+    ),
+)
+def test_parent_and_child_topics_choose_the_more_specific_topic(
+    exact_topic: TopicCode,
+    semantic_topic: TopicCode,
+    expected_resolution: str,
+) -> None:
+    merged = merge_intent_signals(
+        message="想找一款护肤精华",
+        exact_constraints=[CategoryDraft(value=exact_topic)],
+        exact_issues=[],
+        semantic=_proposal(topic=semantic_topic),
+    )
+
+    assert merged.topic is TopicCode.SERUM
+    assert [
+        item.value
+        for item in merged.exact_constraints
+        if isinstance(item, CategoryDraft)
+    ] == [TopicCode.SERUM]
+    assert not any(
+        item.code == "ambiguous_category"
+        for item in merged.uncertainties
+    )
+    assert merged.signal_trace[0].resolution == expected_resolution
+
+
 def test_non_hard_topic_conflict_preserves_exact_and_clarifies() -> None:
     merged = merge_intent_signals(
         message="推荐防晒",
@@ -1802,7 +1884,7 @@ def test_semantic_unavailable_blocks_exact_recommendation_guessing(
         "500 内适合油敏肌的防晒",
         semantic=None,
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert merged.goal is UnderstandingGoal.CLARIFICATION
     assert merged.topic is TopicCode.SUNSCREEN
@@ -1831,7 +1913,7 @@ def test_semantic_unavailable_does_not_guess_open_goal(
     message: str,
 ) -> None:
     merged = _merge_message(message, semantic=None)
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert merged.goal is UnderstandingGoal.CLARIFICATION
     assert merged.uncertainties
@@ -1865,7 +1947,7 @@ def test_skip_disposition_without_closed_exact_proof_clarifies(
             SemanticLaneDisposition.SKIPPED_BY_CONTRACT
         ),
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert merged.goal is UnderstandingGoal.CLARIFICATION
     assert merged.topic is TopicCode.SUNSCREEN
@@ -1888,7 +1970,7 @@ def test_skip_disposition_accepts_matching_typed_revision_proof() -> None:
             SemanticLaneDisposition.SKIPPED_BY_CONTRACT
         ),
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert merged.goal is UnderstandingGoal.RECOMMENDATION
     assert merged.topic is TopicCode.CLEANSER
@@ -1924,7 +2006,7 @@ def test_skip_proof_cannot_authorize_open_goal_suffix(
             SemanticLaneDisposition.SKIPPED_BY_CONTRACT
         ),
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert merged.goal is UnderstandingGoal.CLARIFICATION
     assert merged.topic is TopicCode.CLEANSER
@@ -1950,7 +2032,7 @@ def test_skip_disposition_rejects_proof_span_outside_message() -> None:
             SemanticLaneDisposition.SKIPPED_BY_CONTRACT
         ),
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert merged.goal is UnderstandingGoal.CLARIFICATION
     assert merged.uncertainties
@@ -1976,7 +2058,7 @@ def test_skip_disposition_rejects_proof_for_other_exact_target() -> None:
             SemanticLaneDisposition.SKIPPED_BY_CONTRACT
         ),
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert merged.goal is UnderstandingGoal.CLARIFICATION
     assert merged.uncertainties
@@ -1989,7 +2071,7 @@ def test_semantic_unavailable_does_not_relax_hard_topic_conflict() -> None:
         "推荐防晒但不推荐防晒",
         semantic=None,
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert merged.goal is UnderstandingGoal.CLARIFICATION
     assert merged.topic is None
@@ -2106,7 +2188,7 @@ def test_exact_revision_proof_fills_missing_previous_constraint_reference(
         )
     ]
     assert merged.uncertainties == []
-    assert plan_task(merged).mode == "followup"
+    assert _plan_with_explicit_test_outcome(merged).mode == "followup"
 
 
 @pytest.mark.parametrize(
@@ -2200,7 +2282,7 @@ def test_fuzzy_budget_observation_agrees_without_fake_missing_category(
         and trace.resolution == "agree"
         for trace in merged.signal_trace
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
     assert task.mode == "clarify"
     assert task.clarification_code is ClarificationCode.BUDGET
     assert "200 到 900" in task.clarification
@@ -2392,7 +2474,7 @@ def test_later_explicit_positive_turn_cancels_earlier_negated_predicate(
         message,
         semantic=_proposal(topic=TopicCode.FRAGRANCE),
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert merged.topic is TopicCode.FRAGRANCE
     assert [
@@ -2453,7 +2535,7 @@ def test_source_bound_finish_preference_projects_typed_preference_draft(
         (draft.field_key, draft.value)
         for draft in merged.preference_drafts
     ] == [("finish", "哑光")]
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
     assert any(
         item.kind == "facet"
         and item.field_key == "finish"
@@ -2854,7 +2936,7 @@ def test_round9_attribute_scope_is_preserved_as_typed_clarification(
         ),
         (
             UnderstandingGoal.IMAGE_SIMILARITY,
-            ClarificationCode.GOAL,
+            ClarificationCode.REFERENCE,
         ),
         (
             UnderstandingGoal.ASSESSMENT,
@@ -2877,7 +2959,7 @@ def test_non_executable_semantic_goal_fails_closed_with_typed_gap(
         semantic=_proposal(goal=goal, topic=TopicCode.FRAGRANCE),
     )
 
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert merged.goal is goal
     assert task.mode == "clarify"
@@ -2900,7 +2982,7 @@ def test_knowledge_goal_keeps_typed_mode_without_product_reference() -> None:
         ),
     )
 
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert task.mode == "knowledge"
     assert task.required_evidence == ["canonical_product"]
@@ -2921,7 +3003,7 @@ def test_category_suitability_keeps_typed_mode_without_product_reference(
         ),
     )
 
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert task.mode == "suitability"
     assert task.product_ids == []
@@ -2933,7 +3015,7 @@ def test_task_planning_rejects_raw_understanding(
     raw_understanding: object,
 ) -> None:
     with pytest.raises(TypeError, match="StructuredUnderstanding"):
-        plan_task(raw_understanding)  # type: ignore[arg-type]
+        _plan_task(raw_understanding)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
@@ -2954,7 +3036,7 @@ def test_signed_budget_range_fails_closed_across_full_pipeline(
         exact_issues=issues,
         semantic=semantic,
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
 
     assert not any(
         isinstance(item, BudgetDraft)
@@ -3037,7 +3119,7 @@ def test_grouped_budget_is_complete_across_full_pipeline(
         exact_issues=issues,
         semantic=semantic,
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
     exact_budgets = [
         item
         for item in constraints
@@ -3273,7 +3355,7 @@ def test_semantic_candidate_ordinal_requires_visible_candidate() -> None:
         issue.code == "ambiguous_candidate_reference"
         for issue in merged.uncertainties
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
     assert task.clarification == (
         "你说的商品序号不在当前展示范围里，请重新确认。"
     )
@@ -3310,7 +3392,7 @@ def test_semantic_current_item_requires_focused_candidate() -> None:
         issue.code == "ambiguous_reference"
         for issue in merged.uncertainties
     )
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
     assert task.clarification == (
         "目前没有唯一对应的商品，请直接说商品名或序号。"
     )
@@ -3343,7 +3425,7 @@ def test_semantic_current_batch_requires_visible_products() -> None:
     )
 
     assert merged.references == []
-    task = plan_task(merged)
+    task = _plan_with_explicit_test_outcome(merged)
     assert task.clarification == (
         "目前没有前面那组商品可以继续查看，请先发起一次推荐。"
     )
@@ -3652,7 +3734,7 @@ def test_exact_budget_ignores_stale_unknown_budget_signals() -> None:
     )
 
     assert merged.uncertainties == []
-    assert plan_task(merged).mode == "recommend"
+    assert _plan_with_explicit_test_outcome(merged).mode == "recommend"
     assert {
         trace.field
         for trace in merged.signal_trace

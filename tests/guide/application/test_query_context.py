@@ -7,6 +7,7 @@ from app.guide.application.query_context import (
     query_context_to_constraints,
     task_plan_to_query_context,
 )
+from app.guide.feedback.contracts import RecommendationQueryContext
 from app.guide.feedback.session_profile import (
     CurrentConditionUpdate,
     ExplicitRestrictionUpdate,
@@ -30,7 +31,7 @@ from app.guide.understanding.contracts import (
     SkinTarget,
     TopicCode,
 )
-from app.guide.understanding.text_understanding import understand_text
+from tests.guide.legacy_text_understanding import understand_text
 
 
 def test_task_plan_round_trips_through_query_context() -> None:
@@ -44,6 +45,8 @@ def test_task_plan_round_trips_through_query_context() -> None:
     restored = query_context_to_constraints(context)
 
     assert context.category == "serum"
+    assert context.recommendation_mode == "explore"
+    assert context.recommendation_count == 3
     assert context.budget_minimum == Decimal("300")
     assert context.budget_maximum == Decimal("500")
     assert context.skin == "sensitive"
@@ -77,9 +80,33 @@ def test_task_plan_round_trips_through_query_context() -> None:
     assert budget.maximum == Decimal("500")
 
 
+def test_fit_outcome_round_trips_through_query_context() -> None:
+    task = TaskPlan(
+        mode="recommend",
+        recommendation_mode="fit",
+        recommendation_mode_basis="personal_suitability",
+        recommendation_count=1,
+        referenced_image_ids=[],
+        constraints=[
+            CategoryConstraint(value=TopicCode.SERUM),
+            SkinConstraint(value=SkinTarget.SENSITIVE),
+        ],
+        required_evidence=["canonical_product"],
+    )
+
+    context = task_plan_to_query_context(task)
+
+    assert context.recommendation_mode == "fit"
+    assert context.recommendation_mode_basis == "personal_suitability"
+    assert context.recommendation_count == 1
+
+
 def test_similarity_anchor_is_preserved_in_server_query_context() -> None:
     task = TaskPlan(
         mode="recommend",
+        recommendation_mode="explore",
+        recommendation_mode_basis="broad_exploration",
+        recommendation_count=3,
         referenced_image_ids=[],
         constraints=[
             CategoryConstraint(value=TopicCode.SUNSCREEN),
@@ -94,12 +121,33 @@ def test_similarity_anchor_is_preserved_in_server_query_context() -> None:
     assert context.similarity_anchor_product_id == 53
 
 
+def test_query_context_serializes_similarity_anchor_when_empty_or_bound() -> None:
+    without_anchor = RecommendationQueryContext(
+        category="sunscreen",
+        recommendation_mode_basis="broad_exploration",
+    )
+    with_anchor = without_anchor.model_copy(
+        update={"similarity_anchor_product_id": 53},
+        deep=True,
+    )
+
+    assert without_anchor.model_dump(mode="json")[
+        "similarity_anchor_product_id"
+    ] is None
+    assert with_anchor.model_dump(mode="json")[
+        "similarity_anchor_product_id"
+    ] == 53
+
+
 @pytest.mark.parametrize("efficacy", list(EfficacyTarget))
 def test_every_efficacy_round_trips_through_query_context(
     efficacy: EfficacyTarget,
 ) -> None:
     task = TaskPlan(
         mode="recommend",
+        recommendation_mode="explore",
+        recommendation_mode_basis="broad_exploration",
+        recommendation_count=3,
         referenced_image_ids=[],
         constraints=[
             CategoryConstraint(value=TopicCode.SERUM),
@@ -125,6 +173,9 @@ def test_every_topic_round_trips_through_query_context(
 ) -> None:
     task = TaskPlan(
         mode="recommend",
+        recommendation_mode="explore",
+        recommendation_mode_basis="broad_exploration",
+        recommendation_count=3,
         referenced_image_ids=[],
         constraints=[CategoryConstraint(value=topic)],
         required_evidence=[],
@@ -153,6 +204,9 @@ def test_query_context_conversion_returns_fresh_constraints() -> None:
 def test_selection_constraints_and_safety_round_trip() -> None:
     task = TaskPlan(
         mode="recommend",
+        recommendation_mode="explore",
+        recommendation_mode_basis="broad_exploration",
+        recommendation_count=3,
         referenced_image_ids=[],
         constraints=[
             CategoryConstraint(value=TopicCode.SKINCARE),
@@ -203,6 +257,9 @@ def test_confirmed_session_profile_projects_into_existing_task_inputs() -> None:
     ).profile
     task = TaskPlan(
         mode="recommend",
+        recommendation_mode="explore",
+        recommendation_mode_basis="broad_exploration",
+        recommendation_count=3,
         referenced_image_ids=[],
         constraints=[CategoryConstraint(value=TopicCode.SERUM)],
         required_evidence=["canonical_product"],
@@ -239,6 +296,9 @@ def test_current_turn_overrides_profile_and_provisional_is_not_ranked() -> None:
     ).profile
     task = TaskPlan(
         mode="recommend",
+        recommendation_mode="explore",
+        recommendation_mode_basis="broad_exploration",
+        recommendation_count=3,
         referenced_image_ids=[],
         constraints=[
             CategoryConstraint(value=TopicCode.SERUM),

@@ -14,7 +14,7 @@ from app.guide.understanding.contracts import (
     UnderstandingIssue,
 )
 from app.guide.understanding.exact_parsing import parse_exact_constraints
-from app.guide.understanding.text_understanding import understand_text
+from tests.guide.legacy_text_understanding import understand_text
 
 
 _RESET_BRIDGES = (

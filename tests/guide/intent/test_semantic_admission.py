@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from app.guide.intent.concept_preferences import (
     ConceptCatalogEntry,
     ConceptPreferenceCatalog,
@@ -30,6 +32,12 @@ def _catalog() -> ConceptPreferenceCatalog:
 def _meaning(**updates) -> TurnMeaning:
     payload = {
         "operation_hint": "recommendation",
+        "recommendation_mode": "explore",
+        "recommendation_count": 3,
+        "recommendation_mode_basis": {
+            "basis": "broad_exploration",
+            "source_text": "推荐",
+        },
         "topic_hint": None,
         "continuity_hint": "new_task",
         "subject_scope_hint": "self",
@@ -45,7 +53,99 @@ def _meaning(**updates) -> TurnMeaning:
         "safety_language": "ordinary",
     }
     payload.update(updates)
+    if (
+        payload["operation_hint"]
+        not in {"recommendation", "image_similarity"}
+    ):
+        payload["recommendation_mode"] = updates.get(
+            "recommendation_mode"
+        )
+        payload["recommendation_count"] = updates.get(
+            "recommendation_count"
+        )
+        payload["recommendation_mode_basis"] = updates.get(
+            "recommendation_mode_basis"
+        )
     return TurnMeaning.model_validate(payload, strict=True)
+
+
+def test_recommendation_outcome_is_admitted_as_closed_protocol() -> None:
+    result = admit_turn_meaning(
+        message="给我推荐两款防晒",
+        meaning=_meaning(
+            topic_hint="sunscreen",
+            recommendation_mode="explore",
+            recommendation_count=2,
+            recommendation_mode_basis={
+                "basis": "count_requested",
+                "source_text": "两款",
+            },
+        ),
+        topic=TopicCode.SUNSCREEN,
+        concept_catalog=_catalog(),
+    )
+
+    assert result.for_kind("recommendation_mode")[0].normalized_value == (
+        "explore"
+    )
+    assert result.for_kind("recommendation_mode_basis")[
+        0
+    ].normalized_value == "count_requested"
+    assert result.for_kind("recommendation_count")[0].normalized_value == (
+        "2"
+    )
+
+
+def test_recommendation_basis_is_bound_to_current_turn_evidence() -> None:
+    result = admit_turn_meaning(
+        message="给我推荐 500 内的防晒",
+        meaning=_meaning(
+            topic_hint="sunscreen",
+            recommendation_mode="fit",
+            recommendation_count=1,
+            recommendation_mode_basis={
+                "basis": "single_best_request",
+                "source_text": "唯一最适合",
+            },
+        ),
+        topic=TopicCode.SUNSCREEN,
+        concept_catalog=_catalog(),
+    )
+
+    outcome = result.for_kind("recommendation_mode_basis")[0]
+    assert outcome.disposition == "rejected_protocol"
+    assert outcome.normalized_value is None
+
+
+@pytest.mark.parametrize(
+    "basis",
+    (
+        "personal_suitability",
+        "profile_match_choice",
+        "best_among_candidates",
+    ),
+)
+def test_fit_count_requires_source_bound_single_selection_evidence(
+    basis: str,
+) -> None:
+    result = admit_turn_meaning(
+        message="推荐清爽防晒，适合我用",
+        meaning=_meaning(
+            topic_hint="sunscreen",
+            recommendation_mode="fit",
+            recommendation_count=1,
+            recommendation_mode_basis={
+                "basis": basis,
+                "source_text": "适合我用",
+            },
+        ),
+        topic=TopicCode.SUNSCREEN,
+        concept_catalog=_catalog(),
+    )
+
+    count = result.for_kind("recommendation_count")[0]
+    assert count.disposition == "rejected_protocol"
+    assert count.normalized_value is None
 
 
 def test_reviewed_preference_is_admitted_for_known_topic() -> None:
@@ -122,6 +222,32 @@ def test_unsupported_open_descriptor_is_retained_losslessly() -> None:
     assert preference.normalized_value == "雨后潮湿木头感"
 
 
+def test_generic_ingredient_avoid_is_rejected_without_closed_parent() -> None:
+    result = admit_turn_meaning(
+        message="给我找防晒，避开乙醇",
+        meaning=_meaning(
+            topic_hint="sunscreen",
+            preference_candidates=(
+                {
+                    "field_key": "ingredient",
+                    "concept_id": None,
+                    "raw_text": "乙醇",
+                    "polarity": "avoid",
+                    "strength": "ordinary",
+                },
+            ),
+        ),
+        topic=TopicCode.SUNSCREEN,
+        concept_catalog=_catalog(),
+    )
+
+    preference = result.for_kind("preference")[0]
+    assert preference.disposition == "rejected_protocol"
+    assert preference.reason == (
+        "ingredient exclusions require ingredient_exclusion"
+    )
+
+
 def test_unbound_source_is_rejected_as_protocol_not_semantic_mismatch() -> None:
     result = admit_turn_meaning(
         message="想要清爽防晒",
@@ -144,6 +270,66 @@ def test_unbound_source_is_rejected_as_protocol_not_semantic_mismatch() -> None:
     preference = result.for_kind("preference")[0]
     assert preference.disposition == "rejected_protocol"
     assert preference.reason == "raw_text is not uniquely source-bound"
+
+
+def test_matching_active_topic_return_reference_is_admitted() -> None:
+    result = admit_turn_meaning(
+        message="回到精华，比较B5精华和CE精华",
+        meaning=_meaning(
+            operation_hint="comparison",
+            topic_hint="serum",
+            continuity_hint="return_to_focus",
+            reference_mentions=(
+                {
+                    "raw_text": "精华",
+                    "object_family_hint": "topic",
+                    "ordinal_hint": None,
+                    "plurality_hint": "single",
+                },
+            ),
+            product_mentions=(
+                {"raw_text": "B5精华"},
+                {"raw_text": "CE精华"},
+            ),
+        ),
+        topic=TopicCode.SERUM,
+        active_topic=TopicCode.SERUM,
+        concept_catalog=_catalog(),
+    )
+
+    reference = result.for_kind("reference")[0]
+    assert reference.disposition == "admitted"
+    assert reference.reason == "typed current topic matches active context"
+
+
+def test_mismatched_active_topic_return_reference_is_rejected() -> None:
+    result = admit_turn_meaning(
+        message="回到精华，比较B5精华和CE精华",
+        meaning=_meaning(
+            operation_hint="comparison",
+            topic_hint="serum",
+            continuity_hint="return_to_focus",
+            reference_mentions=(
+                {
+                    "raw_text": "精华",
+                    "object_family_hint": "topic",
+                    "ordinal_hint": None,
+                    "plurality_hint": "single",
+                },
+            ),
+            product_mentions=(
+                {"raw_text": "B5精华"},
+                {"raw_text": "CE精华"},
+            ),
+        ),
+        topic=TopicCode.SERUM,
+        active_topic=TopicCode.SUNSCREEN,
+        concept_catalog=_catalog(),
+    )
+
+    assert result.for_kind("reference")[0].disposition == (
+        "rejected_protocol"
+    )
 
 
 def test_all_consultation_observations_receive_auditable_outcomes() -> None:

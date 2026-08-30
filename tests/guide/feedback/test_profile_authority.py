@@ -11,22 +11,24 @@ from pydantic import ValidationError
 
 from app.guide.adapters.state import InMemoryConversationState
 from app.guide.adapters.state.sqlite_profile_state import SqliteProfileState
-from app.guide.application.consultation_assessment import assess_consultation
 from app.guide.application.consultation_confirmation import (
     confirm_provisional_conclusion,
     record_provisional_conclusion,
 )
 from app.guide.feedback.consultation_state import ConsultationSubstate
-from app.guide.feedback.contracts import ConversationSnapshot
+from app.guide.feedback.contracts import (
+    ConsultationSlotState,
+    ConversationSnapshot,
+)
+from app.guide.feedback.focus_state import ActiveFocus
 from app.guide.feedback.profile_contracts import (
     ConfirmedProfileFact,
     ProfileOwnerRef,
 )
-from app.guide.understanding.consultation_contracts import (
-    ConsultationObservation,
-)
-from app.guide.understanding.consultation_questions import (
-    observable_questions,
+from app.guide.intent.responsibility_matrix import Responsibility
+from tests.guide.semantic_test_port import (
+    consultation_assessment_fixture,
+    consultation_from_answers,
 )
 
 
@@ -47,50 +49,51 @@ def _consultation_sequence(
     owner: ProfileOwnerRef | None = _OWNER,
     session_id: str = _SESSION_ID,
 ) -> tuple[ConversationSnapshot, ...]:
-    observations: list[ConsultationObservation] = []
+    answers = ("yes", "no", "no", "no", "no")
     snapshots: list[ConversationSnapshot] = [
         ConversationSnapshot(
             session_id=session_id,
             version=1,
             profile_owner=owner,
-            consultation=ConsultationSubstate(
-                started_at_conversation_version=1,
-                observations=[],
+            active_owner=Responsibility.CONSULTATION,
+            active_focus=ActiveFocus(slot="consultation"),
+            consultation_slot=ConsultationSlotState(
+                state=ConsultationSubstate(
+                    started_at_conversation_version=1,
+                    observations=[],
+                ),
             ),
         )
     ]
-    for index, (question, answer) in enumerate(
-        zip(
-            observable_questions(),
-            ("yes", "no", "no", "no", "no"),
-            strict=True,
-        ),
+    for index, answer in enumerate(
+        answers,
         start=2,
     ):
-        observations.append(
-            ConsultationObservation(
-                code=question.code,
-                answer=answer,
-                source_turn_id=f"turn_observation_{index:04d}",
-            )
-        )
+        observations = consultation_from_answers(
+            answers[: index - 1]
+        ).observations
         snapshots.append(
             ConversationSnapshot(
                 session_id=session_id,
                 version=index,
                 profile_owner=owner,
-                consultation=ConsultationSubstate(
-                    started_at_conversation_version=1,
-                    observations=tuple(observations),
+                active_owner=Responsibility.CONSULTATION,
+                active_focus=ActiveFocus(slot="consultation"),
+                consultation_slot=ConsultationSlotState(
+                    state=ConsultationSubstate(
+                        started_at_conversation_version=1,
+                        observations=tuple(observations),
+                    ),
                 ),
             )
         )
-    collecting = snapshots[-1].consultation
-    assert collecting is not None
+    collecting_slot = snapshots[-1].consultation_slot
+    assert collecting_slot is not None
+    collecting = collecting_slot.state
     collection_version = snapshots[-1].version
-    assessment = assess_consultation(
+    assessment = consultation_assessment_fixture(
         collecting,
-        current_conversation_version=collection_version,
+        conversation_version=collection_version,
         conclusion_source_turn_id="turn_assessment_000001",
     )
     provisional = record_provisional_conclusion(
@@ -112,13 +115,21 @@ def _consultation_sequence(
             session_id=session_id,
             version=provisional.output.conversation_version,
             profile_owner=owner,
-            consultation=provisional.next_consultation,
+            active_owner=Responsibility.CONSULTATION,
+            active_focus=ActiveFocus(slot="consultation"),
+            consultation_slot=ConsultationSlotState(
+                state=provisional.next_consultation,
+            ),
         ),
         ConversationSnapshot(
             session_id=session_id,
             version=confirmed.output.conversation_version,
             profile_owner=owner,
-            consultation=confirmed.next_consultation,
+            active_owner=Responsibility.CONSULTATION,
+            active_focus=ActiveFocus(slot="consultation"),
+            consultation_slot=ConsultationSlotState(
+                state=confirmed.next_consultation,
+            ),
         ),
         )
     )
@@ -217,13 +228,17 @@ def test_mutated_consultation_copy_cannot_replace_stored_authority(
     tmp_path: Path,
 ) -> None:
     conversation_state, snapshot = _conversation_state()
-    assert snapshot.consultation is not None
-    forged_consultation = snapshot.consultation.model_copy(
+    assert snapshot.consultation_slot is not None
+    forged_consultation = snapshot.consultation_slot.state.model_copy(
         update={"confirmation_source_turn_id": "turn_forged_00000001"},
         deep=True,
     )
     forged = snapshot.model_copy(
-        update={"consultation": forged_consultation},
+        update={
+            "consultation_slot": ConsultationSlotState(
+                state=forged_consultation,
+            ),
+        },
         deep=True,
     )
 
@@ -290,13 +305,13 @@ def test_authoritative_state_rejects_wrong_confirmation_version(
 
 def test_snapshot_authority_components_are_deeply_immutable() -> None:
     _, snapshot = _conversation_state()
-    assert snapshot.consultation is not None
+    assert snapshot.consultation_slot is not None
     assert snapshot.profile_owner is not None
 
     with pytest.raises(ValidationError, match="frozen"):
         snapshot.profile_owner.subject_id = "profile_changed_0123456789"
     with pytest.raises(ValidationError, match="frozen"):
-        snapshot.consultation.observations[0].answer = "no"
+        snapshot.consultation_slot.state.observations[0].answer = "no"
 
 
 def test_concurrent_same_snapshot_reports_one_create_and_one_idempotent(
@@ -389,8 +404,9 @@ def test_concurrent_confirmation_rewrite_is_rejected_without_invalidating_write(
                 expected_version=expected_version,
             )
 
-    assert snapshot.consultation is not None
-    assessment = snapshot.consultation.confirmable_assessment
+    assert snapshot.consultation_slot is not None
+    consultation = snapshot.consultation_slot.state
+    assessment = consultation.confirmable_assessment
     assert assessment is not None
     if mutation == "downgrade":
         conclusion = assessment.conclusion.model_copy(
@@ -402,11 +418,11 @@ def test_concurrent_confirmation_rewrite_is_rejected_without_invalidating_write(
             deep=True,
         )
         rewritten_consultation = ConsultationSubstate(
-            observations=snapshot.consultation.observations,
+            observations=consultation.observations,
             confirmable_assessment=rewritten_assessment,
         )
     else:
-        rewritten_consultation = snapshot.consultation.model_copy(
+        rewritten_consultation = consultation.model_copy(
             update={
                 "confirmation_source_turn_id": "turn_rewrite_00000001",
             },
@@ -415,7 +431,9 @@ def test_concurrent_confirmation_rewrite_is_rejected_without_invalidating_write(
     attempted_rewrite = snapshot.model_copy(
         update={
             "version": snapshot.version + 1,
-            "consultation": rewritten_consultation,
+            "consultation_slot": ConsultationSlotState(
+                state=rewritten_consultation,
+            ),
         },
         deep=True,
     )

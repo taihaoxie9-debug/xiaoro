@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import subprocess
 from pathlib import Path
 
 
@@ -58,20 +60,70 @@ def test_exact_evidence_stays_available_for_audit_but_not_terminal_flush() -> No
     assert "details.open = false" in html
 
 
-def test_full_product_cards_omit_category_table_and_bound_efficacy_tags() -> None:
+def test_full_product_cards_render_only_contract_tags() -> None:
     html = CHAT_HTML.read_text(encoding="utf-8")
     body = _source(
         html,
-        "function displayProducts(products)",
+        "function displayProducts(",
         "\n\n        // 显示来源引用",
     )
 
     assert "categoryFactsHtml" not in body
     assert "buildCategoryFactsHtml(" not in body
     assert "category-facts" not in body
-    assert "p.matched_efficacies" in body
-    assert ".filter(Boolean).slice(0, 2)" in body
+    assert "p.compact_tags" in body
+    assert ".slice(0, 3)" in body
+    assert "recommendation-contract-tag" in body
+    assert "p.matched_efficacies" not in body
+    assert "recommendation-reason" not in body
     assert "data-match-percentage" not in body
+
+
+def test_full_product_cards_do_not_construct_recommendation_reasons() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    body = _source(
+        html,
+        "function displayProducts(",
+        "\n\n        // 显示来源引用",
+    )
+
+    for forbidden in (
+        "buildDetailedProductReason(",
+        "getSkinEvidenceLabel(",
+        "rerank_reason",
+        "category_facts",
+        "matched_efficacies",
+        "description",
+        "recommendation-reason",
+    ):
+        assert forbidden not in body
+
+
+def test_full_product_card_uses_display_name_and_has_no_fit_status() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    display_source = _source(
+        html,
+        "function displayProducts(",
+        "\n\n        // 显示来源引用",
+    )
+
+    assert "p.display_name || p.name" in display_source
+    assert "getSkinEvidenceLabel(" not in display_source
+    assert "recommendation-score" not in display_source
+    assert "适配待确认" not in display_source
+
+
+def test_mobile_product_names_can_wrap_to_two_lines() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    mobile_start = html.index("@media (max-width: 960px)")
+    mobile_end = html.index("@media", mobile_start + 1)
+    mobile_styles = html[mobile_start:mobile_end]
+
+    name_start = mobile_styles.index(".recommendation-name")
+    name_end = mobile_styles.index("}", name_start)
+    name_rule = mobile_styles[name_start:name_end]
+
+    assert "-webkit-line-clamp: 2" in name_rule
 
 
 def test_typed_pitfalls_keep_high_separate_and_merge_other_severities() -> None:

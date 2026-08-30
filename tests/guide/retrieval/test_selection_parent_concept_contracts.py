@@ -42,6 +42,33 @@ def test_candidate_identity_covers_source_inventory() -> None:
         SelectionConceptCandidate.model_validate(changed, strict=True)
 
 
+def test_single_product_child_value_can_map_to_shared_parent() -> None:
+    candidate = _candidate(
+        profile="base_makeup",
+        field_key="texture",
+        normalized_value="轻盈乳霜质地",
+        product_ids=[112],
+        rank_strengths=[2],
+        source_refs=["reviewed:product:112:texture"],
+    )
+    review = SelectionConceptReview.model_validate(
+        {
+            **candidate.model_dump(mode="python"),
+            "decision": "map",
+            "concept_id": "texture.lightweight",
+            "stance": "supports",
+            "comparability": "binary",
+            "order_value": None,
+            "rationale": "单商品子值仍可映射到跨商品父概念。",
+        },
+        strict=True,
+    )
+
+    projection = SelectionConceptProjection.from_review(review)
+
+    assert projection.product_ids == (112,)
+
+
 def test_mapped_review_requires_field_scoped_concept() -> None:
     candidate = _candidate()
     base = {

@@ -175,6 +175,43 @@ def test_reviewed_projection_is_visually_confirmed_and_bounded() -> None:
     assert block.selection_review.projections[0].rank_strength == 1
 
 
+def test_selection_projection_json_capabilities_are_sorted() -> None:
+    payload = _accepted_payload(
+        allowed_uses=[
+            "answer",
+            "compare",
+            "display",
+            "weak_soft_rank",
+        ]
+    )
+    payload["selection_review"] = {
+        "decision": "projected",
+        "visual_confirmed": True,
+        "rationale": "消费者自评可作为保湿偏好的弱软排证据。",
+        "projections": [
+            {
+                "field_key": "efficacy",
+                "normalized_value": "保湿",
+                "capabilities": ["soft_rank", "compare"],
+                "rank_strength": 1,
+                "safety_role": "ordinary",
+            }
+        ],
+    }
+
+    block = ProductEvidenceBlock.model_validate(
+        {
+            "evidence_id": product_evidence_id(payload),
+            **payload,
+        },
+        strict=True,
+    )
+
+    assert block.model_dump(mode="json")["selection_review"][
+        "projections"
+    ][0]["capabilities"] == ["compare", "soft_rank"]
+
+
 def test_nonfacet_comparison_can_skip_rank_projection() -> None:
     payload = _accepted_payload(
         management_label="product_specification",

@@ -85,6 +85,7 @@ def test_feedback_retry_reuses_one_cryptographic_idempotency_key() -> None:
         f"""
 const {{ webcrypto }} = require('node:crypto');
 const crypto = webcrypto;
+const GUIDE_DEMO_MODE = false;
 const feedbackOperations = new Map();
 const feedbackTargetsBySession = new Map();
 let currentSessionId = 'session-a';
@@ -112,7 +113,10 @@ const receipt = normalizeFeedbackTarget({{
   displayed_product_ids: [91, 38],
   profile_version: null,
 }});
-feedbackTargetsBySession.set('session-a', receipt);
+feedbackTargetsBySession.set(
+  'session-a',
+  new Map([[receipt.conversation_version, receipt]])
+);
 const submission = {{
   sessionId: 'session-a',
   target: receipt,
@@ -150,6 +154,7 @@ def test_feedback_late_response_does_not_mutate_reactivated_session() -> None:
         f"""
 const {{ webcrypto }} = require('node:crypto');
 const crypto = webcrypto;
+const GUIDE_DEMO_MODE = false;
 const feedbackOperations = new Map();
 const feedbackTargetsBySession = new Map();
 let currentSessionId = 'session-a';
@@ -164,7 +169,10 @@ const receipt = normalizeFeedbackTarget({{
   displayed_product_ids: [91, 38],
   profile_version: null,
 }});
-feedbackTargetsBySession.set('session-a', receipt);
+feedbackTargetsBySession.set(
+  'session-a',
+  new Map([[receipt.conversation_version, receipt]])
+);
 let accepted = 0;
 const pending = submitTypedFeedback({{
   sessionId: 'session-a',
@@ -175,11 +183,15 @@ const pending = submitTypedFeedback({{
   onAccepted() {{ accepted += 1; }},
 }});
 currentSessionId = 'session-b';
-feedbackTargetsBySession.set('session-b', normalizeFeedbackTarget({{
+const sessionBReceipt = normalizeFeedbackTarget({{
   conversation_version: 1,
   displayed_product_ids: [55],
   profile_version: null,
-}}));
+}});
+feedbackTargetsBySession.set(
+  'session-b',
+  new Map([[sessionBReceipt.conversation_version, sessionBReceipt]])
+);
 resolveFetch({{
   ok: true,
   async json() {{
@@ -221,16 +233,24 @@ let currentSessionId = 'session-b';
 function getSessionId() {{ return currentSessionId; }}
 async function fetch() {{ throw new Error('unused'); }}
 {sources}
-feedbackTargetsBySession.set('session-a', normalizeFeedbackTarget({{
+const sessionAReceipt = normalizeFeedbackTarget({{
   conversation_version: 4,
   displayed_product_ids: [91, 38],
   profile_version: null,
-}}));
-feedbackTargetsBySession.set('session-b', normalizeFeedbackTarget({{
+}});
+feedbackTargetsBySession.set(
+  'session-a',
+  new Map([[sessionAReceipt.conversation_version, sessionAReceipt]])
+);
+const sessionBReceipt = normalizeFeedbackTarget({{
   conversation_version: 2,
   displayed_product_ids: [55],
   profile_version: null,
-}}));
+}});
+feedbackTargetsBySession.set(
+  'session-b',
+  new Map([[sessionBReceipt.conversation_version, sessionBReceipt]])
+);
 function element(version) {{
   return {{
     closest() {{
@@ -275,6 +295,106 @@ def test_feedback_target_commits_only_after_verified_stream_eof() -> None:
     assert eof.index("if (buffer)") < eof.index(
         "commitFeedbackTarget("
     )
+    assert "await fetchFeedbackTarget(" in eof
+    assert eof.index("await fetchFeedbackTarget(") < eof.index(
+        "commitFeedbackTarget("
+    )
+
+
+def test_feedback_target_lookup_requires_terminal_visible_products() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    stream = _function_source(
+        html,
+        "async function sendStreamingMessage(",
+        "\n        function buildDetailedProductReason",
+    )
+    lookup_start = stream.index("!deferredPanels.feedbackTarget")
+    lookup_start = stream.rfind("if", 0, lookup_start)
+    lookup_end = stream.index(
+        "if (!isActiveChatRequest(requestContext)) return;",
+        lookup_start,
+    )
+    lookup = stream[lookup_start:lookup_end]
+
+    assert "inlineProducts.length > 0" in lookup
+    assert "await fetchFeedbackTarget(" in lookup
+
+
+def test_feedback_target_lookup_is_abortable_and_bounded() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    normalize_source = _function_source(
+        html,
+        "function normalizeFeedbackTarget(receipt)",
+        "\n\n        const MAX_FEEDBACK_TARGETS_PER_SESSION",
+    )
+    lookup_source = _function_source(
+        html,
+        "function createBoundedRequestController(",
+        "\n\n        function clearFeedbackTarget",
+    )
+    result = _run_node(
+        f"""
+const GUIDE_RUNTIME_MODE = true;
+let requestAborted = false;
+async function fetch(url, options) {{
+  void url;
+  return new Promise((resolve, reject) => {{
+    void resolve;
+    options.signal.addEventListener(
+      'abort',
+      () => {{
+        requestAborted = true;
+        reject(new DOMException('aborted', 'AbortError'));
+      }},
+      {{ once: true }}
+    );
+  }});
+}}
+{normalize_source}
+{lookup_source}
+(async () => {{
+  const result = await Promise.race([
+    fetchFeedbackTarget(
+      'session-a',
+      4,
+      {{ timeoutMs: 10 }}
+    ),
+    new Promise(resolve => setTimeout(
+      () => resolve('unbounded'),
+      100
+    )),
+  ]);
+  process.stdout.write(JSON.stringify({{
+    result,
+    requestAborted,
+  }}));
+}})();
+"""
+    )
+
+    assert result == {
+        "result": None,
+        "requestAborted": True,
+    }
+
+
+def test_verified_version_commits_before_optional_feedback_lookup() -> None:
+    html = CHAT_HTML.read_text(encoding="utf-8")
+    stream = _function_source(
+        html,
+        "async function sendStreamingMessage(",
+        "\n        function buildDetailedProductReason",
+    )
+    eof = stream[stream.index("while (true)"):]
+
+    assert eof.index("setConversationVersion(") < eof.index(
+        "await fetchFeedbackTarget("
+    )
+    lookup_call = eof[
+        eof.index("await fetchFeedbackTarget("):
+        eof.index(");", eof.index("await fetchFeedbackTarget(")) + 2
+    ]
+    assert "signal: requestContext.controller.signal" in lookup_call
 
 
 def test_post_end_delivery_control_is_explicit_and_fail_closed() -> None:

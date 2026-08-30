@@ -5,7 +5,10 @@ from app.guide.feedback.contracts import (
     ConversationSnapshot,
     DisplayedCandidateRef,
     RecommendationQueryContext,
+    RecommendationSlotState,
 )
+from app.guide.feedback.focus_state import ActiveFocus
+from app.guide.intent.responsibility_matrix import Responsibility
 from app.guide.presentation.contracts import ProductCardFacts
 from app.guide.presentation.followup_response import (
     build_followup_cards,
@@ -19,28 +22,33 @@ def snapshot() -> ConversationSnapshot:
     return ConversationSnapshot(
         session_id="s-1",
         version=1,
-        query_context=RecommendationQueryContext(
-            category="serum",
-            budget_minimum=None,
-            budget_maximum=Decimal("500"),
-            skin="sensitive",
-            efficacy="repair",
-            exclusions=[],
+        active_owner=Responsibility.RECOMMENDATION,
+        active_focus=ActiveFocus(slot="recommendation"),
+        recommendation_slot=RecommendationSlotState(
+            query_context=RecommendationQueryContext(
+                category="serum",
+                recommendation_mode_basis="broad_exploration",
+                budget_minimum=None,
+                budget_maximum=Decimal("500"),
+                skin="sensitive",
+                efficacy="repair",
+                exclusions=[],
+            ),
+            candidates=[
+                DisplayedCandidateRef(
+                    product_id=91,
+                    ordinal=1,
+                    skin_match="unknown",
+                    matched_efficacies=["修护"],
+                ),
+                DisplayedCandidateRef(
+                    product_id=38,
+                    ordinal=2,
+                    skin_match="unknown",
+                    matched_efficacies=["修护"],
+                ),
+            ],
         ),
-        candidates=[
-            DisplayedCandidateRef(
-                product_id=91,
-                ordinal=1,
-                skin_match="unknown",
-                matched_efficacies=["修护"],
-            ),
-            DisplayedCandidateRef(
-                product_id=38,
-                ordinal=2,
-                skin_match="unknown",
-                matched_efficacies=["修护"],
-            ),
-        ],
     )
 
 
@@ -104,6 +112,38 @@ def test_ordinal_card_preserves_snapshot_evidence() -> None:
     assert [card.product_id for card in cards] == [38]
     assert cards[0].skin_match == "unknown"
     assert cards[0].matched_efficacies == ["修护"]
+
+
+def test_followup_card_preserves_canonical_direct_display_facts() -> None:
+    facts = presentation_facts(
+        38,
+        "理肤泉新B5多效修护精华",
+    ).model_copy(
+        update={
+            "efficacy": ("修护", "补水保湿", "舒缓"),
+            "efficacy_state": "known",
+            "ingredients_present": ("维生素原B5（泛醇）",),
+            "ingredients_present_state": "known",
+            "suitable_skin": ("多种肤质适用",),
+            "suitable_skin_state": "known",
+        }
+    )
+
+    card = build_followup_cards(
+        ordinal_result(),
+        snapshot=snapshot(),
+        product_facts={38: facts},
+    )[0]
+
+    assert {
+        fact.field_key
+        for fact in card.category_facts
+        if fact.state == "known"
+    } >= {
+        "efficacy",
+        "ingredients_present",
+        "suitable_skin",
+    }
 
 
 def test_followup_messages_do_not_claim_comprehensive_winner() -> None:

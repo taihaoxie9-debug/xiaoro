@@ -5,7 +5,8 @@ from datetime import UTC, datetime
 import os
 from pathlib import Path
 import sqlite3
-from threading import Barrier
+from threading import Barrier, Lock
+from time import sleep
 
 import pytest
 
@@ -210,6 +211,48 @@ def test_concurrent_cold_start_is_private_and_exactly_once(
     assert database_path.parent.stat().st_mode & 0o777 == 0o700
     assert database_path.stat().st_mode & 0o777 == 0o600
     assert _row_count(SqliteFeedbackEventStore(database_path)) == 1
+
+
+def test_same_database_schema_initialization_is_serialized(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    database_path = (
+        tmp_path / "serialized-state" / "feedback_events.sqlite3"
+    )
+    worker_count = 8
+    barrier = Barrier(worker_count)
+    counter_lock = Lock()
+    active_count = 0
+    maximum_active_count = 0
+
+    def tracked_initialize(self) -> None:
+        nonlocal active_count, maximum_active_count
+        del self
+        with counter_lock:
+            active_count += 1
+            maximum_active_count = max(
+                maximum_active_count,
+                active_count,
+            )
+        sleep(0.02)
+        with counter_lock:
+            active_count -= 1
+
+    monkeypatch.setattr(
+        SqliteFeedbackEventStore,
+        "_initialize_schema",
+        tracked_initialize,
+    )
+
+    def start(_: int) -> None:
+        barrier.wait()
+        SqliteFeedbackEventStore(database_path)
+
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        list(executor.map(start, range(worker_count)))
+
+    assert maximum_active_count == 1
 
 
 def test_malformed_stored_event_fails_closed(tmp_path: Path) -> None:

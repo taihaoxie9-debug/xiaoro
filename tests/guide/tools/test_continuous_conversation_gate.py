@@ -3,15 +3,20 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
+from app.guide.feedback.contracts import (
+    ConversationSnapshot,
+    RecommendationQueryContext,
+    RecommendationSlotState,
+)
+from app.guide.feedback.focus_state import ActiveFocus
+from app.guide.intent.responsibility_matrix import Responsibility
+from app.guide.understanding.turn_meaning_contracts import TurnMeaning
 from tools.guide_gates.continuous_conversation_gate import (
     ContinuousRuntimeTurnResult,
     ContinuousTrajectoryExecutionError,
     ContinuousTrajectory,
     execute_continuous_trajectory,
 )
-from app.guide.feedback.contracts import ConversationSnapshot
-from app.guide.feedback.focus_state import FocusState
-from app.guide.understanding.turn_meaning_contracts import TurnMeaning
 
 
 def _turn(index: int) -> dict[str, object]:
@@ -31,9 +36,8 @@ def _turn(index: int) -> dict[str, object]:
             "focus_source": "none",
         },
         "expected_snapshot_subset": {
-            "focus_state": {
-                "active_processor": "recommendation",
-            }
+            "active_owner": "recommendation",
+            "active_focus": {"slot": "recommendation"},
         },
         "expected_task_plan_subset": {"mode": "recommend"},
         "expected_card_ids": [],
@@ -117,6 +121,11 @@ def _meaning() -> TurnMeaning:
     return TurnMeaning.model_validate(
         {
             "operation_hint": "recommendation",
+            "recommendation_mode": "explore",
+            "recommendation_mode_basis": {
+                "basis": "broad_exploration",
+                "source_text": "推荐",
+            },
             "topic_hint": "serum",
             "continuity_hint": "new_task",
             "subject_scope_hint": "self",
@@ -145,9 +154,7 @@ class _RecordingRuntime:
         self._interrupt_turn = interrupt_turn
         self._actual_processor = actual_processor
         self._current: ConversationSnapshot | None = None
-        self._pending: ConversationSnapshot | None = None
         self.execute_count = 0
-        self.discard_count = 0
         self.loaded_session_ids: list[str] = []
         self.received_image_fixture_ids: list[
             tuple[str, ...]
@@ -173,11 +180,19 @@ class _RecordingRuntime:
             else 0
         )
         assert conversation_version == current_version
-        self._pending = ConversationSnapshot(
+        replacement = ConversationSnapshot(
             session_id=session_id,
             version=conversation_version + 1,
-            focus_state=FocusState(
-                active_processor="recommendation",
+            active_owner=Responsibility.RECOMMENDATION,
+            active_focus=ActiveFocus(slot="recommendation"),
+            recommendation_slot=RecommendationSlotState(
+                query_context=RecommendationQueryContext(
+                    category="serum",
+                    recommendation_mode="explore",
+                    recommendation_mode_basis="broad_exploration",
+                    recommendation_count=3,
+                ),
+                empty_result=True,
             ),
         )
         events: list[tuple[str, dict[str, object]]] = [
@@ -194,6 +209,7 @@ class _RecordingRuntime:
                     )
                 },
             ))
+            self._current = replacement
         return ContinuousRuntimeTurnResult(
             events=tuple(events),
             semantic_admission_passed=True,
@@ -210,20 +226,6 @@ class _RecordingRuntime:
             hard_condition_override=False,
             cross_session_leak=False,
         )
-
-    def commit(
-        self,
-        terminal_event: tuple[str, dict[str, object]],
-    ) -> None:
-        assert terminal_event[0] == "end"
-        assert self._pending is not None
-        self._current = self._pending
-        self._pending = None
-
-    def discard(self, terminal_event) -> None:
-        del terminal_event
-        self.discard_count += 1
-        self._pending = None
 
     def load_snapshot(
         self,
@@ -278,7 +280,6 @@ def test_interrupted_turn_does_not_feed_next_turn() -> None:
 
     stored = runtime.load_snapshot("continuous-demo")
     assert stored.version == 2
-    assert runtime.discard_count == 1
 
 
 def test_trace_records_actual_runtime_route_not_expected_route() -> None:

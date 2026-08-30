@@ -35,18 +35,19 @@ def _runtime_module():
     return importlib.import_module("app.guide_runtime.image_runtime")
 
 
-def test_image_runtime_health_loads_builder_once_and_exposes_versions() -> None:
+def test_image_runtime_owns_fixed_processor_and_checks_model_once() -> None:
     module = _runtime_module()
     orchestrator = object()
     calls = 0
 
-    def build():
+    def ensure_model_ready() -> None:
         nonlocal calls
         calls += 1
-        return orchestrator
 
     runtime = module.ImageRecommendationRuntime(
-        builder=build,
+        processor=orchestrator,
+        evidence_collector=object(),
+        ensure_model_ready=ensure_model_ready,
         health_check=FakeHealthCheck(healthy=True),
         runtime_lock=LOCK,
     )
@@ -60,21 +61,45 @@ def test_image_runtime_health_loads_builder_once_and_exposes_versions() -> None:
     assert first.preprocessing_version == LOCK.preprocessing_version
     assert first.index_sha256 == LOCK.index_sha256
     assert second == first
-    assert runtime.get_orchestrator() is orchestrator
+    assert runtime.processor is orchestrator
+    assert not hasattr(runtime, "get_orchestrator")
     assert calls == 1
 
 
-def test_image_runtime_unhealthy_index_blocks_model_load() -> None:
+def test_image_runtime_delegates_private_identity_trace() -> None:
+    module = _runtime_module()
+
+    class Orchestrator:
+        def trace_identity_request(self, request):
+            return request, "trace"
+
+    collector = Orchestrator()
+    runtime = module.ImageRecommendationRuntime(
+        processor=object(),
+        evidence_collector=collector,
+        ensure_model_ready=lambda: None,
+        health_check=FakeHealthCheck(healthy=True),
+        runtime_lock=LOCK,
+    )
+
+    assert runtime.trace_identity_request("request") == (
+        "request",
+        "trace",
+    )
+
+
+def test_image_runtime_unhealthy_index_blocks_model_check() -> None:
     module = _runtime_module()
     calls = 0
 
-    def build():
+    def ensure_model_ready() -> None:
         nonlocal calls
         calls += 1
-        return object()
 
     runtime = module.ImageRecommendationRuntime(
-        builder=build,
+        processor=object(),
+        evidence_collector=object(),
+        ensure_model_ready=ensure_model_ready,
         health_check=FakeHealthCheck(healthy=False),
         runtime_lock=LOCK,
     )
@@ -90,13 +115,15 @@ def test_image_runtime_model_failure_is_cached_and_sanitized() -> None:
     module = _runtime_module()
     calls = 0
 
-    def build():
+    def ensure_model_ready() -> None:
         nonlocal calls
         calls += 1
         raise RuntimeError("/secret/model/path")
 
     runtime = module.ImageRecommendationRuntime(
-        builder=build,
+        processor=object(),
+        evidence_collector=object(),
+        ensure_model_ready=ensure_model_ready,
         health_check=FakeHealthCheck(healthy=True),
         runtime_lock=LOCK,
     )

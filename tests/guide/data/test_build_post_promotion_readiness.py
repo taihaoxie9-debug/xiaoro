@@ -97,6 +97,7 @@ def _write_fact_asset(
     normalized = provisional.model_dump(
         mode="json",
         exclude={"fact_id"},
+        exclude_none=True,
     )
     fact_id = hashlib.sha256(
         json.dumps(

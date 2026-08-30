@@ -1,69 +1,38 @@
 from __future__ import annotations
 
 from hashlib import sha256
+import json
 from pathlib import Path
+from uuid import uuid4
 
 from app.guide.application.chat_api_adapter import (
-    commit_http_event_delivery,
-    discard_http_event_delivery,
     iter_guide_public_events,
 )
-from app.guide.application.contracts import UserTurn
+from app.guide.application.contracts import TurnIdentity, UserTurn
 from app.guide.adapters.image.safe_image_input import (
     UntrustedImageInput,
 )
-from app.guide.application.pending_turn import (
-    classify_pending_reply,
-    resume_pending_recommendation,
+from app.guide.feedback.contracts import (
+    ConversationSnapshot,
+    KnowledgeSlotState,
 )
-from app.guide.application.query_context import (
-    apply_session_profile_to_task,
-)
-from app.guide.feedback.contracts import ConversationSnapshot
-from app.guide.feedback.focus_state import (
-    ConfirmedImageProductRef,
-    FocusState,
-)
-from app.guide.intent.concept_preferences import (
-    ConceptPreferenceCatalog,
-)
-from app.guide.intent.executable_intent_compiler import (
-    compile_turn_meaning,
-)
-from app.guide.intent.semantic_admission import admit_turn_meaning
-from app.guide.intent.task_planning import plan_task
-from app.guide.intent.transition_planning import (
-    plan_code_owned_transitions,
-    plan_route_transition_operations,
-)
-from app.guide.intent.unified_turn_router import (
-    reconcile_product_resolution_issue,
-    route_unified_turn,
-)
+from app.guide.feedback.focus_state import ActiveFocus
+from app.guide.intent.responsibility_matrix import Responsibility
 from app.guide.presentation.presentation_compiler import (
     PresentationCompiler,
 )
-from app.guide.retrieval.product_name_resolver import (
-    ProductMentionResolution,
-    ResolvedProductBinding,
-)
-from app.guide.understanding.context_resolver import (
-    resolve_semantic_context,
-)
-from app.guide.understanding.safety_admission import (
-    admit_safety_signal,
-)
+from app.guide.understanding.contracts import StructuredUnderstanding
 from app.guide.understanding.turn_meaning_contracts import TurnMeaning
 from app.guide_runtime.composition import (
     build_consultation_vertical_runtime,
-    build_image_bundle_service,
-    build_image_recommendation_orchestrator,
-    build_selection_concept_assets,
 )
 from tools.guide_gates.continuous_conversation_gate import (
     ContinuousFailureLayer,
     ContinuousRuntimeTurnResult,
     ContinuousTrajectory,
+)
+from tools.guide_gates.continuous_conversation_mechanical_truth import (
+    RuntimeImageFixture,
 )
 from tools.guide_gates.unified_router_gate import (
     RouteExpectation,
@@ -73,15 +42,76 @@ from tools.guide_gates.unified_router_gate import (
 
 
 _IMAGE_FIXTURES = {
-    "product-53-front": (
-        "app/static/images/products/taobao_v3_572910260362.png",
-        "image/png",
+    "product-53-front": RuntimeImageFixture(
+        product_id=53,
+        relative_path=(
+            "app/static/images/products/"
+            "taobao_v3_572910260362.png"
+        ),
+        media_type="image/png",
     ),
-    "product-55-front": (
-        "app/static/images/products/tmall_v3_746513552108.png",
-        "image/png",
+    "product-55-front": RuntimeImageFixture(
+        product_id=55,
+        relative_path=(
+            "app/static/images/products/"
+            "tmall_v3_746513552108.png"
+        ),
+        media_type="image/png",
     ),
 }
+
+
+def runtime_image_fixtures() -> dict[str, RuntimeImageFixture]:
+    return dict(_IMAGE_FIXTURES)
+
+
+class _FrozenTurnMeaningProvider:
+    def __init__(self) -> None:
+        self._message: str | None = None
+        self._meaning: TurnMeaning | None = None
+
+    def bind(self, *, message: str, meaning: TurnMeaning) -> None:
+        self._message = message
+        self._meaning = meaning
+
+    def propose(self, message, context) -> TurnMeaning:
+        del context
+        if message != self._message or self._meaning is None:
+            raise ValueError("runtime TurnMeaning binding mismatch")
+        return self._meaning
+
+
+class _ContinuousExecutionObserver:
+    def __init__(self) -> None:
+        self.turn_identities: list[TurnIdentity] = []
+        self.reset()
+
+    def reset(self) -> None:
+        self.compiled_understanding = None
+        self.decision = None
+        self.result = None
+        self.reduced_snapshot = None
+        self.envelope = None
+        self.saved_snapshot = None
+
+    def compiled(self, **values) -> None:
+        self.compiled_understanding = values["understanding"]
+        self.turn_identities.append(values["turn"].identity)
+
+    def routed(self, **values) -> None:
+        self.decision = values["decision"]
+
+    def result_received(self, **values) -> None:
+        self.result = values["result"]
+
+    def state_reduced(self, **values) -> None:
+        self.reduced_snapshot = values["snapshot"]
+
+    def envelope_materialized(self, **values) -> None:
+        self.envelope = values["envelope"]
+
+    def state_saved(self, **values) -> None:
+        self.saved_snapshot = values["snapshot"]
 
 
 class ContinuousLocalRuntime:
@@ -106,9 +136,13 @@ class ContinuousLocalRuntime:
         self._failure_layer = (
             ContinuousFailureLayer.SEMANTIC_ADMISSION
         )
+        self._meaning_provider = _FrozenTurnMeaningProvider()
+        self._observer = _ContinuousExecutionObserver()
         self._vertical = build_consultation_vertical_runtime(
             repo_root=root,
             state_dir=state_directory,
+            semantic_intent=self._meaning_provider,
+            execution_observer=self._observer,
         )
         disabled_compiler = PresentationCompiler(copywriter=None)
         self._vertical.recommendation._presentation_compiler = (
@@ -117,31 +151,8 @@ class ContinuousLocalRuntime:
         self._vertical.consultation._presentation_compiler = (
             disabled_compiler
         )
-        self._image_bundle_service = None
-        self._image_processor = None
-        if any(
-            turn.image_fixture_ids
-            for turn in trajectory.turns
-        ):
-            self._image_bundle_service = build_image_bundle_service(
-                database_path=(
-                    state_directory / "image_bundles.sqlite3"
-                )
-            )
-            self._image_processor = (
-                build_image_recommendation_orchestrator(
-                    repo_root=root,
-                    image_bundle_service=self._image_bundle_service,
-                    consultation_runtime=self._vertical,
-                )
-            )
-            self._image_processor._presentation_compiler = (
-                disabled_compiler
-            )
-        self._concept_catalog = (
-            ConceptPreferenceCatalog.from_projections(
-                build_selection_concept_assets(root).projections
-            )
+        self._vertical.image_processor._presentation_compiler = (
+            disabled_compiler
         )
         self._owner = self._vertical.profile_owner(
             trajectory.trajectory_id
@@ -155,9 +166,10 @@ class ContinuousLocalRuntime:
         self._isolation_sentinel = ConversationSnapshot(
             session_id=sentinel_id,
             version=1,
-            focus_state=FocusState(
-                active_processor="general_knowledge",
-                current_knowledge_topic="isolation-sentinel",
+            active_owner=Responsibility.GENERAL_KNOWLEDGE,
+            active_focus=ActiveFocus(slot="knowledge"),
+            knowledge_slot=KnowledgeSlotState(
+                question="isolation-sentinel",
             ),
         )
         self._vertical.conversation_state.save(
@@ -187,147 +199,14 @@ class ContinuousLocalRuntime:
                 message=message,
                 meaning=meaning,
                 image_fixture_ids=image_fixture_ids,
-                snapshot=snapshot,
             )
-        context = resolve_semantic_context(
-            conversation_version=conversation_version,
-            snapshot=snapshot,
-        )
         self._failure_layer = (
             ContinuousFailureLayer.SEMANTIC_ADMISSION
         )
-        compiled = compile_turn_meaning(
-            message=message,
-            meaning=meaning,
-            context=context,
-            concept_catalog=self._concept_catalog,
-        )
-        admission = admit_turn_meaning(
-            message=message,
-            meaning=meaning,
-            topic=compiled.topic,
-            concept_catalog=self._concept_catalog,
-        )
-        self._failure_layer = (
-            ContinuousFailureLayer.IDENTITY_BINDING
-        )
-        resolve_product_resolution = getattr(
-            self._vertical.recommendation,
-            "resolve_product_resolution",
-            None,
-        )
-        if callable(resolve_product_resolution):
-            product_resolution = resolve_product_resolution(
-                message=message,
-                understanding=compiled,
-                snapshot=snapshot,
-            )
-        else:
-            product_resolution = ProductMentionResolution(
-                bindings=tuple(
-                    self._vertical.recommendation
-                    .resolve_product_bindings(
-                        message=message,
-                        understanding=compiled,
-                        snapshot=snapshot,
-                    )
-                )
-            )
-        bindings = product_resolution.bindings
-        product_resolution_issue = reconcile_product_resolution_issue(
-            understanding=compiled,
-            issue=product_resolution.issue,
-            continuity_hint=meaning.continuity_hint,
-        )
-        pending_reply = None
-        pending_reply_kind = None
-        if snapshot is not None and snapshot.pending_turn is not None:
-            pending_reply = classify_pending_reply(
-                message=message,
-                pending=snapshot.pending_turn,
-            )
-            pending_reply_kind = pending_reply.kind
-        transition_operations = plan_route_transition_operations(
-            message=message,
-            understanding=compiled,
-            previous=(
-                snapshot.query_context
-                if snapshot is not None
-                else None
-            ),
-            continuity_hint=meaning.continuity_hint,
-            resolved_product_ids=tuple(
-                item.product_id for item in bindings
-            ),
-            product_resolution_issue=product_resolution_issue,
-        )
-        self._failure_layer = (
-            ContinuousFailureLayer.ROUTE_SELECTION
-        )
-        route = route_unified_turn(
-            meaning=meaning,
-            understanding=compiled,
-            snapshot=snapshot,
-            product_bindings=(
-                bindings if compiled.product_mentions else ()
-            ),
-            product_resolution_issue=product_resolution_issue,
-            pending_reply_kind=pending_reply_kind,
-            transition_operations=transition_operations,
-            safety_signal=admit_safety_signal(
-                message=message,
-                candidates=meaning.observation_candidates,
-            ),
-        )
-        self._failure_layer = (
-            ContinuousFailureLayer.DECISION_EXECUTION
-        )
-        task = plan_task(
-            compiled,
-            resolved_product_ids=tuple(
-                item.product_id for item in route.product_bindings
-            ),
-            product_resolution_issue=product_resolution_issue,
-            message=message,
-        )
-        task = plan_code_owned_transitions(
-            message=message,
-            understanding=compiled,
-            task=task,
-            previous=(
-                snapshot.query_context
-                if snapshot is not None
-                else None
-            ),
-        ).task_plan
-        if (
-            snapshot is not None
-            and snapshot.pending_turn is not None
-            and pending_reply is not None
-            and pending_reply.kind
-            in {"affirm", "correct", "supplement"}
-        ):
-            task = resume_pending_recommendation(
-                pending=snapshot.pending_turn,
-                reply=pending_reply,
-            )
-        if snapshot is not None and snapshot.session_profile is not None:
-            task = apply_session_profile_to_task(
-                task,
-                snapshot.session_profile,
-            )
-
-        class FrozenUnderstanding:
-            def translate(self, candidate_message, *, context):
-                if candidate_message != message:
-                    raise ValueError("runtime message changed")
-                del context
-                return meaning, compiled
-
-        frozen = FrozenUnderstanding()
-        self._vertical.unified._understanding = frozen
-        self._vertical.recommendation._understanding = frozen
+        self._meaning_provider.bind(message=message, meaning=meaning)
+        self._observer.reset()
         turn = UserTurn(
+            identity=self._new_turn_identity(session_id),
             session_id=session_id,
             message=message,
             profile_owner=self._owner,
@@ -336,77 +215,20 @@ class ContinuousLocalRuntime:
         self._failure_layer = (
             ContinuousFailureLayer.DECISION_EXECUTION
         )
-        events = tuple(
-            iter_guide_public_events(self._vertical.unified, turn)
+        frames = tuple(
+            iter_guide_public_events(
+                self._vertical.unified.stream(turn),
+                session_id=turn.session_id,
+            )
         )
-        if not events:
+        if not frames:
             raise RuntimeError(
                 "continuous runtime emitted no public events"
             )
-        self._failure_layer = (
-            ContinuousFailureLayer.PUBLIC_PRESENTATION
-        )
-        intent = next(
-            (
-                str(data.get("intent"))
-                for event, data in events
-                if event == "intent"
-            ),
-            "",
-        )
-        presentation_mode = next(
-            (
-                data.get("mode")
-                for event, data in events
-                if event == "presentation_contract"
-            ),
-            None,
-        )
-        card_ids = tuple(
-            int(item["id"])
-            for event, data in events
-            if event == "products"
-            for item in data.get("products", [])
-            if isinstance(item, dict)
-            and type(item.get("id")) is int
-        )
-        cross_session_snapshot = (
-            self._vertical.conversation_state.load(
-                self._isolation_sentinel.session_id
-            )
-        )
-        return self._runtime_result(
+        events = _decode_public_sse_frames(frames)
+        return self._observed_runtime_result(
             events=events,
-            semantic_admission_passed=not any(
-                item.disposition == "rejected_protocol"
-                for item in admission.outcomes
-            ),
-            bindings=route.product_bindings,
-            route=RouteExpectation(
-                processor=route.processor,
-                continuity=route.continuity,
-                focus_source=route.focus_source,
-            ),
-            task_plan=task.model_dump(mode="json"),
-            safety=(
-                intent == "consultation_medical_escalation"
-                or any(
-                    event == "medical_escalation"
-                    for event, _ in events
-                )
-            ),
-            clarification=intent == "clarify",
-            presentation_mode=presentation_mode,
-            hard_condition_override=(
-                detect_hard_condition_override(
-                    events=events,
-                    card_ids=card_ids,
-                )
-            ),
-            cross_session_leak=detect_cross_session_leak(
-                expected=self._isolation_sentinel,
-                actual=cross_session_snapshot,
-            ),
+            meaning=meaning,
         )
 
     def _execute_image(
@@ -417,73 +239,35 @@ class ContinuousLocalRuntime:
         message: str,
         meaning: TurnMeaning,
         image_fixture_ids: tuple[str, ...],
-        snapshot: ConversationSnapshot | None,
     ) -> ContinuousRuntimeTurnResult:
-        if (
-            self._image_bundle_service is None
-            or self._image_processor is None
-        ):
-            raise ValueError(
-                "local continuous image runtime is not configured"
-            )
         self._failure_layer = (
             ContinuousFailureLayer.IDENTITY_BINDING
         )
         images: list[UntrustedImageInput] = []
         for fixture_id in image_fixture_ids:
             try:
-                relative_path, media_type = _IMAGE_FIXTURES[fixture_id]
+                fixture = _IMAGE_FIXTURES[fixture_id]
             except KeyError as exc:
                 raise ValueError(
                     f"unknown image fixture: {fixture_id}"
                 ) from exc
-            path = self._repo_root / relative_path
+            path = self._repo_root / fixture.relative_path
             images.append(UntrustedImageInput(
                 file_name=path.name,
-                declared_media_type=media_type,
+                declared_media_type=fixture.media_type,
                 content=path.read_bytes(),
             ))
-        receipt = self._image_bundle_service.create(
+        receipt = self._vertical.image_bundle_service.create(
             session_id=session_id,
             images=tuple(images),
-        )
-        context = resolve_semantic_context(
-            conversation_version=conversation_version,
-            snapshot=snapshot,
-        ).model_copy(
-            update={
-                "image_count": len(image_fixture_ids),
-                "focused_image_ordinal": (
-                    1 if len(image_fixture_ids) == 1 else None
-                ),
-            },
-            deep=True,
         )
         self._failure_layer = (
             ContinuousFailureLayer.SEMANTIC_ADMISSION
         )
-        compiled = compile_turn_meaning(
-            message=message,
-            meaning=meaning,
-            context=context,
-            concept_catalog=self._concept_catalog,
-        )
-        admission = admit_turn_meaning(
-            message=message,
-            meaning=meaning,
-            topic=compiled.topic,
-            concept_catalog=self._concept_catalog,
-        )
-
-        class FrozenUnderstanding:
-            def translate(self, candidate_message, *, context):
-                if candidate_message != message:
-                    raise ValueError("runtime message changed")
-                del context
-                return meaning, compiled
-
-        self._vertical.unified._understanding = FrozenUnderstanding()
+        self._meaning_provider.bind(message=message, meaning=meaning)
+        self._observer.reset()
         turn = UserTurn(
+            identity=self._new_turn_identity(session_id),
             session_id=session_id,
             message=message,
             profile_owner=self._owner,
@@ -493,46 +277,41 @@ class ContinuousLocalRuntime:
             conversation_version=conversation_version,
         )
 
-        class ImageFlow:
-            def __init__(self, unified, image_processor) -> None:
-                self._unified = unified
-                self._image_processor = image_processor
-                self._conversation_state = getattr(
-                    image_processor,
-                    "_conversation_state",
-                    None,
-                )
-
-            def stream(self, image_turn):
-                yield from self._unified.stream_image(
-                    image_turn,
-                    image_processor=self._image_processor,
-                )
-
         self._failure_layer = (
             ContinuousFailureLayer.IDENTITY_BINDING
         )
-        events = tuple(iter_guide_public_events(
-            ImageFlow(
-                self._vertical.unified,
-                self._image_processor,
+        frames = tuple(
+            iter_guide_public_events(
+                self._vertical.unified.stream(turn),
+                session_id=turn.session_id,
             ),
-            turn,
-        ))
-        if not events:
+        )
+        if not frames:
             raise RuntimeError(
                 "continuous image runtime emitted no public events"
             )
+        events = _decode_public_sse_frames(frames)
+        return self._observed_runtime_result(
+            events=events,
+            meaning=meaning,
+        )
+
+    @staticmethod
+    def _new_turn_identity(session_id: str) -> TurnIdentity:
+        return TurnIdentity(
+            session_id=session_id,
+            request_id=f"request_{uuid4().hex}",
+            turn_id=f"turn_{uuid4().hex}",
+        )
+
+    def _observed_runtime_result(
+        self,
+        *,
+        events: tuple[tuple[str, dict], ...],
+        meaning: TurnMeaning | None = None,
+    ) -> ContinuousRuntimeTurnResult:
         self._failure_layer = (
             ContinuousFailureLayer.PUBLIC_PRESENTATION
-        )
-        intent = next(
-            (
-                str(data.get("intent"))
-                for event, data in events
-                if event == "intent"
-            ),
-            "",
         )
         presentation_mode = next(
             (
@@ -550,72 +329,12 @@ class ContinuousLocalRuntime:
             if isinstance(item, dict)
             and type(item.get("id")) is int
         )
-        confirmed_images = tuple(
-            ConfirmedImageProductRef(
-                image_ordinal=ordinal,
-                product_id=int(observation["confirmed_product_id"]),
+        route = self._observer.decision
+        if route is None:
+            raise RuntimeError(
+                "production flow emitted no observed route decision"
             )
-            for ordinal, observation in enumerate(
-                (
-                    data.get("observation")
-                    for event, data in events
-                    if event == "image_observation"
-                ),
-                start=1,
-            )
-            if (
-                isinstance(observation, dict)
-                and observation.get("identity_state") == "confirmed"
-                and type(observation.get("confirmed_product_id"))
-                is int
-            )
-        )
-        if confirmed_images:
-            actual_route = route_unified_turn(
-                meaning=meaning,
-                understanding=compiled,
-                snapshot=snapshot,
-                current_image_products=confirmed_images,
-                safety_signal=admit_safety_signal(
-                    message=message,
-                    candidates=meaning.observation_candidates,
-                ),
-            )
-            processor = actual_route.processor
-            route_bindings = actual_route.product_bindings
-            route_expectation = RouteExpectation(
-                processor=actual_route.processor,
-                continuity=actual_route.continuity,
-                focus_source=actual_route.focus_source,
-            )
-        else:
-            processor = "clarification"
-            route_bindings = ()
-            route_expectation = RouteExpectation(
-                processor="clarification",
-                continuity=(
-                    "replace_task"
-                    if conversation_version == 0
-                    or meaning.continuity_hint == "new_task"
-                    else "continue"
-                ),
-                focus_source="none",
-            )
-        task_plan: dict[str, object] = {}
-        if processor == "product_knowledge" and card_ids:
-            task_plan = {
-                "mode": "suitability",
-                "product_ids": list(card_ids),
-            }
-        elif processor == "recommendation":
-            task_plan = {"mode": "recommend"}
-        elif processor == "comparison":
-            task_plan = {
-                "mode": "comparison",
-                "product_ids": list(card_ids),
-            }
-        elif processor == "clarification":
-            task_plan = {"mode": "clarify"}
+        task_plan = route.task_plan.model_dump(mode="json")
         cross_session_snapshot = (
             self._vertical.conversation_state.load(
                 self._isolation_sentinel.session_id
@@ -623,18 +342,25 @@ class ContinuousLocalRuntime:
         )
         return self._runtime_result(
             events=events,
-            semantic_admission_passed=not any(
-                item.disposition == "rejected_protocol"
-                for item in admission.outcomes
+            semantic_admission_passed=_semantic_admission_was_observed(
+                understanding=self._observer.compiled_understanding,
+                meaning=meaning,
             ),
-            bindings=route_bindings,
-            route=route_expectation,
+            bindings=route.product_bindings,
+            route=RouteExpectation(
+                processor=route.processor,
+                continuity=route.continuity,
+                focus_source=route.focus_source,
+            ),
             task_plan=task_plan,
             safety=any(
                 event == "medical_escalation"
                 for event, _ in events
             ),
-            clarification=intent == "clarify",
+            clarification=any(
+                event == "clarify"
+                for event, _ in events
+            ),
             presentation_mode=presentation_mode,
             hard_condition_override=(
                 detect_hard_condition_override(
@@ -654,24 +380,10 @@ class ContinuousLocalRuntime:
         events,
         **values,
     ) -> ContinuousRuntimeTurnResult:
-        try:
-            return ContinuousRuntimeTurnResult(
-                events=events,
-                delivery_event=events[-1],
-                **values,
-            )
-        except BaseException:
-            if events:
-                discard_http_event_delivery(events[-1])
-            raise
-
-    @staticmethod
-    def commit(terminal_event) -> None:
-        commit_http_event_delivery(terminal_event)
-
-    @staticmethod
-    def discard(terminal_event) -> None:
-        discard_http_event_delivery(terminal_event)
+        return ContinuousRuntimeTurnResult(
+            events=events,
+            **values,
+        )
 
     def failure_layer_for_last_error(
         self,
@@ -688,6 +400,65 @@ class ContinuousLocalRuntime:
         return snapshot
 
 
+def _semantic_admission_was_observed(
+    *,
+    understanding: object,
+    meaning: TurnMeaning | None,
+) -> bool:
+    if (
+        type(understanding) is not StructuredUnderstanding
+        or type(meaning) is not TurnMeaning
+        or understanding.semantic_authoritative is not True
+        or not understanding.semantic_proposals
+    ):
+        return False
+    outcomes: set[tuple[str, str, str, str]] = set()
+    for value in understanding.semantic_proposals:
+        parts = value.split(":", 3)
+        if (
+            len(parts) != 4
+            or parts[1]
+            not in {
+                "admitted",
+                "retained_free",
+                "deferred_until_topic",
+                "rejected_protocol",
+            }
+        ):
+            return False
+        outcomes.add((parts[0], parts[1], parts[2], parts[3]))
+    required = {
+        (
+            "task_focus",
+            "admitted",
+            meaning.operation_hint,
+            meaning.operation_hint,
+        ),
+        (
+            "task_focus",
+            "admitted",
+            meaning.continuity_hint,
+            meaning.continuity_hint,
+        ),
+        (
+            "subject_scope",
+            "admitted",
+            meaning.subject_scope_hint,
+            meaning.subject_scope_hint,
+        ),
+    }
+    if meaning.topic_hint is not None:
+        required.add(
+            (
+                "task_focus",
+                "admitted",
+                meaning.topic_hint,
+                meaning.topic_hint,
+            )
+        )
+    return required <= outcomes
+
+
 def build_local_continuous_runtime(
     trajectory: ContinuousTrajectory,
     state_root: Path,
@@ -699,6 +470,35 @@ def build_local_continuous_runtime(
         state_root,
         repo_root=repo_root,
     )
+
+
+def _decode_public_sse_frames(
+    frames: tuple[bytes, ...],
+) -> tuple[tuple[str, dict], ...]:
+    events: list[tuple[str, dict]] = []
+    for frame in frames:
+        if type(frame) is not bytes:
+            raise TypeError("continuous runtime SSE frame must be bytes")
+        event_line, data_line, separator = frame.split(
+            b"\n",
+            maxsplit=2,
+        )
+        if (
+            not event_line.startswith(b"event: ")
+            or not data_line.startswith(b"data: ")
+            or separator != b"\n"
+        ):
+            raise ValueError("continuous runtime emitted malformed SSE")
+        event = event_line.removeprefix(b"event: ").decode("ascii")
+        data = json.loads(
+            data_line.removeprefix(b"data: ").decode("utf-8")
+        )
+        if not isinstance(data, dict):
+            raise ValueError(
+                "continuous runtime SSE data must be an object"
+            )
+        events.append((event, data))
+    return tuple(events)
 
 
 __all__ = [

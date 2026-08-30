@@ -8,15 +8,20 @@ from pydantic import ValidationError
 from app.guide.feedback.contracts import (
     ConversationSnapshot,
     DisplayedCandidateRef,
+    ImageSlotState,
+    KnowledgeSlotState,
+    ProductSlotState,
     RecommendationQueryContext,
+    RecommendationSlotState,
 )
 from app.guide.feedback.focus_state import (
+    ActiveFocus,
     ConfirmedImageProductRef,
-    FocusState,
 )
 from app.guide.feedback.ports import (
     validate_conversation_state_transition,
 )
+from app.guide.intent.responsibility_matrix import Responsibility
 
 
 def _candidate(product_id: int, ordinal: int) -> DisplayedCandidateRef:
@@ -32,21 +37,23 @@ def _recommendation_snapshot() -> ConversationSnapshot:
     return ConversationSnapshot(
         session_id="focus-sequence",
         version=1,
-        query_context=RecommendationQueryContext(
-            category="sunscreen",
-            budget_minimum=None,
-            budget_maximum=Decimal("500"),
-            skin=None,
-            efficacy=None,
-            exclusions=(),
-        ),
-        candidates=(
-            _candidate(51, 1),
-            _candidate(55, 2),
-            _candidate(101, 3),
-        ),
-        focus_state=FocusState(
-            active_processor="recommendation",
+        active_owner=Responsibility.RECOMMENDATION,
+        active_focus=ActiveFocus(slot="recommendation"),
+        recommendation_slot=RecommendationSlotState(
+            query_context=RecommendationQueryContext(
+                category="sunscreen",
+                recommendation_mode_basis="broad_exploration",
+                budget_minimum=None,
+                budget_maximum=Decimal("500"),
+                skin=None,
+                efficacy=None,
+                exclusions=(),
+            ),
+            candidates=(
+                _candidate(51, 1),
+                _candidate(55, 2),
+                _candidate(101, 3),
+            ),
         ),
     )
 
@@ -56,11 +63,20 @@ def test_focus_survives_general_knowledge_switch_and_return() -> None:
     product = recommendation.model_copy(
         update={
             "version": 2,
-            "focused_candidate_ordinal": 2,
-            "focus_state": FocusState(
-                active_processor="product_knowledge",
-                current_product_id=55,
-                last_question_meaning="询问第二款质地",
+            "active_owner": Responsibility.PRODUCT_KNOWLEDGE,
+            "active_focus": ActiveFocus(
+                slot="product",
+                object_id=55,
+            ),
+            "recommendation_slot": (
+                recommendation.recommendation_slot.model_copy(
+                    update={"focused_candidate_ordinal": 2},
+                    deep=True,
+                )
+            ),
+            "product_slot": ProductSlotState(
+                products=recommendation.recommendation_slot.candidates,
+                focused_product_id=55,
             ),
         },
         deep=True,
@@ -68,13 +84,10 @@ def test_focus_survives_general_knowledge_switch_and_return() -> None:
     knowledge = product.model_copy(
         update={
             "version": 3,
-            "focus_state": product.focus_state.model_copy(
-                update={
-                    "active_processor": "general_knowledge",
-                    "current_knowledge_topic": "视黄醇",
-                    "last_question_meaning": "询问视黄醇是什么",
-                },
-                deep=True,
+            "active_owner": Responsibility.GENERAL_KNOWLEDGE,
+            "active_focus": ActiveFocus(slot="knowledge"),
+            "knowledge_slot": KnowledgeSlotState(
+                question="询问视黄醇是什么",
             ),
         },
         deep=True,
@@ -82,12 +95,10 @@ def test_focus_survives_general_knowledge_switch_and_return() -> None:
     returned = knowledge.model_copy(
         update={
             "version": 4,
-            "focus_state": knowledge.focus_state.model_copy(
-                update={
-                    "active_processor": "product_knowledge",
-                    "last_question_meaning": "回到之前第二款",
-                },
-                deep=True,
+            "active_owner": Responsibility.PRODUCT_KNOWLEDGE,
+            "active_focus": ActiveFocus(
+                slot="product",
+                object_id=55,
             ),
         },
         deep=True,
@@ -97,65 +108,88 @@ def test_focus_survives_general_knowledge_switch_and_return() -> None:
     validate_conversation_state_transition(product, knowledge)
     validate_conversation_state_transition(knowledge, returned)
 
-    assert returned.focus_state.current_product_id == 55
-    assert [item.product_id for item in returned.candidates] == [
+    assert returned.active_focus is not None
+    assert returned.active_focus.object_id == 55
+    assert returned.product_slot is not None
+    assert returned.product_slot.focused_product_id == 55
+    assert returned.recommendation_slot is not None
+    assert [
+        item.product_id
+        for item in returned.recommendation_slot.candidates
+    ] == [
         51,
         55,
         101,
     ]
-    assert returned.focus_state.current_knowledge_topic == "视黄醇"
+    assert returned.knowledge_slot is not None
+    assert returned.knowledge_slot.question == "询问视黄醇是什么"
 
 
 def test_confirmed_image_focus_round_trips_without_raw_candidates() -> None:
     snapshot = ConversationSnapshot(
         session_id="confirmed-image-focus",
         version=1,
-        has_image_delivery=True,
-        focus_state=FocusState(
-            active_processor="image_identity",
-            current_product_id=53,
-            confirmed_image_products=(
+        active_owner=Responsibility.IMAGE_IDENTITY,
+        active_focus=ActiveFocus(
+            slot="image",
+            object_id=53,
+            ordinal=1,
+        ),
+        image_slot=ImageSlotState(
+            confirmed_products=(
                 ConfirmedImageProductRef(
                     image_ordinal=1,
                     product_id=53,
                     variant_scope=None,
                 ),
             ),
+            focused_image_ordinal=1,
         ),
     )
 
     payload = snapshot.model_dump(mode="json")
-    restored = ConversationSnapshot.model_validate(payload)
+    restored = ConversationSnapshot.model_validate_json(
+        snapshot.model_dump_json()
+    )
 
     assert restored == snapshot
-    assert payload["focus_state"]["confirmed_image_products"] == [
+    assert payload["image_slot"]["confirmed_products"] == [
         {
             "image_ordinal": 1,
             "product_id": 53,
             "variant_scope": None,
+            "source_bundle_id": None,
+            "source_image_id": None,
         }
     ]
     assert "candidate_product_ids" not in snapshot.model_dump_json()
 
 
-def test_current_product_must_belong_to_batch_or_confirmed_image() -> None:
-    with pytest.raises(ValidationError, match="current product"):
-        ConversationSnapshot(
-            session_id="invalid-focus-product",
-            version=1,
-            has_image_delivery=True,
-            focus_state=FocusState(
-                active_processor="product_knowledge",
-                current_product_id=999,
-            ),
-        )
+def test_current_product_can_be_an_independent_latest_product_slot() -> None:
+    snapshot = ConversationSnapshot(
+        session_id="independent-product-slot",
+        version=1,
+        active_owner=Responsibility.PRODUCT_KNOWLEDGE,
+        active_focus=ActiveFocus(
+            slot="product",
+            object_id=999,
+        ),
+        product_slot=ProductSlotState(
+            products=(_candidate(999, 1),),
+            focused_product_id=999,
+        ),
+    )
+
+    assert snapshot.active_focus is not None
+    assert snapshot.active_focus.object_id == 999
+    assert snapshot.product_slot is not None
+    assert snapshot.product_slot.focused_product_id == 999
 
 
 def test_confirmed_image_ordinals_are_unique_and_bounded() -> None:
     with pytest.raises(ValidationError, match="ordinal"):
-        FocusState(
-            active_processor="image_identity",
-            confirmed_image_products=(
+        ImageSlotState(
+            confirmed_products=(
                 ConfirmedImageProductRef(
                     image_ordinal=1,
                     product_id=53,
@@ -171,3 +205,15 @@ def test_confirmed_image_ordinals_are_unique_and_bounded() -> None:
             image_ordinal=5,
             product_id=53,
         )
+
+
+def test_confirmed_image_reference_preserves_source_identity() -> None:
+    reference = ConfirmedImageProductRef(
+        image_ordinal=1,
+        product_id=53,
+        source_bundle_id="bundle_" + "a" * 32,
+        source_image_id="image_" + "b" * 32,
+    )
+
+    assert reference.source_bundle_id == "bundle_" + "a" * 32
+    assert reference.source_image_id == "image_" + "b" * 32

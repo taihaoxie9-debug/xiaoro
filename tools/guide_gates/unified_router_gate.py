@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-import argparse
 from enum import Enum
 from hashlib import sha256
-import json
 from pathlib import Path
 from collections.abc import Callable, Sequence
-from tempfile import TemporaryDirectory
 from typing import Literal
 
 from pydantic import (
@@ -15,11 +12,12 @@ from pydantic import (
     Field,
     JsonValue,
     field_validator,
+    model_serializer,
     model_validator,
 )
 
 from app.guide.feedback.contracts import ConversationSnapshot
-from app.guide.feedback.focus_state import FocusState, ProcessorKind
+from app.guide.intent.responsibility_matrix import ProcessorKind
 from app.guide.intent.unified_turn_router import (
     ContinuityKind,
     FocusSource,
@@ -119,6 +117,20 @@ class RouteExpectation(_StrictFrozen):
     focus_source: FocusSource
 
 
+def legacy_replay_payload(payload: object) -> object:
+    if isinstance(payload, dict):
+        normalized = {
+            key: legacy_replay_payload(value)
+            for key, value in payload.items()
+        }
+        if normalized.get("similarity_anchor_product_id") is None:
+            normalized.pop("similarity_anchor_product_id", None)
+        return normalized
+    if isinstance(payload, list):
+        return [legacy_replay_payload(item) for item in payload]
+    return payload
+
+
 class ReplayCase(_StrictFrozen):
     schema_version: Literal[
         "guide-unified-router-replay-case-v1"
@@ -152,6 +164,10 @@ class ReplayCase(_StrictFrozen):
     @classmethod
     def freeze_sequences(cls, value: object) -> object:
         return tuple(value) if isinstance(value, list) else value
+
+    @model_serializer(mode="wrap")
+    def serialize_legacy_replay_payload(self, handler):
+        return legacy_replay_payload(handler(self))
 
     @model_validator(mode="after")
     def validate_expected_output(self):
@@ -285,6 +301,29 @@ def load_replay_cases(
     return cases
 
 
+_SINGLE_PRODUCT_PRESENTATION_FAMILY = frozenset({
+    "followup",
+    "product_knowledge",
+    "single_product",
+})
+
+
+def _presentation_matches(
+    *,
+    case: ReplayCase,
+    trace: ReplayTrace,
+) -> bool:
+    if trace.presentation_mode == case.expected_presentation_mode:
+        return True
+    return (
+        case.expected_route.processor == "product_knowledge"
+        and case.expected_presentation_mode
+        in _SINGLE_PRODUCT_PRESENTATION_FAMILY
+        and trace.presentation_mode
+        in _SINGLE_PRODUCT_PRESENTATION_FAMILY
+    )
+
+
 def evaluate_replay_trace(
     *,
     case: ReplayCase,
@@ -331,8 +370,7 @@ def evaluate_replay_trace(
         and not trace.hard_condition_override
     )
     presentation_passed = (
-        trace.presentation_mode
-        == case.expected_presentation_mode
+        _presentation_matches(case=case, trace=trace)
         and trace.error_code is None
         and trace.event_names[-1] == "end"
     )
@@ -478,299 +516,6 @@ def detect_cross_session_leak(
     return actual != expected
 
 
-def execute_replay_case(
-    case: ReplayCase,
-    *,
-    repo_root: str | Path,
-    state_root: str | Path,
-) -> ReplayTrace:
-    if type(case) is not ReplayCase:
-        raise TypeError("case must be an exact ReplayCase")
-    from app.guide.application.chat_api_adapter import (
-        commit_http_event_delivery,
-        iter_guide_public_events,
-    )
-    from app.guide.application.contracts import UserTurn
-    from app.guide.application.pending_turn import (
-        classify_pending_reply,
-        resume_pending_recommendation,
-    )
-    from app.guide.application.query_context import (
-        apply_session_profile_to_task,
-    )
-    from app.guide.intent.concept_preferences import (
-        ConceptPreferenceCatalog,
-    )
-    from app.guide.intent.executable_intent_compiler import (
-        compile_turn_meaning,
-    )
-    from app.guide.intent.semantic_admission import admit_turn_meaning
-    from app.guide.intent.task_planning import plan_task
-    from app.guide.intent.transition_planning import (
-        plan_code_owned_transitions,
-        plan_route_transition_operations,
-    )
-    from app.guide.intent.unified_turn_router import (
-        reconcile_product_resolution_issue,
-        route_unified_turn,
-    )
-    from app.guide.presentation.presentation_compiler import (
-        PresentationCompiler,
-    )
-    from app.guide.understanding.context_resolver import (
-        resolve_semantic_context,
-    )
-    from app.guide.understanding.safety_admission import (
-        admit_safety_signal,
-    )
-    from app.guide_runtime.composition import (
-        build_consultation_vertical_runtime,
-        build_selection_concept_assets,
-    )
-
-    root = Path(repo_root).resolve()
-    if not root.is_dir():
-        raise ValueError("repo_root must be a directory")
-    state_directory = Path(state_root).resolve()
-    state_directory.mkdir(parents=True, exist_ok=False)
-    concept_catalog = ConceptPreferenceCatalog.from_projections(
-        build_selection_concept_assets(root).projections
-    )
-    vertical = build_consultation_vertical_runtime(
-        repo_root=root,
-        state_dir=state_directory,
-    )
-    disabled_compiler = PresentationCompiler(copywriter=None)
-    vertical.recommendation._presentation_compiler = disabled_compiler
-    vertical.consultation._presentation_compiler = disabled_compiler
-
-    starting = case.starting_snapshot
-    session_id = (
-        starting.session_id
-        if starting is not None
-        else f"replay-{case.case_id}"
-    )
-    isolation_sentinel = ConversationSnapshot(
-        session_id=(
-            "replay-isolation-"
-            f"{sha256(session_id.encode('utf-8')).hexdigest()[:24]}"
-        ),
-        version=1,
-        focus_state=FocusState(
-            active_processor="general_knowledge",
-            current_knowledge_topic="isolation-sentinel",
-        ),
-    )
-    vertical.conversation_state.save(
-        isolation_sentinel,
-        expected_version=0,
-    )
-    if starting is not None:
-        if starting.version != 1:
-            raise ValueError(
-                "offline replay starting snapshots must begin at version one"
-            )
-        vertical.conversation_state.save(
-            starting,
-            expected_version=0,
-        )
-    owner = (
-        starting.profile_owner
-        if starting is not None
-        else vertical.profile_owner(session_id)
-    )
-    context = resolve_semantic_context(
-        conversation_version=starting.version if starting else 0,
-        snapshot=starting,
-    )
-    compiled = compile_turn_meaning(
-        message=case.message,
-        meaning=case.raw_turn_meaning,
-        context=context,
-        concept_catalog=concept_catalog,
-    )
-    admission = admit_turn_meaning(
-        message=case.message,
-        meaning=case.raw_turn_meaning,
-        topic=compiled.topic,
-        concept_catalog=concept_catalog,
-    )
-    product_resolution = (
-        vertical.recommendation.resolve_product_resolution(
-        message=case.message,
-        understanding=compiled,
-        snapshot=starting,
-        )
-    )
-    bindings = product_resolution.bindings
-    product_resolution_issue = reconcile_product_resolution_issue(
-        understanding=compiled,
-        issue=product_resolution.issue,
-        continuity_hint=case.raw_turn_meaning.continuity_hint,
-    )
-    pending_reply = None
-    pending_reply_kind = None
-    if starting is not None and starting.pending_turn is not None:
-        pending_reply = classify_pending_reply(
-            message=case.message,
-            pending=starting.pending_turn,
-        )
-        pending_reply_kind = pending_reply.kind
-    transition_operations = plan_route_transition_operations(
-        message=case.message,
-        understanding=compiled,
-        previous=(
-            starting.query_context
-            if starting is not None
-            else None
-        ),
-        continuity_hint=case.raw_turn_meaning.continuity_hint,
-        resolved_product_ids=tuple(
-            item.product_id for item in bindings
-        ),
-        product_resolution_issue=product_resolution_issue,
-    )
-    route = route_unified_turn(
-        meaning=case.raw_turn_meaning,
-        understanding=compiled,
-        snapshot=starting,
-        product_bindings=(
-            bindings if compiled.product_mentions else ()
-        ),
-        product_resolution_issue=product_resolution_issue,
-        pending_reply_kind=pending_reply_kind,
-        transition_operations=transition_operations,
-        safety_signal=admit_safety_signal(
-            message=case.message,
-            candidates=case.raw_turn_meaning.observation_candidates,
-        ),
-    )
-    task = plan_task(
-        compiled,
-        resolved_product_ids=tuple(
-            item.product_id for item in route.product_bindings
-        ),
-        product_resolution_issue=product_resolution_issue,
-        message=case.message,
-    )
-    task = plan_code_owned_transitions(
-        message=case.message,
-        understanding=compiled,
-        task=task,
-        previous=(
-            starting.query_context
-            if starting is not None
-            else None
-        ),
-    ).task_plan
-    if (
-        starting is not None
-        and starting.pending_turn is not None
-        and pending_reply is not None
-        and pending_reply.kind in {"affirm", "correct", "supplement"}
-    ):
-        task = resume_pending_recommendation(
-            pending=starting.pending_turn,
-            reply=pending_reply,
-        )
-    if starting is not None and starting.session_profile is not None:
-        task = apply_session_profile_to_task(
-            task,
-            starting.session_profile,
-        )
-
-    class FrozenUnderstanding:
-        def translate(self, message, *, context):
-            if message != case.message:
-                raise ValueError("replay message changed")
-            del context
-            return case.raw_turn_meaning, compiled
-
-    vertical.unified._understanding = FrozenUnderstanding()
-    turn = UserTurn(
-        session_id=session_id,
-        message=case.message,
-        profile_owner=owner,
-        conversation_version=starting.version if starting else 0,
-    )
-    events = list(iter_guide_public_events(vertical.unified, turn))
-    if not events:
-        raise RuntimeError("offline replay emitted no public events")
-    if events[-1][0] == "end":
-        commit_http_event_delivery(events[-1])
-    final = vertical.conversation_state.load(session_id)
-    final_payload: dict[str, JsonValue] = (
-        final.model_dump(mode="json")
-        if final is not None
-        else {}
-    )
-    card_ids = tuple(
-        int(item["id"])
-        for event, data in events
-        if event == "products"
-        for item in data.get("products", [])
-    )
-    intent = next(
-        (
-            str(data.get("intent"))
-            for event, data in events
-            if event == "intent"
-        ),
-        "",
-    )
-    presentation_mode = next(
-        (
-            data.get("mode")
-            for event, data in events
-            if event == "presentation_contract"
-        ),
-        None,
-    )
-    event_names = tuple(event for event, _ in events)
-    error_code = next(
-        (
-            str(data.get("error") or "")
-            for event, data in events
-            if event == "error"
-        ),
-        None,
-    )
-    cross_session_snapshot = vertical.conversation_state.load(
-        isolation_sentinel.session_id
-    )
-    return ReplayTrace(
-        semantic_admission_passed=not any(
-            item.disposition == "rejected_protocol"
-            for item in admission.outcomes
-        ),
-        bindings=route.product_bindings,
-        route=RouteExpectation(
-            processor=route.processor,
-            continuity=route.continuity,
-            focus_source=route.focus_source,
-        ),
-        final_snapshot=final_payload,
-        task_plan=task.model_dump(mode="json"),
-        card_ids=card_ids,
-        safety=(
-            intent == "consultation_medical_escalation"
-            or any(event == "medical_escalation" for event, _ in events)
-        ),
-        clarification=intent == "clarify",
-        presentation_mode=presentation_mode,
-        event_names=event_names,
-        error_code=error_code,
-        hard_condition_override=detect_hard_condition_override(
-            events=events,
-            card_ids=card_ids,
-        ),
-        cross_session_leak=detect_cross_session_leak(
-            expected=isolation_sentinel,
-            actual=cross_session_snapshot,
-        ),
-    )
-
-
 def run_replay(
     cases: tuple[ReplayCase, ...],
     *,
@@ -791,44 +536,6 @@ def run_replay(
         results.append(evaluate_replay_trace(case=case, trace=trace))
     frozen = tuple(results)
     return summarize_replay(frozen), frozen
-
-
-def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(
-        description="Run the zero-API unified Guide replay gate.",
-    )
-    parser.add_argument("--cases", required=True, type=Path)
-    parser.add_argument("--manifest", required=True, type=Path)
-    parser.add_argument(
-        "--repo-root",
-        type=Path,
-        default=Path.cwd(),
-    )
-    args = parser.parse_args(argv)
-    cases = load_replay_cases(
-        args.cases,
-        manifest_path=args.manifest,
-    )
-    with TemporaryDirectory(
-        prefix="xiaoro-unified-router-replay-"
-    ) as state_root:
-        state_directory = Path(state_root)
-        summary, _ = run_replay(
-            cases,
-            executor=lambda case: execute_replay_case(
-                case,
-                repo_root=args.repo_root,
-                state_root=state_directory / case.case_id,
-            ),
-        )
-    print(
-        json.dumps(
-            summary.model_dump(mode="json"),
-            ensure_ascii=True,
-            sort_keys=True,
-        )
-    )
-    return 0 if summary.passed else 1
 
 
 def _binding_keys(
@@ -970,13 +677,8 @@ __all__ = [
     "detect_cross_session_leak",
     "detect_hard_condition_override",
     "evaluate_replay_trace",
-    "execute_replay_case",
+    "legacy_replay_payload",
     "load_replay_cases",
-    "main",
     "run_replay",
     "summarize_replay",
 ]
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())

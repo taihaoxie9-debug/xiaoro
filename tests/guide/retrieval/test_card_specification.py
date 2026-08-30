@@ -152,9 +152,15 @@ def test_production_cards_project_every_unambiguous_specification() -> None:
     from app.guide.retrieval.category_profiles import (
         category_profile_for,
     )
-    from app.guide_runtime.composition import build_runtime_orchestrator
+    from app.guide_runtime.composition import (
+        build_consultation_vertical_runtime,
+    )
 
-    catalog = build_runtime_orchestrator()._presentation_facts
+    catalog = (
+        build_consultation_vertical_runtime()
+        .recommendation
+        ._presentation_facts
+    )
     projected: dict[int, str] = {}
     for product_id in sorted(catalog._reader.product_ids):
         product = catalog._reader.get(product_id)
@@ -169,29 +175,44 @@ def test_production_cards_project_every_unambiguous_specification() -> None:
             selection_facts,
             variant_scope=None,
         )
+        binding = catalog._product_display_bindings.get_optional(
+            product_id
+        )
+        if binding is not None:
+            expected = (
+                catalog._product_display_bindings
+                .price_bound_specification(product_id)
+            )
         card_facts = catalog.get_presentation_facts(product_id)
 
         assert card_facts.specification == expected
         if expected is not None:
             projected[product_id] = expected
 
-    assert len(projected) == 39
-    assert projected[24] == "60ml"
+    assert len(projected) == 25
     assert projected[32] == "50ml"
-    assert projected[33] == "50ml"
-    assert projected[35] == "30ml"
-    assert projected[36] == "40ml"
-    assert projected[38] == "30ml"
     assert projected[43] == "50ml"
-    assert projected[64] == "200ml"
     assert projected[65] == "100g"
     assert projected[70] == "500ml"
     assert projected[71] == "100ml"
-    assert projected[73] == "30ml"
     assert projected[81] == "10g"
-    assert projected[129] == "50ml"
     assert projected[130] == "50ml"
     assert all(
         product_id not in projected
-        for product_id in (54, 57, 63, 68, 102, 104)
+        for product_id in (
+            24,
+            33,
+            35,
+            36,
+            38,
+            54,
+            57,
+            63,
+            64,
+            68,
+            73,
+            102,
+            104,
+            129,
+        )
     )

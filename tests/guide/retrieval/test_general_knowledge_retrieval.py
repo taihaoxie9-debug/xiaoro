@@ -28,7 +28,7 @@ def _query(
     top_k: int = 3,
 ) -> GeneralKnowledgeQuery:
     return GeneralKnowledgeQuery(
-        raw_question=raw_question,
+        retrieval_query=raw_question,
         question_meaning=question_meaning,
         topic=topic,
         safety_sensitive=safety_sensitive,

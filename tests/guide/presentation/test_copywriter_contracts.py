@@ -5,6 +5,7 @@ from decimal import Decimal
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
+from app.guide.intent.responsibility_matrix import Responsibility
 from app.guide.presentation.contracts import CardDisplayContract
 from app.guide.presentation.copywriter_contracts import (
     ApprovedSoftFact,
@@ -12,6 +13,7 @@ from app.guide.presentation.copywriter_contracts import (
     CopyLengthBudget,
     CopySlot,
     CopywriterDraft,
+    CopywriterSection,
     CopywriterTelemetry,
     DirectCaution,
     DirectFactComponent,
@@ -20,8 +22,8 @@ from app.guide.presentation.copywriter_contracts import (
     PresentationPacket,
     PresentationSection,
     PresentationSectionSpec,
-    ProductCopy,
     RecommendationPresentationData,
+    SourceTaggedCopy,
 )
 
 
@@ -38,6 +40,45 @@ def _soft_fact(
         attribution="merchant_claim",
         source_refs=("source:merchant:55:texture",),
     )
+
+
+def test_approved_soft_fact_preserves_child_dimension_identity() -> None:
+    fact = ApprovedSoftFact(
+        fact_id="fact:55:repair",
+        product_id=55,
+        field_key="efficacy",
+        dimension_ids=("efficacy.repair",),
+        plain_meaning="修护屏障",
+        attribution="verified_fact",
+        source_refs=("source:55:repair",),
+    )
+
+    assert fact.dimension_ids == ("efficacy.repair",)
+
+
+def test_source_tagged_copy_carries_structured_winner_claim() -> None:
+    copy = SourceTaggedCopy(
+        text="现有依据不足以定为最佳选择。",
+        winner_claim="not_selected",
+    )
+
+    assert copy.winner_claim == "not_selected"
+
+
+def test_source_tagged_copy_matches_public_section_length_budget() -> None:
+    assert len(SourceTaggedCopy(text="a" * 1200).text) == 1200
+    with pytest.raises(ValidationError):
+        SourceTaggedCopy(text="a" * 1201)
+
+
+def test_copywriter_draft_rejects_legacy_parallel_shape() -> None:
+    with pytest.raises(ValidationError):
+        CopywriterDraft(
+            mode="recommendation",
+            summary_copy=SourceTaggedCopy(text="旧摘要"),
+            product_copy=(),
+            closing_copy=None,
+        )
 
 
 def _locked_fact(
@@ -97,6 +138,8 @@ def _budget() -> CopyLengthBudget:
 def _packet() -> PresentationPacket:
     return PresentationPacket(
         mode="recommendation",
+        responsibility=Responsibility.RECOMMENDATION,
+        recommendation_mode="explore",
         user_need_summary="500元内，油敏肌，防晒",
         winner_status="INSUFFICIENT_FOR_WINNER",
         slots=(_slot(),),
@@ -105,7 +148,6 @@ def _packet() -> PresentationPacket:
             PresentationSectionSpec(kind="product", slot_id="p1"),
             PresentationSectionSpec(kind="closing"),
             PresentationSectionSpec(kind="full_cards"),
-            PresentationSectionSpec(kind="pitfalls"),
         ),
         copy_budget=_budget(),
     )
@@ -114,16 +156,31 @@ def _packet() -> PresentationPacket:
 def _draft() -> CopywriterDraft:
     return CopywriterDraft(
         mode="recommendation",
-        summary_copy="预算内有一款可以继续看，但现有证据不足以替你拍板。",
-        product_copy=(
-            ProductCopy(
+        sections=(
+            CopywriterSection(
+                kind="summary",
+                content=SourceTaggedCopy(
+                    text="预算内有一款可以继续看，但现有证据不足以替你拍板。"
+                ),
+            ),
+            CopywriterSection(
+                kind="product",
                 slot_id="p1",
-                positioning="更偏轻盈清爽的日常防晒路线。",
-                advisor_reason="如果不喜欢明显膜感，可以先把它放进对比名单。",
-                used_soft_fact_ids=("soft-texture",),
+                content=SourceTaggedCopy(
+                    text="更偏轻盈清爽的日常防晒路线。",
+                    used_fact_ids=("soft-texture",),
+                ),
+                advisor_reason=SourceTaggedCopy(
+                    text="如果不喜欢明显膜感，可以先把它放进对比名单。"
+                ),
+            ),
+            CopywriterSection(
+                kind="closing",
+                content=SourceTaggedCopy(
+                    text="第一次使用仍建议先做局部测试。"
+                ),
             ),
         ),
-        closing_copy="第一次使用仍建议先做局部测试。",
     )
 
 
@@ -146,16 +203,95 @@ def test_packet_and_draft_freeze_nested_collections() -> None:
     assert isinstance(packet.slots, tuple)
     assert isinstance(packet.section_order, tuple)
     assert isinstance(packet.slots[0].approved_soft_facts, tuple)
-    assert isinstance(draft.product_copy, tuple)
-    assert draft.product_copy[0].used_soft_fact_ids == ("soft-texture",)
+    assert isinstance(draft.sections, tuple)
+    assert draft.sections[1].content.used_fact_ids == (
+        "soft-texture",
+    )
+
+
+def test_draft_carries_evidence_receipts_per_copy_block() -> None:
+    draft = CopywriterDraft(
+        mode="recommendation",
+        sections=(
+            {
+                "kind": "summary",
+                "content": {
+                    "text": "预算内先看路线差异。",
+                    "used_fact_ids": (),
+                    "used_constraint_ids": ("turn:budget:300",),
+                },
+            },
+            {
+                "kind": "product",
+                "slot_id": "p1",
+                "content": {
+                    "text": "这款走轻盈清爽路线。",
+                    "used_fact_ids": ("soft-texture",),
+                    "used_constraint_ids": (),
+                },
+                "advisor_reason": {
+                    "text": "更贴近通勤清爽需求。",
+                    "used_fact_ids": ("soft-texture",),
+                    "used_constraint_ids": (
+                        "turn:concept:texture.refreshing",
+                    ),
+                },
+            },
+            {
+                "kind": "closing",
+                "content": {
+                    "text": "更怕闷可优先清爽路线。",
+                    "used_fact_ids": ("soft-texture",),
+                    "used_constraint_ids": (
+                        "turn:concept:texture.refreshing",
+                    ),
+                },
+            },
+        ),
+    )
+
+    assert draft.sections[0].content.text == "预算内先看路线差异。"
+    assert draft.sections[1].content.used_fact_ids == (
+        "soft-texture",
+    )
+    assert draft.sections[2].content.used_constraint_ids == (
+        "turn:concept:texture.refreshing",
+    )
+
+
+def test_packet_carries_typed_approved_constraints() -> None:
+    payload = _packet().model_dump(mode="python")
+    payload["approved_constraints"] = (
+        {
+            "constraint_id": "turn:budget:300",
+            "kind": "budget",
+            "display_value": "预算上限300元",
+        },
+        {
+            "constraint_id": "turn:concept:texture.refreshing",
+            "kind": "concept",
+            "display_value": "偏好清爽",
+        },
+    )
+
+    packet = PresentationPacket.model_validate(payload, strict=True)
+
+    assert tuple(
+        item.constraint_id for item in packet.approved_constraints
+    ) == (
+        "turn:budget:300",
+        "turn:concept:texture.refreshing",
+    )
 
 
 def test_packet_rejects_duplicate_product_or_slot_identity() -> None:
     with pytest.raises(ValidationError):
         PresentationPacket(
             mode="recommendation",
+            responsibility=Responsibility.RECOMMENDATION,
+            recommendation_mode="explore",
             user_need_summary="防晒",
-            winner_status="WINNER",
+            winner_status="NOT_APPLICABLE",
             slots=(
                 _slot("p1", product_id=55),
                 _slot("p1", product_id=57),
@@ -170,8 +306,10 @@ def test_packet_rejects_duplicate_product_or_slot_identity() -> None:
     with pytest.raises(ValidationError):
         PresentationPacket(
             mode="recommendation",
+            responsibility=Responsibility.RECOMMENDATION,
+            recommendation_mode="explore",
             user_need_summary="防晒",
-            winner_status="WINNER",
+            winner_status="NOT_APPLICABLE",
             slots=(
                 _slot("p1", product_id=55),
                 _slot("p2", product_id=55),
@@ -189,12 +327,10 @@ def test_copywriter_draft_rejects_duplicate_or_reordered_slots() -> None:
     with pytest.raises(ValidationError):
         CopywriterDraft(
             mode="recommendation",
-            summary_copy="摘要",
-            product_copy=(
-                _draft().product_copy[0],
-                _draft().product_copy[0],
+            sections=(
+                _draft().sections[1],
+                _draft().sections[1],
             ),
-            closing_copy="建议",
         )
 
 
