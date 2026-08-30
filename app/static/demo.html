@@ -3,217 +3,1383 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>小 Ro 演示体验版</title>
+  <title>小 Ro 导购 Demo</title>
+  <script src="/static/guide-presentation.js?v=demo-v1"></script>
   <style>
     :root {
-      --ink: #242124;
-      --muted: #6f6269;
-      --line: #ead7df;
-      --rose: #c94f7c;
-      --rose-soft: #fff1f6;
-      --paper: #fffafc;
-      --panel: #ffffff;
-      --ok: #246b52;
+      --ink: #302a2f;
+      --muted: #796d75;
+      --line: #ead9df;
+      --rose: #9b6d80;
+      --rose-dark: #805267;
+      --rose-pale: #fff6f8;
+      --paper: #fcf9fa;
+      --white: #fff;
+      --green: #557c6d;
+      --shadow: 0 14px 34px rgba(87, 52, 68, .08);
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: "Avenir Next", "PingFang SC", "Hiragino Sans GB", sans-serif;
-      background: var(--paper);
       color: var(--ink);
+      background: var(--paper);
+      font-family: "Avenir Next", "PingFang SC", "Hiragino Sans GB", sans-serif;
     }
-    main {
-      max-width: 980px;
+    button {
+      font: inherit;
+      cursor: pointer;
+    }
+    .demo-shell {
+      width: min(980px, calc(100% - 32px));
       margin: 0 auto;
-      padding: 32px 18px 48px;
+      padding: 26px 0 56px;
     }
-    .top {
+    .demo-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-end;
       border-bottom: 1px solid var(--line);
-      padding-bottom: 22px;
-      margin-bottom: 24px;
+      padding: 0 0 18px;
     }
     .eyebrow {
-      color: var(--rose);
+      margin: 0 0 6px;
+      color: var(--rose-dark);
+      font-size: 13px;
       font-weight: 700;
-      letter-spacing: 0;
-      margin: 0 0 8px;
     }
     h1 {
       margin: 0;
-      font-size: clamp(28px, 5vw, 48px);
-      line-height: 1.08;
+      font-size: clamp(25px, 4vw, 38px);
+      line-height: 1.15;
       letter-spacing: 0;
     }
-    .lead {
-      max-width: 760px;
+    .header-note {
+      margin: 8px 0 0;
       color: var(--muted);
-      font-size: 17px;
-      line-height: 1.7;
-      margin: 14px 0 0;
+      line-height: 1.55;
+      font-size: 14px;
     }
-    .actions {
+    .chain-tabs {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       flex-wrap: wrap;
-      margin-top: 20px;
+      margin: 18px 0 14px;
     }
-    a.button {
+    .chain-tab,
+    .control-button,
+    .feedback-button {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      color: var(--rose-dark);
+      padding: 9px 13px;
+    }
+    .chain-tab[aria-selected="true"],
+    .control-button.primary {
+      border-color: var(--rose-dark);
+      background: var(--rose-dark);
+      color: #fff;
+    }
+    .demo-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+    }
+    .demo-composer {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .chat-input {
+      min-width: 0;
+      min-height: 44px;
+      padding: 10px 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--ink);
+      background: var(--white);
+      outline: none;
+    }
+    .chat-input:focus {
+      border-color: var(--rose);
+      box-shadow: 0 0 0 3px #f8e9ef;
+    }
+    .upload-button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 42px;
-      padding: 0 16px;
-      border-radius: 8px;
-      border: 1px solid var(--rose);
-      color: #fff;
-      background: var(--rose);
-      text-decoration: none;
-      font-weight: 700;
-    }
-    a.button.secondary {
-      color: var(--rose);
-      background: transparent;
-    }
-    .notice {
-      background: var(--rose-soft);
+      min-height: 44px;
+      padding: 0 12px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 14px 16px;
+      color: var(--rose-dark);
+      background: var(--white);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .upload-button input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .progress {
       color: var(--muted);
-      line-height: 1.7;
-      margin: 22px 0;
+      font-size: 14px;
     }
-    .grid {
+    .progress strong {
+      color: var(--rose-dark);
+    }
+    .conversation {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 14px;
+      margin-top: 18px;
     }
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 16px;
-      min-height: 220px;
+    .turn {
+      display: grid;
+      gap: 10px;
     }
-    .card h2 {
-      margin: 0 0 10px;
-      color: var(--rose);
-      font-size: 18px;
-      letter-spacing: 0;
-    }
-    ol {
-      margin: 0;
-      padding-left: 20px;
-      color: var(--ink);
+    .user-bubble {
+      justify-self: end;
+      max-width: min(780px, 92%);
+      padding: 12px 15px;
+      border-radius: 8px 8px 2px 8px;
+      background: #f2e7eb;
       line-height: 1.65;
     }
-    li + li { margin-top: 6px; }
-    .status {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px;
-      margin: 24px 0;
-    }
-    .pill {
+    .user-image {
+      display: block;
+      width: min(220px, 100%);
+      max-height: 240px;
+      margin-bottom: 8px;
+      border-radius: 6px;
+      object-fit: contain;
       background: #fff;
+    }
+    .assistant-bubble {
+      min-width: 0;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px 8px 8px 2px;
+      background: var(--white);
+      box-shadow: var(--shadow);
+    }
+    .assistant-label {
+      margin: 0 0 10px;
+      color: var(--rose-dark);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .thinking-host {
+      min-height: 52px;
+    }
+    .guide-thinking-pipeline {
+      padding: 9px 0 4px;
+      color: var(--muted);
+    }
+    .guide-thinking-stage {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 26px;
+      font-size: 14px;
+    }
+    .guide-thinking-stage-label::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 8px;
+      border-radius: 50%;
+      background: var(--rose);
+      box-shadow: 0 0 0 4px #f6e9ee;
+      vertical-align: 1px;
+    }
+    .guide-thinking-markers {
+      display: flex;
+      gap: 5px;
+      margin-top: 8px;
+    }
+    .guide-thinking-marker {
+      width: 32px;
+      height: 3px;
+      border-radius: 2px;
+      background: #eadfe3;
+    }
+    .guide-thinking-marker[data-state="done"],
+    .guide-thinking-marker[data-state="active"] {
+      background: var(--rose);
+    }
+    .guide-presentation-root {
+      display: grid;
+      gap: 18px;
+    }
+    .guide-presentation-section {
+      min-width: 0;
+    }
+    .guide-presentation-section h3 {
+      margin: 0 0 8px;
+      color: var(--rose-dark);
+      font-size: 18px;
+      line-height: 1.35;
+    }
+    .guide-presentation-section p {
+      margin: 0;
+      line-height: 1.75;
+      white-space: pre-wrap;
+    }
+    .guide-presentation-product > p {
+      padding-bottom: 4px;
+    }
+    .guide-inline-product-card {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      margin: 10px 0 8px;
+      padding: 10px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 12px;
+      background: #fffafb;
     }
-    .pill strong {
+    .guide-inline-product-card a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .guide-inline-product-visual img,
+    .recommendation-image {
       display: block;
-      color: var(--ok);
-      font-size: 20px;
-      line-height: 1.2;
+      width: 112px;
+      height: 114px;
+      object-fit: contain;
+      border-radius: 6px;
+      background: #fff;
     }
-    .pill span {
+    .guide-inline-product-brand {
+      display: block;
       color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+    .guide-inline-product-name,
+    .recommendation-name {
+      display: block;
+      line-height: 1.45;
+    }
+    .guide-inline-product-rule {
+      display: block;
+      width: 42px;
+      height: 2px;
+      margin: 7px 0;
+      background: var(--rose);
+    }
+    .guide-inline-product-price,
+    .recommendation-price {
+      color: var(--rose-dark);
+      font-weight: 700;
+      margin-top: 4px;
+    }
+    .guide-direct-fact {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 8px;
+      padding: 5px 0;
+      border-bottom: 1px solid #f0e6e9;
+    }
+    .guide-direct-fact dt {
+      color: var(--muted);
+    }
+    .guide-direct-fact dd {
+      margin: 0;
+    }
+    .guide-presentation-full-cards {
+      padding-top: 4px;
+      border-top: 1px solid var(--line);
+    }
+    .recommendation-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .recommendation-card {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .recommendation-card .recommendation-image {
+      width: 100%;
+      height: 148px;
+      border-radius: 0;
+    }
+    .recommendation-body {
+      padding: 11px 12px 13px;
+    }
+    .recommendation-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 8px;
+    }
+    .recommendation-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 2px 7px;
+      border-radius: 5px;
+      background: #fff0f4;
+      color: var(--rose-dark);
+      font-size: 12px;
+    }
+    .guide-comparison-scroll {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    .guide-comparison-table {
+      width: 100%;
+      min-width: 570px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    .guide-comparison-table th,
+    .guide-comparison-table td {
+      padding: 11px 12px;
+      border-bottom: 1px solid #f0e6e9;
+      text-align: left;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    .guide-comparison-table th {
+      color: var(--rose-dark);
+      font-weight: 700;
+    }
+    .guide-winner-conclusion {
+      padding: 12px 14px;
+      border-left: 3px solid var(--rose);
+      background: var(--rose-pale);
+      line-height: 1.65;
+    }
+    .guide-winner-conclusion strong {
+      color: var(--rose-dark);
+    }
+    .feedback-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 7px;
+      margin-top: 12px;
+    }
+    .feedback-button {
+      padding: 6px 10px;
       font-size: 13px;
     }
-    footer {
+    .feedback-button.active {
+      border-color: var(--green);
+      color: var(--green);
+      background: #f1f8f4;
+    }
+    .demo-empty {
+      padding: 32px 18px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
       color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-      margin-top: 24px;
+      text-align: center;
+      line-height: 1.7;
+    }
+    @media (max-width: 680px) {
+      .demo-shell { width: min(100% - 20px, 980px); padding-top: 16px; }
+      .demo-header { display: block; }
+      .demo-toolbar { align-items: flex-start; flex-direction: column; }
+      .demo-composer { grid-template-columns: 1fr auto; }
+      .upload-button { grid-column: 1 / -1; }
+      .recommendation-grid { grid-template-columns: 1fr; }
+      .recommendation-card { display: grid; grid-template-columns: 112px minmax(0, 1fr); }
+      .recommendation-card .recommendation-image {
+        width: 112px;
+        height: 128px;
+      }
+      .assistant-bubble { padding: 14px; }
     }
   </style>
 </head>
 <body>
-  <main>
-    <section class="top">
-      <p class="eyebrow">小 Ro 导购 · 演示体验版</p>
-      <h1>给小伙伴体验的稳定链路入口</h1>
-      <p class="lead">
-        这个页面只提供演示脚本和正式聊天入口，不写死回答，不替代最终验收。
-        体验时建议按下面脚本提问，避免把尚未收口的高压随机混合链路当作正式内测。
-      </p>
-      <div class="actions">
-        <a class="button" href="/chat">打开正式聊天</a>
-        <a class="button secondary" href="/health">查看运行状态</a>
+  <main class="demo-shell">
+    <header class="demo-header">
+      <div>
+        <p class="eyebrow">小 Ro 导购</p>
+        <h1>护肤选购助手</h1>
+        <p class="header-note">
+          先整理你的肤质和需求，再给出商品建议、追问和对比。
+        </p>
+      </div>
+    </header>
+
+    <nav class="chain-tabs" aria-label="演示链路">
+      <button class="chain-tab" type="button" data-chain="text" aria-selected="true">
+        推荐 / 追问 / 对比
+      </button>
+      <button class="chain-tab" type="button" data-chain="image" aria-selected="false">
+        图片识别 / 相似 / 肤质判断
+      </button>
+    </nav>
+
+    <section class="demo-toolbar" aria-label="聊天状态">
+      <div class="progress">
+        当前链路：<strong id="chainName">推荐 / 追问 / 对比</strong>
+        <span> · </span>
+        已完成 <strong id="turnNumber">0</strong> 问
+      </div>
+      <span class="progress" id="uploadStatus"></span>
+    </section>
+
+    <form class="demo-composer" id="chatForm">
+      <input
+        class="chat-input"
+        id="chatInput"
+        type="text"
+        autocomplete="off"
+        readonly
+        placeholder="输入你的问题，按发送开始"
+      >
+      <label class="upload-button" id="uploadButton">
+        添加图片
+        <input id="imageInput" type="file" accept="image/*">
+      </label>
+      <button class="control-button primary" id="sendButton" type="submit">
+        发送
+      </button>
+    </form>
+
+    <section class="conversation" id="conversation" aria-live="polite">
+      <div class="demo-empty" id="emptyState">
+        输入问题后发送。每轮都会先经过思考阶段，再显示小 Ro 的回答和商品卡。
       </div>
     </section>
-
-    <div class="notice">
-      使用口径：这是演示体验版，不计入最终验收。最终验收仍以正式 /chat 的真实语义、
-      真实润写、真实 SSE、同一会话连续状态和浏览器 3x5 结果为准。
-    </div>
-
-    <section class="status" aria-label="当前可演示状态">
-      <div class="pill"><strong>12/20</strong><span>固定 5 轮轨迹已完整通过</span></div>
-      <div class="pill"><strong>60/61</strong><span>已捕获真实语义轮次通过</span></div>
-      <div class="pill"><strong>0</strong><span>已通过部分的错商品/跨会话污染</span></div>
-    </section>
-
-    <section class="grid" aria-label="推荐体验脚本">
-      <article class="card">
-        <h2>问诊到推荐</h2>
-        <ol>
-          <li>我好像是油皮，但冬天洗脸后也紧</li>
-          <li>额头和鼻子出油明显，两颊通常正常</li>
-          <li>刚才说错了，两颊其实经常起皮</li>
-          <li>没有刺痛，也没有持续泛红</li>
-          <li>先按修护和保湿优先，预算二百</li>
-        </ol>
-      </article>
-
-      <article class="card">
-        <h2>问诊中插入商品</h2>
-        <ol>
-          <li>不知道肤质，只知道下午会油，空调房又干</li>
-          <li>油主要在鼻子，脸颊干但不红</li>
-          <li>先插一句，B5精华这种状态能用吗</li>
-          <li>商品先放下，回到肤质判断，我偶尔还会闷痘</li>
-          <li>按目前观察给我选轻薄修护精华</li>
-        </ol>
-      </article>
-
-      <article class="card">
-        <h2>商品知识与比较</h2>
-        <ol>
-          <li>B5精华平时放在哪一步，用量怎么把握</li>
-          <li>烟酰胺为什么能帮助修护屏障</li>
-          <li>回到B5那瓶，它页面里的品牌主打有哪些</li>
-          <li>再把B5精华和CE精华放一起看差异</li>
-          <li>只继续CE精华，告诉我规格和注意事项</li>
-        </ol>
-      </article>
-
-      <article class="card">
-        <h2>防晒知识到推荐</h2>
-        <ol>
-          <li>为什么阴天也有人建议涂防晒</li>
-          <li>按通勤清爽这个方向给我两支两百内的防晒</li>
-          <li>第二支包装上能确认什么规格</li>
-          <li>防晒补涂主要受哪些场景影响</li>
-          <li>回到第二支，它在户外场景的资料够不够</li>
-        </ol>
-      </article>
-    </section>
-
-    <footer>
-      建议范围：文本推荐、问诊、商品追问、通用知识与少量比较。暂不建议自由测试图片上传、
-      第三人场景和随机高压混合链路。
-    </footer>
   </main>
+
+  <script>
+    (() => {
+      const P = window.XiaoRoPresentation;
+      if (!P) throw new Error('PRESENTATION_RENDERER_MISSING');
+
+      const products = {
+        38: {
+          id: 38,
+          product_id: 38,
+          brand: '理肤泉',
+          name: '理肤泉新B5多效修护精华',
+          display_name: '理肤泉新B5多效修护精华',
+          price: 294,
+          specification: null,
+          image_url: '/static/images/products/jd_v3_100160480140.png',
+          detail_url: 'https://item.jd.com/100160480140.html'
+        },
+        35: {
+          id: 35,
+          product_id: 35,
+          brand: '修丽可',
+          name: '修丽可聚糖多重丰盈精华液',
+          display_name: '修丽可聚糖多重丰盈精华液',
+          price: 1050,
+          specification: null,
+          image_url: '/static/images/products/jd_v3_100005935030.png',
+          detail_url: 'https://item.jd.com/100005935030.html'
+        },
+        43: {
+          id: 43,
+          product_id: 43,
+          brand: "科颜氏 Kiehl's",
+          name: '科颜氏高保湿面霜',
+          display_name: '科颜氏高保湿面霜',
+          price: 315,
+          specification: null,
+          image_url: '/static/images/products/jd_v3_100022610088.png',
+          detail_url: 'https://item.jd.com/100022610088.html'
+        },
+        53: {
+          id: 53,
+          product_id: 53,
+          brand: '理肤泉',
+          name: '理肤泉特护清盈防晒乳 SPF50 PA++++',
+          display_name: '理肤泉特护清盈防晒乳',
+          price: 125,
+          specification: null,
+          image_url: '/static/images/products/taobao_v3_572910260362.png',
+          detail_url: 'https://item.taobao.com/item.htm?id=572910260362'
+        },
+        102: {
+          id: 102,
+          product_id: 102,
+          brand: '资生堂',
+          name: '新艳阳夏臻效水动力防护乳',
+          display_name: '新艳阳夏臻效水动力防护乳',
+          price: 121.91,
+          specification: '50ml',
+          price_specification_alignment: 'aligned',
+          image_url: '/static/images/products/tmall_v3_618834832208.png',
+          detail_url: 'https://detail.tmall.com/item.htm?id=618834832208'
+        },
+        54: {
+          id: 54,
+          product_id: 54,
+          brand: 'ISDIN',
+          name: '怡思丁小蓝瓶防晒水',
+          display_name: '怡思丁小蓝瓶防晒水',
+          price: 96.71,
+          specification: null,
+          image_url: '/static/images/products/tmall_v3_526608696236.png',
+          detail_url: 'https://detail.tmall.com/item.htm?id=526608696236'
+        },
+        33: {
+          id: 33,
+          product_id: 33,
+          brand: '雅诗兰黛',
+          name: '雅诗兰黛特润修护肌活精华露',
+          display_name: '雅诗兰黛特润修护肌活精华露',
+          price: 968,
+          specification: '50ml',
+          price_specification_alignment: 'aligned',
+          image_url: '/static/images/products/jd_v3_100022610146.png',
+          detail_url: 'https://item.jd.com/100022610146.html'
+        },
+        39: {
+          id: 39,
+          product_id: 39,
+          brand: '赫莲娜',
+          name: '赫莲娜悦颜焕活精华露',
+          display_name: '赫莲娜悦颜焕活精华露',
+          price: 1080,
+          specification: null,
+          image_url: '/static/images/products/jd_v3_100049220178.png',
+          detail_url: 'https://item.jd.com/100049220178.html'
+        },
+        63: {
+          id: 63,
+          product_id: 63,
+          brand: '兰蔻',
+          name: '兰蔻净澈焕肤双重精华水',
+          display_name: '兰蔻净澈焕肤双重精华水',
+          price: 880,
+          specification: null,
+          image_url: '/static/images/products/tmall_v3_611233066987.png',
+          detail_url: 'https://detail.tmall.com/item.htm?id=611233066987'
+        }
+      };
+
+      const card = (mode, ids) => ({
+        mode,
+        visible_product_ids: ids,
+        max_cards: ids.length,
+        reason: (
+          mode === 'none'
+            ? null
+            : mode === 'single'
+              ? 'product'
+              : mode
+        )
+      });
+      const section = (kind, copyText, extra = {}) => ({
+        kind,
+        copy_text: copyText,
+        used_fact_ids: [],
+        used_constraint_ids: [],
+        advisor_reason: null,
+        advisor_used_fact_ids: [],
+        advisor_used_constraint_ids: [],
+        slot_id: null,
+        product_id: null,
+        direct_facts: [],
+        ...extra
+      });
+      const productSection = (slot, productId, copyText, facts) => section(
+        'product',
+        copyText,
+        {
+          slot_id: slot,
+          product_id: productId,
+          direct_facts: facts.map((fact, index) => ({
+            fact_id: `demo:${productId}:direct:${index + 1}`,
+            ...fact
+          }))
+        }
+      );
+      const shelf = () => section('full_cards', null);
+      const tags = items => items.map(([product_id, label]) => ({
+        product_id,
+        label,
+        fact_ids: [`demo:${product_id}:${label}`]
+      }));
+      const comparisonRow = (dimension_id, label, cells) => ({
+        dimension_id,
+        label,
+        cells: cells.map(cell => ({
+          ...cell,
+          fact_ids: [
+            `demo:${cell.product_id}:${dimension_id}`
+          ],
+          state: 'known'
+        }))
+      });
+      const noWinner = () => ({
+        status: 'not_applicable',
+        winner_product_id: null,
+        reason: null,
+        fact_ids: [],
+        dimension_ids: [],
+        tie_reason: null
+      });
+
+      const recommendation = {
+        mode: 'recommendation',
+        responsibility: 'recommendation',
+        recommendation_mode: 'explore',
+        copy_source: 'prepared_data',
+        sections: [
+          section(
+            'summary',
+            '按预算、夏季通勤、怕闷和容易泛红这几个条件，我先把三款放在一起看。三款都在预算内，目前可以继续按肤感和成膜侧重点收窄。'
+          ),
+          productSection(
+            'p1',
+            53,
+            '这款是防水防汗成膜方向，公开资料还标注清爽自然肤感；更适合把通勤中的成膜稳定性放在前面看。',
+            [{ label: '参考价', display_value: '¥125' }]
+          ),
+          productSection(
+            'p2',
+            102,
+            '这款标注 SPF50+ PA++++，水感清透、清爽易推开，并且是快速成膜；在怕闷和日常通勤之间比较贴近你的条件。',
+            [
+              { label: '参考价 / 规格', display_value: '¥121.91 / 50ml' },
+              { label: '防晒指数', display_value: 'SPF50+ PA++++' }
+            ]
+          ),
+          productSection(
+            'p3',
+            54,
+            '这款标注 SPF50 PA++++，触肤化水、轻薄、快干；如果你更在意薄涂后尽快成膜，可以重点看它。',
+            [
+              { label: '参考价', display_value: '¥96.71' },
+              { label: '防晒指数', display_value: 'SPF50 PA++++' }
+            ]
+          ),
+          section(
+            'closing',
+            '简单说：怕闷先看第二款，想要快干看第三款，更在意防水防汗成膜看第一款。'
+          ),
+          shelf()
+        ],
+        comparison_rows: [],
+        winner: noWinner(),
+        visible_product_ids: [53, 102, 54],
+        compact_tags: tags([
+          [53, '清爽'], [53, '防水'],
+          [102, '水感'], [102, '快成膜'], [102, '防晒'],
+          [54, '轻薄'], [54, '快干'], [54, '防晒']
+        ]),
+        card_display: card('recommendation', [53, 102, 54])
+      };
+
+      const productKnowledge = {
+        mode: 'product_knowledge',
+        responsibility: 'product_knowledge',
+        copy_source: 'prepared_data',
+        sections: [
+          section(
+            'summary',
+            '你问的是第二款资生堂新艳阳夏臻效水动力防护乳。下面只说这款目前已核对到的商品资料。'
+          ),
+          section(
+            'answer',
+            '这款标注 SPF50+ PA++++，质地是水感清透、清爽易推开，资料里还标注快速成膜，使用场景覆盖日常通勤。规格按当前卡片记录为 50ml。'
+          ),
+          shelf()
+        ],
+        comparison_rows: [],
+        winner: noWinner(),
+        visible_product_ids: [102],
+        compact_tags: tags([[102, '水感'], [102, '快成膜'], [102, '防晒']]),
+        card_display: card('single', [102])
+      };
+
+      const comparison = {
+        mode: 'comparison',
+        responsibility: 'comparison',
+        copy_source: 'prepared_data',
+        sections: [
+          section(
+            'summary',
+            '把第一款和第二款按夏季通勤最关心的肤感、成膜和防晒标识放在一起看。'
+          ),
+          section('comparison', null),
+          shelf()
+        ],
+        requested_comparison_dimensions: ['texture.finish'],
+        comparison_rows: [
+          comparisonRow(
+            'brand_main',
+            '主打方向',
+            [
+              { product_id: 53, value: '防水防汗成膜方向' },
+              { product_id: 102, value: '水感清透与快速成膜' }
+            ]
+          ),
+          comparisonRow(
+            'texture.finish',
+            '肤感',
+            [
+              { product_id: 53, value: '清爽自然肤感' },
+              { product_id: 102, value: '水感清透、清爽易推开' }
+            ]
+          ),
+          comparisonRow(
+            'profile_match',
+            '当前需求匹配',
+            [
+              { product_id: 53, value: '更偏防水防汗成膜' },
+              { product_id: 102, value: '更贴近怕闷和夏季通勤' }
+            ]
+          )
+        ],
+        winner: {
+          status: 'selected',
+          winner_product_id: 102,
+          reason: '如果你的首要诉求是怕闷和夏天通勤，第二款在水感清透、清爽易推开和快速成膜上更贴合；第一款则更偏向防水防汗成膜。',
+          fact_ids: ['demo:102:texture', 'demo:102:film_speed'],
+          dimension_ids: ['texture', 'film_speed']
+        },
+        visible_product_ids: [53, 102],
+        compact_tags: tags([
+          [53, '清爽'], [53, '防水'],
+          [102, '水感'], [102, '快成膜'], [102, '防晒']
+        ]),
+        card_display: card('comparison', [53, 102])
+      };
+
+      const imageIdentity = {
+        mode: 'image_identity',
+        responsibility: 'image_identity',
+        copy_source: 'prepared_data',
+        sections: [
+          section(
+            'observation',
+            '图片已识别为理肤泉新 B5 多效修护精华。已核对到的资料包括维生素原 B5（泛醇）、修护/补水保湿/舒缓，以及改善泛红的商品定位。'
+          ),
+          productSection(
+            'p1',
+            38,
+            '这张图对应理肤泉新 B5 多效修护精华，下面展示已核对的商品信息。',
+            [
+              { label: '核心成分', display_value: '维生素原 B5（泛醇）' },
+              { label: '方向', display_value: '修护、补水保湿、舒缓' }
+            ]
+          ),
+          shelf()
+        ],
+        comparison_rows: [],
+        winner: noWinner(),
+        visible_product_ids: [38],
+        compact_tags: tags([[38, 'B5'], [38, '修护'], [38, '舒缓']]),
+        card_display: card('single', [38])
+      };
+
+      const imageRecommendation = {
+        mode: 'recommendation',
+        responsibility: 'recommendation',
+        recommendation_mode: 'explore',
+        copy_source: 'prepared_data',
+        sections: [
+          section(
+            'summary',
+            '以图片里的 B5 修护精华为参照，我挑两款同样偏保湿修护的商品放在一起看。'
+          ),
+          productSection(
+            'p1',
+            38,
+            '维生素原 B5（泛醇）和修护、舒缓方向是目前已核对到的核心资料。',
+            [{ label: '核心成分', display_value: '维生素原 B5（泛醇）' }]
+          ),
+          productSection(
+            'p2',
+            35,
+            '已核对到玻色因、透明质酸，以及保湿、紧致和多种肤质适用。',
+            [{ label: '核心成分', display_value: '玻色因、透明质酸' }]
+          ),
+          productSection(
+            'p3',
+            43,
+            '已核对到甘油，以及保湿、修护、舒缓方向；质地更偏面霜。',
+            [{ label: '核心成分', display_value: '甘油' }]
+          ),
+          section(
+            'closing',
+            '如果更在意泛红和修护，先看 B5；如果想要紧致方向，再看聚糖精华；偏厚实保湿则看高保湿面霜。'
+          ),
+          shelf()
+        ],
+        comparison_rows: [],
+        winner: noWinner(),
+        visible_product_ids: [38, 35, 43],
+        compact_tags: tags([
+          [38, 'B5'], [38, '修护'], [38, '舒缓'],
+          [35, '玻色因'], [35, '保湿'], [35, '紧致'],
+          [43, '高保湿'], [43, '修护'], [43, '舒缓']
+        ]),
+        card_display: card('recommendation', [38, 35, 43])
+      };
+
+      const imageSuitability = {
+        mode: 'comparison',
+        responsibility: 'comparison',
+        copy_source: 'prepared_data',
+        sections: [
+          section(
+            'summary',
+            '结合你补充的情况：T 区容易出油、两颊洗后紧、换季轻微泛红。这里按“修护舒缓优先，同时避免一上来选择过厚的质地”来判断。'
+          ),
+          section('comparison', null),
+          shelf()
+        ],
+        requested_comparison_dimensions: ['ingredients_present'],
+        comparison_rows: [
+          comparisonRow(
+            'brand_main',
+            '主打方向',
+            [
+              { product_id: 38, value: '修护、补水保湿、舒缓' },
+              { product_id: 35, value: '保湿、紧致、淡化细纹' },
+              { product_id: 43, value: '保湿、修护、舒缓' }
+            ]
+          ),
+          comparisonRow(
+            'ingredients_present',
+            '已核对成分',
+            [
+              { product_id: 38, value: '维生素原 B5（泛醇）' },
+              { product_id: 35, value: '玻色因、透明质酸' },
+              { product_id: 43, value: '甘油' }
+            ]
+          ),
+          comparisonRow(
+            'profile_match',
+            '适配判断',
+            [
+              { product_id: 38, value: '更贴近泛红与修护诉求' },
+              { product_id: 35, value: '更偏紧致保湿' },
+              { product_id: 43, value: '保湿更厚实，注意用量' }
+            ]
+          )
+        ],
+        winner: {
+          status: 'selected',
+          winner_product_id: 38,
+          reason: '在当前已核对资料下，B5 的修护、舒缓和泛红方向更贴近你描述的状态；先薄涂、局部试用，观察耐受后再扩大使用范围。',
+          fact_ids: ['demo:38:efficacy', 'demo:38:ingredient'],
+          dimension_ids: ['efficacy', 'skin_fit']
+        },
+        visible_product_ids: [38, 35, 43],
+        compact_tags: imageRecommendation.compact_tags,
+        card_display: card('comparison', [38, 35, 43])
+      };
+
+      const serumRecommendation = {
+        mode: 'recommendation',
+        responsibility: 'recommendation',
+        recommendation_mode: 'explore',
+        copy_source: 'prepared_data',
+        sections: [
+          section(
+            'summary',
+            '按 900 到 1100 元预算、油敏肌和修护舒缓方向，我先给你三款精华，并保留不同质地和使用侧重点供你继续收窄。'
+          ),
+          productSection(
+            'p1',
+            33,
+            '雅诗兰黛这款偏修护舒缓和紧致，资料里还写到多种肤质适用，并有早晚使用方法。',
+            [
+              { label: '参考价 / 规格', display_value: '¥968 / 50ml' },
+              { label: '方向', display_value: '修护、舒缓、紧致' }
+            ]
+          ),
+          productSection(
+            'p2',
+            39,
+            '赫莲娜这款是凝露质地，资料里描述为轻薄、偏油皮友好，侧重点是保湿、修护和抗皱。',
+            [
+              { label: '参考价', display_value: '¥1080' },
+              { label: '质地', display_value: '凝露、轻薄' }
+            ]
+          ),
+          productSection(
+            'p3',
+            63,
+            '兰蔻这款是双相精华水，需要摇匀后使用，更偏焕肤和通透感；如果使用，日间要配合防晒。',
+            [
+              { label: '参考价', display_value: '¥880' },
+              { label: '使用方式', display_value: '摇匀后用于面部和颈部' }
+            ]
+          ),
+          section(
+            'closing',
+            '更关注换季泛红和修护可以看第一款；想要轻薄和油皮友好可以看第二款；更喜欢双相水感和焕肤感可以看第三款。'
+          ),
+          shelf()
+        ],
+        comparison_rows: [],
+        winner: noWinner(),
+        visible_product_ids: [33, 39, 63],
+        compact_tags: tags([
+          [33, '修护'], [33, '舒缓'], [33, '紧致'],
+          [39, '轻薄'], [39, '保湿'], [39, '抗皱'],
+          [63, '双相'], [63, '焕肤'], [63, '摇匀']
+        ]),
+        card_display: card('recommendation', [33, 39, 63])
+      };
+
+      const serumKnowledge = {
+        mode: 'product_knowledge',
+        responsibility: 'product_knowledge',
+        copy_source: 'prepared_data',
+        sections: [
+          section(
+            'summary',
+            '第二款是赫莲娜悦颜焕活精华露。你问的质地和肤质，我只结合这款已有的商品资料回答。'
+          ),
+          section(
+            'answer',
+            '它是凝露质地，整体偏轻薄，资料里偏向油皮友好。商品方向包括保湿、修护、舒缓和抗皱，所以如果你更在意轻薄和日常抗老，第二款会比较合适。'
+          ),
+          shelf()
+        ],
+        comparison_rows: [],
+        winner: noWinner(),
+        visible_product_ids: [39],
+        compact_tags: tags([[39, '轻薄'], [39, '保湿'], [39, '抗皱']]),
+        card_display: card('single', [39])
+      };
+
+      const consultationObservation = {
+        mode: 'consultation',
+        responsibility: 'consultation',
+        copy_source: 'prepared_data',
+        sections: [
+          section(
+            'observation',
+            '从你描述的“换季泛红”和“T 区出油”来看，更像是偏油的敏感倾向，或者混合偏油、屏障状态不稳定。这个判断还需要结合两颊是否紧绷、刺痛和起皮来确认。要把“油敏肌、换季泛红、T 区出油”设为这次的画像吗？'
+          ),
+          section(
+            'summary',
+            '确认后，后续推荐和比较会沿用这组肤质观察。'
+          )
+        ],
+        comparison_rows: [],
+        winner: noWinner(),
+        visible_product_ids: [],
+        compact_tags: [],
+        card_display: card('none', [])
+      };
+
+      const profileConfirmation = {
+        mode: 'consultation',
+        responsibility: 'consultation',
+        copy_source: 'prepared_data',
+        sections: [
+          section(
+            'observation',
+            '好的，已把“油敏肌、换季泛红、T 区出油”记为本轮画像。接下来回到刚才的两款精华，按这个画像比较。'
+          ),
+          section(
+            'summary',
+            '画像已确认，可以继续比较刚才提到的商品。'
+          )
+        ],
+        comparison_rows: [],
+        winner: noWinner(),
+        visible_product_ids: [],
+        compact_tags: [],
+        card_display: card('none', [])
+      };
+
+      const serumComparison = {
+        mode: 'comparison',
+        responsibility: 'comparison',
+        copy_source: 'prepared_data',
+        sections: [
+          section(
+            'summary',
+            '按你刚确认的油敏肌、换季泛红和 T 区出油画像，我把第一款和第二款重新放在一起看。'
+          ),
+          section('comparison', null),
+          shelf()
+        ],
+        requested_comparison_dimensions: ['texture.finish'],
+        comparison_rows: [
+          comparisonRow(
+            'brand_main',
+            '主打方向',
+            [
+              { product_id: 33, value: '修护、舒缓、紧致' },
+              { product_id: 39, value: '保湿、修护、舒缓、抗皱' }
+            ]
+          ),
+          comparisonRow(
+            'texture.finish',
+            '质地侧重点',
+            [
+              { product_id: 33, value: '资料偏修护护理' },
+              { product_id: 39, value: '凝露、轻薄，偏油皮友好' }
+            ]
+          ),
+          comparisonRow(
+            'profile_match',
+            '当前画像匹配',
+            [
+              { product_id: 33, value: '更优先照顾换季泛红和修护' },
+              { product_id: 39, value: '更优先照顾轻薄和油皮肤感' }
+            ]
+          )
+        ],
+        winner: {
+          status: 'selected',
+          winner_product_id: 33,
+          reason: '你现在把换季泛红放在前面，第一款的修护和舒缓方向更贴合；第二款的优势是凝露轻薄、偏油皮友好，适合你把肤感放在第一优先级时选择。',
+          fact_ids: ['demo:33:efficacy', 'demo:33:usage'],
+          dimension_ids: ['efficacy', 'skin_fit']
+        },
+        visible_product_ids: [33, 39],
+        compact_tags: tags([
+          [33, '修护'], [33, '舒缓'], [33, '紧致'],
+          [39, '轻薄'], [39, '保湿'], [39, '抗皱']
+        ]),
+        card_display: card('comparison', [33, 39])
+      };
+
+      const demoTelemetry = Object.freeze({
+        provider: 'demo',
+        model: 'scripted-public-contract',
+        prompt_tokens: 0,
+        completion_tokens: 0,
+        total_tokens: 0,
+        latency_ms: 0.0,
+        fallback_reason: null
+      });
+      [
+        recommendation,
+        productKnowledge,
+        comparison,
+        imageIdentity,
+        imageRecommendation,
+        imageSuitability,
+        serumRecommendation,
+        serumKnowledge,
+        consultationObservation,
+        profileConfirmation,
+        serumComparison
+      ].forEach(contract => {
+        contract.copy_source = 'authoritative';
+        contract.requested_comparison_dimensions ??= [];
+        contract.telemetry = { ...demoTelemetry };
+      });
+
+      const chains = {
+        text: {
+          name: '推荐 / 追问 / 画像 / 对比',
+          turns: [
+            {
+              question: '油敏肌，预算 900 到 1100 元，想找修护舒缓的精华。',
+              mode: 'recommend',
+              state: {
+                intent: 'recommendation',
+                cardDisplay: serumRecommendation.card_display,
+                products: [products[33], products[39], products[63]],
+                presentation: serumRecommendation
+              }
+            },
+            {
+              question: '第二款的质地和适合肤质是什么？',
+              mode: 'knowledge',
+              state: {
+                intent: 'product_knowledge',
+                cardDisplay: serumKnowledge.card_display,
+                products: [products[39]],
+                presentation: serumKnowledge
+              }
+            },
+            {
+              question: '我 T 区容易出油，换季容易泛红。',
+              mode: 'consultation_answer',
+              state: {
+                intent: 'consultation',
+                cardDisplay: consultationObservation.card_display,
+                products: [],
+                presentation: consultationObservation
+              }
+            },
+            {
+              question: '确认，就按这个画像。',
+              mode: 'consultation_confirmation',
+              state: {
+                intent: 'consultation',
+                cardDisplay: profileConfirmation.card_display,
+                products: [],
+                presentation: profileConfirmation
+              }
+            },
+            {
+              question: '第一款和第二款现在怎么选？',
+              mode: 'comparison',
+              state: {
+                intent: 'comparison',
+                cardDisplay: serumComparison.card_display,
+                products: [products[33], products[39]],
+                presentation: serumComparison
+              }
+            }
+          ]
+        },
+        image: null
+      };
+
+      const legacyChains = {
+        text: {
+          name: '推荐 / 追问 / 对比',
+          turns: [
+            {
+              question: '油敏肌夏天想找防晒通勤，预算150元以内，怕闷也容易泛红。',
+              mode: 'recommend',
+              state: { intent: 'recommendation', cardDisplay: recommendation.card_display, products: [products[53], products[102], products[54]], presentation: recommendation }
+            },
+            {
+              question: '第二款的防晒等级和使用方法是什么？',
+              mode: 'knowledge',
+              state: { intent: 'product_knowledge', cardDisplay: productKnowledge.card_display, products: [products[102]], presentation: productKnowledge }
+            },
+            {
+              question: '第一款和第二款哪个更适合夏天通勤？',
+              mode: 'comparison',
+              state: { intent: 'comparison', cardDisplay: comparison.card_display, products: [products[53], products[102]], presentation: comparison }
+            }
+          ]
+        },
+        image: {
+          name: '图片识别 / 相似 / 肤质判断',
+          turns: [
+            {
+              question: '这张图里的商品是什么？',
+              mode: 'image_identity',
+              state: { intent: 'image_identity', cardDisplay: imageIdentity.card_display, products: [products[38]], presentation: imageIdentity }
+            },
+            {
+              question: '以这款为参照，找两款同样偏保湿修护的商品。',
+              mode: 'image_recommend',
+              state: { intent: 'recommendation', cardDisplay: imageRecommendation.card_display, products: [products[38], products[35], products[43]], presentation: imageRecommendation }
+            },
+            {
+              question: '我 T 区容易出油、两颊洗后紧，换季会轻微泛红，回到刚才几款看哪个更适合我？',
+              mode: 'image_compare',
+              state: { intent: 'comparison', cardDisplay: imageSuitability.card_display, products: [products[38], products[35], products[43]], presentation: imageSuitability }
+            }
+          ]
+        }
+      };
+
+      chains.image = legacyChains.image;
+
+      const conversation = document.getElementById('conversation');
+      const chatForm = document.getElementById('chatForm');
+      const chatInput = document.getElementById('chatInput');
+      const sendButton = document.getElementById('sendButton');
+      const imageInput = document.getElementById('imageInput');
+      const uploadButton = document.getElementById('uploadButton');
+      const uploadStatus = document.getElementById('uploadStatus');
+      const turnNumber = document.getElementById('turnNumber');
+      const chainName = document.getElementById('chainName');
+      const emptyState = document.getElementById('emptyState');
+      let activeChain = 'text';
+      let cursor = 0;
+      let running = false;
+      let selectedImageUrl = '';
+
+      const helpers = {
+        getImageUrl: product => product.image_url,
+        getDetailUrl: product => product.detail_url,
+        formatPrice: product => {
+          const price = Number(product.price);
+          const value = Number.isFinite(price)
+            ? `¥${price.toFixed(price % 1 ? 2 : 0)}`
+            : '价格待确认';
+          return (
+            product.price_specification_alignment === 'aligned'
+            && product.specification
+          )
+            ? `${value} / ${product.specification}`
+            : value;
+        }
+      };
+
+      function appendFeedback(host) {
+        const row = document.createElement('div');
+        row.className = 'feedback-row';
+        row.setAttribute('aria-label', '回答反馈');
+        ['有帮助', '需要调整'].forEach(label => {
+          const button = document.createElement('button');
+          button.className = 'feedback-button';
+          button.type = 'button';
+          button.textContent = label;
+          button.addEventListener('click', () => {
+            row.querySelectorAll('button').forEach(item => {
+              item.classList.remove('active');
+            });
+            button.classList.add('active');
+          });
+          row.appendChild(button);
+        });
+        host.appendChild(row);
+      }
+
+      function appendTurn(turn, inputText, imageUrl) {
+        const turnNode = document.createElement('article');
+        turnNode.className = 'turn';
+        turnNode.dataset.turnIndex = String(cursor);
+
+        const user = document.createElement('div');
+        user.className = 'user-bubble';
+        if (imageUrl) {
+          const image = document.createElement('img');
+          image.className = 'user-image';
+          image.src = imageUrl;
+          image.alt = '用户上传的商品图片';
+          user.appendChild(image);
+        }
+        user.appendChild(document.createTextNode(inputText));
+
+        const assistant = document.createElement('div');
+        assistant.className = 'assistant-bubble';
+        const label = document.createElement('p');
+        label.className = 'assistant-label';
+        label.textContent = '小 Ro';
+        const thinking = document.createElement('div');
+        thinking.className = 'thinking-host';
+        assistant.append(label, thinking);
+        turnNode.append(user, assistant);
+        conversation.appendChild(turnNode);
+
+        const pipeline = P.createThinkingPipeline(thinking, {
+          mode: turn.mode,
+          autoAdvanceMs: 620
+        });
+        const stages = P.thinkingStagesForMode(turn.mode);
+        const waitMs = Math.max(1800, stages.length * 620 + 280);
+        setTimeout(() => {
+          if (pipeline) {
+            P.advanceThinkingPipeline(
+              pipeline,
+              stages[stages.length - 1],
+              '正在整理你的条件'
+            );
+          }
+          setTimeout(() => {
+            const output = document.createElement('div');
+            output.className = 'demo-output';
+            assistant.appendChild(output);
+            try {
+              if (pipeline) P.dismissThinkingPipeline(pipeline);
+              P.renderPresentation(output, turn.state, helpers);
+              appendFeedback(assistant);
+            } catch (error) {
+              console.error(error);
+              output.textContent = '演示内容暂时无法显示，请重试本轮。';
+              cursor = Math.max(0, cursor - 1);
+            } finally {
+              running = false;
+              updateToolbar();
+              if (!chatInput.disabled) chatInput.focus();
+            }
+          }, 300);
+        }, waitMs);
+      }
+
+      function updateToolbar() {
+        const chain = chains[activeChain];
+        chainName.textContent = chain.name;
+        turnNumber.textContent = String(cursor);
+        const nextTurn = chain.turns[cursor];
+        chatInput.value = nextTurn?.question || '';
+        chatInput.disabled = running || !nextTurn;
+        sendButton.disabled = running || !nextTurn;
+        chatInput.placeholder = activeChain === 'image'
+          ? '请先添加图片'
+          : '演示已完成';
+        uploadButton.hidden = activeChain !== 'image';
+      }
+
+      function resetChain(nextChain = activeChain) {
+        activeChain = nextChain;
+        cursor = 0;
+        running = false;
+        selectedImageUrl = '';
+        imageInput.value = '';
+        uploadStatus.textContent = '';
+        conversation.replaceChildren(emptyState);
+        emptyState.hidden = false;
+        chatInput.value = '';
+        chatInput.disabled = false;
+        sendButton.disabled = false;
+        updateToolbar();
+        document.querySelectorAll('.chain-tab').forEach(tab => {
+          tab.setAttribute(
+            'aria-selected',
+            tab.dataset.chain === activeChain ? 'true' : 'false'
+          );
+        });
+      }
+
+      chatForm.addEventListener('submit', event => {
+        event.preventDefault();
+        const chain = chains[activeChain];
+        const turn = chain.turns[cursor];
+        const inputText = turn?.question || '';
+        if (
+          running
+          || !inputText
+          || cursor >= chain.turns.length
+          || (activeChain === 'image' && cursor === 0 && !selectedImageUrl)
+        ) {
+          return;
+        }
+        if (emptyState.isConnected) emptyState.remove();
+        running = true;
+        chatInput.disabled = true;
+        sendButton.disabled = true;
+        cursor += 1;
+        updateToolbar();
+        appendTurn(turn, inputText, selectedImageUrl);
+      });
+
+      imageInput.addEventListener('change', () => {
+        const file = imageInput.files?.[0];
+        if (!file) return;
+        if (selectedImageUrl) URL.revokeObjectURL(selectedImageUrl);
+        selectedImageUrl = URL.createObjectURL(file);
+        uploadStatus.textContent = `已添加：${file.name}`;
+      });
+
+      document.querySelectorAll('.chain-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          if (!running) resetChain(tab.dataset.chain);
+        });
+      });
+
+      resetChain('text');
+    })();
+  </script>
 </body>
 </html>

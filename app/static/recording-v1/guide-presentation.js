@@ -104,12 +104,12 @@
                 || (
                     contract.mode === 'recommendation'
                     && ids.length >= 1
-                    && ids.length <= 4
+                    && ids.length <= 3
                 )
                 || (
                     contract.mode === 'comparison'
                     && ids.length >= 2
-                    && ids.length <= 4
+                    && ids.length <= 3
                 )
             );
             if (!validMode) {
@@ -138,53 +138,26 @@
             }));
         }
 
-        function validateWinner(
-            winner,
-            mode,
-            visibleProductIds,
-            recommendationMode = null
-        ) {
+        function validateWinner(winner, mode, visibleProductIds) {
             if (!winner || typeof winner !== 'object') {
-                if (![
-                    'recommendation',
-                    'comparison'
-                ].includes(mode)) {
+                if (mode !== 'comparison') {
                     return { status: 'not_applicable' };
                 }
                 throw new Error('PRESENTATION_WINNER_INVALID');
             }
             const status = winner.status;
             if (mode === 'recommendation') {
-                if (
-                    recommendationMode === 'explore'
-                    && status !== 'not_applicable'
-                ) {
+                if (!['not_applicable', 'selected'].includes(status)) {
                     throw new Error('PRESENTATION_WINNER_INVALID');
                 }
-                if (recommendationMode === 'explore') {
-                    if (
-                        winner.winner_product_id !== null
-                        && winner.winner_product_id !== undefined
-                        || winner.reason !== null
-                        && winner.reason !== undefined
-                        || winner.tie_reason !== null
-                        && winner.tie_reason !== undefined
-                        || !Array.isArray(winner.fact_ids)
-                        || winner.fact_ids.length
-                        || !Array.isArray(winner.dimension_ids)
-                        || winner.dimension_ids.length
-                    ) {
-                        throw new Error(
-                            'PRESENTATION_WINNER_INVALID'
-                        );
-                    }
+                if (status === 'not_applicable') {
                     return clone(winner);
                 }
                 if (
-                    recommendationMode !== 'fit'
-                    || status !== 'selected'
-                    || !Number.isInteger(winner.winner_product_id)
-                    || winner.winner_product_id !== visibleProductIds[0]
+                    !Number.isInteger(winner.winner_product_id)
+                    || !visibleProductIds.includes(
+                        winner.winner_product_id
+                    )
                     || typeof winner.reason !== 'string'
                     || !winner.reason.trim()
                     || !Array.isArray(winner.fact_ids)
@@ -310,61 +283,11 @@
             )
                 ? presentation.comparison_rows
                 : [];
-            const recommendationMode = presentation.recommendation_mode;
-            if (
-                presentation.mode === 'recommendation'
-                && !['explore', 'fit'].includes(recommendationMode)
-            ) {
-                throw new Error(
-                    'PRESENTATION_RECOMMENDATION_MODE_INVALID'
-                );
-            }
-            if (
-                presentation.mode !== 'recommendation'
-                && recommendationMode !== null
-                && recommendationMode !== undefined
-            ) {
-                throw new Error('PRESENTATION_CONTRACT_INVALID');
-            }
-            if (
-                recommendationMode === 'fit'
-                && cardDisplay.visible_product_ids.length !== 1
-            ) {
-                throw new Error(
-                    'PRESENTATION_CARD_CONTRACT_MISMATCH'
-                );
-            }
             const winner = validateWinner(
                 presentation.winner,
                 presentation.mode,
-                cardDisplay.visible_product_ids,
-                recommendationMode
+                cardDisplay.visible_product_ids
             );
-            if (presentation.mode === 'recommendation') {
-                const closingSections = presentation.sections.filter(
-                    section => section?.kind === 'closing'
-                );
-                if (closingSections.length !== 1) {
-                    throw new Error('PRESENTATION_CONTRACT_INVALID');
-                }
-                const closingCopy = closingSections[0].copy_text;
-                if (
-                    recommendationMode === 'fit'
-                    && closingCopy !== null
-                    && closingCopy !== undefined
-                ) {
-                    throw new Error('PRESENTATION_CONTRACT_INVALID');
-                }
-                if (
-                    recommendationMode === 'explore'
-                    && (
-                        typeof closingCopy !== 'string'
-                        || !closingCopy.trim()
-                    )
-                ) {
-                    throw new Error('PRESENTATION_CONTRACT_INVALID');
-                }
-            }
             if (presentation.mode === 'comparison') {
                 if (!comparisonRows.length) {
                     throw new Error('PRESENTATION_CONTRACT_INVALID');
@@ -638,9 +561,6 @@
             });
             return {
                 mode: presentation.mode,
-                recommendationMode: (
-                    presentation.recommendation_mode || null
-                ),
                 copySource: presentation.copy_source,
                 sections: clone(presentation.sections),
                 products,
@@ -1347,13 +1267,7 @@
                             helpers
                         )
                     );
-                } else if (
-                    section.kind === 'closing'
-                    && (
-                        view.mode !== 'recommendation'
-                        || view.recommendationMode === 'fit'
-                    )
-                ) {
+                } else if (section.kind === 'closing') {
                     const title = documentRef.createElement('h3');
                     title.textContent = '综合推荐';
                     sectionNode.appendChild(title);
@@ -1398,7 +1312,6 @@
                 }
                 if (
                     section.kind === 'closing'
-                    && view.recommendationMode === 'fit'
                     && view.winner?.status === 'selected'
                 ) {
                     const winner = createWinnerConclusion(
@@ -1578,12 +1491,7 @@
                     options.onInlineCard?.(section.product_id);
                 } else {
                     const titleByKind = {
-                        closing: (
-                            view.mode !== 'recommendation'
-                            || view.recommendationMode === 'fit'
-                        )
-                            ? '综合推荐'
-                            : null,
+                        closing: '综合推荐',
                         comparison: '对比结论',
                         observation: '当前观察'
                     };
@@ -1622,7 +1530,6 @@
                 }
                 if (
                     section.kind === 'closing'
-                    && view.recommendationMode === 'fit'
                     && view.winner?.status === 'selected'
                 ) {
                     const winner = createWinnerConclusion(

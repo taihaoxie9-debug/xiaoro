@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>小 ro 导购</title>
-    <script src="/static/vendor/feather.min.js"></script>
+    <script src="/static/recording-v1/vendor/feather.min.js"></script>
     <script>
         window.feather = window.feather || { replace() {} };
     </script>
-    <script src="/static/guide-presentation.js?v=4550aa74a8f0"></script>
+    <script src="/static/recording-v1/guide-presentation.js"></script>
+    <script src="/static/recording-v1/guide-demo-fixture.js"></script>
     <style>
         :root {
             --primary: #B88F9D;
@@ -3249,6 +3250,9 @@
     <script>
         const GUIDE_RUNTIME_MODE =
             window.__XIAORO_RUNTIME_SCOPE__ === 'slice1_text_skincare';
+        const GUIDE_DEMO_MODE =
+            new URLSearchParams(window.location.search).get('demo')
+                === 'recording-v1';
         const MAX_IMAGE_COUNT = 4;
         const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
         const MAX_IMAGE_BATCH_BYTES = 20 * 1024 * 1024;
@@ -3298,7 +3302,6 @@
         let uploadedImages = [];
         let imageDraftSessionId = null;
         let imageDraftGeneration = 0;
-        let pendingImageReads = Promise.resolve();
         let currentFeedbackMessageId = null;
         let currentFeedbackType = null;
         let currentFeedbackTarget = null;
@@ -3628,13 +3631,8 @@
         }
 
         function formatProductPrice(product, compact = false) {
-            const hasAlignedSpecification = (
-                product?.price_specification_alignment === 'aligned'
-                && typeof product?.specification === 'string'
-                && product.specification.trim()
-            );
             const specification = (
-                hasAlignedSpecification
+                typeof product?.specification === 'string'
                 ? product.specification.trim()
                 : ''
             );
@@ -3647,17 +3645,6 @@
                 )
                     ? specification
                     : `${price} / ${specification}`;
-            }
-            const hasTypedAlignment = [
-                'aligned',
-                'unresolved',
-                'conflict'
-            ].includes(product?.price_specification_alignment);
-            if (hasTypedAlignment) {
-                return formatCurrency(product?.price);
-            }
-            if (GUIDE_RUNTIME_MODE) {
-                return formatCurrency(product?.price);
             }
             const displayMeta = getProductDisplayMeta(product);
             if (displayMeta.price_label) {
@@ -4673,11 +4660,7 @@
                     category: product.category,
                     price: product.price,
                     specification: product.specification,
-                    price_specification_alignment: product.price_specification_alignment,
-                    variant_scope: product.variant_scope,
-                    display_name: product.display_name,
                     image_url: product.image_url,
-                    image_source_sha256: product.image_source_sha256,
                     detail_url: product.detail_url,
                     favorite: current?.favorite || false,
                     updatedAt: new Date().toISOString()
@@ -4820,8 +4803,6 @@
 
         const MAX_FEEDBACK_TARGETS_PER_SESSION = 32;
         const MAX_FEEDBACK_TARGET_SESSIONS = 8;
-        const FEEDBACK_TARGET_LOOKUP_TIMEOUT_MS = 1500;
-        const CONVERSATION_VERSION_SYNC_TIMEOUT_MS = 3000;
 
         function normalizeFeedbackTargets(receipts) {
             const candidates = Array.isArray(receipts)
@@ -4948,143 +4929,6 @@
             return target;
         }
 
-        function createBoundedRequestController(
-            parentSignal,
-            timeoutMs
-        ) {
-            const controller = new AbortController();
-            const abortLookup = () => controller.abort();
-            const timeoutId = setTimeout(
-                abortLookup,
-                timeoutMs
-            );
-            if (parentSignal?.aborted) {
-                abortLookup();
-            } else {
-                parentSignal?.addEventListener(
-                    'abort',
-                    abortLookup,
-                    { once: true }
-                );
-            }
-            return {
-                signal: controller.signal,
-                dispose() {
-                    clearTimeout(timeoutId);
-                    parentSignal?.removeEventListener(
-                        'abort',
-                        abortLookup
-                    );
-                }
-            };
-        }
-
-        async function synchronizeConversationVersion(
-            sessionId,
-            {
-                signal = null,
-                timeoutMs = CONVERSATION_VERSION_SYNC_TIMEOUT_MS
-            } = {}
-        ) {
-            const bounded = createBoundedRequestController(
-                signal,
-                Number.isInteger(timeoutMs) && timeoutMs > 0
-                    ? Math.min(timeoutMs, 5000)
-                    : CONVERSATION_VERSION_SYNC_TIMEOUT_MS
-            );
-            try {
-                const response = await fetch(
-                    `/api/v1/chat/sessions/${encodeURIComponent(sessionId)}/version`,
-                    {
-                        method: 'GET',
-                        signal: bounded.signal
-                    }
-                );
-                if (!response.ok) {
-                    throw new Error(
-                        `GUIDE_VERSION_SYNC_HTTP_${response.status}`
-                    );
-                }
-                const receipt = await response.json();
-                const version = Number(receipt?.conversation_version);
-                if (
-                    receipt?.session_id !== sessionId
-                    || !Number.isInteger(version)
-                    || version < 0
-                ) {
-                    throw new Error('GUIDE_VERSION_SYNC_INVALID');
-                }
-                if (version !== getConversationVersion(sessionId)) {
-                    const recoveryError = new Error(
-                        '当前会话有一轮未完整显示。为避免跳过上下文，请开始新的咨询。'
-                    );
-                    recoveryError.code = (
-                        'GUIDE_VERSION_SYNC_RECOVERY_REQUIRED'
-                    );
-                    throw recoveryError;
-                }
-                return version;
-            } catch (error) {
-                if (signal?.aborted) {
-                    throw new DOMException(
-                        'Chat request lost ownership',
-                        'AbortError'
-                    );
-                }
-                if (
-                    error?.code
-                    === 'GUIDE_VERSION_SYNC_RECOVERY_REQUIRED'
-                ) {
-                    throw error;
-                }
-                throw new Error('GUIDE_VERSION_SYNC_FAILED');
-            } finally {
-                bounded.dispose();
-            }
-        }
-
-        async function fetchFeedbackTarget(
-            sessionId,
-            conversationVersion,
-            {
-                signal = null,
-                timeoutMs = FEEDBACK_TARGET_LOOKUP_TIMEOUT_MS
-            } = {}
-        ) {
-            if (
-                !GUIDE_RUNTIME_MODE
-                || !Number.isInteger(conversationVersion)
-                || conversationVersion < 1
-            ) {
-                return null;
-            }
-            const bounded = createBoundedRequestController(
-                signal,
-                Number.isInteger(timeoutMs) && timeoutMs > 0
-                    ? Math.min(timeoutMs, 5000)
-                    : FEEDBACK_TARGET_LOOKUP_TIMEOUT_MS
-            );
-            try {
-                const response = await fetch(
-                    `/api/v1/chat/sessions/${encodeURIComponent(sessionId)}/feedback-target`,
-                    {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            conversation_version: conversationVersion
-                        }),
-                        signal: bounded.signal
-                    }
-                );
-                if (!response.ok) return null;
-                return normalizeFeedbackTarget(await response.json());
-            } catch (error) {
-                return null;
-            } finally {
-                bounded.dispose();
-            }
-        }
-
         function clearFeedbackTarget(sessionId) {
             feedbackTargetsBySession.delete(sessionId);
             const targets = loadStoredJson(
@@ -5166,9 +5010,20 @@
             ) {
                 throw new Error('FEEDBACK_TARGET_UNAVAILABLE');
             }
+            if (GUIDE_DEMO_MODE) {
+                const receipt = {
+                    status: 'demo_recorded',
+                    conversation_version:
+                        normalizedTarget.conversation_version,
+                    event_type: eventType
+                };
+                if (typeof onAccepted === 'function') {
+                    onAccepted(receipt);
+                }
+                return receipt;
+            }
             const operationIdentity = feedbackOperationIdentity({
                 sessionId,
-                target: normalizedTarget,
                 eventType,
                 operationId
             });
@@ -5398,7 +5253,7 @@
 
         // 图片选择变化
         imageInput.addEventListener('change', (e) => {
-            void queueImageFiles(e.target.files);
+            handleFiles(e.target.files);
         });
 
         function setImageUploadStatus(message, { error = false, uploading = false } = {}) {
@@ -5439,27 +5294,6 @@
                     ? '已添加 2 张；发送后比较两张图对应商品'
                     : '已添加 1 张；发送后可找同品类相似商品'
             );
-        }
-
-        function queueImageFiles(files) {
-            const queuedFiles = Array.from(files || []);
-            const queuedRead = pendingImageReads.then(
-                () => handleFiles(queuedFiles)
-            );
-            pendingImageReads = queuedRead.catch(error => {
-                const message = error?.message || '图片预览失败';
-                setImageUploadStatus(message, { error: true });
-                showNotification(message);
-            });
-            return pendingImageReads;
-        }
-
-        async function waitForPendingImageReads() {
-            while (true) {
-                const pending = pendingImageReads;
-                await pending;
-                if (pending === pendingImageReads) return;
-            }
         }
 
         // 处理文件
@@ -6121,8 +5955,14 @@
             this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
 
-        function runtimeImageAction(imageCount) {
-            return imageCount === 1 ? 'identify' : 'compare';
+        function defaultRuntimeImagePrompt(imageCount) {
+            const prompts = {
+                1: '请为这张图片找同品类相似商品',
+                2: '请比较这两张图片对应的商品',
+                3: '请按上传顺序比较这三张图片对应的商品',
+                4: '请按上传顺序比较这四张图片对应的商品'
+            };
+            return prompts[imageCount] || prompts[1];
         }
 
         function getRuntimeImageDraftError(imageCount, runtimeMode) {
@@ -6132,7 +5972,6 @@
 
         // 发送消息
         sendBtn.addEventListener('click', async () => {
-            await waitForPendingImageReads();
             const text = chatInput.value.trim();
             const hasImages = uploadedImages.length > 0;
             const sessionId = getSessionId();
@@ -6298,7 +6137,6 @@
                 autoScrollToBottom(true);
 
                 typingDiv.className = 'message-wrapper ai typing';
-                typingDiv.dataset.guideRequestId = requestContext.requestId;
                 typingDiv.innerHTML = '<div class="message-bubble"></div>';
                 chatMessages.appendChild(typingDiv);
                 if (GUIDE_RUNTIME_MODE && window.XiaoRoPresentation) {
@@ -6326,9 +6164,8 @@
                 let effectiveExtraHtml = extraHtml;
                 let imageResults = [];
                 let bundleReference = null;
-                let imageAction = null;
 
-                if (GUIDE_RUNTIME_MODE && images?.length) {
+                if (GUIDE_RUNTIME_MODE && images?.length && !GUIDE_DEMO_MODE) {
                     setImageUploadStatus('正在安全上传图片…', { uploading: true });
                     bundleReference = await uploadImageBundle(
                         images,
@@ -6350,7 +6187,9 @@
                             : bundleReference.message
                     );
                     if (!effectiveText) {
-                        imageAction = runtimeImageAction(images.length);
+                        effectiveText = defaultRuntimeImagePrompt(
+                            images.length
+                        );
                     }
                 }
 
@@ -6396,8 +6235,7 @@
                     liveDecisionProcess,
                     imageResults,
                     bundleReference,
-                    guideThinkingPipeline,
-                    imageAction
+                    guideThinkingPipeline
                 );
             } catch (error) {
                 const ownerChanged = !isActiveChatRequest(requestContext);
@@ -6593,7 +6431,7 @@
                 || (
                     contract.mode === 'recommendation'
                     && maxCards >= 1
-                    && maxCards <= 4
+                    && maxCards <= 3
                 )
                 || (
                     contract.mode === 'comparison'
@@ -6618,7 +6456,6 @@
             answerContract,
             answerData = null,
             cardDisplayContract,
-            presentationContract,
             products,
             comparisonData = null,
             suitabilityData = null,
@@ -6683,110 +6520,12 @@
                 && left.image_id === right.image_id
                 && left.product_id === right.product_id
             );
-            const presentationModeByResponsibility = {
-                recommendation: 'recommendation',
-                comparison: 'comparison',
-                single_product_suitability: 'single_product',
-                product_knowledge: 'product_knowledge',
-                general_knowledge: 'general_knowledge',
-                consultation: 'consultation',
-                image_identity: 'image_identity',
-                clarification: 'clarification',
-                safety_escalation: 'consultation'
-            };
-            const responsibilitiesByIntent = {
-                recommend: ['recommendation'],
-                revise: ['recommendation'],
-                image_recommend: ['recommendation'],
-                comparison: ['comparison'],
-                image_compare: ['comparison'],
-                suitability: ['single_product_suitability'],
-                image_suitability: ['single_product_suitability'],
-                knowledge: ['product_knowledge'],
-                image_identity: ['image_identity'],
-                consultation_entry: ['consultation'],
-                consultation_answer: ['consultation'],
-                consultation_clarification: ['consultation'],
-                consultation_provisional: ['consultation'],
-                consultation_confirmation: ['consultation'],
-                consultation_rejection: ['consultation'],
-                consultation_medical_escalation: [
-                    'consultation',
-                    'safety_escalation'
-                ],
-                followup: [
-                    'recommendation',
-                    'single_product_suitability',
-                    'product_knowledge'
-                ]
-            };
-            const samePresentationCard = (presentation, card) => (
-                presentation?.card_display
-                && card
-                && presentation.card_display.mode === card.mode
-                && presentation.card_display.max_cards === card.max_cards
-                && sameIds(
-                    presentation.card_display.visible_product_ids,
-                    card.visible_product_ids
-                )
-            );
-            const validatePresentationIdentity = (
-                selectedIds,
-                { allowGeneralKnowledge = false } = {}
-            ) => {
-                if (
-                    !presentationContract
-                    || typeof presentationContract !== 'object'
-                    || typeof presentationContract.responsibility !== 'string'
-                    || presentationContract.mode
-                        !== presentationModeByResponsibility[
-                            presentationContract.responsibility
-                        ]
-                    || !sameIds(
-                        presentationContract.visible_product_ids,
-                        selectedIds
-                    )
-                ) {
-                    fail();
-                }
-                if (allowGeneralKnowledge) {
-                    if (
-                        presentationContract.responsibility
-                            !== 'general_knowledge'
-                        || presentationContract.card_display?.mode !== 'none'
-                        || presentationContract.card_display?.max_cards !== 0
-                        || !sameIds(
-                            presentationContract.card_display
-                                ?.visible_product_ids,
-                            []
-                        )
-                    ) {
-                        fail();
-                    }
-                    return;
-                }
-                const allowedResponsibilities =
-                    responsibilitiesByIntent[intent];
-                if (
-                    !Array.isArray(allowedResponsibilities)
-                    || !allowedResponsibilities.includes(
-                        presentationContract.responsibility
-                    )
-                    || !samePresentationCard(
-                        presentationContract,
-                        cardDisplayContract
-                    )
-                ) {
-                    fail();
-                }
-            };
             const list = Array.isArray(products) ? products : [];
             if (intent === 'clarify') {
                 if (
                     answerContract
                     || answerData
                     || cardDisplayContract
-                    || presentationContract
                     || list.length
                     || comparisonData
                     || suitabilityData
@@ -6813,10 +6552,6 @@
                 ) {
                     fail();
                 }
-                validatePresentationIdentity(
-                    [],
-                    { allowGeneralKnowledge: true }
-                );
                 return [];
             }
             if (
@@ -6872,7 +6607,6 @@
                 fail();
             }
             const selectedIds = selected.map(item => item.id);
-            validatePresentationIdentity(selectedIds);
             if (decisionProductIds !== null) {
                 if (!sameIds(decisionProductIds, selectedIds)) {
                     fail();
@@ -6958,8 +6692,7 @@
                         'SELECTED',
                         'TIED_BY_BUSINESS_EVIDENCE',
                         'INSUFFICIENT_FOR_WINNER',
-                        'NO_CANDIDATE',
-                        'NOT_APPLICABLE'
+                        'NO_CANDIDATE'
                     ]);
                     if (
                         !decisionStatuses.has(
@@ -7022,30 +6755,7 @@
                 const references = comparisonData?.references;
                 const priceFacts =
                     comparisonData?.evaluated_price_facts;
-                const contextSource = comparisonData?.context_source;
                 const comparisonCount = selected.length;
-                const observationEvidenceValid = (
-                    contextSource === 'current_upload'
-                        ? (
-                            Array.isArray(references)
-                            &&
-                            Array.isArray(imageObservations)
-                            && imageObservations.length === comparisonCount
-                            && imageObservations.every(
-                                (observation, index) => (
-                                    observation?.image_id
-                                        === references[index].image_id
-                                    && observation?.confirmed_product_id
-                                        === selectedIds[index]
-                                )
-                            )
-                        )
-                        : (
-                            contextSource === 'confirmed_session'
-                            && Array.isArray(imageObservations)
-                            && imageObservations.length === 0
-                        )
-                );
                 if (
                     cardDisplayContract.mode !== 'comparison'
                     || comparisonCount < 2
@@ -7070,7 +6780,16 @@
                             )
                         )
                     )
-                    || !observationEvidenceValid
+                    || !Array.isArray(imageObservations)
+                    || imageObservations.length !== comparisonCount
+                    || imageObservations.some(
+                        (observation, index) => (
+                            observation?.image_id
+                                !== references[index].image_id
+                            || observation?.confirmed_product_id
+                                !== selectedIds[index]
+                        )
+                    )
                 ) {
                     fail();
                 }
@@ -7151,78 +6870,6 @@
             } else if (suitabilityData) {
                 fail();
             }
-            const presentationWinner = presentationContract.winner;
-            if (
-                !presentationWinner
-                || typeof presentationWinner.status !== 'string'
-            ) {
-                fail();
-            }
-            const normalizedWinnerStatuses = {
-                selected: new Set([
-                    'SELECTED',
-                    'WINNER',
-                    'winner'
-                ]),
-                tied: new Set([
-                    'TIED',
-                    'TIED_BY_BUSINESS_EVIDENCE',
-                    'tie'
-                ]),
-                insufficient: new Set([
-                    'INSUFFICIENT_EVIDENCE',
-                    'INSUFFICIENT_FOR_WINNER',
-                    'insufficient_evidence'
-                ]),
-                not_applicable: new Set([
-                    'NOT_APPLICABLE',
-                    'NO_CANDIDATE'
-                ])
-            };
-            const winnerStatus = presentationWinner.status;
-            const decisionStatus = decisionData?.winner_status
-                ?? answerContract.winner_status;
-            const isSuitabilityOutcome = [
-                'suitability',
-                'image_suitability'
-            ].includes(intent);
-            if (
-                !Object.hasOwn(normalizedWinnerStatuses, winnerStatus)
-                || (
-                    !isSuitabilityOutcome
-                    && !normalizedWinnerStatuses[winnerStatus]
-                        .has(answerContract.winner_status)
-                )
-                || (
-                    decisionData
-                    && !isSuitabilityOutcome
-                    && !normalizedWinnerStatuses[winnerStatus]
-                        .has(decisionStatus)
-                )
-            ) {
-                fail();
-            }
-            if (winnerStatus === 'selected') {
-                const winnerProductId =
-                    presentationWinner.winner_product_id;
-                const expectedWinnerProductId = (
-                    intent === 'image_compare'
-                        ? comparisonData?.winner_reference?.product_id
-                        : selectedIds[0]
-                );
-                if (
-                    !isPositiveInteger(winnerProductId)
-                    || winnerProductId !== expectedWinnerProductId
-                    || !selectedIds.includes(winnerProductId)
-                ) {
-                    fail();
-                }
-            } else if (
-                presentationWinner.winner_product_id !== null
-                && presentationWinner.winner_product_id !== undefined
-            ) {
-                fail();
-            }
             return selected;
         }
 
@@ -7236,8 +6883,7 @@
             liveDecisionProcess = null,
             imageResults = [],
             bundleReference = null,
-            guideThinkingPipeline = null,
-            imageAction = null
+            guideThinkingPipeline = null
         ) {
             const startedAt = performance.now();
             const sessionId = requestContext.sessionId;
@@ -7245,23 +6891,10 @@
                 requestContext.controller.abort();
                 throw new DOMException('Chat request lost ownership', 'AbortError');
             }
-            const conversationVersion = GUIDE_RUNTIME_MODE
-                ? await synchronizeConversationVersion(
-                    sessionId,
-                    { signal: requestContext.controller.signal }
-                )
-                : getConversationVersion(sessionId);
-            if (!isActiveChatRequest(requestContext)) {
-                requestContext.controller.abort();
-                throw new DOMException(
-                    'Chat request lost ownership',
-                    'AbortError'
-                );
-            }
             const bodyPayload = {
                 message: text,
                 session_id: sessionId,
-                conversation_version: conversationVersion,
+                conversation_version: getConversationVersion(sessionId),
                 stream: true
             };
             if (bundleReference) {
@@ -7269,17 +6902,14 @@
                 bodyPayload.image_bundle_version = bundleReference.version;
                 bodyPayload.image_bundle_token = bundleReference.owner_token;
             }
-            if (imageAction) {
-                bodyPayload.image_action = imageAction;
-            }
             if (!GUIDE_RUNTIME_MODE && Array.isArray(imageResults) && imageResults.length > 0) {
                 bodyPayload.image_results = imageResults;
             }
-            const response = await fetch('/api/v1/chat/stream', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(bodyPayload),
-                signal: requestContext.controller.signal
+            const response = window.XiaoRoDemoFixture.createResponse({
+                message: text,
+                images,
+                sessionId,
+                conversationVersion: getConversationVersion(sessionId)
             });
 
             if (!isActiveChatRequest(requestContext)) {
@@ -7355,7 +6985,6 @@
                 pitfalls: [],
                 decisionProcess: null,
                 intent: null,
-                clarificationReceived: false,
                 categoryProfile: null,
                 guideOwned: false,
                 answerContract: null,
@@ -7380,7 +7009,6 @@
                 deferredPanels.pitfalls = [];
                 deferredPanels.decisionProcess = null;
                 deferredPanels.intent = null;
-                deferredPanels.clarificationReceived = false;
                 deferredPanels.categoryProfile = null;
                 deferredPanels.guideOwned = false;
                 deferredPanels.answerContract = null;
@@ -7428,23 +7056,12 @@
 
             const flushDeferredPanels = () => {
                 if (!isActiveChatRequest(requestContext)) return;
-                const isGuideClarification = (
+                const guideOwnsPresentation = (
                     GUIDE_RUNTIME_MODE
-                    && deferredPanels.clarificationReceived
+                    && Boolean(deferredPanels.presentationContract)
                 );
-                const hasGuidePresentation = Boolean(
-                    deferredPanels.presentationContract
-                );
-                if (
-                    GUIDE_RUNTIME_MODE
-                    && isGuideClarification === hasGuidePresentation
-                ) {
-                    throw new Error('GUIDE_RESPONSE_CONTRACT_INVALID');
-                }
-                const guideOwnsPresentation = GUIDE_RUNTIME_MODE;
                 const shouldRenderLegacyConsultationUpdates = (
-                    !guideOwnsPresentation
-                    && deferredPanels.consultationUpdates.length
+                    deferredPanels.consultationUpdates.length
                     && !deferredPanels.presentationContract
                 );
                 if (
@@ -7509,13 +7126,10 @@
                     deferredPanels.products = [];
                     deferredPanels.cardDisplayContract = null;
                 }
-                if (
-                    !guideOwnsPresentation
-                    && deferredPanels.pitfalls.length
-                ) {
+                if (deferredPanels.pitfalls.length) {
                     displayPitfalls(deferredPanels.pitfalls);
+                    deferredPanels.pitfalls = [];
                 }
-                deferredPanels.pitfalls = [];
                 if (
                     guideOwnsPresentation
                 ) {
@@ -7777,7 +7391,6 @@
                     deferredPanels.feedbackTarget
                 );
                 flushDeferredPanels();
-                autoScrollToBottom(true);
                 saveCurrentSnapshot({
                     title: sessionTitle,
                     summary: truncateText(fullText.replace(/\s+/g, ' '), 26) || '推荐已生成'
@@ -7884,25 +7497,19 @@
                     throw new Error('GUIDE_STREAM_TERMINAL_VIOLATION');
                 }
                 if (eventName === 'message') {
-                    if (GUIDE_RUNTIME_MODE) {
-                        throw new Error(
-                            'GUIDE_RESPONSE_CONTRACT_INVALID'
-                        );
-                    }
                     if (data.content && !data.done) {
-                        enqueueAssistantText(data.content);
+                        if (
+                            GUIDE_RUNTIME_MODE
+                            && deferredPanels.presentationContract
+                        ) {
+                            // Retain transport text in history only. The
+                            // presentation contract owns the visible body.
+                            fullText += data.content;
+                            displayedText = fullText;
+                        } else {
+                            enqueueAssistantText(data.content);
+                        }
                     }
-                } else if (eventName === 'clarify') {
-                    if (
-                        typeof data?.question !== 'string'
-                        || !data.question.trim()
-                    ) {
-                        throw new Error(
-                            'GUIDE_RESPONSE_CONTRACT_INVALID'
-                        );
-                    }
-                    deferredPanels.clarificationReceived = true;
-                    enqueueAssistantText(data.question);
                 } else if (eventName === 'stage') {
                     renderStage(
                         data.message || '正在处理',
@@ -8055,18 +7662,20 @@
                         inlineProducts = (
                             GUIDE_RUNTIME_MODE || deferredPanels.guideOwned
                         )
-                            ? validateGuideTerminalPayload({
-                                intent: deferredPanels.clarificationReceived
-                                    ? 'clarify'
-                                    : deferredPanels.intent,
+                            ? (
+                                GUIDE_DEMO_MODE
+                                    ? selectContractProducts(
+                                        deferredPanels.products,
+                                        deferredPanels.cardDisplayContract
+                                    )
+                                    : validateGuideTerminalPayload({
+                                intent: deferredPanels.intent,
                                 answerContract:
                                     deferredPanels.answerContract,
                                 answerData:
                                     deferredPanels.answerData,
                                 cardDisplayContract:
                                     deferredPanels.cardDisplayContract,
-                                presentationContract:
-                                    deferredPanels.presentationContract,
                                 products: deferredPanels.products,
                                 comparisonData:
                                     deferredPanels.comparisonData,
@@ -8080,7 +7689,8 @@
                                     deferredPanels.decisionProcess,
                                 imageObservations:
                                     deferredPanels.imageObservations
-                                })
+                                    })
+                            )
                             : deferredPanels.products;
                     } catch (error) {
                         discardDeferredPanels();
@@ -8189,21 +7799,6 @@
             }
             // owner check: before version write
             if (!isActiveChatRequest(requestContext)) return;
-            setConversationVersion(
-                sessionId,
-                deferredConversationVersion
-            );
-            if (
-                !deferredPanels.feedbackTarget
-                && inlineProducts.length > 0
-            ) {
-                deferredPanels.feedbackTarget = await fetchFeedbackTarget(
-                    sessionId,
-                    deferredConversationVersion,
-                    { signal: requestContext.controller.signal }
-                );
-            }
-            if (!isActiveChatRequest(requestContext)) return;
             if (deferredPanels.feedbackTarget) {
                 commitFeedbackTarget(
                     sessionId,
@@ -8211,6 +7806,10 @@
                 );
                 restoreFeedbackTargetForSession(sessionId);
             }
+            setConversationVersion(
+                sessionId,
+                deferredConversationVersion
+            );
             pendingFinalize = finalizeAfterTypewriter();
             if (pendingFinalize) {
                 await pendingFinalize;

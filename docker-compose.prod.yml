@@ -8,15 +8,20 @@ services:
       - ENVIRONMENT=production
       - LOG_LEVEL=WARNING
       - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/ecommerce
-    command: uvicorn app.guide_runtime.app:app --host 0.0.0.0 --port 8000 --workers 4
+      - XIAORO_GUIDE_STATE_DIR=/var/lib/xiaoro/guide-state
+      - XIAORO_IMAGE_INFERENCE_LOCK_DIR=/var/lib/xiaoro/guide-state/image-inference-locks
+    volumes:
+      - guide_state:/var/lib/xiaoro/guide-state
+    command: uvicorn app.guide_runtime.app:app --host 0.0.0.0 --port 8000 --workers 1
     deploy:
+      replicas: 1
       resources:
         limits:
           cpus: '2'
-          memory: 2G
+          memory: 3G
         reservations:
-          cpus: '0.5'
-          memory: 512M
+          cpus: '1'
+          memory: 2G
     restart: always
 
   # ==================== Celery Worker（生产配置）====================
@@ -72,3 +77,6 @@ services:
         limits:
           cpus: '1'
           memory: 512M
+
+volumes:
+  guide_state:
