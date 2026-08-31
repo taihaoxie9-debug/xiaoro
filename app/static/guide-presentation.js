@@ -1139,7 +1139,8 @@
             title,
             value,
             productId,
-            productsById
+            productsById,
+            metadata = {}
         ) {
             const text = compactEvidenceText(value);
             if (!text) return;
@@ -1150,14 +1151,27 @@
             }
             const prefix = evidencePrefix(productId, productsById);
             const line = `${prefix}${text}`;
-            if (!group.items.includes(line)) {
-                group.items.push(line);
+            if (!group.items.some(item => item.text === line)) {
+                group.items.push({
+                    text: line,
+                    evidenceId: metadata.evidenceId || null,
+                    productId: numericProductId(
+                        metadata.productId
+                    )
+                });
             }
         }
 
-        function evidenceGroupsForState(evidence, productsById) {
+        function evidenceGroupsForState(
+            evidence,
+            productsById,
+            usedProductEvidenceIds = null
+        ) {
             const groups = [];
             const visibleIds = new Set(productsById.keys());
+            const answerBoundProductEvidence = (
+                usedProductEvidenceIds instanceof Set
+            );
             const isVisibleOrUnknown = productId => {
                 const id = numericProductId(productId);
                 return id === null || visibleIds.has(id);
@@ -1168,6 +1182,8 @@
                 : [];
             claims
                 .filter(item => (
+                    !answerBoundProductEvidence
+                    &&
                     item?.claim_scope === 'ordinary'
                     && isVisibleOrUnknown(item?.product_id)
                 ))
@@ -1189,20 +1205,37 @@
             selected
                 .filter(item => {
                     const payload = item?.evidence || item || {};
-                    return isVisibleOrUnknown(
+                    const productId = numericProductId(
                         payload.product_id ?? item?.product_id
                     );
+                    const evidenceId = String(
+                        payload.evidence_id || ''
+                    );
+                    return (
+                        productId !== null
+                        && visibleIds.has(productId)
+                        && (
+                            !answerBoundProductEvidence
+                            || usedProductEvidenceIds.has(evidenceId)
+                        )
+                    );
                 })
-                .slice(0, 4)
                 .forEach(item => {
                     const payload = item?.evidence || item || {};
+                    const productId = (
+                        payload.product_id ?? item?.product_id
+                    );
                     pushEvidenceRow(
                         groups,
                         'product_evidence',
                         '商品证据',
                         payload.exact_text || item.exact_text,
-                        payload.product_id ?? item.product_id,
-                        productsById
+                        productId,
+                        productsById,
+                        {
+                            evidenceId: payload.evidence_id,
+                            productId
+                        }
                     );
                 });
 
@@ -1212,7 +1245,10 @@
                 ? evidence.review_evidence.results
                 : [];
             reviews
-                .filter(item => isVisibleOrUnknown(item?.product_id))
+                .filter(item => (
+                    !answerBoundProductEvidence
+                    && isVisibleOrUnknown(item?.product_id)
+                ))
                 .slice(0, 3)
                 .forEach(item => {
                     const firstQuote = (
@@ -1233,15 +1269,25 @@
             return groups
                 .map(group => ({
                     ...group,
-                    items: group.items.slice(0, 3)
+                    items: (
+                        group.key === 'product_evidence'
+                            ? group.items
+                            : group.items.slice(0, 3)
+                    )
                 }))
                 .filter(group => group.items.length);
         }
 
-        function createEvidenceLayer(documentRef, evidence, productsById) {
+        function createEvidenceLayer(
+            documentRef,
+            evidence,
+            productsById,
+            usedProductEvidenceIds = null
+        ) {
             const groups = evidenceGroupsForState(
                 evidence || {},
-                productsById
+                productsById,
+                usedProductEvidenceIds
             );
             if (!groups.length) return null;
 
@@ -1269,7 +1315,18 @@
                 group.items.forEach(item => {
                     const row = documentRef.createElement('li');
                     row.className = 'guide-evidence-item';
-                    row.textContent = item;
+                    row.textContent = item.text;
+                    if (
+                        /^[0-9a-f]{64}$/.test(
+                            String(item.evidenceId || '')
+                        )
+                        && item.productId !== null
+                    ) {
+                        row.dataset.evidenceId = item.evidenceId;
+                        row.dataset.guideProductId = String(
+                            item.productId
+                        );
+                    }
                     list.appendChild(row);
                 });
                 block.append(label, list);
@@ -1277,6 +1334,22 @@
             });
             section.appendChild(grid);
             return section;
+        }
+
+        function usedProductEvidenceIds(view) {
+            const ids = new Set();
+            view.sections.forEach(section => {
+                const factIds = Array.isArray(section.used_fact_ids)
+                    ? section.used_fact_ids
+                    : [];
+                factIds.forEach(factId => {
+                    const match = String(factId).match(
+                        /^evidence:([0-9a-f]{64})$/
+                    );
+                    if (match) ids.add(match[1]);
+                });
+            });
+            return ids;
         }
 
         function renderPresentation(container, state, helpers = {}) {
@@ -1438,6 +1511,19 @@
                 }
                 rootNode.appendChild(sectionNode);
             });
+            const evidenceLayer = (
+                view.mode === 'product_knowledge'
+                    ? createEvidenceLayer(
+                        documentRef,
+                        state?.evidence,
+                        productsById,
+                        usedProductEvidenceIds(view)
+                    )
+                    : null
+            );
+            if (evidenceLayer) {
+                rootNode.appendChild(evidenceLayer);
+            }
             container.replaceChildren(rootNode);
             helpers.refreshIcons?.();
             return view;
@@ -1660,6 +1746,19 @@
                     }
                 }
 
+            }
+            const evidenceLayer = (
+                view.mode === 'product_knowledge'
+                    ? createEvidenceLayer(
+                        documentRef,
+                        state?.evidence,
+                        productsById,
+                        usedProductEvidenceIds(view)
+                    )
+                    : null
+            );
+            if (evidenceLayer) {
+                rootNode.appendChild(evidenceLayer);
             }
             options.refreshIcons?.();
             return view;

@@ -2726,6 +2726,37 @@ def test_bound_clarification_question_compiles_product_knowledge() -> None:
     assert plan_task(understanding).mode == "knowledge"
 
 
+def test_safety_relation_overrides_ordinary_safety_language() -> None:
+    message = "薇诺娜舒敏保湿丝滑面膜做完特殊美容项目后一定安全吗？"
+    product_name = "薇诺娜舒敏保湿丝滑面膜"
+    understanding = compile_turn_meaning(
+        message=message,
+        meaning=_meaning(
+            operation_hint="knowledge",
+            topic_hint="skincare",
+            product_mentions=[{"raw_text": product_name}],
+            knowledge_relation_hints=["safety"],
+            question_meaning=(
+                "询问薇诺娜舒敏保湿丝滑面膜在特殊美容项目后"
+                "使用是否一定安全"
+            ),
+            safety_language="ordinary",
+        ),
+        context=_context(),
+    )
+
+    task = plan_task(
+        understanding,
+        resolved_product_ids=(78,),
+        message=message,
+    )
+
+    assert understanding.safety_sensitive is True
+    assert task.mode == "knowledge"
+    assert task.safety_sensitive is True
+    assert task.clarification is None
+
+
 def test_bound_image_similarity_keeps_code_owned_similarity_goal() -> None:
     understanding = compile_turn_meaning(
         message="第二张再看一下",

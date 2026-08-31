@@ -373,22 +373,32 @@ class ProductNameResolver:
             ):
                 continue
             normalized_alias = normalize_product_alias(record.alias)
-            if not normalized_mention.endswith(normalized_alias):
+            alias_start = normalized_mention.find(normalized_alias)
+            if (
+                alias_start < 0
+                or normalized_mention.find(
+                    normalized_alias,
+                    alias_start + len(normalized_alias),
+                )
+                >= 0
+            ):
                 continue
-            brand_prefix = normalized_mention[
-                : -len(normalized_alias)
-            ]
-            if len(brand_prefix) < 2:
-                continue
+            brand_prefix = normalized_mention[:alias_start]
             identity = self._catalog.get_identity(
                 record.default_product_id
             )
             if (
                 identity is None
                 or identity.brand is None
-                or not _brand_prefix_matches(
-                    identity.brand,
-                    prefix=brand_prefix,
+                or (
+                    brand_prefix
+                    and (
+                        len(brand_prefix) < 2
+                        or not _brand_prefix_matches(
+                            identity.brand,
+                            prefix=brand_prefix,
+                        )
+                    )
                 )
             ):
                 continue

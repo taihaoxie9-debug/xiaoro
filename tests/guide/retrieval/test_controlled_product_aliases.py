@@ -144,6 +144,8 @@ def test_alias_records_are_reviewed_and_bind_existing_products() -> None:
         ("紫熨斗", 73),
         ("大白饼", 81),
         ("小方瓶", 83),
+        ("透明质酸钠修复贴", 75),
+        ("薇诺娜舒敏保湿丝滑面膜", 78),
     ),
 )
 def test_reviewed_catalog_aliases_resolve_exact_products(

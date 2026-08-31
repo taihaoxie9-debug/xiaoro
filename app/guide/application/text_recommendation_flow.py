@@ -1343,10 +1343,15 @@ class TextRecommendationOrchestrator:
             raise ValueError(
                 "product evidence execution requires prepared search"
             )
+        requested_dimensions = (
+            execution_input.routing_evidence
+            .product_knowledge_dimensions
+        )
         query = EvidenceQuery(
             product_ids=tuple(task.product_ids),
             search=evidence_search,
             safety_sensitive=task.safety_sensitive,
+            requested_dimensions=requested_dimensions,
             product_identity_names=self._product_identity_names(
                 task.product_ids,
                 product_resolution=product_resolution,
@@ -1392,10 +1397,6 @@ class TextRecommendationOrchestrator:
             )
             if summary is not None
         )
-        requested_dimensions = (
-            execution_input.routing_evidence
-            .product_knowledge_dimensions
-        )
         evidence_facts = (
             *_approved_product_evidence_facts(
                 packet,
@@ -1413,6 +1414,12 @@ class TextRecommendationOrchestrator:
             projection=projection,
             question=execution_input.routing_evidence.query.value,
             requested_dimensions=requested_dimensions,
+            evidence_dimensions={
+                f"evidence:{item.evidence.evidence_id}": (
+                    item.covered_dimensions
+                )
+                for item in packet.selected
+            },
         )
         product_evidence_event = ProductEvidenceEvent(
             data=ProductEvidenceData(packet=packet)

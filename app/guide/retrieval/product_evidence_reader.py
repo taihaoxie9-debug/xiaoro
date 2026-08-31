@@ -21,7 +21,12 @@ class ProductEvidenceReader:
             )
             for product_id, blocks in by_product.items()
         }
+        self._product_ids = tuple(sorted(self._by_product))
         self.manifest = assets.manifest
+
+    @property
+    def product_ids(self) -> tuple[int, ...]:
+        return self._product_ids
 
     def read(self, *, product_id: int) -> tuple[ProductEvidenceBlock, ...]:
         if (

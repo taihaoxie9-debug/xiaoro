@@ -1,0 +1,3865 @@
+{
+  "answerable_evidence_count": 1079,
+  "canonical_product_count": 103,
+  "category_fact_product_count": 92,
+  "faq_count": 47,
+  "product_evidence_product_count": 86,
+  "products": [
+    {
+      "answerable_evidence_count": 1,
+      "category": "面霜",
+      "category_fact_count": 4,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "shelf_life",
+        "texture",
+        "usage"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "net_content",
+        "shelf_life",
+        "texture",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim"
+      ],
+      "faq_count": 0,
+      "identity": "海蓝之谜轻盈型精华乳霜",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present",
+        "efficacy"
+      ],
+      "product_id": 24,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "防晒",
+      "category_fact_count": 3,
+      "category_fact_fields": [
+        "application_area",
+        "efficacy",
+        "shelf_life"
+      ],
+      "category_profile": "suncare",
+      "covered_fields": [
+        "application_area",
+        "efficacy",
+        "shelf_life"
+      ],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "无",
+      "identity_status": "placeholder",
+      "missing_priority_fields": [
+        "net_content",
+        "spf_pa",
+        "texture",
+        "water_resistance"
+      ],
+      "product_id": 26,
+      "remediation": "catalog_cleanup"
+    },
+    {
+      "answerable_evidence_count": 14,
+      "category": "卸妆",
+      "category_fact_count": 5,
+      "category_fact_fields": [
+        "cleansing_power",
+        "net_content",
+        "rinse_behavior",
+        "target_audience",
+        "texture"
+      ],
+      "category_profile": "cleanser",
+      "covered_fields": [
+        "cleansing_power",
+        "ingredients_present",
+        "net_content",
+        "rinse_behavior",
+        "target_audience",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "merchant_cited_test",
+        "merchant_claim",
+        "product_specification",
+        "unclassified",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "植村秀琥珀卸妆油150ml护肤洁颜油 温和清洁 细致毛孔",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 30,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 2,
+      "category": "精华",
+      "category_fact_count": 2,
+      "category_fact_fields": [
+        "origin",
+        "shelf_life"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "net_content",
+        "origin",
+        "shelf_life"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_claim"
+      ],
+      "faq_count": 0,
+      "identity": "肌底焕活修护精华液 50ml",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 32,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 24,
+      "category": "精华",
+      "category_fact_count": 5,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "origin",
+        "shelf_life",
+        "texture"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "batch",
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "safety_information",
+        "shelf_life",
+        "suitable_skin",
+        "texture",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "雅诗兰黛特润修护肌活精华露",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 33,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 6,
+      "category": "精华",
+      "category_fact_count": 6,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "net_content",
+        "shelf_life",
+        "texture",
+        "usage"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "shelf_life",
+        "texture",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim",
+        "product_specification",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "修丽可维生素CE复合修护紧致修颜精华液30ml",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 34,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 2,
+      "category": "精华",
+      "category_fact_count": 3,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "shelf_life"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "net_content",
+        "shelf_life"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_claim"
+      ],
+      "faq_count": 0,
+      "identity": "修丽可聚糖多重丰盈精华液",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present",
+        "texture"
+      ],
+      "product_id": 35,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 4,
+      "category": "精华",
+      "category_fact_count": 4,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "texture",
+        "usage"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "safety_information",
+        "suitable_skin",
+        "texture",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_claim",
+        "safety_transcript"
+      ],
+      "faq_count": 0,
+      "identity": "PRO X BY OLAY专研祛斑净白精华液",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 36,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 3,
+      "category": "精华",
+      "category_fact_count": 3,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "net_content",
+        "texture"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "net_content",
+        "packaging_information",
+        "texture",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim",
+        "packaging_information",
+        "product_specification"
+      ],
+      "faq_count": 0,
+      "identity": "资生堂红腰子面部精华75ml",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present",
+        "efficacy"
+      ],
+      "product_id": 37,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 2,
+      "category": "精华",
+      "category_fact_count": 2,
+      "category_fact_fields": [
+        "origin",
+        "shelf_life"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "net_content",
+        "origin",
+        "shelf_life"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_claim"
+      ],
+      "faq_count": 0,
+      "identity": "理肤泉新B5多效修护精华",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 38,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 20,
+      "category": "精华",
+      "category_fact_count": 4,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "shelf_life",
+        "texture"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "packaging_information",
+        "safety_information",
+        "shelf_life",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "faq",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "safety_transcript"
+      ],
+      "faq_count": 2,
+      "identity": "赫莲娜悦颜焕活精华露",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content"
+      ],
+      "product_id": 39,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 15,
+      "category": "精华",
+      "category_fact_count": 1,
+      "category_fact_fields": [
+        "shelf_life"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "ingredients_present",
+        "net_content",
+        "packaging_information",
+        "safety_information",
+        "shelf_life",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "克丽丝汀迪奥花秘瑰萃玫瑰微凝珠焕活精华",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 40,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 1,
+      "category": "精华",
+      "category_fact_count": 5,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "shelf_life",
+        "texture",
+        "usage"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "shelf_life",
+        "texture",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim"
+      ],
+      "faq_count": 0,
+      "identity": "珀莱雅双抗焕白净亮精华液",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "ingredients_present"
+      ],
+      "product_id": 41,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 15,
+      "category": "精华",
+      "category_fact_count": 8,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "net_content",
+        "origin",
+        "package_quantity",
+        "shelf_life",
+        "skin_concern",
+        "usage"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "package_quantity",
+        "safety_information",
+        "shelf_life",
+        "skin_concern",
+        "texture",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "merchant_cited_test",
+        "merchant_claim",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "稳肌轻龄悬油次抛精华",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 42,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 2,
+      "category": "乳霜",
+      "category_fact_count": 1,
+      "category_fact_fields": [
+        "shelf_life"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "ingredients_present",
+        "net_content",
+        "shelf_life"
+      ],
+      "evidence_management_labels": [
+        "merchant_cited_test",
+        "merchant_claim"
+      ],
+      "faq_count": 0,
+      "identity": "科颜氏高保湿面霜",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 43,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 24,
+      "category": "面霜",
+      "category_fact_count": 10,
+      "category_fact_fields": [
+        "application_area",
+        "claimed_ingredients",
+        "efficacy",
+        "net_content",
+        "origin",
+        "shelf_life",
+        "skin_concern",
+        "texture",
+        "usage",
+        "usage_context"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "application_area",
+        "batch",
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "safety_information",
+        "shelf_life",
+        "skin_concern",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "usage_context",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "faq",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 2,
+      "identity": "润浸保湿滋润乳霜",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 45,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 28,
+      "category": "面霜",
+      "category_fact_count": 5,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "shelf_life",
+        "texture",
+        "usage"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "authenticity",
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "packaging_information",
+        "safety_information",
+        "shelf_life",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "faq",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 1,
+      "identity": "理肤泉B5霜40ml修护舒缓泛红保湿面霜",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 46,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 27,
+      "category": "面霜",
+      "category_fact_count": 1,
+      "category_fact_fields": [
+        "net_content"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "ingredients_present",
+        "net_content",
+        "packaging_information",
+        "safety_information",
+        "suitable_skin",
+        "texture",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript"
+      ],
+      "faq_count": 0,
+      "identity": "雅诗兰黛智妍紧塑精华丝绒晚霜",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "efficacy"
+      ],
+      "product_id": 47,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 21,
+      "category": "面霜",
+      "category_fact_count": 5,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "net_content",
+        "origin",
+        "texture"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "safety_information",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "兰蔻菁纯面霜奢护霜60ml抗皱滋润",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 48,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 9,
+      "category": "面霜",
+      "category_fact_count": 9,
+      "category_fact_fields": [
+        "application_area",
+        "claimed_ingredients",
+        "efficacy",
+        "fragrance_description",
+        "net_content",
+        "origin",
+        "skin_concern",
+        "target_audience",
+        "texture"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "application_area",
+        "batch",
+        "claimed_ingredients",
+        "efficacy",
+        "fragrance_description",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "skin_concern",
+        "target_audience",
+        "texture"
+      ],
+      "evidence_management_labels": [
+        "consumer_self_report",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification"
+      ],
+      "faq_count": 0,
+      "identity": "玉泽皮肤屏障修护保湿霜",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present"
+      ],
+      "product_id": 49,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 20,
+      "category": "面霜",
+      "category_fact_count": 6,
+      "category_fact_fields": [
+        "fragrance_description",
+        "net_content",
+        "origin",
+        "shelf_life",
+        "skin_concern",
+        "target_audience"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "fragrance_description",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "safety_information",
+        "shelf_life",
+        "skin_concern",
+        "suitable_skin",
+        "target_audience",
+        "texture"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript"
+      ],
+      "faq_count": 0,
+      "identity": "第二代特护霜",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "efficacy"
+      ],
+      "product_id": 50,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 17,
+      "category": "防晒",
+      "category_fact_count": 5,
+      "category_fact_fields": [
+        "application_area",
+        "efficacy",
+        "shelf_life",
+        "spf_pa",
+        "suitable_skin"
+      ],
+      "category_profile": "suncare",
+      "covered_fields": [
+        "application_area",
+        "authenticity",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "packaging_information",
+        "shelf_life",
+        "spf_pa",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification"
+      ],
+      "faq_count": 0,
+      "identity": "安热沙智感倍护防晒乳液GB",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "water_resistance"
+      ],
+      "product_id": 51,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 10,
+      "category": "防晒隔离",
+      "category_fact_count": 6,
+      "category_fact_fields": [
+        "efficacy",
+        "net_content",
+        "origin",
+        "shelf_life",
+        "spf_pa",
+        "texture"
+      ],
+      "category_profile": "suncare",
+      "covered_fields": [
+        "batch",
+        "efficacy",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "shelf_life",
+        "spf_pa",
+        "suitable_skin",
+        "texture",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "faq",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification"
+      ],
+      "faq_count": 4,
+      "identity": "兰蔻菁纯臻颜防晒隔离乳",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "water_resistance"
+      ],
+      "product_id": 52,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "防晒乳液",
+      "category_fact_count": 2,
+      "category_fact_fields": [
+        "texture",
+        "water_resistance"
+      ],
+      "category_profile": "suncare",
+      "covered_fields": [
+        "texture",
+        "water_resistance"
+      ],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "理肤泉特护清盈防晒乳 SPF50 PA++++",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "spf_pa"
+      ],
+      "product_id": 53,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 10,
+      "category": "防晒霜",
+      "category_fact_count": 11,
+      "category_fact_fields": [
+        "application_area",
+        "efficacy",
+        "film_speed",
+        "net_content",
+        "origin",
+        "product_form",
+        "suitable_skin",
+        "sun_protection_spectrum",
+        "target_audience",
+        "tone_effect",
+        "usage_context"
+      ],
+      "category_profile": "suncare",
+      "covered_fields": [
+        "application_area",
+        "efficacy",
+        "film_speed",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "product_form",
+        "safety_information",
+        "suitable_skin",
+        "sun_protection_spectrum",
+        "target_audience",
+        "texture",
+        "tone_effect",
+        "usage",
+        "usage_context",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "怡思丁小蓝瓶防晒水",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "spf_pa",
+        "water_resistance"
+      ],
+      "product_id": 54,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 38,
+      "category": "防晒乳",
+      "category_fact_count": 11,
+      "category_fact_fields": [
+        "cleansing_requirement",
+        "efficacy",
+        "film_speed",
+        "net_content",
+        "origin",
+        "shelf_life",
+        "spf_pa",
+        "suitable_skin",
+        "target_audience",
+        "texture",
+        "variant_option"
+      ],
+      "category_profile": "suncare",
+      "covered_fields": [
+        "cleansing_requirement",
+        "efficacy",
+        "film_speed",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "safety_information",
+        "shelf_life",
+        "spf_pa",
+        "suitable_skin",
+        "target_audience",
+        "texture",
+        "usage",
+        "variant_option"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "faq",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 2,
+      "identity": "清透防晒乳",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "water_resistance"
+      ],
+      "product_id": 55,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 10,
+      "category": "防晒乳液",
+      "category_fact_count": 10,
+      "category_fact_fields": [
+        "application_area",
+        "efficacy",
+        "film_speed",
+        "net_content",
+        "origin",
+        "product_form",
+        "shelf_life",
+        "spf_pa",
+        "target_audience",
+        "usage_context"
+      ],
+      "category_profile": "suncare",
+      "covered_fields": [
+        "application_area",
+        "batch",
+        "efficacy",
+        "film_speed",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "product_form",
+        "safety_information",
+        "shelf_life",
+        "spf_pa",
+        "suitable_skin",
+        "target_audience",
+        "texture",
+        "usage",
+        "usage_context"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "蓝胖子防晒霜50ml",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "water_resistance"
+      ],
+      "product_id": 56,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 29,
+      "category": "防晒",
+      "category_fact_count": 9,
+      "category_fact_fields": [
+        "efficacy",
+        "film_speed",
+        "net_content",
+        "origin",
+        "shelf_life",
+        "target_audience",
+        "texture",
+        "usage_context",
+        "water_resistance"
+      ],
+      "category_profile": "suncare",
+      "covered_fields": [
+        "batch",
+        "efficacy",
+        "film_speed",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "safety_information",
+        "shelf_life",
+        "suitable_skin",
+        "target_audience",
+        "texture",
+        "usage",
+        "usage_context",
+        "variant_difference",
+        "water_resistance"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "faq",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 4,
+      "identity": "碧柔Biore水活防晒水润凝蜜",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "spf_pa"
+      ],
+      "product_id": 57,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 24,
+      "category": "防晒乳液",
+      "category_fact_count": 9,
+      "category_fact_fields": [
+        "application_area",
+        "efficacy",
+        "film_speed",
+        "net_content",
+        "origin",
+        "product_form",
+        "suitable_skin",
+        "target_audience",
+        "usage_context"
+      ],
+      "category_profile": "suncare",
+      "covered_fields": [
+        "application_area",
+        "efficacy",
+        "film_speed",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "product_form",
+        "safety_information",
+        "storage",
+        "suitable_skin",
+        "target_audience",
+        "texture",
+        "usage",
+        "usage_context",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "珀莱雅超膜盾护防晒霜",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "spf_pa",
+        "water_resistance"
+      ],
+      "product_id": 58,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 4,
+      "category": "精华",
+      "category_fact_count": 1,
+      "category_fact_fields": [
+        "shelf_life"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "net_content",
+        "packaging_information",
+        "shelf_life",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification"
+      ],
+      "faq_count": 0,
+      "identity": "SK-II® 护肤精华露",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 59,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "爽肤水",
+      "category_fact_count": 0,
+      "category_fact_fields": [],
+      "category_profile": "skincare",
+      "covered_fields": [],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "灵芝焕能强韧精华水",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 60,
+      "remediation": "honest_unknown"
+    },
+    {
+      "answerable_evidence_count": 2,
+      "category": "爽肤水",
+      "category_fact_count": 1,
+      "category_fact_fields": [
+        "shelf_life"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "net_content",
+        "shelf_life"
+      ],
+      "evidence_management_labels": [
+        "merchant_cited_test",
+        "product_specification"
+      ],
+      "faq_count": 0,
+      "identity": "科颜氏金盏花植物精萃水",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 61,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 29,
+      "category": "爽肤水",
+      "category_fact_count": 3,
+      "category_fact_fields": [
+        "net_content",
+        "package_quantity",
+        "shelf_life"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "ingredients_present",
+        "net_content",
+        "package_quantity",
+        "packaging_information",
+        "safety_information",
+        "shelf_life",
+        "storage",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "faq",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 1,
+      "identity": "雅诗兰黛樱花版微精华露",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "efficacy"
+      ],
+      "product_id": 62,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 20,
+      "category": "精华液",
+      "category_fact_count": 3,
+      "category_fact_fields": [
+        "net_content",
+        "origin",
+        "package_quantity"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "batch",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "package_quantity",
+        "packaging_information",
+        "safety_information",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "consumer_self_report",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "兰蔻净澈焕肤双重精华水",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "efficacy"
+      ],
+      "product_id": 63,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 26,
+      "category": "爽肤水",
+      "category_fact_count": 7,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "net_content",
+        "origin",
+        "shelf_life",
+        "texture",
+        "usage"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "batch",
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "safety_information",
+        "shelf_life",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "consumer_self_report",
+        "faq",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 1,
+      "identity": "茵芙莎流金岁月凝润美肤水",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 64,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 27,
+      "category": "洁面/清洁",
+      "category_fact_count": 11,
+      "category_fact_fields": [
+        "cleansing_form",
+        "cleansing_power",
+        "efficacy",
+        "net_content",
+        "origin",
+        "rinse_behavior",
+        "shelf_life",
+        "suitable_skin",
+        "surfactant_type",
+        "target_audience",
+        "texture"
+      ],
+      "category_profile": "cleanser",
+      "covered_fields": [
+        "authenticity",
+        "cleansing_form",
+        "cleansing_power",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "rinse_behavior",
+        "safety_information",
+        "shelf_life",
+        "storage",
+        "suitable_skin",
+        "surfactant_type",
+        "target_audience",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "faq",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 4,
+      "identity": "芙丽芳丝净润洗面霜",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 65,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 19,
+      "category": "洁面泡沫",
+      "category_fact_count": 8,
+      "category_fact_fields": [
+        "cleansing_form",
+        "efficacy",
+        "net_content",
+        "origin",
+        "rinse_behavior",
+        "suitable_skin",
+        "surfactant_type",
+        "texture"
+      ],
+      "category_profile": "cleanser",
+      "covered_fields": [
+        "cleansing_form",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "rinse_behavior",
+        "safety_information",
+        "suitable_skin",
+        "surfactant_type",
+        "texture",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "珂润润浸保湿洁颜泡沫",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "cleansing_power"
+      ],
+      "product_id": 66,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 33,
+      "category": "洁面乳/泡沫洁面乳",
+      "category_fact_count": 10,
+      "category_fact_fields": [
+        "cleansing_form",
+        "cleansing_power",
+        "efficacy",
+        "net_content",
+        "origin",
+        "rinse_behavior",
+        "suitable_skin",
+        "surfactant_type",
+        "target_audience",
+        "texture"
+      ],
+      "category_profile": "cleanser",
+      "covered_fields": [
+        "batch",
+        "cleansing_form",
+        "cleansing_power",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "rinse_behavior",
+        "safety_information",
+        "suitable_skin",
+        "surfactant_type",
+        "target_audience",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "consumer_self_report",
+        "faq",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 3,
+      "identity": "Elta MD 氨基酸泡沫洁面乳 / 安妍科泡沫洁面乳",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 67,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 5,
+      "category": "洁面乳/洁面泡沫",
+      "category_fact_count": 11,
+      "category_fact_fields": [
+        "cleansing_form",
+        "cleansing_power",
+        "efficacy",
+        "fragrance_description",
+        "net_content",
+        "origin",
+        "rinse_behavior",
+        "shelf_life",
+        "suitable_skin",
+        "target_audience",
+        "texture"
+      ],
+      "category_profile": "cleanser",
+      "covered_fields": [
+        "cleansing_form",
+        "cleansing_power",
+        "efficacy",
+        "fragrance_description",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "rinse_behavior",
+        "shelf_life",
+        "suitable_skin",
+        "target_audience",
+        "texture",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "consumer_self_report",
+        "merchant_claim",
+        "product_specification"
+      ],
+      "faq_count": 0,
+      "identity": "理肤泉特安洁面泡沫",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present"
+      ],
+      "product_id": 68,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 20,
+      "category": "洁颜油/卸妆油",
+      "category_fact_count": 1,
+      "category_fact_fields": [
+        "target_audience"
+      ],
+      "category_profile": "cleanser",
+      "covered_fields": [
+        "ingredients_present",
+        "net_content",
+        "packaging_information",
+        "safety_information",
+        "target_audience",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "植村秀臻萃养肤洁颜油 450ML*1",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "cleansing_power"
+      ],
+      "product_id": 69,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 3,
+      "category": "卸妆水/洁肤液",
+      "category_fact_count": 0,
+      "category_fact_fields": [],
+      "category_profile": "cleanser",
+      "covered_fields": [
+        "net_content",
+        "packaging_information",
+        "safety_information",
+        "suitable_skin",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_claim",
+        "safety_transcript"
+      ],
+      "faq_count": 0,
+      "identity": "贝德玛卸妆水粉水500ml",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present",
+        "cleansing_power",
+        "texture"
+      ],
+      "product_id": 70,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 2,
+      "category": "卸妆膏",
+      "category_fact_count": 5,
+      "category_fact_fields": [
+        "cleansing_power",
+        "net_content",
+        "rinse_behavior",
+        "target_audience",
+        "texture"
+      ],
+      "category_profile": "cleanser",
+      "covered_fields": [
+        "cleansing_power",
+        "net_content",
+        "rinse_behavior",
+        "safety_information",
+        "suitable_skin",
+        "target_audience",
+        "texture",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim",
+        "safety_transcript"
+      ],
+      "faq_count": 0,
+      "identity": "芭妮兰净柔经典卸妆膏100ml*1",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present"
+      ],
+      "product_id": 71,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "眼霜",
+      "category_fact_count": 0,
+      "category_fact_fields": [],
+      "category_profile": "skincare",
+      "covered_fields": [],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "雅诗兰黛特润修护肌活精华眼霜15ml",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 72,
+      "remediation": "honest_unknown"
+    },
+    {
+      "answerable_evidence_count": 2,
+      "category": "眼霜",
+      "category_fact_count": 1,
+      "category_fact_fields": [
+        "shelf_life"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "net_content",
+        "shelf_life"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_cited_test"
+      ],
+      "faq_count": 0,
+      "identity": "欧莱雅紫熨斗眼霜30ml全脸淡化细纹保湿",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 73,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 2,
+      "category": "面膜",
+      "category_fact_count": 0,
+      "category_fact_fields": [],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "net_content",
+        "safety_information",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "product_specification",
+        "safety_transcript"
+      ],
+      "faq_count": 0,
+      "identity": "可复美重组胶原蛋白敷料2盒10贴面部项目创面愈合痤疮皮炎",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 74,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 10,
+      "category": "面膜",
+      "category_fact_count": 0,
+      "category_fact_fields": [],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "batch",
+        "net_content",
+        "packaging_information",
+        "safety_information",
+        "storage",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "faq",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 1,
+      "identity": "敷尔佳白膜透明质酸钠修复贴5片",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 75,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 1,
+      "category": "面膜",
+      "category_fact_count": 2,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "usage"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim"
+      ],
+      "faq_count": 0,
+      "identity": "SK-II前男友面膜10片补水保湿紧致sk2",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 76,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 2,
+      "category": "面膜",
+      "category_fact_count": 0,
+      "category_fact_fields": [],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "packaging_information",
+        "safety_information",
+        "suitable_skin"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim",
+        "safety_transcript"
+      ],
+      "faq_count": 0,
+      "identity": "理肤泉B5面膜PRO5片积雪草补水保湿修护舒缓",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 77,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 16,
+      "category": "面膜",
+      "category_fact_count": 0,
+      "category_fact_fields": [],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "ingredients_present",
+        "packaging_information",
+        "safety_information",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "faq",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "safety_transcript"
+      ],
+      "faq_count": 2,
+      "identity": "薇诺娜（WINONA）特护面膜舒敏保湿丝滑面贴膜6片舒缓修护补水保湿",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "efficacy"
+      ],
+      "product_id": 78,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "粉底液",
+      "category_fact_count": 6,
+      "category_fact_fields": [
+        "coverage",
+        "finish",
+        "net_content",
+        "shade",
+        "shelf_life",
+        "texture"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "coverage",
+        "finish",
+        "net_content",
+        "shade",
+        "shelf_life",
+        "texture"
+      ],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "雅诗兰黛轻透持妆粉底液 2C0",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 79,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 12,
+      "category": "粉底液",
+      "category_fact_count": 7,
+      "category_fact_fields": [
+        "coverage",
+        "finish",
+        "longevity",
+        "net_content",
+        "shade",
+        "suitable_skin",
+        "texture"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "coverage",
+        "finish",
+        "ingredients_present",
+        "longevity",
+        "net_content",
+        "safety_information",
+        "shade",
+        "suitable_skin",
+        "texture",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim",
+        "product_specification",
+        "safety_transcript"
+      ],
+      "faq_count": 0,
+      "identity": "阿玛尼（ARMANI）权力持妆PRO粉底液#2 暖调白皙30ml遮瑕控油",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 80,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 3,
+      "category": "散粉",
+      "category_fact_count": 6,
+      "category_fact_fields": [
+        "finish",
+        "longevity",
+        "net_content",
+        "shade",
+        "suitable_skin",
+        "texture"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "batch",
+        "finish",
+        "longevity",
+        "net_content",
+        "packaging_information",
+        "shade",
+        "suitable_skin",
+        "texture"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim",
+        "packaging_information"
+      ],
+      "faq_count": 0,
+      "identity": "NARS纳斯/娜斯 定妆大白饼粉饼不卡粉10g 细腻持透",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 81,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 13,
+      "category": "气垫",
+      "category_fact_count": 9,
+      "category_fact_fields": [
+        "coverage",
+        "efficacy",
+        "finish",
+        "longevity",
+        "shade",
+        "shelf_life",
+        "suitable_skin",
+        "texture",
+        "variant_option"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "batch",
+        "coverage",
+        "efficacy",
+        "finish",
+        "longevity",
+        "net_content",
+        "packaging_information",
+        "safety_information",
+        "shade",
+        "shelf_life",
+        "storage",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_option"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "肌肤之钥CPB光柔水凝气垫精华粉底膏I10象牙白 钻光方气垫+外壳 持妆遮瑕",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 82,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 1,
+      "category": "粉底液",
+      "category_fact_count": 3,
+      "category_fact_fields": [
+        "net_content",
+        "shade",
+        "shelf_life"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "net_content",
+        "shade",
+        "shelf_life",
+        "suitable_skin"
+      ],
+      "evidence_management_labels": [
+        "product_specification"
+      ],
+      "faq_count": 0,
+      "identity": "植村秀小方瓶粉底液 #584",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "finish",
+        "texture"
+      ],
+      "product_id": 83,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 19,
+      "category": "蜜粉",
+      "category_fact_count": 6,
+      "category_fact_fields": [
+        "finish",
+        "longevity",
+        "net_content",
+        "shade",
+        "shelf_life",
+        "texture"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "batch",
+        "finish",
+        "ingredients_present",
+        "longevity",
+        "net_content",
+        "packaging_information",
+        "shade",
+        "shelf_life",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "花西子玉女桃花轻蜜粉（玉养款 香粉盒版）03妆似雾（商品编号100039849504）",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 84,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 2,
+      "category": "口红",
+      "category_fact_count": 3,
+      "category_fact_fields": [
+        "efficacy",
+        "finish",
+        "shade"
+      ],
+      "category_profile": "color_makeup",
+      "covered_fields": [
+        "efficacy",
+        "finish",
+        "shade"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim",
+        "unclassified"
+      ],
+      "faq_count": 0,
+      "identity": "魅可（M.A.C）口红子弹头 See Sheer 520（商品编号4564136）",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "color_family"
+      ],
+      "product_id": 86,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "乳液",
+      "category_fact_count": 4,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "shelf_life",
+        "texture"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "shelf_life",
+        "texture"
+      ],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "倩碧卓越润肤乳液",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "ingredients_present"
+      ],
+      "product_id": 89,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "乳霜",
+      "category_fact_count": 0,
+      "category_fact_fields": [],
+      "category_profile": "skincare",
+      "covered_fields": [],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "理肤泉",
+      "identity_status": "underspecified",
+      "missing_priority_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 90,
+      "remediation": "catalog_cleanup"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "精华",
+      "category_fact_count": 4,
+      "category_fact_fields": [
+        "efficacy",
+        "origin",
+        "shelf_life",
+        "texture"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "efficacy",
+        "origin",
+        "shelf_life",
+        "texture"
+      ],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "玉泽皮肤屏障修护精华乳50ml",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "ingredients_present"
+      ],
+      "product_id": 91,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "眼霜",
+      "category_fact_count": 4,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "net_content",
+        "texture"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "net_content",
+        "texture"
+      ],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "兰蔻全新菁纯眼霜",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present"
+      ],
+      "product_id": 92,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "眼霜",
+      "category_fact_count": 0,
+      "category_fact_fields": [],
+      "category_profile": "skincare",
+      "covered_fields": [],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "怡丽丝尔优悦活颜眼唇抚纹精华霜15g",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 93,
+      "remediation": "honest_unknown"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "眼部精华",
+      "category_fact_count": 2,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "efficacy"
+      ],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "研度公式咖啡因与茶多酚眼部精华",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "product_id": 94,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 12,
+      "category": "洁面霜/洁面",
+      "category_fact_count": 9,
+      "category_fact_fields": [
+        "cleansing_power",
+        "efficacy",
+        "net_content",
+        "origin",
+        "rinse_behavior",
+        "shelf_life",
+        "suitable_skin",
+        "surfactant_type",
+        "texture"
+      ],
+      "category_profile": "cleanser",
+      "covered_fields": [
+        "cleansing_power",
+        "efficacy",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "rinse_behavior",
+        "safety_information",
+        "shelf_life",
+        "storage",
+        "suitable_skin",
+        "surfactant_type",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "faq",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 3,
+      "identity": "SK-II护肤洁面霜",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present"
+      ],
+      "product_id": 97,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 13,
+      "category": "面膜",
+      "category_fact_count": 9,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "mask_material",
+        "origin",
+        "product_form",
+        "shelf_life",
+        "skin_concern",
+        "target_audience",
+        "texture"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "mask_material",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "product_form",
+        "safety_information",
+        "shelf_life",
+        "skin_concern",
+        "suitable_skin",
+        "target_audience",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "merchant_cited_test",
+        "merchant_claim",
+        "product_specification",
+        "safety_transcript"
+      ],
+      "faq_count": 0,
+      "identity": "蒂佳婷水动力活力水润面膜",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 98,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 16,
+      "category": "面膜",
+      "category_fact_count": 8,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "net_content",
+        "origin",
+        "product_form",
+        "shelf_life",
+        "texture",
+        "usage"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "batch",
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "product_form",
+        "safety_information",
+        "shelf_life",
+        "suitable_skin",
+        "texture",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "红茶凝时焕颜面膜",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 99,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "面霜",
+      "category_fact_count": 0,
+      "category_fact_fields": [],
+      "category_profile": "skincare",
+      "covered_fields": [],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "000",
+      "identity_status": "placeholder",
+      "missing_priority_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture",
+        "efficacy"
+      ],
+      "product_id": 100,
+      "remediation": "catalog_cleanup"
+    },
+    {
+      "answerable_evidence_count": 11,
+      "category": "防晒",
+      "category_fact_count": 4,
+      "category_fact_fields": [
+        "net_content",
+        "shelf_life",
+        "spf_pa",
+        "texture"
+      ],
+      "category_profile": "suncare",
+      "covered_fields": [
+        "ingredients_present",
+        "net_content",
+        "packaging_information",
+        "safety_information",
+        "shelf_life",
+        "spf_pa",
+        "suitable_skin",
+        "texture",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript"
+      ],
+      "faq_count": 0,
+      "identity": "兰蔻轻透水漾防晒乳30ml小白管防晒霜隔离护肤品",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "water_resistance"
+      ],
+      "product_id": 101,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 10,
+      "category": "防晒乳液",
+      "category_fact_count": 12,
+      "category_fact_fields": [
+        "application_area",
+        "cleansing_requirement",
+        "efficacy",
+        "film_speed",
+        "net_content",
+        "origin",
+        "product_form",
+        "shelf_life",
+        "target_audience",
+        "texture",
+        "usage_context",
+        "water_resistance"
+      ],
+      "category_profile": "suncare",
+      "covered_fields": [
+        "application_area",
+        "batch",
+        "cleansing_requirement",
+        "efficacy",
+        "film_speed",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "product_form",
+        "safety_information",
+        "shelf_life",
+        "suitable_skin",
+        "target_audience",
+        "texture",
+        "usage",
+        "usage_context",
+        "variant_difference",
+        "water_resistance"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "新艳阳夏臻效水动力防护乳",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "spf_pa"
+      ],
+      "product_id": 102,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "洁颜油/卸妆油",
+      "category_fact_count": 4,
+      "category_fact_fields": [
+        "application_area",
+        "cleansing_power",
+        "rinse_behavior",
+        "suitable_skin"
+      ],
+      "category_profile": "cleanser",
+      "covered_fields": [
+        "application_area",
+        "cleansing_power",
+        "rinse_behavior",
+        "suitable_skin"
+      ],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "植村秀（shu uemura）琥珀绿茶卸妆油深层清洁温和不刺激养肤洁颜油大容量",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "ingredients_present",
+        "texture"
+      ],
+      "product_id": 103,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 30,
+      "category": "洁颜霜/卸妆膏",
+      "category_fact_count": 7,
+      "category_fact_fields": [
+        "cleansing_form",
+        "cleansing_power",
+        "efficacy",
+        "net_content",
+        "origin",
+        "target_audience",
+        "texture"
+      ],
+      "category_profile": "cleanser",
+      "covered_fields": [
+        "batch",
+        "cleansing_form",
+        "cleansing_power",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "safety_information",
+        "storage",
+        "suitable_skin",
+        "target_audience",
+        "texture",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "faq",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 3,
+      "identity": "EVE LOM经典洁颜霜",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 104,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 16,
+      "category": "精华液",
+      "category_fact_count": 2,
+      "category_fact_fields": [
+        "net_content",
+        "origin"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "batch",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "safety_information",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "精萃水",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "efficacy"
+      ],
+      "product_id": 105,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 16,
+      "category": "爽肤水",
+      "category_fact_count": 0,
+      "category_fact_fields": [],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "ingredients_present",
+        "net_content",
+        "packaging_information",
+        "safety_information",
+        "storage",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "奥尔滨健康水330ml",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "efficacy"
+      ],
+      "product_id": 106,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 9,
+      "category": "气垫粉底液",
+      "category_fact_count": 4,
+      "category_fact_fields": [
+        "net_content",
+        "origin",
+        "sun_protection_claim",
+        "variant_option"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "batch",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "safety_information",
+        "sun_protection_claim",
+        "usage",
+        "variant_difference",
+        "variant_option"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "阿玛尼轻垫精华粉底液 15g",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "product_id": 107,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "气垫粉底",
+      "category_fact_count": 6,
+      "category_fact_fields": [
+        "application_area",
+        "efficacy",
+        "product_form",
+        "target_audience",
+        "texture",
+        "variant_option"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "application_area",
+        "efficacy",
+        "product_form",
+        "target_audience",
+        "texture",
+        "variant_option"
+      ],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "YSL恒久完美气垫替换芯 B20",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "shade",
+        "finish"
+      ],
+      "product_id": 108,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 10,
+      "category": "气垫",
+      "category_fact_count": 9,
+      "category_fact_fields": [
+        "coverage",
+        "efficacy",
+        "finish",
+        "longevity",
+        "net_content",
+        "target_audience",
+        "texture",
+        "usage_context",
+        "variant_option"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "coverage",
+        "efficacy",
+        "finish",
+        "longevity",
+        "net_content",
+        "packaging_information",
+        "suitable_skin",
+        "target_audience",
+        "texture",
+        "usage",
+        "usage_context",
+        "variant_option"
+      ],
+      "evidence_management_labels": [
+        "faq",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "usage"
+      ],
+      "faq_count": 1,
+      "identity": "兰蔻菁纯气垫粉底液100新版13g",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "shade"
+      ],
+      "product_id": 109,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 8,
+      "category": "遮瑕膏",
+      "category_fact_count": 6,
+      "category_fact_fields": [
+        "coverage",
+        "efficacy",
+        "origin",
+        "product_form",
+        "texture",
+        "variant_option"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "coverage",
+        "efficacy",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "product_form",
+        "texture",
+        "variant_option"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim",
+        "packaging_information",
+        "product_specification"
+      ],
+      "faq_count": 0,
+      "identity": "NARS亮采柔滑遮瑕膏",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "shade",
+        "finish"
+      ],
+      "product_id": 110,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 27,
+      "category": "遮瑕膏",
+      "category_fact_count": 7,
+      "category_fact_fields": [
+        "application_area",
+        "efficacy",
+        "net_content",
+        "origin",
+        "product_form",
+        "spf_pa",
+        "variant_option"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "application_area",
+        "batch",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "product_form",
+        "safety_information",
+        "spf_pa",
+        "storage",
+        "usage",
+        "variant_option"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "unclassified",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "茵芙莎光透无瑕修饰遮瑕膏e",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "shade",
+        "finish",
+        "texture"
+      ],
+      "product_id": 111,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 12,
+      "category": "妆前乳",
+      "category_fact_count": 9,
+      "category_fact_fields": [
+        "efficacy",
+        "finish",
+        "longevity",
+        "net_content",
+        "origin",
+        "shade",
+        "sun_protection_claim",
+        "texture",
+        "variant_option"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "authenticity",
+        "batch",
+        "efficacy",
+        "finish",
+        "ingredients_present",
+        "longevity",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "shade",
+        "suitable_skin",
+        "sun_protection_claim",
+        "texture",
+        "usage",
+        "variant_difference",
+        "variant_option"
+      ],
+      "evidence_management_labels": [
+        "faq",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification"
+      ],
+      "faq_count": 2,
+      "identity": "CPB肌肤之钥长管隔离",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 112,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 23,
+      "category": "妆前乳",
+      "category_fact_count": 9,
+      "category_fact_fields": [
+        "efficacy",
+        "finish",
+        "longevity",
+        "origin",
+        "product_form",
+        "shelf_life",
+        "spf_pa",
+        "sun_protection_claim",
+        "variant_option"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "efficacy",
+        "finish",
+        "ingredients_present",
+        "longevity",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "product_form",
+        "safety_information",
+        "shelf_life",
+        "spf_pa",
+        "suitable_skin",
+        "sun_protection_claim",
+        "texture",
+        "usage",
+        "variant_option"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "faq",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 1,
+      "identity": "苏菲娜映美焕采控油清透妆前乳",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "shade"
+      ],
+      "product_id": 113,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 1,
+      "category": "口红",
+      "category_fact_count": 5,
+      "category_fact_fields": [
+        "color_family",
+        "color_payoff",
+        "finish",
+        "longevity",
+        "shade"
+      ],
+      "category_profile": "color_makeup",
+      "covered_fields": [
+        "color_family",
+        "color_payoff",
+        "finish",
+        "longevity",
+        "shade"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim"
+      ],
+      "faq_count": 0,
+      "identity": "M.A.C魅可大子弹头口红哑光高级显白#602大辣椒",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content"
+      ],
+      "product_id": 114,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 8,
+      "category": "唇膏",
+      "category_fact_count": 5,
+      "category_fact_fields": [
+        "color_family",
+        "color_payoff",
+        "finish",
+        "longevity",
+        "shade"
+      ],
+      "category_profile": "color_makeup",
+      "covered_fields": [
+        "color_family",
+        "color_payoff",
+        "finish",
+        "ingredients_present",
+        "longevity",
+        "net_content",
+        "packaging_information",
+        "shade",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim",
+        "product_specification",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "克丽丝汀迪奥迪奥烈艳蓝金唇膏 丝绒 999（商品编号100056057296）",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 115,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "口红",
+      "category_fact_count": 8,
+      "category_fact_fields": [
+        "color_family",
+        "color_payoff",
+        "efficacy",
+        "finish",
+        "longevity",
+        "origin",
+        "shade",
+        "shelf_life"
+      ],
+      "category_profile": "color_makeup",
+      "covered_fields": [
+        "color_family",
+        "color_payoff",
+        "efficacy",
+        "finish",
+        "longevity",
+        "origin",
+        "shade",
+        "shelf_life"
+      ],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "圣罗兰细管纯口红 小金条 1966# 2.2g（商品编号100052491701）",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content"
+      ],
+      "product_id": 116,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 23,
+      "category": "单色眼影",
+      "category_fact_count": 10,
+      "category_fact_fields": [
+        "color_count",
+        "color_family",
+        "efficacy",
+        "finish",
+        "net_content",
+        "origin",
+        "shade",
+        "shelf_life",
+        "suitable_skin",
+        "variant_option"
+      ],
+      "category_profile": "color_makeup",
+      "covered_fields": [
+        "color_count",
+        "color_family",
+        "efficacy",
+        "finish",
+        "net_content",
+        "origin",
+        "shade",
+        "shelf_life",
+        "suitable_skin",
+        "usage",
+        "variant_option"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_claim",
+        "product_specification"
+      ],
+      "faq_count": 0,
+      "identity": "URBAN DECAY MOONDUST月耀星眸单色眼影 坠落银河（昵称：茶牛郎）",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 117,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 3,
+      "category": "腮红",
+      "category_fact_count": 9,
+      "category_fact_fields": [
+        "application_area",
+        "color_family",
+        "color_payoff",
+        "efficacy",
+        "finish",
+        "longevity",
+        "shade",
+        "suitable_skin",
+        "variant_option"
+      ],
+      "category_profile": "color_makeup",
+      "covered_fields": [
+        "application_area",
+        "color_family",
+        "color_payoff",
+        "efficacy",
+        "finish",
+        "longevity",
+        "net_content",
+        "packaging_information",
+        "shade",
+        "suitable_skin",
+        "variant_option"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim",
+        "packaging_information",
+        "product_specification"
+      ],
+      "faq_count": 0,
+      "identity": "NARS/娜斯 腮红 #4013",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 118,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 12,
+      "category": "香水",
+      "category_fact_count": 9,
+      "category_fact_fields": [
+        "base_notes",
+        "concentration",
+        "fragrance_family",
+        "heart_notes",
+        "net_content",
+        "origin",
+        "target_audience",
+        "top_notes",
+        "usage_context"
+      ],
+      "category_profile": "fragrance",
+      "covered_fields": [
+        "base_notes",
+        "batch",
+        "concentration",
+        "fragrance_family",
+        "heart_notes",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "safety_information",
+        "storage",
+        "target_audience",
+        "top_notes",
+        "usage",
+        "usage_context",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "faq",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 1,
+      "identity": "祖玛珑英国梨与小苍兰",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 120,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "香水",
+      "category_fact_count": 2,
+      "category_fact_fields": [
+        "concentration",
+        "fragrance_family"
+      ],
+      "category_profile": "fragrance",
+      "covered_fields": [
+        "concentration",
+        "fragrance_family"
+      ],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "香奈儿五号之水套装",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "top_notes",
+        "heart_notes",
+        "base_notes"
+      ],
+      "product_id": 121,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 3,
+      "category": "粉底液",
+      "category_fact_count": 7,
+      "category_fact_fields": [
+        "coverage",
+        "finish",
+        "longevity",
+        "net_content",
+        "shade",
+        "shelf_life",
+        "texture"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "coverage",
+        "finish",
+        "longevity",
+        "net_content",
+        "packaging_information",
+        "shade",
+        "shelf_life",
+        "texture"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "packaging_information"
+      ],
+      "faq_count": 0,
+      "identity": "MAC Studio Fix Fluid 粉底液",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 122,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 1,
+      "category": "粉底液",
+      "category_fact_count": 6,
+      "category_fact_fields": [
+        "coverage",
+        "finish",
+        "net_content",
+        "shade",
+        "shelf_life",
+        "texture"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "coverage",
+        "finish",
+        "net_content",
+        "shade",
+        "shelf_life",
+        "texture"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim"
+      ],
+      "faq_count": 0,
+      "identity": "YSL恒久粉底液 LC2",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 123,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 1,
+      "category": "粉底液",
+      "category_fact_count": 2,
+      "category_fact_fields": [
+        "shade",
+        "shelf_life"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "net_content",
+        "shade",
+        "shelf_life"
+      ],
+      "evidence_management_labels": [
+        "product_specification"
+      ],
+      "faq_count": 0,
+      "identity": "兰蔻持妆粉底液 PO-01",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "finish",
+        "texture"
+      ],
+      "product_id": 124,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 13,
+      "category": "粉底液",
+      "category_fact_count": 3,
+      "category_fact_fields": [
+        "net_content",
+        "shade",
+        "shelf_life"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "ingredients_present",
+        "net_content",
+        "shade",
+        "shelf_life",
+        "suitable_skin",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "merchant_cited_test",
+        "merchant_claim",
+        "product_specification",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "迪奥锁妆无瑕粉底液柔雾哑光1N 30ml",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "finish",
+        "texture"
+      ],
+      "product_id": 125,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 5,
+      "category": "粉底液",
+      "category_fact_count": 6,
+      "category_fact_fields": [
+        "coverage",
+        "finish",
+        "net_content",
+        "shade",
+        "shelf_life",
+        "texture"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "coverage",
+        "finish",
+        "net_content",
+        "shade",
+        "shelf_life",
+        "suitable_skin",
+        "texture",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "merchant_cited_test",
+        "merchant_claim",
+        "product_specification",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "纪梵希明星柔雾粉底液N95 30ml油皮服帖遮瑕",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 126,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 8,
+      "category": "粉底液",
+      "category_fact_count": 6,
+      "category_fact_fields": [
+        "finish",
+        "longevity",
+        "net_content",
+        "shade",
+        "suitable_skin",
+        "texture"
+      ],
+      "category_profile": "base_makeup",
+      "covered_fields": [
+        "finish",
+        "longevity",
+        "net_content",
+        "shade",
+        "suitable_skin",
+        "texture",
+        "usage"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "merchant_claim",
+        "product_specification",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "NARS亮采持妆粉底液L1 30ml遮瑕持妆",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 127,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 15,
+      "category": "精华",
+      "category_fact_count": 4,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "net_content",
+        "shelf_life"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "batch",
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "packaging_information",
+        "safety_information",
+        "shelf_life",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "faq",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 1,
+      "identity": "兰蔻肌底焕活修护精华液 50ml",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 129,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 2,
+      "category": "防晒",
+      "category_fact_count": 7,
+      "category_fact_fields": [
+        "film_speed",
+        "net_content",
+        "origin",
+        "reapplication",
+        "shelf_life",
+        "texture",
+        "water_resistance"
+      ],
+      "category_profile": "suncare",
+      "covered_fields": [
+        "film_speed",
+        "net_content",
+        "origin",
+        "reapplication",
+        "shelf_life",
+        "texture",
+        "water_resistance"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "product_specification"
+      ],
+      "faq_count": 0,
+      "identity": "兰蔻轻透水漾防晒乳50ml",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "spf_pa"
+      ],
+      "product_id": 130,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 25,
+      "category": "精华水",
+      "category_fact_count": 4,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "net_content",
+        "texture"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "packaging_information",
+        "safety_information",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript"
+      ],
+      "faq_count": 0,
+      "identity": "悦木之源灵芝水200ml",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 131,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 16,
+      "category": "面霜",
+      "category_fact_count": 6,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "net_content",
+        "shelf_life",
+        "texture",
+        "usage"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "batch",
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "packaging_information",
+        "safety_information",
+        "shelf_life",
+        "storage",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "faq",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 2,
+      "identity": "科颜氏高保湿面霜",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 132,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 18,
+      "category": "爽肤水",
+      "category_fact_count": 5,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "net_content",
+        "shelf_life",
+        "texture"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "batch",
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "packaging_information",
+        "safety_information",
+        "shelf_life",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "faq",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 2,
+      "identity": "科颜氏金盏花爽肤水",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 133,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 21,
+      "category": "卸妆洁肤液/卸妆水",
+      "category_fact_count": 6,
+      "category_fact_fields": [
+        "cleansing_power",
+        "net_content",
+        "rinse_behavior",
+        "shelf_life",
+        "surfactant_type",
+        "texture"
+      ],
+      "category_profile": "cleanser",
+      "covered_fields": [
+        "authenticity",
+        "batch",
+        "cleansing_power",
+        "ingredients_present",
+        "net_content",
+        "packaging_information",
+        "rinse_behavior",
+        "safety_information",
+        "shelf_life",
+        "suitable_skin",
+        "surfactant_type",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "faq",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 3,
+      "identity": "贝德玛舒妍卸妆洁肤液500ml*1",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 134,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 18,
+      "category": "眼霜",
+      "category_fact_count": 3,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "texture"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "authenticity",
+        "claimed_ingredients",
+        "efficacy",
+        "ingredients_present",
+        "net_content",
+        "packaging_information",
+        "safety_information",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "brand_research",
+        "consumer_self_report",
+        "faq",
+        "merchant_cited_test",
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 1,
+      "identity": "雅诗兰黛特润修护肌活精华眼霜",
+      "identity_status": "valid",
+      "missing_priority_fields": [],
+      "product_id": 135,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 10,
+      "category": "香水",
+      "category_fact_count": 5,
+      "category_fact_fields": [
+        "net_content",
+        "origin",
+        "shelf_life",
+        "target_audience",
+        "usage_context"
+      ],
+      "category_profile": "fragrance",
+      "covered_fields": [
+        "ingredients_present",
+        "net_content",
+        "origin",
+        "packaging_information",
+        "safety_information",
+        "shelf_life",
+        "suitable_skin",
+        "target_audience",
+        "usage",
+        "usage_context"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim",
+        "packaging_information",
+        "product_specification",
+        "safety_transcript",
+        "usage"
+      ],
+      "faq_count": 0,
+      "identity": "香奈儿五号香水（经典）",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "concentration",
+        "top_notes",
+        "heart_notes",
+        "base_notes"
+      ],
+      "product_id": 143,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 11,
+      "category": "乳液",
+      "category_fact_count": 4,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "texture",
+        "usage"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "net_content",
+        "safety_information",
+        "suitable_skin",
+        "texture",
+        "usage",
+        "variant_difference"
+      ],
+      "evidence_management_labels": [
+        "consumer_self_report",
+        "merchant_cited_test",
+        "merchant_claim",
+        "product_specification",
+        "safety_transcript"
+      ],
+      "faq_count": 0,
+      "identity": "玉泽皮肤屏障修护神经酰胺调理乳100ml",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present"
+      ],
+      "product_id": 144,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 1,
+      "category": "乳液",
+      "category_fact_count": 3,
+      "category_fact_fields": [
+        "efficacy",
+        "shelf_life",
+        "suitable_skin"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "efficacy",
+        "net_content",
+        "shelf_life",
+        "suitable_skin"
+      ],
+      "evidence_management_labels": [
+        "merchant_claim"
+      ],
+      "faq_count": 0,
+      "identity": "理肤泉特安舒缓水乳两件套 安心水200ml+安心乳40ml",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "ingredients_present",
+        "texture"
+      ],
+      "product_id": 145,
+      "remediation": "already_available"
+    },
+    {
+      "answerable_evidence_count": 0,
+      "category": "乳液",
+      "category_fact_count": 5,
+      "category_fact_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "shelf_life",
+        "suitable_skin",
+        "texture"
+      ],
+      "category_profile": "skincare",
+      "covered_fields": [
+        "claimed_ingredients",
+        "efficacy",
+        "shelf_life",
+        "suitable_skin",
+        "texture"
+      ],
+      "evidence_management_labels": [],
+      "faq_count": 0,
+      "identity": "珂润润浸保湿柔和乳液120ml",
+      "identity_status": "valid",
+      "missing_priority_fields": [
+        "net_content",
+        "ingredients_present"
+      ],
+      "product_id": 146,
+      "remediation": "already_available"
+    }
+  ],
+  "remediation_counts": {
+    "already_available": 97,
+    "catalog_cleanup": 3,
+    "honest_unknown": 3
+  },
+  "schema_version": "product-knowledge-coverage-v1",
+  "union_covered_product_count": 98
+}

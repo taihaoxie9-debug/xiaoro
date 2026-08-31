@@ -99,6 +99,97 @@ def test_product_knowledge_prioritizes_requested_fact() -> None:
     ]
 
 
+def test_product_knowledge_selects_complementary_evidence_dimensions() -> None:
+    usage = _fact(39, "faq", source_kind="merchant").model_copy(
+        update={
+            "fact_id": "evidence:usage",
+            "display_value": "精简护肤，吸收后同向推开。",
+        }
+    )
+    overflow = _fact(39, "faq", source_kind="merchant").model_copy(
+        update={
+            "fact_id": "evidence:overflow",
+            "display_value": "运输后瓶口朝上静置2小时再打开。",
+        }
+    )
+    unrelated = _fact(39, "faq", source_kind="merchant").model_copy(
+        update={
+            "fact_id": "evidence:unrelated",
+            "display_value": "全身使用时肤感偏水润。",
+        }
+    )
+    projection = ProductPublicFactProjection(
+        product_id=39,
+        facts=(usage, overflow, unrelated),
+    )
+
+    selected = select_product_detail_facts(
+        projection=projection,
+        responsibility=Responsibility.PRODUCT_KNOWLEDGE,
+        requested_dimensions=("usage", "packaging_information"),
+        evidence_dimensions={
+            usage.fact_id: ("usage",),
+            overflow.fact_id: ("packaging_information",),
+            unrelated.fact_id: ("texture",),
+        },
+    )
+
+    assert tuple(fact.fact_id for fact in selected) == (
+        "evidence:usage",
+        "evidence:overflow",
+    )
+
+
+def test_product_knowledge_single_aspect_does_not_dump_other_evidence() -> None:
+    usage = _fact(39, "faq", source_kind="merchant").model_copy(
+        update={"fact_id": "evidence:usage"}
+    )
+    overflow = _fact(39, "faq", source_kind="merchant").model_copy(
+        update={"fact_id": "evidence:overflow"}
+    )
+    projection = ProductPublicFactProjection(
+        product_id=39,
+        facts=(usage, overflow),
+    )
+
+    selected = select_product_detail_facts(
+        projection=projection,
+        responsibility=Responsibility.PRODUCT_KNOWLEDGE,
+        requested_dimensions=("usage",),
+        evidence_dimensions={
+            usage.fact_id: ("usage",),
+            overflow.fact_id: ("packaging_information",),
+        },
+    )
+
+    assert tuple(fact.fact_id for fact in selected) == (
+        "evidence:usage",
+    )
+
+
+def test_product_knowledge_uses_category_fact_for_uncovered_dimension() -> None:
+    usage = _fact(39, "faq", source_kind="merchant").model_copy(
+        update={"fact_id": "evidence:usage"}
+    )
+    ingredients = _fact(39, "ingredients_present")
+    projection = ProductPublicFactProjection(
+        product_id=39,
+        facts=(usage, ingredients),
+    )
+
+    selected = select_product_detail_facts(
+        projection=projection,
+        responsibility=Responsibility.PRODUCT_KNOWLEDGE,
+        requested_dimensions=("usage", "ingredients_present"),
+        evidence_dimensions={usage.fact_id: ("usage",)},
+    )
+
+    assert tuple(fact.fact_id for fact in selected) == (
+        "evidence:usage",
+        "category:39:ingredients_present",
+    )
+
+
 def test_image_identity_uses_only_identity_safe_category_facts() -> None:
     selected = select_product_detail_facts(
         projection=_projection(39),

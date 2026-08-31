@@ -22,6 +22,7 @@ _SAFETY_GAP_CAVEAT = (
     "这款没有足以确认该安全问题的信息，"
     "不能把它当作个人安全保证。"
 )
+_SAFETY_TRANSCRIPT_PRIORITY_BOOST = 1.0
 _EVIDENCE_LIMIT = re.compile(
     r"(?:不支持|未(?:显示|披露|给出|说明)|"
     r"无法(?:确认|判断|可靠)|不能据此(?:判断|确认))"
@@ -43,6 +44,105 @@ _SAFETY_LOW_INFORMATION_CJK = (
 )
 _SOURCE_QUERY_BRIDGES = (
     (re.compile(r"(?:多大|多少毫升|容量)"), "容量规格"),
+)
+_EVIDENCE_DIMENSIONS_BY_LABEL = {
+    "usage": ("usage",),
+    "product_specification": ("net_content",),
+    "packaging_information": ("packaging_information",),
+    "safety_transcript": ("safety_information",),
+}
+_EVIDENCE_DIMENSION_RELATION_TOKENS = (
+    (frozenset({"version", "comparison"}), "variant_difference"),
+    (frozenset({"storage"}), "storage"),
+    (frozenset({"batch", "expiry"}), "batch"),
+    (
+        frozenset({"authenticity", "authentication"}),
+        "authenticity",
+    ),
+    (
+        frozenset({"skin", "age", "suitability"}),
+        "suitable_skin",
+    ),
+    (
+        frozenset({"usage", "action", "cleanse", "application"}),
+        "usage",
+    ),
+    (
+        frozenset({"package", "packaging", "pump", "overflow"}),
+        "packaging_information",
+    ),
+)
+_EVIDENCE_DIMENSION_TEXT_HINTS = (
+    (
+        "ingredients_present",
+        ("成分", "配方", "含有", "防腐剂"),
+    ),
+    (
+        "usage",
+        (
+            "使用",
+            "涂抹",
+            "上妆",
+            "搓泥",
+            "洁面",
+            "卸妆",
+            "叠涂",
+            "敷",
+        ),
+    ),
+    (
+        "net_content",
+        ("容量", "净含量", "毫升", "ml"),
+    ),
+    (
+        "suitable_skin",
+        ("肤质", "油皮", "干皮", "敏感肌", "适合"),
+    ),
+    (
+        "texture",
+        ("质地", "肤感", "油腻", "清爽", "轻薄", "厚重"),
+    ),
+    (
+        "variant_difference",
+        ("新旧版", "新版", "旧版", "版本", "升级"),
+    ),
+    (
+        "packaging_information",
+        (
+            "包装",
+            "瓶口",
+            "泵头",
+            "颗粒",
+            "结晶",
+            "溢出",
+            "泄漏",
+        ),
+    ),
+    (
+        "storage",
+        ("保存", "储存", "避光", "高温", "低温"),
+    ),
+    (
+        "batch",
+        ("批次", "批号", "生产日期", "有效期", "效期"),
+    ),
+    (
+        "authenticity",
+        ("防伪", "验真", "真假", "二维码", "溯源", "查询码"),
+    ),
+    (
+        "safety_information",
+        (
+            "安全",
+            "刺激",
+            "过敏",
+            "破皮",
+            "红肿",
+            "疼痛",
+            "伤害",
+            "风险",
+        ),
+    ),
 )
 
 
@@ -99,6 +199,10 @@ class EvidenceQuery(_StrictFrozenModel):
     product_ids: tuple[int, ...] = Field(min_length=1, max_length=4)
     search: PreparedEvidenceSearch
     safety_sensitive: bool
+    requested_dimensions: tuple[str, ...] = Field(
+        default_factory=tuple,
+        max_length=12,
+    )
     product_identity_names: tuple[str, ...] = Field(
         default_factory=tuple,
         max_length=4,
@@ -106,6 +210,7 @@ class EvidenceQuery(_StrictFrozenModel):
 
     @field_validator(
         "product_ids",
+        "requested_dimensions",
         "product_identity_names",
         mode="before",
     )
@@ -141,6 +246,17 @@ class EvidenceQuery(_StrictFrozenModel):
                 raise ValueError(
                     "product identity names must align with product IDs"
                 )
+        if (
+            self.requested_dimensions
+            != tuple(dict.fromkeys(self.requested_dimensions))
+            or any(
+                re.fullmatch(r"[a-z][a-z0-9_]{1,63}", value) is None
+                for value in self.requested_dimensions
+            )
+        ):
+            raise ValueError(
+                "requested evidence dimensions must be ordered unique keys"
+            )
         return self
 
 
@@ -217,17 +333,104 @@ def prepare_evidence_search(
     )
 
 
+def product_evidence_dimensions(
+    block: ProductEvidenceBlock,
+    *,
+    requested_dimensions: Sequence[str] = (),
+) -> tuple[str, ...]:
+    if not isinstance(block, ProductEvidenceBlock):
+        raise TypeError("block must be ProductEvidenceBlock")
+    requested = tuple(requested_dimensions)
+    if (
+        requested != tuple(dict.fromkeys(requested))
+        or any(
+            not isinstance(value, str)
+            or re.fullmatch(r"[a-z][a-z0-9_]{1,63}", value) is None
+            for value in requested
+        )
+    ):
+        raise ValueError(
+            "requested evidence dimensions must be ordered unique keys"
+        )
+    dimensions = set(
+        _EVIDENCE_DIMENSIONS_BY_LABEL.get(
+            block.management_label,
+            (),
+        )
+    )
+    if block.selection_review is not None:
+        dimensions.update(
+            projection.field_key
+            for projection in block.selection_review.projections
+        )
+    relation_tokens = {
+        token
+        for relation in block.relations
+        for token in relation.predicate.casefold().split("_")
+        if token
+    }
+    for tokens, dimension in _EVIDENCE_DIMENSION_RELATION_TOKENS:
+        if relation_tokens & tokens:
+            dimensions.add(dimension)
+    searchable = " ".join(
+        (
+            block.plain_meaning,
+            *block.free_descriptors,
+            *(
+                value
+                for relation in block.relations
+                for value in (
+                    relation.subject,
+                    relation.predicate,
+                    relation.object,
+                )
+            ),
+        )
+    ).casefold()
+    for dimension, hints in _EVIDENCE_DIMENSION_TEXT_HINTS:
+        if any(hint.casefold() in searchable for hint in hints):
+            dimensions.add(dimension)
+    ordered = tuple(
+        dimension
+        for dimension in requested
+        if dimension in dimensions
+    )
+    return (
+        *ordered,
+        *tuple(sorted(dimensions - set(ordered))),
+    )
+
+
 class EvidenceSelection(_StrictFrozenModel):
     evidence: ProductEvidenceBlock
     score: float = Field(gt=0.0, allow_inf_nan=False)
     reasons: tuple[str, ...] = Field(min_length=1)
+    covered_dimensions: tuple[str, ...] = Field(
+        default_factory=tuple,
+        max_length=12,
+    )
 
-    @field_validator("reasons", mode="before")
+    @field_validator("reasons", "covered_dimensions", mode="before")
     @classmethod
     def freeze_reasons(cls, value: object) -> object:
         if isinstance(value, list):
             return tuple(value)
         return value
+
+    @model_validator(mode="after")
+    def validate_dimensions(self) -> Self:
+        if (
+            self.covered_dimensions
+            != tuple(dict.fromkeys(self.covered_dimensions))
+            or any(
+                re.fullmatch(r"[a-z][a-z0-9_]{1,63}", value) is None
+                for value in self.covered_dimensions
+            )
+        ):
+            raise ValueError(
+                "covered evidence dimensions must be ordered unique keys"
+            )
+        return self
 
 
 class EvidencePacket(_StrictFrozenModel):
@@ -305,6 +508,12 @@ class ProductEvidenceRetriever:
                         evidence=block,
                         score=score,
                         reasons=tuple(reasons),
+                        covered_dimensions=product_evidence_dimensions(
+                            block,
+                            requested_dimensions=(
+                                query.requested_dimensions
+                            ),
+                        ),
                     )
                 )
         candidates: list[EvidenceSelection] = []
@@ -327,6 +536,11 @@ class ProductEvidenceRetriever:
                     ),
                 )
             )
+            ordered = _coverage_diverse_order(
+                ordered,
+                requested_dimensions=query.requested_dimensions,
+                safety_sensitive=query.safety_sensitive,
+            )
             ambiguity_reasons.extend(product_ambiguities)
             candidates.extend(
                 _deduplicate(ordered)[: self._per_product_limit]
@@ -337,6 +551,11 @@ class ProductEvidenceRetriever:
                 query.product_ids.index(item.evidence.product_id),
                 item.evidence.evidence_id,
             )
+        )
+        candidates = _coverage_diverse_order(
+            candidates,
+            requested_dimensions=query.requested_dimensions,
+            safety_sensitive=query.safety_sensitive,
         )
         selected = tuple(candidates[: self._total_limit])
         safety_caveats: tuple[str, ...] = ()
@@ -575,7 +794,7 @@ def _score_block(
         reasons.append("explicit_evidence_limit_penalty")
     if query.safety_sensitive:
         if block.management_label == "safety_transcript":
-            score += 4.0
+            score += _SAFETY_TRANSCRIPT_PRIORITY_BOOST
             reasons.append("safety_transcript_priority")
         elif "safety_guarantee" in block.forbidden_uses:
             score -= 0.2
@@ -718,6 +937,10 @@ def _include_unresolved_variant_relations(
                 evidence=block,
                 score=max(anchor.score - 0.001 * index, 0.000001),
                 reasons=("related_variant_dimension",),
+                covered_dimensions=product_evidence_dimensions(
+                    block,
+                    requested_dimensions=query.requested_dimensions,
+                ),
             )
             ordered.append(selection)
             by_id[block.evidence_id] = selection
@@ -737,6 +960,55 @@ def _include_unresolved_variant_relations(
         key=lambda item: (-item.score, item.evidence.evidence_id)
     )
     return ordered, tuple(ambiguity_reasons)
+
+
+def _coverage_diverse_order(
+    selections: list[EvidenceSelection],
+    *,
+    requested_dimensions: tuple[str, ...],
+    safety_sensitive: bool,
+) -> list[EvidenceSelection]:
+    if not requested_dimensions:
+        return selections
+    dimensions = (
+        (
+            "safety_information",
+            *(
+                dimension
+                for dimension in requested_dimensions
+                if dimension != "safety_information"
+            ),
+        )
+        if (
+            safety_sensitive
+            and "safety_information" in requested_dimensions
+        )
+        else requested_dimensions
+    )
+    selected: list[EvidenceSelection] = []
+    used_ids: set[str] = set()
+    for dimension in dimensions:
+        candidate = next(
+            (
+                selection
+                for selection in selections
+                if (
+                    dimension in selection.covered_dimensions
+                    and selection.evidence.evidence_id not in used_ids
+                )
+            ),
+            None,
+        )
+        if candidate is None:
+            continue
+        selected.append(candidate)
+        used_ids.add(candidate.evidence.evidence_id)
+    selected.extend(
+        selection
+        for selection in selections
+        if selection.evidence.evidence_id not in used_ids
+    )
+    return selected
 
 
 def _relation_dimension(predicate: str) -> str:
@@ -966,5 +1238,6 @@ __all__ = [
     "EvidenceSelection",
     "PreparedEvidenceSearch",
     "ProductEvidenceRetriever",
+    "product_evidence_dimensions",
     "prepare_evidence_search",
 ]

@@ -19,6 +19,10 @@ from app.guide.intent.responsibility_matrix import Responsibility
 from app.guide.intent.task_planning import plan_task
 from app.guide.intent.unified_turn_router import route_unified_turn
 from app.guide.presentation.contracts import CardDisplayContract
+from app.guide.retrieval.controlled_product_aliases import (
+    ControlledProductAliasRecord,
+    ControlledProductAliasRegistry,
+)
 from app.guide.retrieval.product_name_resolver import ProductNameResolver
 from app.guide.understanding.contracts import (
     ProductMentionDraft,
@@ -103,6 +107,52 @@ def test_partial_provider_mentions_are_completed_from_catalog() -> None:
     assert tuple(
         binding.source_text for binding in result.explicit_bindings
     ) == ("兰蔻小黑瓶", "小棕瓶")
+
+
+def test_wide_model_mention_uses_overlapping_unique_controlled_alias() -> None:
+    class _Catalog:
+        product_ids = frozenset({39})
+
+        @staticmethod
+        def get_identity(product_id: int) -> CanonicalIdentity | None:
+            if product_id != 39:
+                return None
+            return CanonicalIdentity(
+                product_id=39,
+                brand="赫莲娜（HR）",
+                product_name="赫莲娜绿宝瓶精华",
+            )
+
+    message = "赫莲娜绿宝瓶第六代跟旧版主要改了什么？"
+    controlled_aliases = ControlledProductAliasRegistry((
+        ControlledProductAliasRecord(
+            alias="绿宝瓶",
+            identity_scope="exact_product",
+            product_ids=(39,),
+            default_product_id=39,
+            source_refs=("a" * 64,),
+            review_status="approved",
+            review_rationale="审核别名唯一绑定赫莲娜绿宝瓶。",
+        ),
+    ))
+    collector = PreRoutingProductResolutionCollector(
+        ProductNameResolver(
+            _Catalog(),
+            controlled_aliases=controlled_aliases,
+        )
+    )
+
+    result = collector.collect(
+        message=message,
+        understanding=_comparison_understanding(
+            message,
+            product_mentions=("赫莲娜绿宝瓶第六代",),
+        ),
+        snapshot=None,
+    )
+
+    assert result.resolution.product_ids == (39,)
+    assert result.resolution.issue is None
 
 
 def test_recovered_explicit_binding_preserves_source_order() -> None:

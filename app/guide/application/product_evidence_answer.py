@@ -59,8 +59,27 @@ class ProductKnowledgeAnswerPlan(_StrictFrozenModel):
         default_factory=tuple,
         max_length=3,
     )
+    requested_dimensions: tuple[str, ...] = Field(
+        default_factory=tuple,
+        max_length=12,
+    )
+    covered_dimensions: tuple[str, ...] = Field(
+        default_factory=tuple,
+        max_length=12,
+    )
+    missing_dimensions: tuple[str, ...] = Field(
+        default_factory=tuple,
+        max_length=12,
+    )
 
-    @field_validator("direct_facts", "used_fact_ids", mode="before")
+    @field_validator(
+        "direct_facts",
+        "used_fact_ids",
+        "requested_dimensions",
+        "covered_dimensions",
+        "missing_dimensions",
+        mode="before",
+    )
     @classmethod
     def freeze_collections(cls, value: object) -> object:
         return tuple(value) if isinstance(value, list) else value
@@ -74,6 +93,31 @@ class ProductKnowledgeAnswerPlan(_StrictFrozenModel):
             raise ValueError(
                 "knowledge answer IDs must match direct facts"
             )
+        for name in (
+            "requested_dimensions",
+            "covered_dimensions",
+            "missing_dimensions",
+        ):
+            values = getattr(self, name)
+            if values != tuple(dict.fromkeys(values)):
+                raise ValueError(
+                    "knowledge answer dimensions must be ordered unique"
+                )
+        if not set(self.covered_dimensions) <= set(
+            self.requested_dimensions
+        ):
+            raise ValueError(
+                "covered dimensions must be requested"
+            )
+        expected_missing = tuple(
+            dimension
+            for dimension in self.requested_dimensions
+            if dimension not in self.covered_dimensions
+        )
+        if self.missing_dimensions != expected_missing:
+            raise ValueError(
+                "missing dimensions must match uncovered requests"
+            )
         return self
 
 
@@ -83,10 +127,18 @@ _PUBLIC_LABEL_BY_KEY = {
     "ingredients_present": "核心成分",
     "suitable_skin": "适合肤质",
     "texture": "质地",
+    "makeup_style": "妆容",
+    "color_family": "颜色",
     "usage": "使用方法",
     "net_content": "规格",
     "specification": "规格",
     "warranty": "保修",
+    "variant_difference": "版本差异",
+    "packaging_information": "包装异常",
+    "storage": "储存",
+    "batch": "批次",
+    "authenticity": "防伪",
+    "safety_information": "安全说明",
 }
 _PUBLIC_RELATION_CONNECTOR = {
     "merchant_shade_correspondence": "对应",
@@ -98,6 +150,10 @@ def build_product_knowledge_answer_plan(
     projection: ProductPublicFactProjection,
     question: str,
     requested_dimensions: Collection[str],
+    evidence_dimensions: Mapping[
+        str,
+        Collection[str],
+    ] | None = None,
 ) -> ProductKnowledgeAnswerPlan:
     if not isinstance(projection, ProductPublicFactProjection):
         raise TypeError(
@@ -113,14 +169,34 @@ def build_product_knowledge_answer_plan(
         projection=projection,
         responsibility=Responsibility.PRODUCT_KNOWLEDGE,
         requested_dimensions=dimensions,
+        evidence_dimensions=evidence_dimensions,
     )
-    available_fields = {
-        fact.field_key for fact in projection.facts
+    evidence_dimension_map = {
+        fact_id: tuple(values)
+        for fact_id, values in (evidence_dimensions or {}).items()
     }
+    covered_fields = {
+        dimension
+        for fact in selected
+        for dimension in (
+            (
+                fact.field_key,
+                *evidence_dimension_map.get(fact.fact_id, ()),
+            )
+            if fact.fact_id.startswith("evidence:")
+            else (fact.field_key,)
+        )
+        if dimension in requested_fields
+    }
+    covered_dimensions = tuple(
+        field_key
+        for field_key in requested_fields
+        if field_key in covered_fields
+    )
     missing_fields = tuple(
         field_key
         for field_key in requested_fields
-        if field_key not in available_fields
+        if field_key not in covered_fields
     )
     if selected:
         lines = [
@@ -144,6 +220,9 @@ def build_product_knowledge_answer_plan(
         answer_text=validate_final_public_text(answer_text),
         direct_facts=selected,
         used_fact_ids=tuple(fact.fact_id for fact in selected),
+        requested_dimensions=requested_fields,
+        covered_dimensions=covered_dimensions,
+        missing_dimensions=missing_fields,
     )
 
 
@@ -172,12 +251,18 @@ def resolve_product_knowledge_dimensions(
             "核心成分",
         ),
         "suitable_skin": (
-            "适合",
+            "适合谁",
+            "适合什么肤质",
+            "适用肤质",
             "肤质",
             "敏感",
             "泛红",
             "油皮",
             "干皮",
+            "干性肌肤",
+            "油性肌肤",
+            "混合肌肤",
+            "混油",
         ),
         "texture": (
             "质地",
@@ -186,14 +271,36 @@ def resolve_product_knowledge_dimensions(
             "黏",
             "厚重",
             "成膜",
+            "卡纹",
+            "浮粉",
+        ),
+        "makeup_style": (
+            "妆容",
+            "眼妆",
+            "什么妆",
+        ),
+        "color_family": (
+            "颜色",
+            "色调",
+            "什么色",
+            "显色",
         ),
         "usage": (
             "用法",
-            "使用",
+            "使用方法",
+            "使用方式",
+            "使用时段",
+            "如何使用",
+            "怎么使用",
+            "怎么用",
             "顺序",
             "早上",
             "晚上",
             "怎么涂",
+            "如何涂",
+            "怎么敷",
+            "敷完",
+            "涂法",
         ),
         "net_content": (
             "规格",
@@ -204,6 +311,52 @@ def resolve_product_knowledge_dimensions(
         "warranty": (
             "保修",
             "质保",
+        ),
+        "variant_difference": (
+            "新旧版",
+            "新版",
+            "旧版",
+            "版本区别",
+            "版本差异",
+            "升级",
+        ),
+        "packaging_information": (
+            "包装",
+            "瓶口",
+            "泵头",
+            "颗粒",
+            "结晶",
+            "溢出",
+            "开盖",
+            "漏",
+        ),
+        "storage": (
+            "保存",
+            "储存",
+            "避光",
+            "高温",
+            "低温",
+        ),
+        "batch": (
+            "批次",
+            "批号",
+            "生产日期",
+            "有效期",
+        ),
+        "authenticity": (
+            "防伪",
+            "验真",
+            "真假",
+            "二维码",
+            "溯源",
+        ),
+        "safety_information": (
+            "安全",
+            "刺激",
+            "过敏",
+            "孕妇",
+            "哺乳",
+            "破皮",
         ),
     }
     return tuple(

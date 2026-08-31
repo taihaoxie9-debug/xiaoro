@@ -1,0 +1,85 @@
+{
+  "card_display": {
+    "max_cards": 1,
+    "mode": "single",
+    "reason": "product",
+    "visible_product_ids": [
+      78
+    ]
+  },
+  "compact_tags": [
+    {
+      "fact_ids": [
+        "card:78:mask_material:soft_display"
+      ],
+      "label": "天丝膜布",
+      "product_id": 78
+    }
+  ],
+  "comparison_rows": [],
+  "copy_source": "authoritative",
+  "mode": "product_knowledge",
+  "recommendation_mode": null,
+  "requested_comparison_dimensions": [],
+  "responsibility": "product_knowledge",
+  "sections": [
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "我按你问的内容，整理这款商品的相关信息。",
+      "direct_facts": [],
+      "kind": "summary",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "使用提醒：薇诺娜（WINONA）特护面膜舒敏保湿丝滑面贴膜6片舒缓修护补水保湿：品牌将「商家称该面膜专研敏感肌，并称可用于特殊美容或日晒后；具体信息：敏感肌适用宣称；日晒后适用宣称；特殊美容后适用宣称」作为适用说明。这类说明不能当作个人安全保证；如果正处于泛红、刺痛或破损期，先暂停尝试；皮肤稳定后再局部试用。",
+      "direct_facts": [],
+      "kind": "answer",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": [
+        "evidence:6de5c329a6ab2cb4658decd3d754eb2a742251b8637c736d0e20261ca08fd961"
+      ]
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "full_cards",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    }
+  ],
+  "telemetry": {
+    "completion_tokens": 0,
+    "fallback_reason": null,
+    "latency_ms": 0,
+    "model": "deterministic",
+    "prompt_tokens": 0,
+    "provider": "reviewed_assets",
+    "total_tokens": 0
+  },
+  "visible_product_ids": [
+    78
+  ],
+  "winner": {
+    "dimension_ids": [],
+    "fact_ids": [],
+    "reason": null,
+    "status": "not_applicable",
+    "tie_reason": null,
+    "winner_product_id": null
+  }
+}

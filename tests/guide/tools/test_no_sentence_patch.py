@@ -16,6 +16,7 @@ PRODUCTION = (
     "app/guide/understanding",
     "app/guide/intent",
     "app/guide/application",
+    "app/guide/retrieval/product_evidence_retrieval.py",
     "app/static/chat.html",
     "app/static/guide-presentation.js",
 )
@@ -1417,6 +1418,19 @@ def test_python_gate_traces_added_sentence_source_into_existing_sink() -> None:
     )
 
     assert "literal sentence branch at line 3" in violations
+
+
+def test_python_gate_allows_class_level_dimension_aliases() -> None:
+    source = (
+        "ALIASES = {'usage': ('怎么用', '怎么涂')}\n"
+        "def resolve(question):\n"
+        "    return tuple(\n"
+        "        key for key, values in ALIASES.items()\n"
+        "        if any(value in question for value in values)\n"
+        "    )\n"
+    )
+
+    assert _python_source_violations(source) == ()
 
 
 @pytest.mark.parametrize(

@@ -1,0 +1,85 @@
+{
+  "card_display": {
+    "max_cards": 1,
+    "mode": "single",
+    "reason": "product",
+    "visible_product_ids": [
+      39
+    ]
+  },
+  "compact_tags": [
+    {
+      "fact_ids": [
+        "card:39:ingredients_present:soft_display"
+      ],
+      "label": "水、甘油",
+      "product_id": 39
+    }
+  ],
+  "comparison_rows": [],
+  "copy_source": "authoritative",
+  "mode": "product_knowledge",
+  "recommendation_mode": null,
+  "requested_comparison_dimensions": [],
+  "responsibility": "product_knowledge",
+  "sections": [
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "我按你问的内容，整理这款商品的相关信息。",
+      "direct_facts": [],
+      "kind": "summary",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "品牌主打：赫莲娜悦颜焕活精华露：使用问答FAQ把第六代相对旧版的变化概括为海茴香原料计算量、细胞响应科技、修护泛红和植物多肽抗老升级；具体信息：第六代与旧版区别：10亿海茴香精粹、EXO SAM、植物抗老多肽；快褪红紧致；新版旧版区别FAQ。",
+      "direct_facts": [],
+      "kind": "answer",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": [
+        "evidence:49db3872b87c56349d9799a9753ec76fd9691d860509416ad28f9fc01bf1dbee"
+      ]
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "full_cards",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    }
+  ],
+  "telemetry": {
+    "completion_tokens": 0,
+    "fallback_reason": null,
+    "latency_ms": 0,
+    "model": "deterministic",
+    "prompt_tokens": 0,
+    "provider": "reviewed_assets",
+    "total_tokens": 0
+  },
+  "visible_product_ids": [
+    39
+  ],
+  "winner": {
+    "dimension_ids": [],
+    "fact_ids": [],
+    "reason": null,
+    "status": "not_applicable",
+    "tie_reason": null,
+    "winner_product_id": null
+  }
+}

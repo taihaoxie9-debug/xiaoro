@@ -1,0 +1,51 @@
+{
+  "clarification_message_count": 0,
+  "comparison_table_count": 0,
+  "inline_product_ids": [],
+  "knowledge_citation_ids": [],
+  "knowledge_citation_panel_count": 0,
+  "legacy_message_count": 0,
+  "legacy_product_card_count": 0,
+  "presentation_mode": "product_knowledge",
+  "presentation_text": "我按你问的内容，整理这款商品的相关信息。\n\n品牌主打：赫莲娜悦颜焕活精华露：使用问答FAQ把第六代相对旧版的变化概括为海茴香原料计算量、细胞响应科技、修护泛红和植物多肽抗老升级；具体信息：第六代与旧版区别：10亿海茴香精粹、EXO SAM、植物抗老多肽；快褪红紧致；新版旧版区别FAQ。\n\n本轮提到的商品\n赫莲娜悦颜焕活精华露\n¥ 1,080\n水、甘油\n去商品页查实时价\n展示依据\n商品证据\n赫莲娜悦颜焕活精华露：第六代绿宝瓶精华VS旧版绿宝瓶精华有什么区别？第六代以10亿海茴香纳米级细胞精粹，从源头唤启细胞响应力，强大修护力、快褪红；抗老新升级，新添加植物抗老多肽，更显紧致。",
+  "product_evidence_ids": [
+    "49db3872b87c56349d9799a9753ec76fd9691d860509416ad28f9fc01bf1dbee"
+  ],
+  "product_evidence_product_ids": [
+    39
+  ],
+  "product_evidence_section_count": 1,
+  "request_id": "request_1788170975283_ffidqadj",
+  "section_blocks": [
+    {
+      "kind": "summary",
+      "text": "我按你问的内容，整理这款商品的相关信息。"
+    },
+    {
+      "kind": "answer",
+      "text": "品牌主打：赫莲娜悦颜焕活精华露：使用问答FAQ把第六代相对旧版的变化概括为海茴香原料计算量、细胞响应科技、修护泛红和植物多肽抗老升级；具体信息：第六代与旧版区别：10亿海茴香精粹、EXO SAM、植物抗老多肽；快褪红紧致；新版旧版区别FAQ。"
+    },
+    {
+      "kind": "full_cards",
+      "text": "本轮提到的商品\n赫莲娜悦颜焕活精华露\n¥ 1,080\n水、甘油\n去商品页查实时价"
+    },
+    {
+      "kind": "evidence",
+      "text": "展示依据\n商品证据\n赫莲娜悦颜焕活精华露：第六代绿宝瓶精华VS旧版绿宝瓶精华有什么区别？第六代以10亿海茴香纳米级细胞精粹，从源头唤启细胞响应力，强大修护力、快褪红；抗老新升级，新添加植物抗老多肽，更显紧致。"
+    }
+  ],
+  "shelf_product_ids": [
+    39
+  ],
+  "terminal_kind": "presentation",
+  "turn_presentation_root_count": 1,
+  "visible_product_ids": [
+    39
+  ],
+  "visible_section_kinds": [
+    "summary",
+    "answer",
+    "full_cards",
+    "evidence"
+  ]
+}

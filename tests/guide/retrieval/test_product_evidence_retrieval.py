@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import pytest
+from pydantic import ValidationError
+
 from app.guide.retrieval.product_evidence_assets import (
     ProductEvidenceAssets,
     ProductEvidenceBlock,
@@ -22,6 +25,63 @@ def test_evidence_query_carries_no_raw_request_text_or_source_spans() -> None:
     assert "product_mention_spans" not in EvidenceQuery.model_fields
 
 
+def test_evidence_query_carries_ordered_requested_dimensions() -> None:
+    query = EvidenceQuery(
+        product_ids=(57,),
+        search=prepare_evidence_search(
+            source_text="怎么涂不搓泥，运输后开盖会不会溢？",
+            question_meaning="询问防晒涂法和运输后开盖溢出",
+        ),
+        safety_sensitive=False,
+        requested_dimensions=[
+            "usage",
+            "packaging_information",
+        ],
+    )
+
+    assert query.requested_dimensions == (
+        "usage",
+        "packaging_information",
+    )
+
+
+@pytest.mark.parametrize(
+    "requested_dimensions",
+    [
+        ("usage", "usage"),
+        ("Usage",),
+        ("",),
+        ("packaging-information",),
+    ],
+)
+def test_evidence_query_rejects_invalid_requested_dimensions(
+    requested_dimensions: tuple[str, ...],
+) -> None:
+    with pytest.raises(ValidationError):
+        EvidenceQuery(
+            product_ids=(57,),
+            search=prepare_evidence_search(
+                source_text="怎么使用？",
+                question_meaning="询问使用方式",
+            ),
+            safety_sensitive=False,
+            requested_dimensions=requested_dimensions,
+        )
+
+
+def test_evidence_query_defaults_to_no_requested_dimensions() -> None:
+    query = EvidenceQuery(
+        product_ids=(57,),
+        search=prepare_evidence_search(
+            source_text="整体怎么样？",
+            question_meaning="询问商品资料",
+        ),
+        safety_sensitive=False,
+    )
+
+    assert query.requested_dimensions == ()
+
+
 def _query(
     *,
     product_ids: tuple[int, ...],
@@ -30,6 +90,7 @@ def _query(
     safety_sensitive: bool,
     product_mention_spans: tuple[tuple[int, int], ...] = (),
     product_identity_names: tuple[str, ...] = (),
+    requested_dimensions: tuple[str, ...] = (),
 ) -> EvidenceQuery:
     return EvidenceQuery(
         product_ids=product_ids,
@@ -39,6 +100,7 @@ def _query(
             product_mention_spans=product_mention_spans,
         ),
         safety_sensitive=safety_sensitive,
+        requested_dimensions=requested_dimensions,
         product_identity_names=product_identity_names,
     )
 
@@ -693,6 +755,55 @@ def _reader() -> ProductEvidenceReader:
                         "SPF50+测试是具体耐水条件"
                     ),
                 ),
+                _block(
+                    product_id=57,
+                    index=2,
+                    label="faq",
+                    exact_text=(
+                        "精简护肤，吸收后同向推开，"
+                        "成膜后轻拍上妆"
+                    ),
+                    meaning=(
+                        "商家FAQ给出减少搓泥的护肤、"
+                        "防晒涂抹和后续上妆顺序。"
+                    ),
+                    descriptors=[
+                        "防晒不搓泥FAQ",
+                        "同方向推开",
+                        "成膜后轻拍上妆",
+                    ],
+                    relations=[
+                        {
+                            "subject": "减少搓泥",
+                            "predicate": "merchant_faq_answer",
+                            "object": (
+                                "精简护肤、吸收后同向推开、"
+                                "成膜后轻拍上妆"
+                            ),
+                        }
+                    ],
+                ),
+                _block(
+                    product_id=57,
+                    index=3,
+                    label="faq",
+                    exact_text="瓶口朝上静置2小时再打开",
+                    meaning=(
+                        "商家FAQ给出运输后防止开盖喷溢的"
+                        "静置方法。"
+                    ),
+                    descriptors=[
+                        "开盖溢出FAQ",
+                        "静置2小时",
+                    ],
+                    relations=[
+                        {
+                            "subject": "运输后开盖溢出",
+                            "predicate": "merchant_faq_answer",
+                            "object": "瓶口朝上静置2小时再打开",
+                        }
+                    ],
+                ),
             ],
             key=lambda item: item.evidence_id,
         )
@@ -723,6 +834,26 @@ def _reader() -> ProductEvidenceReader:
         audit=(),
     )
     return ProductEvidenceReader(assets)
+
+
+def test_product_evidence_reader_exposes_sorted_inventory_ids() -> None:
+    reader = _reader()
+
+    assert reader.product_ids == tuple(sorted({
+        block.product_id
+        for product_id in (
+            34,
+            57,
+            67,
+            78,
+            80,
+            115,
+            117,
+            120,
+            143,
+        )
+        for block in reader.read(product_id=product_id)
+    }))
 
 
 def test_indirect_slippage_question_uses_meaning_not_fixed_tag() -> None:
@@ -1091,6 +1222,47 @@ def test_partial_free_descriptor_overlap_can_nominate_direct_scene() -> None:
     )
 
     assert "海边游玩" in packet.selected[0].evidence.exact_text
+
+
+def test_requested_dimensions_diversify_positive_evidence_results() -> None:
+    packet = ProductEvidenceRetriever(_reader()).retrieve(
+        _query(
+            product_ids=(57,),
+            raw_question="怎么涂不搓泥，运输后开盖会不会溢？",
+            question_meaning="询问防晒涂法和运输后开盖溢出",
+            safety_sensitive=False,
+            requested_dimensions=(
+                "usage",
+                "packaging_information",
+            ),
+        )
+    )
+
+    assert tuple(
+        selection.covered_dimensions
+        for selection in packet.selected[:2]
+    ) == (
+        ("usage",),
+        ("packaging_information",),
+    )
+    assert "同向推开" in packet.selected[0].evidence.exact_text
+    assert "静置2小时" in packet.selected[1].evidence.exact_text
+
+
+def test_repeated_coverage_diverse_retrieval_is_byte_identical() -> None:
+    retriever = ProductEvidenceRetriever(_reader())
+    query = _query(
+        product_ids=(57,),
+        raw_question="怎么涂不搓泥，运输后开盖会不会溢？",
+        question_meaning="询问防晒涂法和运输后开盖溢出",
+        safety_sensitive=False,
+        requested_dimensions=("usage", "packaging_information"),
+    )
+
+    first = retriever.retrieve(query)
+    second = retriever.retrieve(query)
+
+    assert first.model_dump_json() == second.model_dump_json()
 
 
 def test_retrieval_never_crosses_product_scope() -> None:

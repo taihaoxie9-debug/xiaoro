@@ -1,0 +1,51 @@
+{
+  "clarification_message_count": 0,
+  "comparison_table_count": 0,
+  "inline_product_ids": [],
+  "knowledge_citation_ids": [],
+  "knowledge_citation_panel_count": 0,
+  "legacy_message_count": 0,
+  "legacy_product_card_count": 0,
+  "presentation_mode": "product_knowledge",
+  "presentation_text": "我按你问的内容，整理这款商品的相关信息。\n\n使用提醒：薇诺娜（WINONA）特护面膜舒敏保湿丝滑面贴膜6片舒缓修护补水保湿：品牌将「商家称该面膜专研敏感肌，并称可用于特殊美容或日晒后；具体信息：敏感肌适用宣称；日晒后适用宣称；特殊美容后适用宣称」作为适用说明。这类说明不能当作个人安全保证；如果正处于泛红、刺痛或破损期，先暂停尝试；皮肤稳定后再局部试用。\n\n本轮提到的商品\n薇诺娜（WINONA）特护面膜舒敏保湿丝滑面贴膜6片舒缓修护补水保湿\n¥ 43\n天丝膜布\n去商品页查实时价\n展示依据\n商品证据\n薇诺娜（WINONA）特护面膜舒敏保湿丝滑面贴膜6片舒缓修护补水保湿：专研敏感肌·特殊美容/日晒后适用",
+  "product_evidence_ids": [
+    "6de5c329a6ab2cb4658decd3d754eb2a742251b8637c736d0e20261ca08fd961"
+  ],
+  "product_evidence_product_ids": [
+    78
+  ],
+  "product_evidence_section_count": 1,
+  "request_id": "request_1788171022995_lh79ew1y",
+  "section_blocks": [
+    {
+      "kind": "summary",
+      "text": "我按你问的内容，整理这款商品的相关信息。"
+    },
+    {
+      "kind": "answer",
+      "text": "使用提醒：薇诺娜（WINONA）特护面膜舒敏保湿丝滑面贴膜6片舒缓修护补水保湿：品牌将「商家称该面膜专研敏感肌，并称可用于特殊美容或日晒后；具体信息：敏感肌适用宣称；日晒后适用宣称；特殊美容后适用宣称」作为适用说明。这类说明不能当作个人安全保证；如果正处于泛红、刺痛或破损期，先暂停尝试；皮肤稳定后再局部试用。"
+    },
+    {
+      "kind": "full_cards",
+      "text": "本轮提到的商品\n薇诺娜（WINONA）特护面膜舒敏保湿丝滑面贴膜6片舒缓修护补水保湿\n¥ 43\n天丝膜布\n去商品页查实时价"
+    },
+    {
+      "kind": "evidence",
+      "text": "展示依据\n商品证据\n薇诺娜（WINONA）特护面膜舒敏保湿丝滑面贴膜6片舒缓修护补水保湿：专研敏感肌·特殊美容/日晒后适用"
+    }
+  ],
+  "shelf_product_ids": [
+    78
+  ],
+  "terminal_kind": "presentation",
+  "turn_presentation_root_count": 1,
+  "visible_product_ids": [
+    78
+  ],
+  "visible_section_kinds": [
+    "summary",
+    "answer",
+    "full_cards",
+    "evidence"
+  ]
+}

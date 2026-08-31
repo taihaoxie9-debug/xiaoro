@@ -1,0 +1,92 @@
+{
+  "card_display": {
+    "max_cards": 1,
+    "mode": "single",
+    "reason": "product",
+    "visible_product_ids": [
+      120
+    ]
+  },
+  "compact_tags": [
+    {
+      "fact_ids": [
+        "card:120:longevity:soft_display"
+      ],
+      "label": "持久留香",
+      "product_id": 120
+    },
+    {
+      "fact_ids": [
+        "card:120:target_audience:soft_display"
+      ],
+      "label": "中性",
+      "product_id": 120
+    }
+  ],
+  "comparison_rows": [],
+  "copy_source": "authoritative",
+  "mode": "product_knowledge",
+  "recommendation_mode": null,
+  "requested_comparison_dimensions": [],
+  "responsibility": "product_knowledge",
+  "sections": [
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "我按你问的内容，整理这款商品的相关信息。",
+      "direct_facts": [],
+      "kind": "summary",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "品牌主打：祖玛珑英国梨与小苍兰古龙水：使用问答商家把刚喷时的刺鼻感解释为酒精载体尚未挥发，并建议等待几分钟再闻；具体信息：刚喷时酒精味较浓：等待几分钟挥发后再闻；新开封酒精味FAQ。",
+      "direct_facts": [],
+      "kind": "answer",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": [
+        "evidence:d452a07760f04eccd2e280a0174b48370f5f3cf35537189aba82ecbf89a2302f"
+      ]
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "full_cards",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    }
+  ],
+  "telemetry": {
+    "completion_tokens": 0,
+    "fallback_reason": null,
+    "latency_ms": 0,
+    "model": "deterministic",
+    "prompt_tokens": 0,
+    "provider": "reviewed_assets",
+    "total_tokens": 0
+  },
+  "visible_product_ids": [
+    120
+  ],
+  "winner": {
+    "dimension_ids": [],
+    "fact_ids": [],
+    "reason": null,
+    "status": "not_applicable",
+    "tie_reason": null,
+    "winner_product_id": null
+  }
+}

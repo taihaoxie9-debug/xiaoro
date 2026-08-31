@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 1,
+    "message": "那它具体怎么敷，敷完要洗吗？",
+    "session_id": "session_2c9061a0-a855-4879-83ee-67a7962a758f",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788170997937_dje3ulva",
+  "request_message": "那它具体怎么敷，敷完要洗吗？",
+  "turn_id": "pk-current-item-t2",
+  "url": "/api/v1/chat/stream",
+  "user_message": "那它具体怎么敷，敷完要洗吗？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

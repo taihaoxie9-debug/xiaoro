@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "碧柔Biore水活防晒水润凝蜜怎么涂不搓泥，运输后开盖会不会溢？",
+    "session_id": "session_ff7bb644-5dbc-4661-b3e1-29934a4f4a8a",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788171006660_3d7rtzti",
+  "request_message": "碧柔Biore水活防晒水润凝蜜怎么涂不搓泥，运输后开盖会不会溢？",
+  "turn_id": "pk-multi-aspect-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "碧柔Biore水活防晒水润凝蜜怎么涂不搓泥，运输后开盖会不会溢？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

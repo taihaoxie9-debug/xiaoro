@@ -1,0 +1,100 @@
+{
+  "card_display": {
+    "max_cards": 1,
+    "mode": "single",
+    "reason": "product",
+    "visible_product_ids": [
+      57
+    ]
+  },
+  "compact_tags": [
+    {
+      "fact_ids": [
+        "card:57:efficacy:soft_display"
+      ],
+      "label": "防晒",
+      "product_id": 57
+    },
+    {
+      "fact_ids": [
+        "card:57:film_speed:soft_display"
+      ],
+      "label": "速干成膜",
+      "product_id": 57
+    },
+    {
+      "fact_ids": [
+        "card:57:target_audience:soft_display"
+      ],
+      "label": "普通人群",
+      "product_id": 57
+    }
+  ],
+  "comparison_rows": [],
+  "copy_source": "authoritative",
+  "mode": "product_knowledge",
+  "recommendation_mode": null,
+  "requested_comparison_dimensions": [],
+  "responsibility": "product_knowledge",
+  "sections": [
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "我按你问的内容，整理这款商品的相关信息。",
+      "direct_facts": [],
+      "kind": "summary",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": "品牌主打：碧柔水活防晒水润凝蜜：使用问答商家FAQ给出减少搓泥的护肤、防晒涂抹和后续上妆顺序；具体信息：减少搓泥：精简护肤、吸收后同向推开、成膜后轻拍上妆；同方向推开；防晒不搓泥FAQ。\n使用问答：碧柔水活防晒水润凝蜜：使用问答商家FAQ给出运输后防止开盖喷溢的静置方法；具体信息：运输后开盖溢出：瓶口朝上静置2小时再打开；开盖溢出FAQ。",
+      "direct_facts": [],
+      "kind": "answer",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": [
+        "evidence:02e71cc9593ea26d4f7288abba1c1d107b201a99979f7bca01416593d8b9c7af",
+        "evidence:e3ee0783aa62d423918907246ca3084f9f82bf24a301857a78d88aab56a6a785"
+      ]
+    },
+    {
+      "advisor_reason": null,
+      "advisor_used_constraint_ids": [],
+      "advisor_used_fact_ids": [],
+      "copy_text": null,
+      "direct_facts": [],
+      "kind": "full_cards",
+      "product_id": null,
+      "slot_id": null,
+      "used_constraint_ids": [],
+      "used_fact_ids": []
+    }
+  ],
+  "telemetry": {
+    "completion_tokens": 0,
+    "fallback_reason": null,
+    "latency_ms": 0,
+    "model": "deterministic",
+    "prompt_tokens": 0,
+    "provider": "reviewed_assets",
+    "total_tokens": 0
+  },
+  "visible_product_ids": [
+    57
+  ],
+  "winner": {
+    "dimension_ids": [],
+    "fact_ids": [],
+    "reason": null,
+    "status": "not_applicable",
+    "tie_reason": null,
+    "winner_product_id": null
+  }
+}

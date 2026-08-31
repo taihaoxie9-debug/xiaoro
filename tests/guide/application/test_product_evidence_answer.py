@@ -9,6 +9,7 @@ from app.guide.application.product_evidence_answer import (
     render_catalog_product_facts_answer,
     render_product_evidence_fact,
     render_product_evidence_answer,
+    resolve_product_knowledge_dimensions,
 )
 from app.guide.presentation.contracts import (
     DisplayCategoryFact,
@@ -517,6 +518,103 @@ def test_product_knowledge_answer_names_missing_requested_dimension(
     assert plan.used_fact_ids == ("category:39:efficacy",)
 
 
+def test_product_knowledge_answer_uses_complementary_evidence() -> None:
+    projection = ProductPublicFactProjection(
+        product_id=39,
+        facts=(
+            _projected_fact(
+                "evidence:usage",
+                "faq",
+                "使用问答",
+                "精简护肤，吸收后同向推开。",
+                source_kind="merchant",
+            ),
+            _projected_fact(
+                "evidence:overflow",
+                "faq",
+                "使用问答",
+                "运输后瓶口朝上静置2小时再打开。",
+                source_kind="merchant",
+            ),
+            _projected_fact(
+                "evidence:unrelated",
+                "faq",
+                "使用问答",
+                "全身使用时肤感偏水润。",
+                source_kind="merchant",
+            ),
+        ),
+    )
+
+    plan = build_product_knowledge_answer_plan(
+        projection=projection,
+        question="怎么涂不搓泥，运输后开盖会不会溢？",
+        requested_dimensions=("usage", "packaging_information"),
+        evidence_dimensions={
+            "evidence:usage": ("usage",),
+            "evidence:overflow": ("packaging_information",),
+            "evidence:unrelated": ("texture",),
+        },
+    )
+
+    assert plan.used_fact_ids == (
+        "evidence:usage",
+        "evidence:overflow",
+    )
+    assert "同向推开" in plan.answer_text
+    assert "静置2小时" in plan.answer_text
+    assert "全身使用" not in plan.answer_text
+    assert plan.requested_dimensions == (
+        "usage",
+        "packaging_information",
+    )
+    assert plan.covered_dimensions == (
+        "usage",
+        "packaging_information",
+    )
+    assert plan.missing_dimensions == ()
+
+
+def test_product_knowledge_answer_reports_only_uncovered_dimension() -> None:
+    projection = ProductPublicFactProjection(
+        product_id=39,
+        facts=(
+            _projected_fact(
+                "evidence:usage",
+                "faq",
+                "使用问答",
+                "晚间作为面霜使用。",
+                source_kind="merchant",
+            ),
+            _projected_fact(
+                "category:39:texture",
+                "texture",
+                "质地",
+                "丰润乳霜",
+            ),
+        ),
+    )
+
+    plan = build_product_knowledge_answer_plan(
+        projection=projection,
+        question="怎么用，质地如何，核心成分是什么？",
+        requested_dimensions=(
+            "usage",
+            "texture",
+            "ingredients_present",
+        ),
+        evidence_dimensions={"evidence:usage": ("usage",)},
+    )
+
+    assert plan.used_fact_ids == (
+        "evidence:usage",
+        "category:39:texture",
+    )
+    assert plan.covered_dimensions == ("usage", "texture")
+    assert plan.missing_dimensions == ("ingredients_present",)
+    assert "没有明确标注的核心成分信息" in plan.answer_text
+
+
 def test_product_knowledge_answer_plan_prioritizes_selected_evidence() -> None:
     projection = ProductPublicFactProjection(
         product_id=39,
@@ -586,6 +684,50 @@ def test_product_knowledge_answer_plan_does_not_fill_missing_dimension() -> None
     assert plan.answer_text == "这款目前没有明确标注的保修信息。"
     assert plan.direct_facts == ()
     assert plan.used_fact_ids == ()
+
+
+@pytest.mark.parametrize(
+    ("question", "expected"),
+    [
+        (
+            "核心成分、怎么用、容量多大？",
+            ("ingredients_present", "usage", "net_content"),
+        ),
+        (
+            "新版和旧版差在哪，瓶口有结晶正常吗？",
+            ("variant_difference", "packaging_information"),
+        ),
+        (
+            "怎么保存，批次怎么看，二维码怎么验真？",
+            ("storage", "batch", "authenticity"),
+        ),
+        (
+            "敏感肌用它一定安全吗？",
+            ("suitable_skin", "safety_information"),
+        ),
+        (
+            "询问如何涂抹以避免搓泥以及运输后开盖是否会溢出",
+            ("usage", "packaging_information"),
+        ),
+        (
+            "询问干性肌肤使用是否卡纹",
+            ("suitable_skin", "texture"),
+        ),
+        (
+            "询问茶牛郎色号适合的妆容",
+            ("makeup_style",),
+        ),
+        (
+            "询问素颜使用时的色调和效果",
+            ("color_family",),
+        ),
+    ],
+)
+def test_product_knowledge_dimensions_cover_reviewed_question_families(
+    question: str,
+    expected: tuple[str, ...],
+) -> None:
+    assert resolve_product_knowledge_dimensions(question) == expected
 
 
 def test_product_knowledge_projection_accepts_dense_approved_universe() -> None:

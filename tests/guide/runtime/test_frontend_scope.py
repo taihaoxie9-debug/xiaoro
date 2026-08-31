@@ -2787,7 +2787,7 @@ def test_scenario_review_summary_and_typed_pitfalls_have_owned_renderers() -> No
     assert "pitfall-evidence" in pitfall_body
 
 
-def test_product_evidence_event_has_owned_escaped_renderer() -> None:
+def test_product_knowledge_coverage_keeps_evidence_for_guide_renderer() -> None:
     html = CHAT_HTML.read_text(encoding="utf-8")
     stream_body = _javascript_function_source(
         html,
@@ -2799,11 +2799,22 @@ def test_product_evidence_event_has_owned_escaped_renderer() -> None:
         "function displayProductEvidence(productEvidence)",
         "\n\n        function displayMerchantClaims",
     )
+    flush_body = stream_body[
+        stream_body.index("const flushDeferredPanels = () =>"):
+        stream_body.index("const resolveTypewriterIfIdle")
+    ]
+    guide_cleanup = flush_body[
+        flush_body.index("if (\n                    guideOwnsPresentation\n"):
+        flush_body.index("} else {", flush_body.index(
+            "if (\n                    guideOwnsPresentation\n"
+        ))
+    ]
 
     assert "productEvidence: null" in stream_body
     assert "deferredPanels.productEvidence = null" in stream_body
     assert "eventName === 'product_evidence'" in stream_body
     assert "deferredPanels.productEvidence = data" in stream_body
+    assert "deferredPanels.productEvidence = null" not in guide_cleanup
     assert "displayProductEvidence(" in stream_body
     for escaped_value in (
         "escapeHtml(evidence?.product_id",

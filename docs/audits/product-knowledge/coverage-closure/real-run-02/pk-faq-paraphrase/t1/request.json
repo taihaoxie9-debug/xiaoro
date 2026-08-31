@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "祖玛珑英国梨与小苍兰刚喷出来有点冲，等几分钟会好吗？",
+    "session_id": "session_aeaa4d82-e588-4df4-a64e-db07144eaa4d",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788170967360_gunafv2k",
+  "request_message": "祖玛珑英国梨与小苍兰刚喷出来有点冲，等几分钟会好吗？",
+  "turn_id": "pk-faq-paraphrase-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "祖玛珑英国梨与小苍兰刚喷出来有点冲，等几分钟会好吗？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

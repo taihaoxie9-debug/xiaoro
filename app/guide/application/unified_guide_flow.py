@@ -484,12 +484,12 @@ class UnifiedGuideFlow:
             source_conversation_version=turn.conversation_version,
             task=task_plan,
         )
+        retrieval_query = _retrieval_query_for_task(task_plan)
         product_knowledge_dimensions = (
             resolve_product_knowledge_dimensions(
-                turn.question_summary
+                retrieval_query.value
             )
         )
-        retrieval_query = _retrieval_query_for_task(task_plan)
         product_evidence_search = prepare_evidence_search(
             source_text=turn.question_summary,
             question_meaning=retrieval_query.value,

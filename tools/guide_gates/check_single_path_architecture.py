@@ -32,6 +32,7 @@ _EVIDENCE_QUERY_FIELDS = frozenset(
         "product_ids",
         "search",
         "safety_sensitive",
+        "requested_dimensions",
         "product_identity_names",
     }
 )
@@ -2052,6 +2053,100 @@ def _check_post_router_data_contracts(
     )
 
 
+def _check_knowledge_retrieval_boundaries(
+    modules: Mapping[str, _ModuleRecord],
+    violations: list[ArchitectureViolation],
+) -> None:
+    general_module = modules.get(
+        "app.guide.retrieval.general_knowledge_retrieval"
+    )
+    if general_module is not None:
+        for imported in sorted(set(general_module.imports.values())):
+            if "product_evidence" not in imported:
+                continue
+            _add(
+                violations,
+                rule="KNOWLEDGE_RETRIEVER_BOUNDARY",
+                module=general_module,
+                line=1,
+                detail=(
+                    "general knowledge imports product_evidence: "
+                    f"{imported}"
+                ),
+            )
+
+    product_module = modules.get(
+        "app.guide.retrieval.product_evidence_retrieval"
+    )
+    if product_module is not None:
+        for imported in sorted(set(product_module.imports.values())):
+            if not any(
+                token in imported.casefold()
+                for token in ("embedding", "vector")
+            ):
+                continue
+            _add(
+                violations,
+                rule="PRODUCT_EVIDENCE_TEXT_VECTOR",
+                module=product_module,
+                line=1,
+                detail=(
+                    "product evidence imports text embedding/vector "
+                    f"dependency: {imported}"
+                ),
+            )
+        for node in ast.walk(product_module.tree):
+            if (
+                not isinstance(node, ast.Constant)
+                or not isinstance(node.value, str)
+            ):
+                continue
+            source_name = next(
+                (
+                    value
+                    for value in (
+                        "seed_dump.sql",
+                        "beauty_products_seed.json",
+                        "qa_facts",
+                    )
+                    if value in node.value
+                ),
+                None,
+            )
+            if source_name is None:
+                continue
+            _add(
+                violations,
+                rule="PRODUCT_EVIDENCE_RAW_QA_SOURCE",
+                module=product_module,
+                line=node.lineno,
+                detail=(
+                    "product evidence runtime reads raw FAQ source "
+                    f"{source_name}"
+                ),
+            )
+
+    for class_name in (
+        "ProductEvidenceRetriever",
+        "GeneralKnowledgeRetriever",
+    ):
+        owners = tuple(
+            module
+            for module in modules.values()
+            if class_name in module.classes
+        )
+        if len(owners) <= 1:
+            continue
+        for module in owners[1:]:
+            _add(
+                violations,
+                rule="KNOWLEDGE_RETRIEVER_DUPLICATE",
+                module=module,
+                line=module.classes[class_name].lineno,
+                detail=f"duplicate {class_name}",
+            )
+
+
 def _check_processor_collector_separation(
     modules: Mapping[str, _ModuleRecord],
     violations: list[ArchitectureViolation],
@@ -3357,6 +3452,7 @@ def check_single_path_architecture(
     _check_processor_call_signatures(modules, violations)
     _check_post_router_graph(modules, manifest, violations)
     _check_post_router_data_contracts(modules, violations)
+    _check_knowledge_retrieval_boundaries(modules, violations)
     _check_processor_collector_separation(modules, violations)
     _check_presentation_responsibility(modules, violations)
     _check_single_unified_flow_entrypoint(modules, violations)

@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "赫莲娜绿宝瓶第六代跟旧版主要改了什么？",
+    "session_id": "session_7b8a136e-4447-4cfa-a2a9-2e44fe91f7f5",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788170975283_ffidqadj",
+  "request_message": "赫莲娜绿宝瓶第六代跟旧版主要改了什么？",
+  "turn_id": "pk-version-difference-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "赫莲娜绿宝瓶第六代跟旧版主要改了什么？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

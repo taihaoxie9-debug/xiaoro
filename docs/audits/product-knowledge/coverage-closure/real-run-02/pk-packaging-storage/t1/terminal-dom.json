@@ -1,0 +1,51 @@
+{
+  "clarification_message_count": 0,
+  "comparison_table_count": 0,
+  "inline_product_ids": [],
+  "knowledge_citation_ids": [],
+  "knowledge_citation_panel_count": 0,
+  "legacy_message_count": 0,
+  "legacy_product_card_count": 0,
+  "presentation_mode": "product_knowledge",
+  "presentation_text": "我按你问的内容，整理这款商品的相关信息。\n\n品牌主打：敷尔佳白膜透明质酸钠修复贴5片：使用问答商家解释低温下可能出现透明质酸钠结晶；具体信息：透明质酸钠修复贴：低温下可能析出白色或透明结晶；低温透明质酸钠结晶；温度导致析出；白色透明结晶。\n\n本轮提到的商品\n敷尔佳白膜透明质酸钠修复贴5片\n¥ 106\n非织造布\n修复贴\n去商品页查实时价\n展示依据\n商品证据\n敷尔佳白膜透明质酸钠修复贴5片：气温降低时，透明质酸钠会析出白色或透明状结晶，属于正常现象，不影响使用效果",
+  "product_evidence_ids": [
+    "6d04fe2892485e44b3cf9713faa78c0c2726814508515f8e83222fd5e2407404"
+  ],
+  "product_evidence_product_ids": [
+    75
+  ],
+  "product_evidence_section_count": 1,
+  "request_id": "request_1788170983277_oe2xo9la",
+  "section_blocks": [
+    {
+      "kind": "summary",
+      "text": "我按你问的内容，整理这款商品的相关信息。"
+    },
+    {
+      "kind": "answer",
+      "text": "品牌主打：敷尔佳白膜透明质酸钠修复贴5片：使用问答商家解释低温下可能出现透明质酸钠结晶；具体信息：透明质酸钠修复贴：低温下可能析出白色或透明结晶；低温透明质酸钠结晶；温度导致析出；白色透明结晶。"
+    },
+    {
+      "kind": "full_cards",
+      "text": "本轮提到的商品\n敷尔佳白膜透明质酸钠修复贴5片\n¥ 106\n非织造布\n修复贴\n去商品页查实时价"
+    },
+    {
+      "kind": "evidence",
+      "text": "展示依据\n商品证据\n敷尔佳白膜透明质酸钠修复贴5片：气温降低时，透明质酸钠会析出白色或透明状结晶，属于正常现象，不影响使用效果"
+    }
+  ],
+  "shelf_product_ids": [
+    75
+  ],
+  "terminal_kind": "presentation",
+  "turn_presentation_root_count": 1,
+  "visible_product_ids": [
+    75
+  ],
+  "visible_section_kinds": [
+    "summary",
+    "answer",
+    "full_cards",
+    "evidence"
+  ]
+}

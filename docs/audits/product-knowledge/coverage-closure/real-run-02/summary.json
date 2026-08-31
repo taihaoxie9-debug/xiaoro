@@ -1,0 +1,184 @@
+{
+  "answer_coverage_mismatch_count": 0,
+  "base_url": "http://127.0.0.1:8843",
+  "console_error_count": 0,
+  "cross_product_evidence_count": 0,
+  "frontend_contract_violation_count": 0,
+  "invalid_clarification_count": 0,
+  "missing_expected_evidence_count": 0,
+  "passed": true,
+  "passed_turn_count": 9,
+  "schema_version": "guide-mainline-contract-browser-audit-v1",
+  "trajectories": [
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "pk-core-ingredients",
+      "turn_count": 1,
+      "turns": [
+        {
+          "directory": "pk-core-ingredients/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "pk-faq-paraphrase",
+      "turn_count": 1,
+      "turns": [
+        {
+          "directory": "pk-faq-paraphrase/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "pk-version-difference",
+      "turn_count": 1,
+      "turns": [
+        {
+          "directory": "pk-version-difference/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "pk-packaging-storage",
+      "turn_count": 1,
+      "turns": [
+        {
+          "directory": "pk-packaging-storage/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "pk-current-item",
+      "turn_count": 2,
+      "turns": [
+        {
+          "directory": "pk-current-item/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        },
+        {
+          "directory": "pk-current-item/t2",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t2"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "pk-multi-aspect",
+      "turn_count": 1,
+      "turns": [
+        {
+          "directory": "pk-multi-aspect/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "pk-no-evidence",
+      "turn_count": 1,
+      "turns": [
+        {
+          "directory": "pk-no-evidence/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        }
+      ]
+    },
+    {
+      "invalid_clarification_count": 0,
+      "trajectory_id": "pk-safety",
+      "turn_count": 1,
+      "turns": [
+        {
+          "directory": "pk-safety/t1",
+          "release_counters": {
+            "copywriter_fallback_count": 0,
+            "frontend_contract_violation_count": 0,
+            "invalid_clarification_count": 0,
+            "serious_failure_count": 0,
+            "unaligned_price_specification_count": 0,
+            "wrong_binding_count": 0
+          },
+          "turn_id": "t1"
+        }
+      ]
+    }
+  ],
+  "trajectory_count": 8,
+  "trajectory_set": "product_knowledge",
+  "turn_count": 9,
+  "viewport": "desktop",
+  "wrong_product_binding_count": 0,
+  "wrong_responsibility_count": 0
+}

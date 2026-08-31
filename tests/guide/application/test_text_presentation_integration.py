@@ -734,6 +734,172 @@ def test_product_knowledge_emits_only_bound_product_card(
     assert copywriter.calls == []
 
 
+def test_product_knowledge_publishes_two_requested_faq_aspects(
+    real_reader,
+    real_product_assets,
+) -> None:
+    name = "碧柔Biore水活防晒水润凝蜜"
+    message = f"{name}怎么涂不搓泥，运输后开盖会不会溢？"
+    orchestrator = _build_flow(
+        real_reader,
+        real_product_assets=real_product_assets,
+        conversation_state=InMemoryConversationState(),
+        semantic_intent=_product_meaning(
+            message,
+            goal=UnderstandingGoal.KNOWLEDGE,
+            names=(name,),
+            topic=TopicCode.SUNSCREEN,
+            question_meaning="询问防晒涂法和运输后开盖溢出",
+        ),
+        product_evidence=build_product_evidence_retriever(),
+    )
+
+    events = _decode_frames(orchestrator.stream(_turn(message)))
+    presentation = _event(events, "presentation_contract")
+    evidence = _event(events, "product_evidence")["packet"]
+    answer = presentation["sections"][1]
+
+    assert evidence["query"]["requested_dimensions"] == [
+        "usage",
+        "packaging_information",
+    ]
+    expected_evidence_ids = {
+        "02e71cc9593ea26d4f7288abba1c1d107b201a99979f7bca01416593d8b9c7af",
+        "e3ee0783aa62d423918907246ca3084f9f82bf24a301857a78d88aab56a6a785",
+    }
+    selected_ids = {
+        item["evidence"]["evidence_id"]
+        for item in evidence["selected"]
+    }
+    assert expected_evidence_ids <= selected_ids
+    assert {
+        f"evidence:{evidence_id}"
+        for evidence_id in expected_evidence_ids
+    } <= set(answer["used_fact_ids"])
+    assert "同向推开" in answer["copy_text"]
+    assert "静置2小时" in answer["copy_text"]
+
+
+def test_product_knowledge_current_item_followup_keeps_product_scope(
+    real_reader,
+    real_product_assets,
+) -> None:
+    state = InMemoryConversationState()
+    name = (
+        "薇诺娜（WINONA）特护面膜舒敏保湿丝滑面贴膜"
+        "6片舒缓修护补水保湿"
+    )
+    first_message = f"{name}先给我已确认资料。"
+    first = _build_flow(
+        real_reader,
+        real_product_assets=real_product_assets,
+        conversation_state=state,
+        semantic_intent=_product_meaning(
+            first_message,
+            goal=UnderstandingGoal.KNOWLEDGE,
+            names=(name,),
+            topic=TopicCode.SKINCARE,
+            question_meaning="查看当前面膜的已确认资料",
+        ),
+        product_evidence=build_product_evidence_retriever(),
+    )
+    _decode_frames(first.stream(_turn(first_message)))
+
+    followup_message = "那它具体怎么敷，敷完要洗吗？"
+    followup_meaning = StaticMeaningPort(
+        TurnMeaning(
+            operation_hint="followup",
+            topic_hint="skincare",
+            continuity_hint="continue",
+            subject_scope_hint="self",
+            reference_mentions=(
+                {
+                    "raw_text": "它",
+                    "object_family_hint": "product",
+                    "ordinal_hint": 1,
+                    "plurality_hint": "single",
+                    "batch_size_hint": None,
+                },
+            ),
+            question_meaning="询问当前面膜怎么敷以及敷完是否洁面",
+            safety_language="ordinary",
+        )
+    )
+    followup = _build_flow(
+        real_reader,
+        real_product_assets=real_product_assets,
+        conversation_state=state,
+        semantic_intent=followup_meaning,
+        product_evidence=build_product_evidence_retriever(),
+    )
+
+    events = _decode_frames(
+        followup.stream(_turn(followup_message, version=1))
+    )
+    evidence = _event(events, "product_evidence")["packet"]
+    answer = _event(
+        events,
+        "presentation_contract",
+    )["sections"][1]
+
+    assert evidence["query"]["product_ids"] == [78]
+    assert evidence["query"]["requested_dimensions"] == ["usage"]
+    assert any(
+        item["evidence"]["evidence_id"]
+        == "ded297c130bf35320d35e6499f1408d8e4b2a464ebc0085580ad3328c3a820a4"
+        for item in evidence["selected"]
+    )
+    assert "15至20分钟" in answer["copy_text"]
+    assert "无需洁面" in answer["copy_text"]
+
+
+def test_product_knowledge_safety_question_keeps_fail_closed_language(
+    real_reader,
+    real_product_assets,
+) -> None:
+    name = (
+        "薇诺娜（WINONA）特护面膜舒敏保湿丝滑面贴膜"
+        "6片舒缓修护补水保湿"
+    )
+    message = f"{name}做完特殊美容项目后一定安全吗？"
+    meaning = StaticMeaningPort(
+        TurnMeaning(
+            operation_hint="knowledge",
+            topic_hint="skincare",
+            continuity_hint="new_task",
+            subject_scope_hint="self",
+            product_mentions=({"raw_text": name},),
+            question_meaning="询问特殊美容项目后使用是否安全",
+            safety_language="safety",
+        )
+    )
+    orchestrator = _build_flow(
+        real_reader,
+        real_product_assets=real_product_assets,
+        conversation_state=InMemoryConversationState(),
+        semantic_intent=meaning,
+        product_evidence=build_product_evidence_retriever(),
+    )
+
+    events = _decode_frames(orchestrator.stream(_turn(message)))
+    evidence = _event(events, "product_evidence")["packet"]
+    answer = _event(
+        events,
+        "presentation_contract",
+    )["sections"][1]["copy_text"]
+
+    assert evidence["query"]["safety_sensitive"] is True
+    assert "safety_information" in (
+        evidence["query"]["requested_dimensions"]
+    )
+    assert any(
+        item["evidence"]["management_label"] == "safety_transcript"
+        for item in evidence["selected"]
+    )
+    assert "不能当作个人安全保证" in answer
+    assert "一定安全" not in answer
+
+
 def test_product_knowledge_preserves_catalog_data_and_answer_receipts(
     real_reader,
     real_product_assets,
@@ -776,15 +942,15 @@ def test_product_knowledge_preserves_catalog_data_and_answer_receipts(
     expected_used_fact_ids = {
         "evidence:"
         f"{evidence['selected'][0]['evidence']['evidence_id']}",
-        "category:38:efficacy",
         "category:38:ingredients_present",
+        "category:38:suitable_skin",
     }
     assert set(answer["used_fact_ids"]) == expected_used_fact_ids
-    assert "category:38:suitable_skin" not in answer["used_fact_ids"]
+    assert "category:38:efficacy" not in answer["used_fact_ids"]
     assert "品牌主打" in answer["copy_text"]
-    assert "功效方向" in answer["copy_text"]
     assert "核心成分" in answer["copy_text"]
-    assert "适合肤质" not in answer["copy_text"]
+    assert "适合肤质" in answer["copy_text"]
+    assert "功效方向" not in answer["copy_text"]
     assert "message" not in {event for event, _ in events}
     assert copywriter.calls == []
     assert not any(

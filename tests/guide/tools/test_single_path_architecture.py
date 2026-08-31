@@ -2015,6 +2015,117 @@ def test_post_router_query_contract_rejects_raw_text_fields(
     )
 
 
+def test_post_router_query_contract_accepts_requested_dimensions(
+    tmp_path: Path,
+) -> None:
+    root = _legal_repository(tmp_path)
+    _write_source(
+        root,
+        "app/guide/retrieval/product_evidence_retrieval.py",
+        """
+        from dataclasses import dataclass
+
+
+        @dataclass(frozen=True)
+        class PreparedEvidenceSearch:
+            source_features: tuple[str, ...]
+            meaning_features: tuple[str, ...]
+            combined_features: tuple[str, ...]
+            query_unigrams: tuple[str, ...]
+            product_mention_features: tuple[str, ...]
+
+
+        @dataclass(frozen=True)
+        class EvidenceQuery:
+            product_ids: tuple[int, ...]
+            search: PreparedEvidenceSearch
+            safety_sensitive: bool
+            requested_dimensions: tuple[str, ...]
+            product_identity_names: tuple[str, ...]
+        """,
+    )
+
+    assert _check(root).passed
+
+
+def test_general_knowledge_retriever_cannot_import_product_evidence(
+    tmp_path: Path,
+) -> None:
+    root = _legal_repository(tmp_path)
+    _write_source(
+        root,
+        "app/guide/retrieval/general_knowledge_retrieval.py",
+        """
+        from app.guide.retrieval.product_evidence_retrieval import (
+            ProductEvidenceRetriever,
+        )
+
+
+        class GeneralKnowledgeRetriever:
+            pass
+        """,
+    )
+
+    report = _check(root)
+
+    _assert_violation(
+        report,
+        "KNOWLEDGE_RETRIEVER_BOUNDARY",
+        detail="product_evidence",
+    )
+
+
+def test_product_evidence_retriever_cannot_import_text_embedding(
+    tmp_path: Path,
+) -> None:
+    root = _legal_repository(tmp_path)
+    _write_source(
+        root,
+        "app/guide/retrieval/product_evidence_retrieval.py",
+        """
+        from app.services.embedding import EmbeddingService
+
+
+        class ProductEvidenceRetriever:
+            pass
+        """,
+    )
+
+    report = _check(root)
+
+    _assert_violation(
+        report,
+        "PRODUCT_EVIDENCE_TEXT_VECTOR",
+        detail="embedding",
+    )
+
+
+def test_product_knowledge_runtime_cannot_read_raw_qa_assets(
+    tmp_path: Path,
+) -> None:
+    root = _legal_repository(tmp_path)
+    _write_source(
+        root,
+        "app/guide/retrieval/product_evidence_retrieval.py",
+        """
+        from pathlib import Path
+
+
+        class ProductEvidenceRetriever:
+            def retrieve(self):
+                return Path("data/seed_dump.sql").read_text()
+        """,
+    )
+
+    report = _check(root)
+
+    _assert_violation(
+        report,
+        "PRODUCT_EVIDENCE_RAW_QA_SOURCE",
+        detail="seed_dump.sql",
+    )
+
+
 def test_post_router_typed_result_message_is_not_raw_request(
     tmp_path: Path,
 ) -> None:

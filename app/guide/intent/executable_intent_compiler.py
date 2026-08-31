@@ -1263,7 +1263,10 @@ def compile_turn_meaning(
         confidence=0.0 if issues else 1.0,
         question_meaning=meaning.question_meaning,
         knowledge_relation_hints=meaning.knowledge_relation_hints,
-        safety_sensitive=meaning.safety_language == "safety",
+        safety_sensitive=(
+            meaning.safety_language == "safety"
+            or "safety" in meaning.knowledge_relation_hints
+        ),
         semantic_authoritative=True,
     )
 

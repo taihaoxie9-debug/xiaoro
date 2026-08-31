@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+from dataclasses import replace
 import inspect
 import json
 from functools import lru_cache
@@ -18,6 +19,14 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
 )
 
 from app.guide.application import public_event_envelope
+from app.guide.presentation.sse_events import ProductEvidenceData
+from app.guide.retrieval.product_evidence_retrieval import (
+    EvidencePacket,
+    EvidenceQuery,
+    EvidenceSelection,
+    prepare_evidence_search,
+)
+from app.guide_runtime.composition import build_product_evidence_reader
 from tools.guide_gates import (
     frontend_presentation_browser_audit as frontend_browser_audit,
 )
@@ -1196,6 +1205,306 @@ def test_general_knowledge_trajectories_cover_six_observed_probes() -> None:
         "general_knowledge",
         "general_knowledge",
     ]
+
+
+def test_product_knowledge_coverage_trajectories_cover_eight_scenarios_and_nine_turns() -> None:
+    trajectories = mainline_audit.PRODUCT_KNOWLEDGE_TRAJECTORIES
+
+    assert [trajectory.trajectory_id for trajectory in trajectories] == [
+        "pk-core-ingredients",
+        "pk-faq-paraphrase",
+        "pk-version-difference",
+        "pk-packaging-storage",
+        "pk-current-item",
+        "pk-multi-aspect",
+        "pk-no-evidence",
+        "pk-safety",
+    ]
+    assert sum(len(item.turns) for item in trajectories) == 9
+    assert tuple(
+        turn.message
+        for trajectory in trajectories
+        for turn in trajectory.turns
+    ) == (
+        "理肤泉新B5多效修护精华确认有哪些核心成分？",
+        "祖玛珑英国梨与小苍兰刚喷出来有点冲，等几分钟会好吗？",
+        "赫莲娜绿宝瓶第六代跟旧版主要改了什么？",
+        "透明质酸钠修复贴低温后出现白色结晶，该怎么看？",
+        "薇诺娜舒敏保湿丝滑面膜先给我已确认资料。",
+        "那它具体怎么敷，敷完要洗吗？",
+        "碧柔Biore水活防晒水润凝蜜怎么涂不搓泥，运输后开盖会不会溢？",
+        "灵芝焕能强韧精华水明确标注了哪些核心成分？",
+        "薇诺娜舒敏保湿丝滑面膜做完特殊美容项目后一定安全吗？",
+    )
+    assert tuple(
+        turn.expected_product_ids
+        for trajectory in trajectories
+        for turn in trajectory.turns
+    ) == (
+        (38,),
+        (120,),
+        (39,),
+        (75,),
+        (78,),
+        (78,),
+        (57,),
+        (60,),
+        (78,),
+    )
+    assert all(
+        turn.expected_mode == "product_knowledge"
+        for trajectory in trajectories
+        for turn in trajectory.turns
+    )
+    assert all(
+        turn.allow_clarification is False
+        for trajectory in trajectories
+        for turn in trajectory.turns
+    )
+
+    multi = next(
+        trajectory.turns[0]
+        for trajectory in trajectories
+        if trajectory.trajectory_id == "pk-multi-aspect"
+    )
+    assert multi.expected_product_evidence_ids == (
+        "02e71cc9593ea26d4f7288abba1c1d107b201a99979f7bca01416593d8b9c7af",
+        "e3ee0783aa62d423918907246ca3084f9f82bf24a301857a78d88aab56a6a785",
+    )
+    assert multi.expected_used_fact_ids == tuple(
+        f"evidence:{evidence_id}"
+        for evidence_id in multi.expected_product_evidence_ids
+    )
+    assert multi.required_answer_text == ("同向推开", "静置2小时")
+
+    no_evidence = next(
+        trajectory.turns[0]
+        for trajectory in trajectories
+        if trajectory.trajectory_id == "pk-no-evidence"
+    )
+    assert no_evidence.expected_product_evidence_ids == ()
+    assert no_evidence.expected_used_fact_ids == ()
+    assert no_evidence.required_answer_text == (
+        "没有明确标注的核心成分信息",
+    )
+
+    safety = next(
+        trajectory.turns[0]
+        for trajectory in trajectories
+        if trajectory.trajectory_id == "pk-safety"
+    )
+    assert safety.required_answer_text == (
+        "不能当作个人安全保证",
+    )
+    assert safety.forbidden_answer_text == (
+        "一定安全",
+        "保证安全",
+    )
+
+
+def _product_knowledge_coverage_validation_inputs():
+    evidence_id = (
+        "02e71cc9593ea26d4f7288abba1c1d107b201a99979f7bca01416593d8b9c7af"
+    )
+    block = next(
+        item
+        for item in build_product_evidence_reader(ROOT).read_answerable(
+            product_id=57
+        )
+        if item.evidence_id == evidence_id
+    )
+    packet = EvidencePacket(
+        query=EvidenceQuery(
+            product_ids=(57,),
+            search=prepare_evidence_search(
+                source_text="这款防晒怎么涂不搓泥？",
+                question_meaning="询问防晒涂法和减少搓泥",
+            ),
+            safety_sensitive=False,
+            requested_dimensions=("usage",),
+        ),
+        selected=(
+            EvidenceSelection(
+                evidence=block,
+                score=1.0,
+                reasons=("test",),
+                covered_dimensions=("usage",),
+            ),
+        ),
+        safety_caveats=(),
+        missing_aspects=(),
+    )
+    product_evidence = ProductEvidenceData(
+        packet=packet
+    ).model_dump(mode="json")
+    fact_id = f"evidence:{evidence_id}"
+    contract = {
+        "responsibility": "product_knowledge",
+        "mode": "product_knowledge",
+        "visible_product_ids": [57],
+        "sections": [
+            {"kind": "summary", "copy_text": "先核对这款防晒。"},
+            {
+                "kind": "answer",
+                "copy_text": "使用问答：吸收后同向推开。",
+                "used_fact_ids": [fact_id],
+                "direct_facts": [],
+            },
+            {"kind": "full_cards", "copy_text": None},
+        ],
+    }
+    dom = {
+        "presentation_mode": "product_knowledge",
+        "visible_product_ids": [57],
+        "shelf_product_ids": [57],
+        "product_evidence_section_count": 1,
+        "product_evidence_ids": [evidence_id],
+        "product_evidence_product_ids": [57],
+        "presentation_text": (
+            "先核对这款防晒。 使用问答：吸收后同向推开。"
+        ),
+    }
+    events = (
+        ("start", {"session_id": "product-knowledge-test"}),
+        ("product_evidence", product_evidence),
+        ("presentation_contract", contract),
+        ("end", {"conversation_version": 1}),
+    )
+    turn = mainline_audit.BoundedBrowserTurn(
+        turn_id="t1",
+        message="碧柔防晒怎么涂不搓泥？",
+        expected_mode="product_knowledge",
+        expected_product_ids=(57,),
+        expected_product_evidence_ids=(evidence_id,),
+        expected_used_fact_ids=(fact_id,),
+        required_answer_text=("同向推开",),
+        forbidden_answer_text=("一定安全",),
+    )
+    return turn, contract, events, dom
+
+
+def test_product_knowledge_coverage_accepts_typed_bound_visible_evidence() -> None:
+    turn, contract, events, dom = (
+        _product_knowledge_coverage_validation_inputs()
+    )
+
+    mainline_audit._validate_product_knowledge_turn(
+        turn=turn,
+        contract=contract,
+        events=events,
+        dom=dom,
+    )
+
+
+def test_product_knowledge_dom_contains_only_answer_used_evidence() -> None:
+    turn, contract, events, dom = (
+        _product_knowledge_coverage_validation_inputs()
+    )
+    events = list(json.loads(json.dumps(events)))
+    product_event = next(
+        payload
+        for name, payload in events
+        if name == "product_evidence"
+    )
+    extra = next(
+        item
+        for item in build_product_evidence_reader(ROOT).read_answerable(
+            product_id=57
+        )
+        if item.evidence_id not in dom["product_evidence_ids"]
+    )
+    product_event["packet"]["selected"].append(
+        EvidenceSelection(
+            evidence=extra,
+            score=0.5,
+            reasons=("test_extra_retrieval",),
+        ).model_dump(mode="json")
+    )
+
+    mainline_audit._validate_product_knowledge_turn(
+        turn=turn,
+        contract=contract,
+        events=tuple(
+            (name, payload) for name, payload in events
+        ),
+        dom=dom,
+    )
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    (
+        ("wrong_responsibility", "responsibility mismatch"),
+        ("wrong_product", "product binding mismatch"),
+        ("malformed_evidence", "payload is invalid"),
+        ("missing_evidence", "expected product evidence is missing"),
+        ("cross_product", "outside product scope"),
+        ("missing_used_fact", "expected used fact is missing"),
+        ("ungrounded_used_fact", "used product evidence is unavailable"),
+        ("missing_required_text", "required answer text is missing"),
+        ("forbidden_text", "forbidden answer text is visible"),
+        ("missing_card", "product card is missing"),
+        ("missing_evidence_ui", "product evidence DOM mismatch"),
+    ),
+)
+def test_product_knowledge_coverage_rejects_unusable_turn(
+    mutation: str,
+    message: str,
+) -> None:
+    turn, contract, events, dom = (
+        _product_knowledge_coverage_validation_inputs()
+    )
+    contract = json.loads(json.dumps(contract))
+    events = list(json.loads(json.dumps(events)))
+    events = [(name, payload) for name, payload in events]
+    dom = json.loads(json.dumps(dom))
+    product_event = next(
+        payload for name, payload in events if name == "product_evidence"
+    )
+    answer = contract["sections"][1]
+    if mutation == "wrong_responsibility":
+        contract["responsibility"] = "recommendation"
+    elif mutation == "wrong_product":
+        product_event["packet"]["query"]["product_ids"] = [38]
+    elif mutation == "malformed_evidence":
+        product_event["unexpected"] = True
+    elif mutation == "missing_evidence":
+        turn = replace(
+            turn,
+            expected_product_evidence_ids=("b" * 64,),
+        )
+    elif mutation == "cross_product":
+        product_event["packet"]["selected"][0]["evidence"] = (
+            build_product_evidence_reader(ROOT)
+            .read_answerable(product_id=38)[0]
+            .model_dump(mode="json")
+        )
+    elif mutation == "missing_used_fact":
+        answer["used_fact_ids"] = []
+    elif mutation == "ungrounded_used_fact":
+        answer["used_fact_ids"] = ["evidence:" + "c" * 64]
+        turn = replace(
+            turn,
+            expected_used_fact_ids=(),
+        )
+    elif mutation == "missing_required_text":
+        answer["copy_text"] = "使用问答：精简护肤。"
+        dom["presentation_text"] = "先核对这款防晒。 使用问答：精简护肤。"
+    elif mutation == "forbidden_text":
+        answer["copy_text"] += " 一定安全。"
+        dom["presentation_text"] += " 一定安全。"
+    elif mutation == "missing_card":
+        dom["shelf_product_ids"] = []
+    elif mutation == "missing_evidence_ui":
+        dom["product_evidence_ids"] = []
+
+    with pytest.raises(AuditBundleError, match=message):
+        mainline_audit._validate_product_knowledge_turn(
+            turn=turn,
+            contract=contract,
+            events=tuple(events),
+            dom=dom,
+        )
 
 
 def _general_knowledge_validation_inputs():
@@ -2531,6 +2840,11 @@ def test_cli_output_contract_separates_fixture_and_real_runs() -> None:
         output=output,
         attempt_context=None,
     ) == output
+    assert mainline_audit.resolve_cli_output(
+        trajectory_set="product_knowledge",
+        output=output,
+        attempt_context=None,
+    ) == output
     with pytest.raises(
         AuditBundleError,
         match="requires --attempt-context",
@@ -2620,6 +2934,42 @@ def test_general_knowledge_cli_dispatches_existing_bounded_browser_runner(
         "viewport": "desktop",
         "trajectories": mainline_audit.GENERAL_KNOWLEDGE_TRAJECTORIES,
         "trajectory_set": "general_knowledge",
+    }
+
+
+def test_product_knowledge_coverage_cli_dispatches_existing_bounded_browser_runner(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    output = tmp_path / "product-knowledge"
+    observed: dict[str, object] = {}
+
+    def fake_run(**kwargs):
+        observed.update(kwargs)
+        return {"passed": True}
+
+    monkeypatch.setattr(
+        mainline_audit,
+        "run_bounded_browser_audit",
+        fake_run,
+    )
+
+    assert mainline_audit.main([
+        "--base-url",
+        "http://127.0.0.1:8843",
+        "--trajectory-set",
+        "product_knowledge",
+        "--viewport",
+        "desktop",
+        "--output",
+        str(output),
+    ]) == 0
+    assert observed == {
+        "base_url": "http://127.0.0.1:8843",
+        "output": output,
+        "viewport": "desktop",
+        "trajectories": mainline_audit.PRODUCT_KNOWLEDGE_TRAJECTORIES,
+        "trajectory_set": "product_knowledge",
     }
 
 

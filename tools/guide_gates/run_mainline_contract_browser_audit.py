@@ -55,7 +55,10 @@ from app.guide.presentation.public_contracts import (
     WinnerPresentation,
 )
 from app.guide.presentation.response_planning import build_product_card
-from app.guide.presentation.sse_events import GeneralKnowledgeData
+from app.guide.presentation.sse_events import (
+    GeneralKnowledgeData,
+    ProductEvidenceData,
+)
 from app.guide.retrieval.product_display_assets import (
     ProductDisplayBindingReader,
     load_product_display_assets,
@@ -2108,6 +2111,11 @@ class BoundedBrowserTurn:
     expected_knowledge_sections: tuple[str, ...] = ()
     allowed_knowledge_sections: tuple[str, ...] = ()
     expected_missing_relations: tuple[str, ...] = ()
+    expected_product_ids: tuple[int, ...] = ()
+    expected_product_evidence_ids: tuple[str, ...] = ()
+    expected_used_fact_ids: tuple[str, ...] = ()
+    required_answer_text: tuple[str, ...] = ()
+    forbidden_answer_text: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -2647,6 +2655,193 @@ GENERAL_KNOWLEDGE_TRAJECTORIES = (
     ),
 )
 
+PRODUCT_KNOWLEDGE_TRAJECTORIES = (
+    BoundedBrowserTrajectory(
+        trajectory_id="pk-core-ingredients",
+        turns=(
+            BoundedBrowserTurn(
+                turn_id="t1",
+                message="理肤泉新B5多效修护精华确认有哪些核心成分？",
+                expected_mode="product_knowledge",
+                expected_product_ids=(38,),
+                expected_used_fact_ids=(
+                    "category:38:ingredients_present",
+                ),
+                required_answer_text=("维生素原B5（泛醇）",),
+            ),
+        ),
+    ),
+    BoundedBrowserTrajectory(
+        trajectory_id="pk-faq-paraphrase",
+        turns=(
+            BoundedBrowserTurn(
+                turn_id="t1",
+                message=(
+                    "祖玛珑英国梨与小苍兰刚喷出来有点冲，"
+                    "等几分钟会好吗？"
+                ),
+                expected_mode="product_knowledge",
+                expected_product_ids=(120,),
+                expected_product_evidence_ids=(
+                    "d452a07760f04eccd2e280a0174b48370f5f3cf35537189a"
+                    "ba82ecbf89a2302f",
+                ),
+                expected_used_fact_ids=(
+                    "evidence:"
+                    "d452a07760f04eccd2e280a0174b48370f5f3cf35537189a"
+                    "ba82ecbf89a2302f",
+                ),
+                required_answer_text=("等待几分钟",),
+            ),
+        ),
+    ),
+    BoundedBrowserTrajectory(
+        trajectory_id="pk-version-difference",
+        turns=(
+            BoundedBrowserTurn(
+                turn_id="t1",
+                message="赫莲娜绿宝瓶第六代跟旧版主要改了什么？",
+                expected_mode="product_knowledge",
+                expected_product_ids=(39,),
+                expected_product_evidence_ids=(
+                    "49db3872b87c56349d9799a9753ec76fd9691d860509416a"
+                    "d28f9fc01bf1dbee",
+                ),
+                expected_used_fact_ids=(
+                    "evidence:"
+                    "49db3872b87c56349d9799a9753ec76fd9691d860509416a"
+                    "d28f9fc01bf1dbee",
+                ),
+                required_answer_text=(
+                    "10亿海茴香",
+                    "植物抗老多肽",
+                ),
+            ),
+        ),
+    ),
+    BoundedBrowserTrajectory(
+        trajectory_id="pk-packaging-storage",
+        turns=(
+            BoundedBrowserTurn(
+                turn_id="t1",
+                message="透明质酸钠修复贴低温后出现白色结晶，该怎么看？",
+                expected_mode="product_knowledge",
+                expected_product_ids=(75,),
+                expected_product_evidence_ids=(
+                    "6d04fe2892485e44b3cf9713faa78c0c2726814508515f8e"
+                    "83222fd5e2407404",
+                ),
+                expected_used_fact_ids=(
+                    "evidence:"
+                    "6d04fe2892485e44b3cf9713faa78c0c2726814508515f8e"
+                    "83222fd5e2407404",
+                ),
+                required_answer_text=(
+                    "低温下可能析出",
+                    "白色或透明结晶",
+                ),
+            ),
+        ),
+    ),
+    BoundedBrowserTrajectory(
+        trajectory_id="pk-current-item",
+        turns=(
+            BoundedBrowserTurn(
+                turn_id="t1",
+                message="薇诺娜舒敏保湿丝滑面膜先给我已确认资料。",
+                expected_mode="product_knowledge",
+                expected_product_ids=(78,),
+            ),
+            BoundedBrowserTurn(
+                turn_id="t2",
+                message="那它具体怎么敷，敷完要洗吗？",
+                expected_mode="product_knowledge",
+                expected_product_ids=(78,),
+                expected_product_evidence_ids=(
+                    "ded297c130bf35320d35e6499f1408d8e4b2a464ebc00855"
+                    "80ad3328c3a820a4",
+                ),
+                expected_used_fact_ids=(
+                    "evidence:"
+                    "ded297c130bf35320d35e6499f1408d8e4b2a464ebc00855"
+                    "80ad3328c3a820a4",
+                ),
+                required_answer_text=("15-20分钟", "无需洁面"),
+            ),
+        ),
+    ),
+    BoundedBrowserTrajectory(
+        trajectory_id="pk-multi-aspect",
+        turns=(
+            BoundedBrowserTurn(
+                turn_id="t1",
+                message=(
+                    "碧柔Biore水活防晒水润凝蜜怎么涂不搓泥，"
+                    "运输后开盖会不会溢？"
+                ),
+                expected_mode="product_knowledge",
+                expected_product_ids=(57,),
+                expected_product_evidence_ids=(
+                    "02e71cc9593ea26d4f7288abba1c1d107b201a99979f7bca"
+                    "01416593d8b9c7af",
+                    "e3ee0783aa62d423918907246ca3084f9f82bf24a301857a"
+                    "78d88aab56a6a785",
+                ),
+                expected_used_fact_ids=(
+                    "evidence:"
+                    "02e71cc9593ea26d4f7288abba1c1d107b201a99979f7bca"
+                    "01416593d8b9c7af",
+                    "evidence:"
+                    "e3ee0783aa62d423918907246ca3084f9f82bf24a301857a"
+                    "78d88aab56a6a785",
+                ),
+                required_answer_text=("同向推开", "静置2小时"),
+            ),
+        ),
+    ),
+    BoundedBrowserTrajectory(
+        trajectory_id="pk-no-evidence",
+        turns=(
+            BoundedBrowserTurn(
+                turn_id="t1",
+                message="灵芝焕能强韧精华水明确标注了哪些核心成分？",
+                expected_mode="product_knowledge",
+                expected_product_ids=(60,),
+                required_answer_text=(
+                    "没有明确标注的核心成分信息",
+                ),
+            ),
+        ),
+    ),
+    BoundedBrowserTrajectory(
+        trajectory_id="pk-safety",
+        turns=(
+            BoundedBrowserTurn(
+                turn_id="t1",
+                message=(
+                    "薇诺娜舒敏保湿丝滑面膜做完特殊美容项目后"
+                    "一定安全吗？"
+                ),
+                expected_mode="product_knowledge",
+                expected_product_ids=(78,),
+                expected_product_evidence_ids=(
+                    "6de5c329a6ab2cb4658decd3d754eb2a742251b8637c736d"
+                    "0e20261ca08fd961",
+                ),
+                expected_used_fact_ids=(
+                    "evidence:"
+                    "6de5c329a6ab2cb4658decd3d754eb2a742251b8637c736d"
+                    "0e20261ca08fd961",
+                ),
+                required_answer_text=(
+                    "不能当作个人安全保证",
+                ),
+                forbidden_answer_text=("一定安全", "保证安全"),
+            ),
+        ),
+    ),
+)
+
 
 def _prepare_fixture_turn_inputs(page, turn_id: str) -> None:
     product_38 = (
@@ -3026,6 +3221,184 @@ def _validate_general_knowledge_turn(
     ):
         raise AuditBundleError(
             "knowledge citation panel mismatch"
+        )
+
+
+def _validate_product_knowledge_turn(
+    *,
+    turn: BoundedBrowserTurn,
+    contract: Mapping[str, object],
+    events: Sequence[tuple[str, Mapping[str, object]]],
+    dom: Mapping[str, object],
+) -> None:
+    if (
+        contract.get("responsibility") != "product_knowledge"
+        or contract.get("mode") != "product_knowledge"
+    ):
+        raise AuditBundleError(
+            "product knowledge responsibility mismatch"
+        )
+
+    evidence_payloads = tuple(
+        payload
+        for event_name, payload in events
+        if event_name == "product_evidence"
+    )
+    if len(evidence_payloads) != 1:
+        raise AuditBundleError(
+            "product evidence event count mismatch"
+        )
+    try:
+        evidence = ProductEvidenceData.model_validate(
+            evidence_payloads[0],
+            strict=True,
+        )
+    except ValueError as exc:
+        raise AuditBundleError(
+            "product evidence payload is invalid"
+        ) from exc
+
+    expected_product_ids = tuple(turn.expected_product_ids)
+    query_product_ids = evidence.packet.query.product_ids
+    visible_product_ids = contract.get("visible_product_ids")
+    if (
+        not expected_product_ids
+        or query_product_ids != expected_product_ids
+        or visible_product_ids != list(expected_product_ids)
+    ):
+        raise AuditBundleError(
+            "product knowledge product binding mismatch"
+        )
+    if (
+        dom.get("visible_product_ids") != list(expected_product_ids)
+        or dom.get("shelf_product_ids") != list(expected_product_ids)
+    ):
+        raise AuditBundleError(
+            "product knowledge product card is missing"
+        )
+
+    selected = evidence.packet.selected
+    selected_ids = tuple(
+        item.evidence.evidence_id for item in selected
+    )
+    selected_product_ids = tuple(
+        item.evidence.product_id for item in selected
+    )
+    if any(
+        product_id not in query_product_ids
+        for product_id in selected_product_ids
+    ):
+        raise AuditBundleError(
+            "product evidence is outside product scope"
+        )
+    if not set(turn.expected_product_evidence_ids) <= set(
+        selected_ids
+    ):
+        raise AuditBundleError(
+            "expected product evidence is missing"
+        )
+
+    sections = contract.get("sections")
+    answer_sections = (
+        tuple(
+            section
+            for section in sections
+            if (
+                isinstance(section, dict)
+                and section.get("kind") == "answer"
+            )
+        )
+        if isinstance(sections, list)
+        else ()
+    )
+    if len(answer_sections) != 1:
+        raise AuditBundleError(
+            "product knowledge answer section is invalid"
+        )
+    answer = answer_sections[0]
+    used_fact_ids = answer.get("used_fact_ids")
+    answer_text = answer.get("copy_text")
+    if (
+        not isinstance(used_fact_ids, list)
+        or any(
+            not isinstance(fact_id, str) or not fact_id
+            for fact_id in used_fact_ids
+        )
+        or not isinstance(answer_text, str)
+        or not answer_text.strip()
+    ):
+        raise AuditBundleError(
+            "product knowledge answer section is invalid"
+        )
+    if not set(turn.expected_used_fact_ids) <= set(used_fact_ids):
+        raise AuditBundleError(
+            "expected used fact is missing"
+        )
+    selected_fact_ids = {
+        f"evidence:{evidence_id}"
+        for evidence_id in selected_ids
+    }
+    if any(
+        fact_id.startswith("evidence:")
+        and fact_id not in selected_fact_ids
+        for fact_id in used_fact_ids
+    ):
+        raise AuditBundleError(
+            "used product evidence is unavailable"
+        )
+
+    normalized_answer = _normalize_visible_text(answer_text)
+    presentation_text = dom.get("presentation_text")
+    if not isinstance(presentation_text, str):
+        raise AuditBundleError(
+            "product knowledge DOM text is invalid"
+        )
+    normalized_dom = _normalize_visible_text(presentation_text)
+    if any(
+        (
+            normalized := _normalize_visible_text(required)
+        ) not in normalized_answer
+        or normalized not in normalized_dom
+        for required in turn.required_answer_text
+    ):
+        raise AuditBundleError(
+            "required answer text is missing"
+        )
+    if any(
+        (
+            normalized := _normalize_visible_text(forbidden)
+        ) in normalized_answer
+        or normalized in normalized_dom
+        for forbidden in turn.forbidden_answer_text
+    ):
+        raise AuditBundleError(
+            "forbidden answer text is visible"
+        )
+
+    selected_product_by_id = {
+        item.evidence.evidence_id: item.evidence.product_id
+        for item in selected
+    }
+    used_evidence_ids = tuple(
+        fact_id.removeprefix("evidence:")
+        for fact_id in used_fact_ids
+        if re.fullmatch(r"evidence:[0-9a-f]{64}", fact_id)
+    )
+    used_evidence_product_ids = tuple(
+        selected_product_by_id[evidence_id]
+        for evidence_id in used_evidence_ids
+    )
+    expected_section_count = int(bool(used_evidence_ids))
+    if (
+        dom.get("product_evidence_section_count")
+        != expected_section_count
+        or dom.get("product_evidence_ids")
+        != list(used_evidence_ids)
+        or dom.get("product_evidence_product_ids")
+        != list(used_evidence_product_ids)
+    ):
+        raise AuditBundleError(
+            "product evidence DOM mismatch"
         )
 
 
@@ -3996,6 +4369,18 @@ def run_bounded_browser_audit(
             "frontend_contract_violation_count": 0,
             "console_error_count": 0,
         })
+    elif trajectory_set == "product_knowledge":
+        report.update({
+            "trajectory_count": 0,
+            "passed_turn_count": 0,
+            "wrong_responsibility_count": 0,
+            "wrong_product_binding_count": 0,
+            "missing_expected_evidence_count": 0,
+            "cross_product_evidence_count": 0,
+            "answer_coverage_mismatch_count": 0,
+            "frontend_contract_violation_count": 0,
+            "console_error_count": 0,
+        })
     _write_json(output / "summary.json", report)
     executable = os.environ.get(
         "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH"
@@ -4020,6 +4405,9 @@ def run_bounded_browser_audit(
                         ),
                         general_knowledge_usefulness=(
                             trajectory_set == "general_knowledge"
+                        ),
+                        product_knowledge_usefulness=(
+                            trajectory_set == "product_knowledge"
                         ),
                     )
                 except AuditBundleError as error:
@@ -4087,7 +4475,10 @@ def run_bounded_browser_audit(
             for trajectory in trajectories
         )
     )
-    if trajectory_set == "general_knowledge":
+    if trajectory_set in {
+        "general_knowledge",
+        "product_knowledge",
+    }:
         report["trajectory_count"] = len(report["trajectories"])
         report["passed_turn_count"] = (
             report["turn_count"] if report["passed"] else 0
@@ -4779,7 +5170,12 @@ def resolve_cli_output(
     output: Path | None,
     attempt_context: Path | None,
 ) -> Path:
-    if trajectory_set in {"fixture", "demo", "general_knowledge"}:
+    if trajectory_set in {
+        "fixture",
+        "demo",
+        "general_knowledge",
+        "product_knowledge",
+    }:
         if output is None:
             raise AuditBundleError(
                 f"{trajectory_set} requires --output"
@@ -4810,6 +5206,7 @@ def _run_bounded_browser_trajectory(
     runtime_capability: str | None = None,
     demo_usefulness: bool = False,
     general_knowledge_usefulness: bool = False,
+    product_knowledge_usefulness: bool = False,
 ) -> dict[str, Any]:
     trajectory_dir = output / trajectory.trajectory_id
     trajectory_dir.mkdir()
@@ -4919,6 +5316,19 @@ def _run_bounded_browser_trajectory(
                     )
                 if general_knowledge_usefulness:
                     _validate_general_knowledge_turn(
+                        turn=turn,
+                        contract=contract,
+                        events=_sse_events_from_sse(
+                            (turn_dir / "stream.sse").read_text(
+                                encoding="utf-8"
+                            )
+                        ),
+                        dom=_read_object(
+                            turn_dir / "terminal-dom.json"
+                        ),
+                    )
+                if product_knowledge_usefulness:
+                    _validate_product_knowledge_turn(
                         turn=turn,
                         contract=contract,
                         events=_sse_events_from_sse(
@@ -5365,6 +5775,9 @@ def _failed_terminal_dom(
         "shelf_product_ids": [],
         "knowledge_citation_panel_count": 0,
         "knowledge_citation_ids": [],
+        "product_evidence_section_count": 0,
+        "product_evidence_ids": [],
+        "product_evidence_product_ids": [],
         "presentation_text": "",
     }
 
@@ -5669,6 +6082,18 @@ def _terminal_dom(
                     '.guide-evidence-drawer'
                 )).filter(Boolean)
             );
+            const productEvidenceItems = root
+                ? Array.from(root.querySelectorAll(
+                    '[data-evidence-id][data-guide-product-id]'
+                )).filter(node => (
+                    /^[0-9a-f]{64}$/.test(
+                        node.dataset.evidenceId || ''
+                    )
+                    && Number.isInteger(
+                        Number(node.dataset.guideProductId)
+                    )
+                ))
+                : [];
             const clarification = terminalKind === 'clarification';
             const legacyBubbles = clarification
                 ? []
@@ -5720,6 +6145,17 @@ def _terminal_dom(
                     knowledgeCitationPanels.size,
                 knowledge_citation_ids: knowledgeCitationItems.map(
                     node => node.dataset.citationId
+                ),
+                product_evidence_section_count: root
+                    ? root.querySelectorAll(
+                        '[data-section-kind="evidence"]'
+                    ).length
+                    : 0,
+                product_evidence_ids: productEvidenceItems.map(
+                    node => node.dataset.evidenceId
+                ),
+                product_evidence_product_ids: productEvidenceItems.map(
+                    node => Number(node.dataset.guideProductId)
                 ),
                 presentation_text: clarification
                     ? wrapper.innerText
@@ -6135,12 +6571,41 @@ def validate_audit_bundle(
             and isinstance(section.get("kind"), str)
         )
     ]
+    evidence_section_count = dom.get(
+        "product_evidence_section_count",
+        0,
+    )
+    if (
+        not isinstance(evidence_section_count, int)
+        or isinstance(evidence_section_count, bool)
+        or evidence_section_count not in {0, 1}
+    ):
+        raise AuditBundleError(
+            "DOM product evidence section count mismatch"
+        )
+    if evidence_section_count:
+        expected_section_kinds.append("evidence")
     if dom.get("visible_section_kinds") != expected_section_kinds:
         raise AuditBundleError("DOM section order mismatch")
+    section_blocks = dom.get("section_blocks")
+    if not isinstance(section_blocks, list):
+        raise AuditBundleError("DOM section blocks are missing")
+    if len(section_blocks) != len(sections) + evidence_section_count:
+        raise AuditBundleError("DOM section block count mismatch")
     _validate_section_blocks(
         sections=sections,
-        section_blocks=dom.get("section_blocks"),
+        section_blocks=section_blocks[: len(sections)],
     )
+    if (
+        evidence_section_count
+        and (
+            not isinstance(section_blocks[-1], dict)
+            or section_blocks[-1].get("kind") != "evidence"
+        )
+    ):
+        raise AuditBundleError(
+            "DOM product evidence section order mismatch"
+        )
     expected_inline_product_ids = [
         section["product_id"]
         for section in sections
@@ -6550,6 +7015,7 @@ def _parser() -> argparse.ArgumentParser:
             "release",
             "demo",
             "general_knowledge",
+            "product_knowledge",
         ),
         required=True,
     )
@@ -6654,13 +7120,21 @@ def main(argv: Sequence[str] | None = None) -> int:
             trajectories=DEMO_TRAJECTORIES,
             trajectory_set="demo",
         )
-    else:
+    elif args.trajectory_set == "general_knowledge":
         report = run_bounded_browser_audit(
             base_url=args.base_url,
             output=output,
             viewport=args.viewport,
             trajectories=GENERAL_KNOWLEDGE_TRAJECTORIES,
             trajectory_set="general_knowledge",
+        )
+    else:
+        report = run_bounded_browser_audit(
+            base_url=args.base_url,
+            output=output,
+            viewport=args.viewport,
+            trajectories=PRODUCT_KNOWLEDGE_TRAJECTORIES,
+            trajectory_set="product_knowledge",
         )
     print(json.dumps(report, ensure_ascii=False))
     return 0
@@ -6676,6 +7150,7 @@ __all__ = [
     "DEMO_TRAJECTORIES",
     "FIXTURE_TURN_IDS",
     "GENERAL_KNOWLEDGE_TRAJECTORIES",
+    "PRODUCT_KNOWLEDGE_TRAJECTORIES",
     "RELEASE_TRAJECTORIES",
     "REQUIRED_TURN_FILES",
     "derive_release_turn_counters",

@@ -1511,10 +1511,71 @@ RECLASSIFICATION_POST_EVIDENCE_NODES = frozenset(
             "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
             "test_fixture_chromium_disables_external_dns_transport"
         ),
+        (
+            "tests/guide/runtime/test_frontend_presentation_stream.py::"
+            "test_non_product_knowledge_mode_keeps_evidence_layer_hidden"
+        ),
+        (
+            "tests/guide/runtime/test_frontend_presentation_stream.py::"
+            "test_product_knowledge_coverage_stream_appends_bound_"
+            "evidence_section"
+        ),
+        (
+            "tests/guide/runtime/test_frontend_scope.py::"
+            "test_product_knowledge_coverage_keeps_evidence_for_guide_"
+            "renderer"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_product_knowledge_coverage_accepts_typed_bound_visible_"
+            "evidence"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_product_knowledge_coverage_cli_dispatches_existing_"
+            "bounded_browser_runner"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_product_knowledge_coverage_trajectories_cover_eight_"
+            "scenarios_and_nine_turns"
+        ),
+        (
+            "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+            "test_product_knowledge_dom_contains_only_answer_used_evidence"
+        ),
+        *(
+            (
+                "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
+                "test_product_knowledge_coverage_rejects_unusable_turn"
+                f"[{case}]"
+            )
+            for case in (
+                "cross_product-outside product scope",
+                "forbidden_text-forbidden answer text is visible",
+                "malformed_evidence-payload is invalid",
+                "missing_card-product card is missing",
+                "missing_evidence-expected product evidence is missing",
+                "missing_evidence_ui-product evidence DOM mismatch",
+                "missing_required_text-required answer text is missing",
+                "missing_used_fact-expected used fact is missing",
+                "ungrounded_used_fact-used product evidence is unavailable",
+                "wrong_product-product binding mismatch",
+                "wrong_responsibility-responsibility mismatch",
+            )
+        ),
     }
 )
 RECLASSIFICATION_REPLACED_EVIDENCE_NODES = frozenset(
     {
+        (
+            "tests/guide/runtime/test_frontend_presentation_stream.py::"
+            "test_structured_stream_keeps_evidence_out_of_final_display"
+        ),
+        (
+            "tests/guide/runtime/test_frontend_scope.py::"
+            "test_product_evidence_event_has_owned_escaped_renderer"
+        ),
         (
             "tests/guide/tools/test_run_mainline_contract_browser_audit.py::"
             "test_fixture_cli_requires_runtime_identity"

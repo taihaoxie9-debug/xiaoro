@@ -1097,7 +1097,7 @@ def test_chat_contract_path_does_not_render_a_second_product_shelf() -> None:
     ) in flush
 
 
-def test_structured_stream_keeps_evidence_out_of_final_display() -> None:
+def test_product_knowledge_coverage_stream_appends_bound_evidence_section() -> None:
     result = _node(
         f"""
 const guide = require({json.dumps(str(MODULE))});
@@ -1158,7 +1158,7 @@ function flattenText(node) {{
 (async () => {{
   const documentRef = new FakeDocument();
   const container = documentRef.createElement('div');
-  const state = {{
+  let state = {{
     ...guide.createTurnState(),
     cardDisplay: {{
       mode: 'single',
@@ -1182,14 +1182,26 @@ function flattenText(node) {{
       }},
       product_evidence: {{
         packet: {{
-          selected: [{{
-            evidence: {{
-              product_id: 52,
-              exact_text: 'SPF50 PA++++，30ml',
-              management_label: 'product_specification',
-              review_status: 'accepted',
+          selected: [
+            {{
+              evidence: {{
+                evidence_id: '{"a" * 64}',
+                product_id: 52,
+                exact_text: 'SPF50 PA++++，30ml',
+                management_label: 'product_specification',
+                review_status: 'accepted',
+              }},
             }},
-          }}],
+            {{
+              evidence: {{
+                evidence_id: '{"b" * 64}',
+                product_id: 52,
+                exact_text: '同商品但答案未引用的证据',
+                management_label: 'product_specification',
+                review_status: 'accepted',
+              }},
+            }},
+          ],
         }},
       }},
       review_evidence: {{
@@ -1201,11 +1213,16 @@ function flattenText(node) {{
       }},
     }},
     presentation: {{
-      mode: 'single_product',
+      mode: 'product_knowledge',
       copy_source: 'model',
       sections: [
         {{ kind: 'summary', copy_text: '先看这一款。' }},
-        {{ kind: 'judgement', copy_text: '这款更适合看通勤清爽需求。' }},
+        {{
+          kind: 'answer',
+          copy_text: '已确认这款的防晒标识。',
+          used_fact_ids: ['evidence:{"a" * 64}'],
+          direct_facts: [],
+        }},
         {{ kind: 'full_cards' }},
       ],
       card_display: {{
@@ -1225,6 +1242,10 @@ function flattenText(node) {{
       }},
     }},
   }};
+  state = guide.reduceGuideEvent(state, {{
+    event: 'product_evidence',
+    data: state.evidence.product_evidence,
+  }});
   await guide.streamPresentation(container, state, {{
     characterDelayMs: 0,
     formatPrice: product => `¥${{product.price}}`,
@@ -1232,8 +1253,17 @@ function flattenText(node) {{
   const root = container.children[0];
   const evidenceSections = descendants(root)
     .filter(node => node.dataset.sectionKind === 'evidence');
+  const evidenceRows = descendants(root)
+    .filter(node => node.dataset.evidenceId);
   process.stdout.write(JSON.stringify({{
     evidenceSectionCount: evidenceSections.length,
+    sectionOrder: root.children
+      .filter(node => node.dataset.sectionKind)
+      .map(node => node.dataset.sectionKind),
+    evidenceIds: evidenceRows.map(node => node.dataset.evidenceId),
+    evidenceProductIds: evidenceRows.map(
+      node => Number(node.dataset.guideProductId)
+    ),
     text: flattenText(root),
   }}));
 }})().catch(error => {{
@@ -1243,14 +1273,29 @@ function flattenText(node) {{
 """
     )
 
-    assert result["evidenceSectionCount"] == 0
-    assert "展示依据" not in result["text"]
-    assert "商品证据" not in result["text"]
+    assert result["evidenceSectionCount"] == 1
+    assert result["sectionOrder"] == [
+        "summary",
+        "answer",
+        "full_cards",
+        "evidence",
+    ]
+    assert result["evidenceIds"] == ["a" * 64]
+    assert result["evidenceProductIds"] == [52]
+    assert "展示依据" in result["text"]
+    assert "商品证据" in result["text"]
+    assert "SPF50" in result["text"]
     assert "用户反馈" not in result["text"]
     assert "不油腻" not in result["text"]
-    assert "SPF50" not in result["text"]
     assert "清爽肤感" not in result["text"]
-    assert "这款更适合看通勤清爽需求" in result["text"].replace(" ", "")
+    assert "同商品但答案未引用的证据" not in result["text"]
+    assert "已确认这款的防晒标识" in result["text"].replace(" ", "")
+
+
+def test_non_product_knowledge_mode_keeps_evidence_layer_hidden() -> None:
+    source = MODULE.read_text(encoding="utf-8")
+
+    assert "view.mode === 'product_knowledge'" in source
 
 
 def test_chat_skips_legacy_consultation_panel_when_contract_exists() -> None:

@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "灵芝焕能强韧精华水明确标注了哪些核心成分？",
+    "session_id": "session_c3f1e193-438a-4294-84d2-b9d3f562888d",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788171015651_oqszf2ir",
+  "request_message": "灵芝焕能强韧精华水明确标注了哪些核心成分？",
+  "turn_id": "pk-no-evidence-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "灵芝焕能强韧精华水明确标注了哪些核心成分？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Collection
+from collections.abc import Collection, Mapping
 
 from app.guide.intent.responsibility_matrix import Responsibility
 from app.guide.presentation.public_fact_contracts import (
@@ -37,6 +37,10 @@ def select_product_detail_facts(
     projection: ProductPublicFactProjection,
     responsibility: Responsibility,
     requested_dimensions: Collection[str],
+    evidence_dimensions: Mapping[
+        str,
+        Collection[str],
+    ] | None = None,
 ) -> tuple[ProjectedPublicFact, ...]:
     if not isinstance(projection, ProductPublicFactProjection):
         raise TypeError(
@@ -54,6 +58,7 @@ def select_product_detail_facts(
         return _select_product_knowledge_facts(
             projection,
             requested=requested,
+            evidence_dimensions=evidence_dimensions,
         )
     else:
         eligible_facts = tuple(
@@ -113,7 +118,17 @@ def _select_product_knowledge_facts(
     projection: ProductPublicFactProjection,
     *,
     requested: tuple[str, ...],
+    evidence_dimensions: Mapping[
+        str,
+        Collection[str],
+    ] | None,
 ) -> tuple[ProjectedPublicFact, ...]:
+    if evidence_dimensions is not None:
+        return _select_coverage_aware_product_knowledge_facts(
+            projection,
+            requested=requested,
+            evidence_dimensions=evidence_dimensions,
+        )
     facts = projection.facts
     selected_evidence = next(
         (
@@ -163,6 +178,112 @@ def _select_product_knowledge_facts(
         if len(selected) == 3:
             break
     return tuple(selected)
+
+
+def _select_coverage_aware_product_knowledge_facts(
+    projection: ProductPublicFactProjection,
+    *,
+    requested: tuple[str, ...],
+    evidence_dimensions: Mapping[str, Collection[str]],
+) -> tuple[ProjectedPublicFact, ...]:
+    normalized_dimensions = _normalized_evidence_dimensions(
+        evidence_dimensions
+    )
+    evidence_facts = tuple(
+        fact
+        for fact in projection.facts
+        if fact.fact_id.startswith("evidence:")
+    )
+    if not requested:
+        return evidence_facts[:1]
+
+    selected: list[ProjectedPublicFact] = []
+    used_ids: set[str] = set()
+    used_values: set[tuple[str, str]] = set()
+    covered: set[str] = set()
+    for dimension in requested:
+        if dimension in covered:
+            continue
+        evidence = next(
+            (
+                fact
+                for fact in evidence_facts
+                if (
+                    fact.fact_id not in used_ids
+                    and dimension
+                    in {
+                        fact.field_key,
+                        *normalized_dimensions.get(fact.fact_id, ()),
+                    }
+                    and _fact_value_identity(fact) not in used_values
+                )
+            ),
+            None,
+        )
+        fact = evidence or next(
+            (
+                candidate
+                for candidate in projection.facts
+                if (
+                    not candidate.fact_id.startswith("evidence:")
+                    and candidate.fact_id not in used_ids
+                    and candidate.field_key == dimension
+                    and _fact_value_identity(candidate) not in used_values
+                )
+            ),
+            None,
+        )
+        if fact is None:
+            continue
+        selected.append(fact)
+        used_ids.add(fact.fact_id)
+        used_values.add(_fact_value_identity(fact))
+        if fact.fact_id.startswith("evidence:"):
+            covered.update({
+                fact.field_key,
+                *normalized_dimensions.get(fact.fact_id, ()),
+            })
+        else:
+            covered.add(fact.field_key)
+        if len(selected) == 3:
+            break
+    return tuple(selected)
+
+
+def _normalized_evidence_dimensions(
+    values: Mapping[str, Collection[str]],
+) -> dict[str, tuple[str, ...]]:
+    if not isinstance(values, Mapping):
+        raise TypeError("evidence_dimensions must be a mapping")
+    normalized: dict[str, tuple[str, ...]] = {}
+    for fact_id, dimensions in values.items():
+        if not isinstance(fact_id, str) or not fact_id:
+            raise ValueError(
+                "evidence dimension keys must be nonempty strings"
+            )
+        if isinstance(dimensions, (str, bytes)):
+            raise TypeError(
+                "evidence dimension values must be collections"
+            )
+        frozen = tuple(dimensions)
+        if (
+            any(not isinstance(value, str) or not value for value in frozen)
+            or frozen != tuple(dict.fromkeys(frozen))
+        ):
+            raise ValueError(
+                "evidence dimensions must be ordered unique strings"
+            )
+        normalized[fact_id] = frozen
+    return normalized
+
+
+def _fact_value_identity(
+    fact: ProjectedPublicFact,
+) -> tuple[str, str]:
+    return (
+        fact.field_key,
+        " ".join(fact.display_value.casefold().split()),
+    )
 
 
 def _select_by_field_order(

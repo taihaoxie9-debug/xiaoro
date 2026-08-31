@@ -1,0 +1,53 @@
+{
+  "clarification_message_count": 0,
+  "comparison_table_count": 0,
+  "inline_product_ids": [],
+  "knowledge_citation_ids": [],
+  "knowledge_citation_panel_count": 0,
+  "legacy_message_count": 0,
+  "legacy_product_card_count": 0,
+  "presentation_mode": "product_knowledge",
+  "presentation_text": "我按你问的内容，整理这款商品的相关信息。\n\n品牌主打：碧柔水活防晒水润凝蜜：使用问答商家FAQ给出减少搓泥的护肤、防晒涂抹和后续上妆顺序；具体信息：减少搓泥：精简护肤、吸收后同向推开、成膜后轻拍上妆；同方向推开；防晒不搓泥FAQ。 使用问答：碧柔水活防晒水润凝蜜：使用问答商家FAQ给出运输后防止开盖喷溢的静置方法；具体信息：运输后开盖溢出：瓶口朝上静置2小时再打开；开盖溢出FAQ。\n\n本轮提到的商品\n碧柔水活防晒水润凝蜜\n¥ 92\n防晒\n速干成膜\n普通人群\n去商品页查实时价\n展示依据\n商品证据\n碧柔水活防晒水润凝蜜：如何正确使用不搓泥？商家建议精简护肤、待护肤品吸收后涂防晒、同一方向推开避免打圈摩擦，成膜后轻拍上妆\n碧柔水活防晒水润凝蜜：防晒打开可能溢出吗？运输摇晃可能增加瓶体压力，建议瓶口朝上静置2小时后再打开",
+  "product_evidence_ids": [
+    "02e71cc9593ea26d4f7288abba1c1d107b201a99979f7bca01416593d8b9c7af",
+    "e3ee0783aa62d423918907246ca3084f9f82bf24a301857a78d88aab56a6a785"
+  ],
+  "product_evidence_product_ids": [
+    57,
+    57
+  ],
+  "product_evidence_section_count": 1,
+  "request_id": "request_1788171006660_3d7rtzti",
+  "section_blocks": [
+    {
+      "kind": "summary",
+      "text": "我按你问的内容，整理这款商品的相关信息。"
+    },
+    {
+      "kind": "answer",
+      "text": "品牌主打：碧柔水活防晒水润凝蜜：使用问答商家FAQ给出减少搓泥的护肤、防晒涂抹和后续上妆顺序；具体信息：减少搓泥：精简护肤、吸收后同向推开、成膜后轻拍上妆；同方向推开；防晒不搓泥FAQ。 使用问答：碧柔水活防晒水润凝蜜：使用问答商家FAQ给出运输后防止开盖喷溢的静置方法；具体信息：运输后开盖溢出：瓶口朝上静置2小时再打开；开盖溢出FAQ。"
+    },
+    {
+      "kind": "full_cards",
+      "text": "本轮提到的商品\n碧柔水活防晒水润凝蜜\n¥ 92\n防晒\n速干成膜\n普通人群\n去商品页查实时价"
+    },
+    {
+      "kind": "evidence",
+      "text": "展示依据\n商品证据\n碧柔水活防晒水润凝蜜：如何正确使用不搓泥？商家建议精简护肤、待护肤品吸收后涂防晒、同一方向推开避免打圈摩擦，成膜后轻拍上妆\n碧柔水活防晒水润凝蜜：防晒打开可能溢出吗？运输摇晃可能增加瓶体压力，建议瓶口朝上静置2小时后再打开"
+    }
+  ],
+  "shelf_product_ids": [
+    57
+  ],
+  "terminal_kind": "presentation",
+  "turn_presentation_root_count": 1,
+  "visible_product_ids": [
+    57
+  ],
+  "visible_section_kinds": [
+    "summary",
+    "answer",
+    "full_cards",
+    "evidence"
+  ]
+}

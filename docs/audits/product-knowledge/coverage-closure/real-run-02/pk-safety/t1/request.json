@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "薇诺娜舒敏保湿丝滑面膜做完特殊美容项目后一定安全吗？",
+    "session_id": "session_39310106-7d40-4300-bbf1-348bd6093b57",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788171022995_lh79ew1y",
+  "request_message": "薇诺娜舒敏保湿丝滑面膜做完特殊美容项目后一定安全吗？",
+  "turn_id": "pk-safety-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "薇诺娜舒敏保湿丝滑面膜做完特殊美容项目后一定安全吗？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

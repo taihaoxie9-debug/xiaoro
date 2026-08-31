@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "理肤泉新B5多效修护精华确认有哪些核心成分？",
+    "session_id": "session_cb188bd7-d079-4993-ac92-8d97e26db3f2",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788170879676_03q7if3e",
+  "request_message": "理肤泉新B5多效修护精华确认有哪些核心成分？",
+  "turn_id": "pk-core-ingredients-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "理肤泉新B5多效修护精华确认有哪些核心成分？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}

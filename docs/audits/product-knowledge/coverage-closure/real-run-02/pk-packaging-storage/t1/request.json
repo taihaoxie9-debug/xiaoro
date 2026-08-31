@@ -1,0 +1,18 @@
+{
+  "body": {
+    "conversation_version": 0,
+    "message": "透明质酸钠修复贴低温后出现白色结晶，该怎么看？",
+    "session_id": "session_d9d321ce-8717-430e-be27-53d5cbf9a7c3",
+    "stream": true
+  },
+  "method": "POST",
+  "request_id": "request_1788170983277_oe2xo9la",
+  "request_message": "透明质酸钠修复贴低温后出现白色结晶，该怎么看？",
+  "turn_id": "pk-packaging-storage-t1",
+  "url": "/api/v1/chat/stream",
+  "user_message": "透明质酸钠修复贴低温后出现白色结晶，该怎么看？",
+  "viewport": {
+    "height": 1000,
+    "width": 1440
+  }
+}
